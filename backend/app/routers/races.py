@@ -10,22 +10,34 @@ import os
 router = APIRouter(prefix="/races", tags=["races"])
 
 @router.get("/", response_model=List[schemas.Race])
-def list_races(db: Session = Depends(get_db)):
-    # Vrátíme všechny závody, frontend si je roztřídí podle sezón
-    
-    # Používáme raw SQL pro správné čtení bit hodnot a načítání areálu
-    result = db.execute(text("""
+def list_races(current_season: bool = False, upcoming: bool = False, db: Session = Depends(get_db)):
+    # Sestavíme SQL dotaz s filtry
+    base_query = """
         SELECT r.id, r.closed+0 as closed, r.datum, r.proposition, r.raceNr, 
                r.registration+0 as registration, r.result, r.areal_id, 
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
-               a.name as areal_name,
-               o.name as organizer_name
+               CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
+               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
         FROM fuj_jmlp_race r 
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
         WHERE r.raceNr IS NOT NULL
-        ORDER BY r.datum DESC
-    """)).fetchall()
+    """
+    
+    # Přidáme filtry
+    if current_season:
+        # Aktuální sezóna je 14 (nejvyšší season_id)
+        base_query += " AND r.season_id = 14"
+    
+    if upcoming:
+        # Pouze nadcházející závody
+        base_query += " AND r.datum >= CURDATE()"
+        base_query += " ORDER BY r.datum ASC"
+    else:
+        base_query += " ORDER BY r.datum DESC"
+    
+    # Používáme raw SQL pro správné čtení bit hodnot a načítání areálu
+    result = db.execute(text(base_query)).fetchall()
     
     races = []
     for row in result:
@@ -57,8 +69,8 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
         SELECT r.id, r.closed+0 as closed, r.datum, r.proposition, r.raceNr, 
                r.registration+0 as registration, r.result, r.areal_id, 
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
-               a.name as areal_name,
-               o.name as organizer_name
+               CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
+               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
         FROM fuj_jmlp_race r 
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id

@@ -83,3 +83,53 @@ class Registration(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Post (aktuality) schemas
+class PostBase(BaseModel):
+    title: str
+    content: str
+    image_path: Optional[str] = None
+    published: bool = True
+
+
+class PostCreate(PostBase):
+    pass
+
+
+class PostUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    image_path: Optional[str] = None
+    published: Optional[bool] = None
+
+
+class Post(PostBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Admin user schemas
+class AdminUserBase(BaseModel):
+    username: str
+
+
+class AdminUserCreate(AdminUserBase):
+    password: str
+
+
+class AdminUser(AdminUserBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str

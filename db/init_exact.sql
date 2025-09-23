@@ -84,3 +84,38 @@ CREATE TABLE IF NOT EXISTS `race_registration` (
   KEY `ix_reg_race` (`race_id`),
   KEY `ix_reg_racer` (`racer_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Posts (aktuality) table for homepage
+CREATE TABLE IF NOT EXISTS `posts` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
+  `published` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ix_posts_published` (`published`),
+  KEY `ix_posts_created` (`created_at`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Admin users table
+CREATE TABLE IF NOT EXISTS `admin_users` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- Sample posts data
+INSERT INTO `posts` (`title`, `content`, `image_path`, `published`) VALUES
+  ('Vítejte na webu JMLP', 'Vítáme vás na novém webu **Jihomoravské lyžařské ligy**.\n\nNa těchto stránkách najdete:\n- Aktuální termínovku závodů\n- Historii závodů v archivu\n- Důležité dokumenty ke stažení\n\n*Přejeme příjemné prohlížení!*', NULL, 1),
+  ('Registrace na zimní závody', 'Zahájili jsme registrace na **zimní sezónu 2025/26**.\n\nRegistrovat se můžete na jednotlivé závody v sekci Termínovka.\n\nNezapomeňte si stáhnout propozice před závodem!', NULL, 1)
+ON DUPLICATE KEY UPDATE `title`=VALUES(`title`);
+
+-- Default admin user (username: admin, password: admin123)
+INSERT INTO `admin_users` (`username`, `password_hash`) VALUES
+  ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNi8F/G9fzOUi')
+ON DUPLICATE KEY UPDATE `username`=VALUES(`username`);

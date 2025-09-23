@@ -1,5 +1,5 @@
 import React from 'react'
-import RegistrationForm from './RegistrationForm.jsx'
+import RegistrationForm from '../ui/RegistrationForm.jsx'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function RaceDetail({ raceId }) {

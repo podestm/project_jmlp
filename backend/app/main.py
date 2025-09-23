@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import races, racers, clubs, registration
+from .routers import races, racers, clubs, registration, posts
 
 app = FastAPI(title="JMLP API")
 
@@ -18,6 +18,7 @@ app.include_router(races.router)
 app.include_router(racers.router)
 app.include_router(clubs.router)
 app.include_router(registration.router)
+app.include_router(posts.router)
 
 @app.get("/")
 def root():
