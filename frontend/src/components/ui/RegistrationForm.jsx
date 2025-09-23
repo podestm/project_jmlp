@@ -287,7 +287,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
 
           <div className="mb-3">
             <label className="form-label">
-              <span className="bi bi-building"></span>
+              <span className="bi bi-buildings"></span>
               Klub <span className="text-danger">*</span>
             </label>
             <input 
@@ -372,7 +372,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                   {racer.name} {racer.surname} ({racer.year})
                 </div>
                 <div className="small text-muted">
-                  <span className="bi bi-building"></span>
+                  <span className="bi bi-buildings"></span>
                   {racer.club_name || 'Bez klubu'}
                 </div>
                 {racer.slcr_id && (

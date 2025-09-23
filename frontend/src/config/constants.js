@@ -104,11 +104,45 @@ export const FEATURES = {
   DARK_MODE: false
 };
 
+// Season Configuration
+export const SEASON_CONFIG = {
+  // Sezóna začíná 1. srpna
+  SEASON_START_MONTH: 8, // srpen
+  SEASON_START_DAY: 1,
+  
+  // Logika pro určení sezóny
+  getCurrentSeasonId: (referenceDate = new Date()) => {
+    const year = referenceDate.getFullYear();
+    const month = referenceDate.getMonth() + 1; // JavaScript months jsou 0-indexed
+    
+    // Pokud jsme od srpna, patříme do sezóny následujícího roku
+    if (month >= SEASON_CONFIG.SEASON_START_MONTH) {
+      return year + 1;
+    } else {
+      return year;
+    }
+  },
+  
+  // Formátování sezóny pro zobrazení
+  formatSeason: (seasonId) => {
+    return `${seasonId - 1}/${seasonId}`;
+  },
+  
+  // Získání období sezóny
+  getSeasonPeriod: (seasonId) => {
+    return {
+      start: `1.8.${seasonId - 1}`,
+      end: `31.7.${seasonId}`
+    };
+  }
+};
+
 export default {
   APP_CONFIG,
   NAVIGATION,
   RACE_CONFIG,
   DATE_CONFIG,
   UI_CONFIG,
-  FEATURES
+  FEATURES,
+  SEASON_CONFIG
 };

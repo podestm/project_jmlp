@@ -1,7 +1,8 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
-export default function Archive({ onSelect }) {
+export default function Archive() {
   const [races, setRaces] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
@@ -134,13 +135,13 @@ export default function Archive({ onSelect }) {
                                 </span>
                               </div>
                               <div className="mt-auto">
-                                <button 
-                                  className="btn btn-outline-primary w-100"
-                                  onClick={() => onSelect(race.id)}
+                                <Link 
+                                  to={`/zavod/${race.id}`}
+                                  className="btn btn-outline-primary w-100 text-decoration-none"
                                 >
                                   <i className="bi bi-arrow-right me-2"></i>
                                   Zobrazit detail
-                                </button>
+                                </Link>
                               </div>
                             </div>
                           </div>

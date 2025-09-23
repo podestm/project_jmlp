@@ -1,20 +1,34 @@
 import Navigation from './Navigation.jsx';
 
-export default function Layout({ children, currentPage, onNavigate }) {
+export default function Layout({ children }) {
   return (
-    <div className="min-h-screen d-flex flex-column">
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       {/* Navigation */}
-      <Navigation currentPage={currentPage} onNavigate={onNavigate} />
+      <Navigation />
       
       {/* Main Content */}
-      <main className="main-content flex-grow-1">
+      <main style={{ flex: '1 0 auto' }} className="main-content">
         <div className="content-wrapper">
-          {children}
+          <div className="row justify-content-center">
+            <div className="col-lg-10">
+              {children}
+            </div>
+          </div>
         </div>
       </main>
       
       {/* Footer */}
-      <footer className="bg-light border-top py-4 mt-auto">
+      <footer 
+        className="bg-light border-top py-4" 
+        style={{ 
+          marginTop: 'auto',
+          flexShrink: 0 
+        }}
+      >
         <div className="container text-center">
           <div className="row">
             <div className="col-md-6">

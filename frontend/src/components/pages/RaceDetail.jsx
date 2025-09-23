@@ -1,8 +1,12 @@
 import React from 'react'
+import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
-export default function RaceDetail({ raceId }) {
+export default function RaceDetail() {
+  const { id } = useParams()
+  const raceId = parseInt(id)
+  
   const [race, setRace] = React.useState(null)
   const [clubStats, setClubStats] = React.useState(null)
   const [loading, setLoading] = React.useState(true)
@@ -67,13 +71,25 @@ export default function RaceDetail({ raceId }) {
   }
 
   return (
-    <div className="row g-4">
-      {/* Race Info Card */}
-      <div className="col-12">
-        <div className="card">
-          <div className="card-header">
-            <h5 className="card-title mb-0">
-              <span className="bi bi-info-circle"></span>
+    <div>
+      {/* Back Button */}
+      <div className="mb-3">
+        <Link 
+          to="/terminovka" 
+          className="btn btn-outline-primary text-decoration-none"
+        >
+          <i className="bi bi-arrow-left me-2"></i>
+          Zpět na termínovku
+        </Link>
+      </div>
+      
+      <div className="row g-4">
+        {/* Race Info Card */}
+        <div className="col-12">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title mb-0">
+                <span className="bi bi-info-circle"></span>
               Detail závodu
             </h5>
           </div>
@@ -166,7 +182,7 @@ export default function RaceDetail({ raceId }) {
                 {clubStats.clubs.map((club, index) => (
                   <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
                     <span>
-                      <span className="bi bi-building"></span>
+                      <span className="bi bi-buildings"></span>
                       {club.club_name}
                     </span>
                     <span className="badge bg-primary rounded-pill">
@@ -179,6 +195,7 @@ export default function RaceDetail({ raceId }) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

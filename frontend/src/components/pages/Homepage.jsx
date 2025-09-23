@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import API, { API_CONFIG } from '../../config/api.js';
 import { fixEncoding, formatText } from '../../utils/text.js';
 import { formatDate, getRelativeTime } from '../../utils/date.js';
 
-function Homepage({ onNavigate }) {
+function Homepage() {
   const [posts, setPosts] = useState([]);
   const [upcomingRaces, setUpcomingRaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,16 +150,13 @@ function Homepage({ onNavigate }) {
                         </span>
                       </div>
                       <div className="mt-2">
-                        <button 
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => {
-                            onNavigate && onNavigate('terminovka')
-                            // Možnost přímého přechodu na detail závodu
-                          }}
+                        <Link 
+                          to={`/zavod/${race.id}`}
+                          className="btn btn-sm btn-outline-primary text-decoration-none"
                         >
                           <span className="bi bi-eye me-1"></span>
                           Detail závodu
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   ))}
@@ -167,13 +165,13 @@ function Homepage({ onNavigate }) {
               
               {upcomingRaces.length > 0 && (
                 <div className="mt-3 pt-3 border-top">
-                  <button 
-                    className="btn btn-outline-primary w-100"
-                    onClick={() => onNavigate && onNavigate('terminovka')}
+                  <Link 
+                    to="/terminovka"
+                    className="btn btn-outline-primary w-100 text-decoration-none"
                   >
                     <span className="bi bi-calendar-check me-2"></span>
                     Zobrazit všechny závody
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>

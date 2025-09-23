@@ -1,18 +1,20 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
-export default function RaceList({ onSelect, currentSeasonOnly = false }) {
+export default function RaceList({ currentSeason = false }) {
   const [races, setRaces] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
 
   React.useEffect(() => {
-    fetch(`${API}/races/`)
+    const url = currentSeason ? `${API}/races/?current_season=true` : `${API}/races/`
+    fetch(url)
       .then(r => r.json())
       .then(setRaces)
       .catch(setError)
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentSeason])
 
   // Seskupení závodů podle sezón
   const groupedRaces = React.useMemo(() => {
@@ -45,7 +47,7 @@ export default function RaceList({ onSelect, currentSeasonOnly = false }) {
   }
 
   // Pokud chceme pouze aktuální sezónu, zobrazíme jen tu
-  if (currentSeasonOnly) {
+  if (currentSeason) {
     return (
       <div className="card">
         <div className="card-header bg-primary text-white">
@@ -85,13 +87,13 @@ export default function RaceList({ onSelect, currentSeasonOnly = false }) {
                         </span>
                       </div>
                       <div className="mt-auto">
-                        <button 
-                          className="btn btn-primary w-100"
-                          onClick={() => onSelect(race.id)}
+                        <Link 
+                          to={`/zavod/${race.id}`}
+                          className="btn btn-primary w-100 text-decoration-none"
                         >
                           <i className="bi bi-arrow-right-circle me-2"></i>
                           Přejít na závod
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -181,13 +183,13 @@ export default function RaceList({ onSelect, currentSeasonOnly = false }) {
                           </span>
                         </div>
                         <div className="mt-auto">
-                          <button 
-                            className="btn btn-primary w-100"
-                            onClick={() => onSelect(race.id)}
+                          <Link 
+                            to={`/zavod/${race.id}`}
+                            className="btn btn-primary w-100 text-decoration-none"
                           >
                             <i className="bi bi-arrow-right-circle me-2"></i>
                             Přejít na závod
-                          </button>
+                          </Link>
                         </div>
                       </div>
                     </div>

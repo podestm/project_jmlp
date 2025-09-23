@@ -5,9 +5,59 @@ from sqlalchemy import text
 from ..database import get_db
 from .. import models, schemas
 from typing import List
+from datetime import datetime, date
 import os
 
 router = APIRouter(prefix="/races", tags=["races"])
+
+
+def get_current_season_id(reference_date: date = None) -> int:
+    """
+    Dynamicky určí season_id podle data.
+    Nová sezóna začíná 1. srpna každého roku.
+    
+    Args:
+        reference_date: Datum pro určení sezóny (pokud None, použije se aktuální datum)
+    
+    Returns:
+        int: season_id (rok kdy sezóna končí)
+    
+    Příklad:
+        - 15.7.2025 -> sezóna 2025 (ještě stará sezóna)
+        - 1.8.2025 -> sezóna 2026 (nová sezóna)
+        - 15.3.2026 -> sezóna 2026 (pokračuje sezóna)
+    """
+    if reference_date is None:
+        reference_date = date.today()
+    
+    year = reference_date.year
+    
+    # Pokud jsme před 1. srpnem, patříme do sezóny tohoto roku
+    # Pokud jsme od 1. srpna, patříme do sezóny následujícího roku
+    if reference_date.month >= 8:  # srpen a později
+        season_id = year + 1
+    else:  # leden až červenec
+        season_id = year
+    
+    return season_id
+
+
+def get_current_season_filter(db: Session) -> int:
+    """
+    Získá aktuální season_id pro filtrování závodů.
+    """
+    current_season = get_current_season_id()
+    
+    # Ověříme, že tato sezóna existuje v databázi
+    result = db.execute(text("SELECT COUNT(*) as count FROM fuj_jmlp_race WHERE season_id = :season_id"), 
+                       {"season_id": current_season}).fetchone()
+    
+    if result.count > 0:
+        return current_season
+    else:
+        # Pokud aktuální sezóna neexistuje, vezmi nejvyšší dostupnou
+        result = db.execute(text("SELECT MAX(season_id) as max_season FROM fuj_jmlp_race")).fetchone()
+        return result.max_season if result.max_season else current_season
 
 @router.get("/", response_model=List[schemas.Race])
 def list_races(current_season: bool = False, upcoming: bool = False, db: Session = Depends(get_db)):
@@ -26,8 +76,9 @@ def list_races(current_season: bool = False, upcoming: bool = False, db: Session
     
     # Přidáme filtry
     if current_season:
-        # Aktuální sezóna je 14 (nejvyšší season_id)
-        base_query += " AND r.season_id = 14"
+        # Dynamicky určíme aktuální sezónu podle data
+        current_season_id = get_current_season_filter(db)
+        base_query += f" AND r.season_id = {current_season_id}"
     
     if upcoming:
         # Pouze nadcházející závody
@@ -165,3 +216,45 @@ def download_document(race_id: int, doc_type: str, db: Session = Depends(get_db)
         filename=filename,
         media_type='application/pdf'
     )
+
+
+@router.get("/season/current")
+def get_current_season(db: Session = Depends(get_db)):
+    """
+    Vrátí informace o aktuální sezóně podle data.
+    """
+    current_season_id = get_current_season_filter(db)
+    current_date = date.today()
+    
+    return {
+        "current_season_id": current_season_id,
+        "season_logic": f"Sezóna {current_season_id} (začíná 1.8.{current_season_id-1})",
+        "current_date": current_date,
+        "season_start": date(current_season_id-1, 8, 1),
+        "season_end": date(current_season_id, 7, 31)
+    }
+
+
+@router.get("/season/calculate")
+def calculate_season_for_date(race_date: str):
+    """
+    Vypočítá správné season_id pro zadané datum závodu.
+    
+    Args:
+        race_date: Datum ve formátu YYYY-MM-DD
+    
+    Returns:
+        season_id a informace o sezóně
+    """
+    try:
+        race_date_obj = datetime.strptime(race_date, "%Y-%m-%d").date()
+        season_id = get_current_season_id(race_date_obj)
+        
+        return {
+            "race_date": race_date,
+            "season_id": season_id,
+            "season_logic": f"Závod dne {race_date} patří do sezóny {season_id}",
+            "season_period": f"1.8.{season_id-1} - 31.7.{season_id}"
+        }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Neplatný formát data. Použijte YYYY-MM-DD")
