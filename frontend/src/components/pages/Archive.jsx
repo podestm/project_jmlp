@@ -125,7 +125,7 @@ export default function Archive() {
                                 {race.datum}
                               </p>
                               <p className="card-text mb-2 text-muted">
-                                <i className="bi bi-building me-2"></i>
+                                <i className="bi bi-buildings me-2"></i>
                                 <small>{race.organizer_name}</small>
                               </p>
                               <div className="mb-3">
