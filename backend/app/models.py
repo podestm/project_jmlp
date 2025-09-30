@@ -1,7 +1,38 @@
-from sqlalchemy import Column, Integer, BigInteger, SmallInteger, String, ForeignKey, Date, Boolean, DateTime, UniqueConstraint
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy import Integer, BigInteger, SmallInteger, String, ForeignKey, Date, Boolean, DateTime, UniqueConstraint, Enum
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import TypeDecorator
 from .database import Base
 from datetime import datetime, date
+import enum
+
+
+class FileTypeEnum(str, enum.Enum):
+    document = "document"
+    image = "image"
+    propozice = "propozice"
+    vysledky = "vysledky"
+    posty = "posty"
+    neprirazene = "neprirazene"
+
+
+# Custom type for MySQL BIT(1) fields
+class BitBoolean(TypeDecorator):
+    impl = SmallInteger
+    cache_ok = True
+    
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        # Handle bytes objects from MySQL BIT(1)
+        if isinstance(value, bytes):
+            return value != b'\x00'
+        # Handle integer values
+        return bool(value)
+    
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        return 1 if value else 0
 
 
 class Racer(Base):
@@ -35,20 +66,18 @@ class Areal(Base):
 class Race(Base):
     __tablename__ = "fuj_jmlp_race"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    closed: Mapped[bool] = mapped_column(Boolean)
+    closed: Mapped[bool] = mapped_column(BitBoolean)
     datum: Mapped[date | None] = mapped_column(Date, nullable=True)
-    proposition: Mapped[str | None] = mapped_column(String(255), nullable=True)
     raceNr: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    registration: Mapped[bool] = mapped_column(Boolean)
-    result: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    registration: Mapped[bool] = mapped_column(BitBoolean)
+    proposition_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
+    results_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     areal_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_areal.id"), nullable=True)
     organizer_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     raceCategory_id: Mapped[int] = mapped_column(BigInteger)
     raceMethod_id: Mapped[int] = mapped_column(BigInteger)
     raceType_id: Mapped[int] = mapped_column(BigInteger)
     season_id: Mapped[int] = mapped_column(BigInteger)
-
-    areal = relationship("Areal")
 
 
 class Registration(Base):
@@ -68,15 +97,49 @@ class Post(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String)  # TEXT type
-    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Legacy - keep for backward compatibility
+    image_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
+    image_position: Mapped[str | None] = mapped_column(String(20), nullable=True, default="right")  # "left", "right", "top", "none"
+    document_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     published: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class AdminUser(Base):
-    __tablename__ = "admin_users"
+    __tablename__ = "fuj_jmlp_admin"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String(100), unique=True)
+    email: Mapped[str] = mapped_column(String(191), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Document(Base):
+    __tablename__ = "fuj_jmlp_document"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    race_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race.id"), nullable=True)
+    type: Mapped[str] = mapped_column(String(20))  # 'propozice', 'vysledky', 'other'
+    filename: Mapped[str] = mapped_column(String(191))
+    original_filename: Mapped[str] = mapped_column(String(191))
+    file_path: Mapped[str] = mapped_column(String(255))
+    file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    uploaded_by: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_admin.id"))
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class File(Base):
+    __tablename__ = "fuj_jmlp_files"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    filename: Mapped[str] = mapped_column(String(255))
+    original_filename: Mapped[str] = mapped_column(String(255))
+    file_path: Mapped[str] = mapped_column(String(500))
+    file_size: Mapped[int] = mapped_column(BigInteger, default=0)
+    mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    file_type: Mapped[FileTypeEnum] = mapped_column(Enum(FileTypeEnum), default=FileTypeEnum.neprirazene)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    uploaded_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

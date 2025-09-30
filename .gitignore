@@ -3,10 +3,12 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+*.pyc
 
 # Node
 node_modules/
 dist/
+build/
 
 # VSCode
 .vscode/
@@ -19,3 +21,19 @@ dist/
 .env
 frontend/.env.local
 backend/.env
+
+# Uploaded files
+backend/documents/*
+!backend/documents/.gitkeep
+
+# Database
+db_data/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store

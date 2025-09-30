@@ -20,7 +20,7 @@ export default function RaceDetail() {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
         return r.json()
       }),
-      fetch(`${API}/races/${raceId}/club-stats`).then(r => {
+      fetch(`${API}/races/${raceId}/registrations`).then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
         return r.json()
       })
@@ -116,24 +116,24 @@ export default function RaceDetail() {
                 {/* Tlačítka pro dokumenty */}
                 <div className="mt-3 p-3 border rounded bg-light">
                   <a
-                    href={race.proposition ? `${API}/races/${raceId}/documents/proposition` : '#'}
-                    target={race.proposition ? "_blank" : "_self"}
+                    href={race.proposition_file_id ? `${API}/races/${raceId}/proposition` : '#'}
+                    target={race.proposition_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
-                    className={`btn w-100 mb-2 ${race.proposition ? 'btn-outline-primary' : 'btn-outline-dark'}`}
-                    style={race.proposition ? { border: '1px solid #0d6efd' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
-                    onClick={race.proposition ? undefined : (e) => e.preventDefault()}
+                    className={`btn w-100 mb-2 ${race.proposition_file_id ? 'btn-outline-primary' : 'btn-outline-dark'}`}
+                    style={race.proposition_file_id ? { border: '1px solid #0d6efd' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
+                    onClick={race.proposition_file_id ? undefined : (e) => e.preventDefault()}
                   >
                     <span className="bi bi-file-earmark-text me-1"></span>
                     Propozice
                   </a>
                   
                   <a
-                    href={race.result ? `${API}/races/${raceId}/documents/result` : '#'}
-                    target={race.result ? "_blank" : "_self"}
+                    href={race.results_file_id ? `${API}/races/${raceId}/results` : '#'}
+                    target={race.results_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
-                    className={`btn w-100 ${race.result ? 'btn-outline-success' : 'btn-outline-dark'}`}
-                    style={race.result ? { border: '1px solid #198754' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
-                    onClick={race.result ? undefined : (e) => e.preventDefault()}
+                    className={`btn w-100 ${race.results_file_id ? 'btn-outline-success' : 'btn-outline-dark'}`}
+                    style={race.results_file_id ? { border: '1px solid #198754' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
+                    onClick={race.results_file_id ? undefined : (e) => e.preventDefault()}
                   >
                     <span className="bi bi-file-earmark-check me-1"></span>
                     Výsledky
@@ -162,13 +162,13 @@ export default function RaceDetail() {
         </div>
       )}
 
-      {/* Club Statistics - moved to bottom */}
+      {/* Seznam registrovaných závodníků */}
       <div className="col-12">
         <div className="card">
           <div className="card-header">
             <h5 className="card-title mb-0">
               <span className="bi bi-people"></span>
-              Přihlášení závodníci podle klubů ({clubStats?.total_racers || 0})
+              Seznam registrovaných závodníků ({clubStats?.total_racers || 0})
             </h5>
           </div>
           <div className="card-body">
@@ -178,24 +178,47 @@ export default function RaceDetail() {
                 <p className="mt-2">Zatím není nikdo přihlášen</p>
               </div>
             ) : (
-              <div className="list-group list-group-flush">
-                {clubStats.clubs.map((club, index) => (
-                  <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                      <span className="bi bi-buildings"></span>
-                      {club.club_name}
-                    </span>
-                    <span className="badge bg-primary rounded-pill">
-                      {club.racer_count} přihlášených
-                    </span>
-                  </div>
-                ))}
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Jméno</th>
+                      <th>Příjmení</th>
+                      <th>Pohlaví</th>
+                      <th>Ročník</th>
+                      <th>SLČR ID</th>
+                      <th>Klub</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clubStats.clubs.flatMap(club =>
+                      club.racers.map((racer, index) => (
+                        <tr key={`${club.club_name}-${index}`}>
+                          <td>{racer.firstName}</td>
+                          <td>{racer.lastName}</td>
+                          <td>
+                            {racer.sex && (
+                              <span className={`badge ${racer.sex === 'M' ? 'bg-primary' : 'bg-warning'}`}>
+                                {racer.sex === 'M' ? 'Muž' : 'Žena'}
+                              </span>
+                            )}
+                          </td>
+                          <td>{racer.birthYear || '-'}</td>
+                          <td className="text-danger">{racer.idSlcr || '-'}</td>
+                          <td>
+                            <span className="badge bg-secondary">{club.club_name}</span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+      </div>
     </div>
   )
 }

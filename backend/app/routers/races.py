@@ -59,13 +59,30 @@ def get_current_season_filter(db: Session) -> int:
         result = db.execute(text("SELECT MAX(season_id) as max_season FROM fuj_jmlp_race")).fetchone()
         return result.max_season if result.max_season else current_season
 
+
+# Helper endpoints for dropdowns - must be before parametrized routes
+@router.get("/areals", response_model=List[schemas.Areal])
+def list_areals(db: Session = Depends(get_db)):
+    """List all areals for dropdown selection."""
+    areals = db.query(models.Areal).all()
+    return areals
+
+
+@router.get("/organizers", response_model=List[schemas.Club])
+def list_organizers(db: Session = Depends(get_db)):
+    """List all clubs that can be organizers."""
+    clubs = db.query(models.Club).filter(models.Club.valid == True).all()
+    return clubs
+
+
 @router.get("/", response_model=List[schemas.Race])
 def list_races(current_season: bool = False, upcoming: bool = False, db: Session = Depends(get_db)):
     # Sestavíme SQL dotaz s filtry
     base_query = """
-        SELECT r.id, r.closed+0 as closed, r.datum, r.proposition, r.raceNr, 
-               r.registration+0 as registration, r.result, r.areal_id, 
+        SELECT r.id, r.closed+0 as closed, r.datum, r.raceNr, 
+               r.registration+0 as registration, r.areal_id, 
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
+               r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
         FROM fuj_jmlp_race r 
@@ -96,10 +113,10 @@ def list_races(current_season: bool = False, upcoming: bool = False, db: Session
             "id": row.id,
             "closed": bool(row.closed),
             "datum": row.datum,
-            "proposition": row.proposition,
             "raceNr": row.raceNr,
             "registration": bool(row.registration),
-            "result": row.result,
+            "proposition_file_id": row.proposition_file_id,
+            "results_file_id": row.results_file_id,
             "areal_id": row.areal_id,
             "areal_name": row.areal_name or "Bez areálu",
             "organizer_id": row.organizer_id,
@@ -117,9 +134,10 @@ def list_races(current_season: bool = False, upcoming: bool = False, db: Session
 def get_race(race_id: int, db: Session = Depends(get_db)):
     # Použijeme raw SQL pro správné čtení bit hodnot
     result = db.execute(text("""
-        SELECT r.id, r.closed+0 as closed, r.datum, r.proposition, r.raceNr, 
-               r.registration+0 as registration, r.result, r.areal_id, 
+        SELECT r.id, r.closed+0 as closed, r.datum, r.raceNr, 
+               r.registration+0 as registration, r.areal_id, 
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
+               r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
         FROM fuj_jmlp_race r 
@@ -136,10 +154,10 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
         "id": result.id,
         "closed": bool(result.closed),
         "datum": result.datum,
-        "proposition": result.proposition,
         "raceNr": result.raceNr,
         "registration": bool(result.registration),
-        "result": result.result,
+        "proposition_file_id": result.proposition_file_id,
+        "results_file_id": result.results_file_id,
         "areal_id": result.areal_id,
         "areal_name": result.areal_name or "Bez areálu",
         "organizer_id": result.organizer_id,
@@ -152,10 +170,60 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
     
     return race_data
 
-@router.get("/{race_id}/registrations", response_model=List[schemas.Registration])
+@router.get("/{race_id}/registrations")
 def get_registrations(race_id: int, db: Session = Depends(get_db)):
-    regs = db.query(models.Registration).filter(models.Registration.race_id == race_id).all()
-    return regs
+    """Vrátí detailní seznam všech registrovaných závodníků seskupených podle klubů"""
+    result = db.execute(text("""
+        SELECT 
+            CONVERT(CONVERT(r.name USING binary) USING utf8mb4) as firstName,
+            CONVERT(CONVERT(r.surname USING binary) USING utf8mb4) as lastName,
+            r.sex,
+            r.year as birthYear,
+            r.slcr_id as idSlcr,
+            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
+            c.id as club_id,
+            rr.registered_at
+        FROM race_registration rr
+        JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
+        LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
+        WHERE rr.race_id = :race_id
+        ORDER BY c.name ASC, r.surname ASC, r.name ASC
+    """), {"race_id": race_id}).fetchall()
+    
+    # Group by clubs
+    clubs = {}
+    for row in result:
+        club_name = row.club_name or "Bez klubu"
+        if club_name not in clubs:
+            clubs[club_name] = {
+                "club_name": club_name,
+                "racers": []
+            }
+        
+        clubs[club_name]["racers"].append({
+            "firstName": row.firstName,
+            "lastName": row.lastName,
+            "sex": "M" if row.sex == 1 else ("Z" if row.sex == 2 else ""),
+            "birthYear": row.birthYear,
+            "idSlcr": row.idSlcr,
+            "registered_at": row.registered_at
+        })
+    
+    # Convert to list and add counts
+    club_list = []
+    total_racers = 0
+    for club_name, club_data in clubs.items():
+        club_data["racer_count"] = len(club_data["racers"])
+        club_list.append(club_data)
+        total_racers += club_data["racer_count"]
+    
+    # Sort by racer count descending, then by club name
+    club_list.sort(key=lambda x: (-x["racer_count"], x["club_name"]))
+    
+    return {
+        "clubs": club_list,
+        "total_racers": total_racers
+    }
 
 @router.get("/{race_id}/club-stats")
 def get_club_stats(race_id: int, db: Session = Depends(get_db)):
@@ -258,3 +326,94 @@ def calculate_season_for_date(race_date: str):
         }
     except ValueError:
         raise HTTPException(status_code=400, detail="Neplatný formát data. Použijte YYYY-MM-DD")
+
+
+# Public document endpoints
+@router.get("/{race_id}/documents", response_model=List[schemas.Document])
+def list_race_documents_public(race_id: int, db: Session = Depends(get_db)):
+    """List public documents for a race."""
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
+    if not race:
+        raise HTTPException(status_code=404, detail="Race not found")
+    
+    documents = db.query(models.Document).filter(models.Document.race_id == race_id).all()
+    return documents
+
+
+@router.get("/documents/{document_id}/download")
+def download_document_public(document_id: int, db: Session = Depends(get_db)):
+    """Download a document (public endpoint)."""
+    from pathlib import Path
+    from fastapi.responses import FileResponse
+    
+    document = db.query(models.Document).filter(models.Document.id == document_id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    file_path = Path(document.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=document.original_filename,
+        media_type=document.mime_type or 'application/octet-stream'
+    )
+
+
+# Public document download endpoints
+@router.get("/{race_id}/proposition")
+def download_race_proposition(race_id: int, db: Session = Depends(get_db)):
+    """Download race proposition document (public access)."""
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
+    if not race:
+        raise HTTPException(status_code=404, detail="Race not found")
+    
+    if not race.proposition_file_id:
+        raise HTTPException(status_code=404, detail="Proposition not found")
+    
+    # Get file from database
+    file_record = db.query(models.File).filter(models.File.id == race.proposition_file_id).first()
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File record not found")
+    
+    # Check if file exists on disk
+    from pathlib import Path
+    file_path = Path(file_record.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=file_record.original_filename,
+        media_type=file_record.mime_type or 'application/octet-stream'
+    )
+
+
+@router.get("/{race_id}/results")  
+def download_race_results(race_id: int, db: Session = Depends(get_db)):
+    """Download race results document (public access)."""
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
+    if not race:
+        raise HTTPException(status_code=404, detail="Race not found")
+    
+    if not race.results_file_id:
+        raise HTTPException(status_code=404, detail="Results not found")
+    
+    # Get file from database
+    file_record = db.query(models.File).filter(models.File.id == race.results_file_id).first()
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File record not found")
+    
+    # Check if file exists on disk
+    from pathlib import Path
+    file_path = Path(file_record.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=file_record.original_filename,
+        media_type=file_record.mime_type or 'application/octet-stream'
+    )
+

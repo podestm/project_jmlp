@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from typing import List
+from pathlib import Path
 from ..database import get_db
-from ..models import Post
+from ..models import Post, File
 from ..schemas import Post as PostSchema, PostCreate, PostUpdate
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -33,6 +35,60 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
     return post
+
+
+@router.get("/{post_id}/document/download")
+def download_post_document(post_id: int, db: Session = Depends(get_db)):
+    """Stáhnout dokument připojený k příspěvku (veřejný přístup)."""
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
+    
+    if not post.document_file_id:
+        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný dokument")
+    
+    # Get file from database
+    file_record = db.query(File).filter(File.id == post.document_file_id).first()
+    if not file_record:
+        raise HTTPException(status_code=404, detail="Soubor nenalezen v databázi")
+    
+    # Check if file exists on disk
+    file_path = Path(file_record.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Soubor nenalezen na disku")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=file_record.original_filename,
+        media_type=file_record.mime_type or 'application/octet-stream'
+    )
+
+
+@router.get("/{post_id}/image")
+def get_post_image(post_id: int, db: Session = Depends(get_db)):
+    """Získat obrázek příspěvku (veřejný přístup)."""
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
+    
+    if not post.image_file_id:
+        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný obrázek")
+    
+    # Get file from database
+    file_record = db.query(File).filter(File.id == post.image_file_id).first()
+    if not file_record:
+        raise HTTPException(status_code=404, detail="Soubor nenalezen v databázi")
+    
+    # Check if file exists on disk
+    file_path = Path(file_record.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Soubor nenalezen na disku")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=file_record.original_filename,
+        media_type=file_record.mime_type or 'application/octet-stream'
+    )
 
 
 # Admin endpoints (zatím bez autentizace)

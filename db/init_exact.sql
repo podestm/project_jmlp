@@ -1,4 +1,5 @@
--- Exact CREATE TABLE statements extracted from schemas.txt (phpMyAdmin export)
+-- JMLP Database Schema and Initial Data
+-- MyISAM engine for legacy compatibility
 
 CREATE TABLE `fuj_jmlp_racer` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -99,15 +100,37 @@ CREATE TABLE IF NOT EXISTS `posts` (
   KEY `ix_posts_created` (`created_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
--- Admin users table
-CREATE TABLE IF NOT EXISTS `admin_users` (
+-- Extended admin users table with more fields
+CREATE TABLE IF NOT EXISTS `fuj_jmlp_admin` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) NOT NULL,
+  `email` varchar(191) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
+  `full_name` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `last_login` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  UNIQUE KEY `email` (`email`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- File uploads table for documents (propozice, vysledky)
+CREATE TABLE IF NOT EXISTS `fuj_jmlp_document` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `race_id` bigint(20) DEFAULT NULL,
+  `type` enum('propozice','vysledky','other') NOT NULL DEFAULT 'other',
+  `filename` varchar(191) NOT NULL,
+  `original_filename` varchar(191) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `file_size` bigint(20) DEFAULT NULL,
+  `mime_type` varchar(100) DEFAULT NULL,
+  `uploaded_by` bigint(20) NOT NULL,
+  `uploaded_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_race_id` (`race_id`),
+  KEY `idx_type` (`type`),
+  KEY `idx_uploaded_by` (`uploaded_by`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sample posts data
 INSERT INTO `posts` (`title`, `content`, `image_path`, `published`) VALUES
@@ -115,7 +138,8 @@ INSERT INTO `posts` (`title`, `content`, `image_path`, `published`) VALUES
   ('Registrace na zimní závody', 'Zahájili jsme registrace na **zimní sezónu 2025/26**.\n\nRegistrovat se můžete na jednotlivé závody v sekci Termínovka.\n\nNezapomeňte si stáhnout propozice před závodem!', NULL, 1)
 ON DUPLICATE KEY UPDATE `title`=VALUES(`title`);
 
--- Default admin user (username: admin, password: admin123)
-INSERT INTO `admin_users` (`username`, `password_hash`) VALUES
-  ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNi8F/G9fzOUi')
-ON DUPLICATE KEY UPDATE `username`=VALUES(`username`);
+-- Default admin user (email: admin@jmlp.cz, password: admin123)
+-- Password hash for 'admin123' using bcrypt
+INSERT INTO `fuj_jmlp_admin` (`email`, `password_hash`, `full_name`, `is_active`) VALUES
+  ('admin@jmlp.cz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNi8F/G9fzOUi', 'Administrátor JMLP', 1)
+ON DUPLICATE KEY UPDATE `email`=VALUES(`email`);

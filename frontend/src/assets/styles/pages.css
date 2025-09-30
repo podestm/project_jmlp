@@ -2,18 +2,28 @@
 
 /* Homepage */
 .hero-section {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-primary);
-  color: white;
-  padding: var(--spacing-2xl);
+  border: 1px solid #dee2e6;
   margin-bottom: var(--spacing-xl);
+}
+
+.hero-section img {
+  transition: transform 0.3s ease;
+  max-height: 100px !important;
+  width: auto;
+}
+
+.hero-section img:hover {
+  transform: scale(1.05);
 }
 
 .hero-title {
   font-size: var(--font-size-3xl);
   font-weight: 700;
   margin-bottom: var(--spacing-md);
+  color: var(--primary-blue);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

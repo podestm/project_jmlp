@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import races, racers, clubs, registration, posts
+from .routers import races, racers, clubs, registration, posts, admin, admin_races
 
 app = FastAPI(title="JMLP API")
 
@@ -19,7 +19,14 @@ app.include_router(racers.router)
 app.include_router(clubs.router)
 app.include_router(registration.router)
 app.include_router(posts.router)
+app.include_router(admin.router)
+app.include_router(admin_races.router)
 
 @app.get("/")
 def root():
     return {"status": "ok"}
+
+@app.get("/test-debug")
+def test_debug():
+    print("=== TEST DEBUG ENDPOINT CALLED ===")
+    return {"status": "test works", "message": "This endpoint works without auth"}

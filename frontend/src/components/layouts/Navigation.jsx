@@ -9,7 +9,8 @@ export default function Navigation() {
     switch (pathname) {
       case '/': return 'uvod';
       case '/terminovka': return 'terminovka';
-      case '/archiv': return 'archiv';
+      case '/archiv-zprav': return 'archiv';
+      case '/archiv': return 'archiv'; // fallback pro starou URL
       default: 
         if (pathname.startsWith('/zavod/')) return 'detail';
         return 'uvod';
@@ -21,7 +22,7 @@ export default function Navigation() {
   const navigationItems = [
     { key: 'uvod', label: 'Úvod', icon: 'bi-house', path: '/' },
     { key: 'terminovka', label: 'Termínovka', icon: 'bi-calendar-event', path: '/terminovka' },
-    { key: 'archiv', label: 'Archiv', icon: 'bi-archive', path: '/archiv' }
+    { key: 'archiv', label: 'Archiv zpráv', icon: 'bi-newspaper', path: '/archiv-zprav' }
   ];
 
   return (
@@ -50,6 +51,16 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Admin link */}
+            <a
+              href="/admin"
+              className="btn btn-outline-warning text-decoration-none"
+              title="Administrace"
+            >
+              <i className="bi bi-gear me-1"></i>
+              Admin
+            </a>
           </div>
         </div>
       </div>

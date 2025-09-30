@@ -115,24 +115,25 @@ export const SEASON_CONFIG = {
     const year = referenceDate.getFullYear();
     const month = referenceDate.getMonth() + 1; // JavaScript months jsou 0-indexed
     
-    // Pokud jsme od srpna, patříme do sezóny následujícího roku
+    // Pokud jsme od srpna, patříme do sezóny aktuálního roku
+    // Například: 1.8.2025 - 31.7.2026 = JMLP2025
     if (month >= SEASON_CONFIG.SEASON_START_MONTH) {
-      return year + 1;
-    } else {
       return year;
+    } else {
+      return year - 1;
     }
   },
   
   // Formátování sezóny pro zobrazení
   formatSeason: (seasonId) => {
-    return `${seasonId - 1}/${seasonId}`;
+    return `${seasonId}/${seasonId + 1}`;
   },
   
   // Získání období sezóny
   getSeasonPeriod: (seasonId) => {
     return {
-      start: `1.8.${seasonId - 1}`,
-      end: `31.7.${seasonId}`
+      start: `1.8.${seasonId}`,
+      end: `31.7.${seasonId + 1}`
     };
   }
 };

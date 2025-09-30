@@ -30,6 +30,32 @@ export const formatSeason = (seasonId) => {
 };
 
 /**
+ * Vygeneruje číslo závodu na základě existujících závodů
+ * @param {Array} existingRaces - Pole existujících závodů
+ * @param {number} seasonId - ID sezóny pro kterou generujeme číslo
+ * @returns {string} Číslo závodu ve formátu JMLP2025-XX
+ */
+export const generateRaceNumber = (existingRaces, seasonId) => {
+  // Najdeme všechny závody v dané sezóně
+  const seasonRaces = existingRaces.filter(race => race.season_id === seasonId);
+  
+  // Najdeme nejvyšší pořadové číslo v této sezóně
+  const maxNumber = seasonRaces.reduce((max, race) => {
+    if (race.raceNr && race.raceNr.startsWith(`JMLP${seasonId}-`)) {
+      const number = parseInt(race.raceNr.split('-')[1]);
+      return isNaN(number) ? max : Math.max(max, number);
+    }
+    return max;
+  }, 0);
+  
+  // Nové číslo je o 1 vyšší
+  const newNumber = maxNumber + 1;
+  
+  // Formátujeme s leading zero
+  return `JMLP${seasonId}-${newNumber.toString().padStart(2, '0')}`;
+};
+
+/**
  * Získá období sezóny
  * @param {number} seasonId - ID sezóny
  * @returns {object} Objekt s start a end datem

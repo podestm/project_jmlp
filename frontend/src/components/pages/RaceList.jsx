@@ -101,6 +101,17 @@ export default function RaceList({ currentSeason = false }) {
               ))}
             </div>
           )}
+          
+          {/* Odkaz na archiv závodů z minulých sezón */}
+          <div className="mt-3 pt-3 border-top">
+            <Link 
+              to="/archiv"
+              className="btn btn-outline-secondary w-100 text-decoration-none"
+            >
+              <i className="bi bi-archive me-2"></i>
+              Zobrazit závody z minulých sezón
+            </Link>
+          </div>
         </div>
       </div>
     )
@@ -176,6 +187,30 @@ export default function RaceList({ currentSeason = false }) {
                           <i className="bi bi-building me-2"></i>
                           <small>{race.organizer_name}</small>
                         </p>
+                        <div className="mb-2">
+                          {race.proposition && (
+                            <a 
+                              href={`${API}/races/${race.id}/proposition`}
+                              target="_blank"
+                              rel="noopener noreferrer" 
+                              className="btn btn-sm btn-outline-primary me-2"
+                              title="Stáhnout propozice"
+                            >
+                              <i className="bi bi-file-earmark-text"></i>
+                            </a>
+                          )}
+                          {race.result && (
+                            <a 
+                              href={`${API}/races/${race.id}/results`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-sm btn-outline-success"
+                              title="Stáhnout výsledky"
+                            >
+                              <i className="bi bi-file-earmark-check"></i>
+                            </a>
+                          )}
+                        </div>
                         <div className="mb-3">
                           <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
                             <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
