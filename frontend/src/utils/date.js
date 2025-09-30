@@ -138,28 +138,6 @@ export const isPast = (date, from = new Date()) => {
   return dateObj < from;
 };
 
-/**
- * Get season from date (e.g., 2023-10-15 -> "2024")
- * @param {Date|string} date - Date to get season from
- * @returns {string} - Season year
- */
-export const getSeason = (date) => {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(dateObj.getTime())) return '';
-  
-  const year = dateObj.getFullYear();
-  const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
-  
-  // If date is October-December, it belongs to next year's season
-  if (month >= 10) {
-    return (year + 1).toString();
-  }
-  
-  return year.toString();
-};
-
 export default {
   formatDate,
   formatTime,
@@ -167,6 +145,5 @@ export default {
   getRelativeTime,
   isToday,
   isFuture,
-  isPast,
-  getSeason
+  isPast
 };

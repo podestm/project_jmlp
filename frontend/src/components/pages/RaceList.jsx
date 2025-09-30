@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function RaceList({ currentSeason = false }) {
-  const [races, setRaces] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
+  const [races, setRaces] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const url = currentSeason ? `${API}/races/?current_season=true` : `${API}/races/`
     fetch(url)
       .then(r => r.json())
@@ -17,7 +17,7 @@ export default function RaceList({ currentSeason = false }) {
   }, [currentSeason])
 
   // Seskupení závodů podle sezón
-  const groupedRaces = React.useMemo(() => {
+  const groupedRaces = useMemo(() => {
     const groups = {}
     races.forEach(race => {
       if (race.raceNr) {

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
@@ -7,12 +7,12 @@ export default function RaceDetail() {
   const { id } = useParams()
   const raceId = parseInt(id)
   
-  const [race, setRace] = React.useState(null)
-  const [clubStats, setClubStats] = React.useState(null)
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
+  const [race, setRace] = useState(null)
+  const [clubStats, setClubStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const load = React.useCallback(() => {
+  const load = useCallback(() => {
     setLoading(true)
     setError(null)
     Promise.all([
@@ -35,7 +35,7 @@ export default function RaceDetail() {
     })
   }, [raceId])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (raceId) {
       load()
     }

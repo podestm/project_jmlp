@@ -1,14 +1,14 @@
-import React from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function Archive() {
-  const [races, setRaces] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
-  const [expandedSeasons, setExpandedSeasons] = React.useState(new Set())
+  const [races, setRaces] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [expandedSeasons, setExpandedSeasons] = useState(new Set())
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch(`${API}/races/`)
       .then(r => r.json())
       .then(setRaces)
@@ -17,7 +17,7 @@ export default function Archive() {
   }, [])
 
   // Seskupení závodů podle sezón (pouze historické)
-  const groupedRaces = React.useMemo(() => {
+  const groupedRaces = useMemo(() => {
     const groups = {}
     races.forEach(race => {
       if (race.raceNr) {

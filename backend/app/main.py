@@ -25,8 +25,3 @@ app.include_router(admin_races.router)
 @app.get("/")
 def root():
     return {"status": "ok"}
-
-@app.get("/test-debug")
-def test_debug():
-    print("=== TEST DEBUG ENDPOINT CALLED ===")
-    return {"status": "test works", "message": "This endpoint works without auth"}

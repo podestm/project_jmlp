@@ -27,11 +27,9 @@ def generate_race_number(race_date: date, db: Session) -> str:
     Generuje raceNr ve formátu JMLP{year}-{number:02d}
     """
     season_year = get_season_year_from_date(race_date)
-    print(f"Generating race number for season: {season_year}")
     
     # Najdi nejvyšší číslo v dané sezóně
     pattern = f"JMLP{season_year}-%"
-    print(f"Looking for pattern: {pattern}")
     
     try:
         result = db.execute(text("""
@@ -40,17 +38,13 @@ def generate_race_number(race_date: date, db: Session) -> str:
             WHERE raceNr LIKE :pattern
         """), {"pattern": pattern}).fetchone()
         
-        print(f"Query result: {result}")
         max_num = result.max_num if result and result.max_num else 0
-        print(f"Max number found: {max_num}")
         
         next_number = max_num + 1
         race_nr = f"JMLP{season_year}-{next_number:02d}"
-        print(f"Generated race number: {race_nr}")
         
         return race_nr
     except Exception as e:
-        print(f"Error in generate_race_number: {e}")
         # Fallback to simple numbering
         return f"JMLP{season_year}-01"
 

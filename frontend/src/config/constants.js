@@ -35,7 +35,6 @@ export const NAVIGATION = {
 
 // Race Configuration
 export const RACE_CONFIG = {
-  CURRENT_SEASON_ID: 14,
   RACE_TYPES: {
     1: 'Slalom',
     2: 'Obří slalom',
@@ -50,10 +49,6 @@ export const RACE_CONFIG = {
     2: 'Žákovská', 
     3: 'Juniorská',
     4: 'Seniorská'
-  },
-  RACE_METHODS: {
-    1: 'Jeden jízda',
-    2: 'Dvě jízdy'
   }
 };
 
