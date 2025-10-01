@@ -4,9 +4,9 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: jmlpcz
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-default-dev-root-password}
       MYSQL_USER: app
-      MYSQL_PASSWORD: app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-default-dev-app-password}
     ports:
       - "3307:3306"
     volumes:
@@ -17,10 +17,12 @@ services:
   backend:
     build: ./backend
     environment:
-      - DATABASE_URL=mysql+pymysql://app:app@db:3306/jmlpcz?charset=utf8mb4
+      - DATABASE_URL=${DATABASE_URL:-mysql+pymysql://app:default-dev-app-password@db:3306/jmlpcz?charset=utf8mb4}
+      - SECRET_KEY=${SECRET_KEY:-development-only-secret-key-change-in-production}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       - UVICORN_HOST=0.0.0.0
       - UVICORN_PORT=8000
-      - CORS_ORIGINS=http://localhost:3000
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8000:8000"
     depends_on:
@@ -32,7 +34,7 @@ services:
   frontend:
     build: ./frontend
     environment:
-      - VITE_API_BASE=http://localhost:8000
+      - VITE_API_BASE=${VITE_API_BASE:-http://localhost:8000}
     ports:
       - "3000:3000"
     depends_on:

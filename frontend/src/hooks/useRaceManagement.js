@@ -24,6 +24,7 @@ export const useRaceManagement = () => {
     
     // Documents state
     const [availableDocuments, setAvailableDocuments] = useState([]);
+    const [availableDocumentsOnly, setAvailableDocumentsOnly] = useState([]); // Documents only (no images)
     const [propositionDocuments, setPropositionDocuments] = useState([]);
     const [resultsDocuments, setResultsDocuments] = useState([]);
     
@@ -39,17 +40,43 @@ export const useRaceManagement = () => {
     const [seasonFilter, setSeasonFilter] = useState('');
     const [availableSeasons, setAvailableSeasons] = useState([]);
 
+    // Helper function to determine if file is a document (not image)
+    const isDocument = (doc) => {
+        if (!doc.original_filename) return true; // Safe fallback
+        
+        const filename = doc.original_filename.toLowerCase();
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+        const documentExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.rtf', '.odt', '.ods'];
+        
+        // If it's explicitly an image, exclude it
+        if (imageExtensions.some(ext => filename.endsWith(ext))) {
+            return false;
+        }
+        
+        // If it's explicitly a document, include it
+        if (documentExtensions.some(ext => filename.endsWith(ext))) {
+            return true;
+        }
+        
+        // For unknown extensions, include by default (safer for race propositions)
+        return true;
+    };
+
     // Data loading functions
     const loadDocuments = async () => {
         try {
             const data = await AdminAPI.get('/admin/files');
             setAvailableDocuments(data);
             
-            setPropositionDocuments(data.filter(doc => 
-                doc.file_type === 'proposition' || doc.original_filename.toLowerCase().includes('propozice')
+            // Filter for documents only (exclude images) for propositions
+            const documentsOnly = data.filter(isDocument);
+            setAvailableDocumentsOnly(documentsOnly);
+            
+            setPropositionDocuments(documentsOnly.filter(doc => 
+                doc.file_type === 'proposition' || (doc.original_filename && doc.original_filename.toLowerCase().includes('propozice'))
             ));
-            setResultsDocuments(data.filter(doc => 
-                doc.file_type === 'results' || doc.original_filename.toLowerCase().includes('vysledky')
+            setResultsDocuments(documentsOnly.filter(doc => 
+                doc.file_type === 'results' || (doc.original_filename && doc.original_filename.toLowerCase().includes('vysledky'))
             ));
         } catch (err) {
             console.error('Error loading documents:', err);
@@ -88,6 +115,15 @@ export const useRaceManagement = () => {
         const seasonId = getSeasonIdForRace(dateToUse);
         const raceNumber = generateRaceNumber(races, seasonId);
         const seasonDisplay = formatSeason(seasonId);
+        
+        console.log('Generating race number:', { 
+            dateToUse, 
+            seasonId, 
+            raceNumber, 
+            seasonDisplay, 
+            racesCount: races.length,
+            racesLoaded: races.length > 0 
+        });
         
         setRaceNumberPreview(raceNumber);
         setSeasonPreview(seasonDisplay);
@@ -239,6 +275,19 @@ export const useRaceManagement = () => {
             proposition_file_id: race.proposition_file_id,
             results_file_id: race.results_file_id
         });
+        
+        // Set areál and organizer names for autocomplete display
+        setArealSearch(race.areal_name || '');
+        setOrganizerSearch(race.organizer_name || '');
+        
+        // Set preview values for editing
+        if (race.raceNr) {
+            setRaceNumberPreview(race.raceNr);
+        }
+        if (race.season_id) {
+            setSeasonPreview(formatSeason(race.season_id));
+        }
+        
         setShowForm(true);
     };
 
@@ -307,6 +356,20 @@ export const useRaceManagement = () => {
         filterRaces();
     }, [races, seasonFilter]);
 
+    // Re-generate race number when races data is loaded and form has date
+    useEffect(() => {
+        if (races.length > 0 && formData.datum && !editingRace) {
+            const result = generateRaceNumberLocal();
+            if (result) {
+                setFormData(prev => ({
+                    ...prev,
+                    raceNr: result.raceNr,
+                    season_id: result.seasonId
+                }));
+            }
+        }
+    }, [races.length, formData.datum, editingRace]);
+
     return {
         // State
         races: filteredRaces,
@@ -318,6 +381,7 @@ export const useRaceManagement = () => {
         error,
         success,
         availableDocuments,
+        availableDocumentsOnly,
         propositionDocuments,
         resultsDocuments,
         arealSearch,

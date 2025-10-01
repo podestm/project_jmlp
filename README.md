@@ -13,7 +13,9 @@ docker compose up --build
 - **Frontend (veřejná stránka):** http://localhost:3000
 - **API dokumentace:** http://localhost:8000/docs  
 - **Admin rozhraní:** http://localhost:3000/admin
-  - Login: `admin@jmlp.cz` / `admin123`
+  - Default login: `admin@jmlp.cz` / `admin123` (⚠️ změňte v produkci!)
+
+⚠️ **SECURITY:** Před nasazením do produkce vytvořte `.env` soubor z `.env.example` a nastavte silná hesla!
 
 Databáze se automaticky inicializuje z `db/init_exact.sql` s testovacími daty klubů, závodníků a závodů.
 
@@ -23,10 +25,16 @@ Databáze se automaticky inicializuje z `db/init_exact.sql` s testovacími daty 
 jmlp_web_v1/
 ├── backend/                 # FastAPI backend
 │   ├── app/
-│   │   ├── routers/        # API endpointy (races, racers, admin, etc.)
+│   │   ├── routers/        # API endpointy
+│   │   │   ├── admin/      # Admin API (races, racers, posts, documents)
+│   │   │   ├── races.py    # Veřejné závod API + season logika
+│   │   │   ├── racers.py   # Vyhledávání závodníků
+│   │   │   ├── clubs.py    # Seznam klubů
+│   │   │   └── registration.py # Registrace na závody
 │   │   ├── models.py       # SQLAlchemy databázové modely
 │   │   ├── schemas.py      # Pydantic schémata pro API
-│   │   ├── auth.py         # JWT autentifikace
+│   │   ├── auth.py         # JWT autentifikace (vyčištěno)
+│   │   ├── utils.py        # Utility funkce (season logika, encoding)
 │   │   └── main.py         # FastAPI aplikace
 │   ├── documents/          # Nahrané dokumenty (propozice, výsledky)
 │   └── Dockerfile
@@ -34,8 +42,13 @@ jmlp_web_v1/
 │   ├── src/
 │   │   ├── components/     # React komponenty
 │   │   │   ├── admin/      # Admin rozhraní komponenty
+│   │   │   │   ├── post/   # Správa příspěvků
+│   │   │   │   ├── race/   # Správa závodů
+│   │   │   │   └── *.jsx   # Admin komponenty
 │   │   │   ├── pages/      # Veřejné stránky
 │   │   │   └── ui/         # Sdílené UI komponenty
+│   │   │       └── registration/ # Registrační formulář
+│   │   ├── hooks/          # React hooks pro business logiku
 │   │   ├── assets/styles/  # CSS styly (Bootstrap + vlastní)
 │   │   └── config/         # API konfigurace
 │   └── Dockerfile
@@ -59,11 +72,12 @@ jmlp_web_v1/
 
 ### Admin API (`/admin` prefix)
 - `POST /admin/login` - Přihlášení administrátora
-- `GET /admin/races/` - Správa závodů
+- `GET /admin/races/` - Správa závodů s automatickým generováním čísel
 - `GET /admin/races/{id}/registrations` - Detail registrací závodu
-- `GET /admin/races/{id}/export-csv` - Export registrací do CSV
+- `GET /admin/races/{id}/export-csv` - Export registrací do CSV (UTF-8 s BOM)
 - `POST /admin/races/{id}/upload` - Nahrání dokumentů (propozice/výsledky)
-- `GET /admin/documents/` - Správa dokumentů
+- `GET /admin/posts/` - Správa příspěvků (bez duplicitních tlačítek)
+- `GET /admin/documents/` - Správa dokumentů s UUID pojmenováním
 - `GET /admin/racers/` - Správa závodníků
 
 ## 🗄️ Databázové schéma
@@ -115,7 +129,9 @@ VITE_API_BASE=http://localhost:8000
 - **Bootstrap 5** pro UI framework
 - **React Router** s českými cestami (`/terminovka`, `/zavod/:id`)
 - **Context API** pro admin autentifikaci
-- **Fetch API** pro komunikaci s backendem
+- **Custom hooks** pro business logiku (useRaceManagement, usePostManagement, useRegistration)
+- **Modulární komponenty** s čistou separací admin/public rozhraní
+- **Responsive design** s side-by-side layouty pro formuláře
 
 ### Specifické funkce
 - **Sezónní logika:** Sezóny běží od srpna do července
@@ -157,28 +173,66 @@ FastAPI automaticky generuje interaktivní dokumentaci na `http://localhost:8000
 ### Veřejné funkce
 - **Termínovka závodů** s filtrováním podle sezón
 - **Detail závodu** s kompletním seznamem registrovaných závodníků
-- **Registrace nových závodníků** a přihlašování na závody
+- **Registrace závodníků** s side-by-side layoutem (formulář vlevo, seznam vpravo)
+- **Inteligentní vyhledávání** existujících závodníků bez kategorií
 - **Zobrazení aktualit** na homepage
 - **Archiv závodů** z minulých sezón
 
 ### Admin funkce
-- **Správa závodů** s nahráváním dokumentů
-- **Export registrací** do CSV pro organizátory
-- **Správa závodníků a klubů**
-- **Zobrazení detailních statistik** registrací
+- **Správa závodů** s automatickým generováním čísel (JMLP2025-XX)
+- **Export registrací** do CSV s českými znaky a BOM pro Excel
+- **Správa příspěvků** s jednoduchým rozhraním (jedno tlačítko pro nový příspěvek)
+- **Nahrávání dokumentů** s UUID pojmenováním a typováním
+- **Správa závodníků a klubů** s vyhledáváním
+- **Zobrazení detailních statistik** registrací podle klubů
 
 ## 🚨 Poznámky k produkci
 
 - **Změnit SECRET_KEY** v produkčním prostředí
 - **Aktualizovat CORS_ORIGINS** na produkční domény  
-- **Změnit default admin heslo** z `admin123`
+## 🔐 Bezpečnost pro produkci
+
+**⚠️ KRITICKÉ PŘED NASAZENÍM:**
+
+1. **Vytvořte `.env` soubor:**
+   ```cmd
+   copy .env.example .env
+   ```
+
+2. **Nastavte silná hesla v `.env`:**
+   ```env
+   MYSQL_ROOT_PASSWORD=vase_silne_heslo_zde
+   MYSQL_PASSWORD=vase_app_heslo_zde  
+   SECRET_KEY=vase_jwt_secret_key_zde
+   ```
+
+3. **Změňte admin účet v databázi** z default `admin123`
 - **Zvážit přechod na InnoDB** místo MyISAM pro referenční integritu
 - **Nastavit SSL** pro produkční deployment
 
-## 📋 TODO & Vylepšení
+## 📋 Nedávná vylepšení
+
+### ✅ **Backend optimalizace (2025-10)**
+- 🧹 **Vyčištěn auth modul** - odstraněny debug printy a duplikovaný kód
+- 📦 **Nový utils.py modul** - centralizované season funkce a encoding utility
+- 🎯 **Standardizované error handling** - konzistentní české chybové zprávy
+- 🔄 **Opraveno API routování** - vyřešeny konflikty `/season/*` vs `/{race_id}`
+
+### ✅ **Frontend UX vylepšení (2025-10)**
+- 🎨 **Vylepšené admin rozhraní příspěvků** - jediné tlačítko pro nový příspěvek
+- 📱 **Nový registrační layout** - formulář vlevo, seznam závodníků vpravo
+- 🚫 **Odstraněny věkové kategorie** - zjednodušený seznam bez zbytečných informací
+- 🎯 **Jednotný text tlačítek** - "Registrovat závodníka" místo měnících se textů
+
+### ✅ **CSV export vylepšení (2025-10)**
+- 🔤 **UTF-8 s BOM** - správné zobrazení českých znaků v Excelu
+- 🔄 **CONVERT operace** - automatická oprava legacy encoding v databázi
+
+## 📋 TODO & Budoucí vylepšení
 
 - [ ] Migrace z MyISAM na InnoDB s foreign keys
-- [ ] Implementace email notifikací pro registrace
-- [ ] Rozšíření admin rozhraní o pokročilé reporty
+- [ ] Email notifikace pro nové registrace
+- [ ] Pokročilé reporty a statistiky v admin rozhraní
+- [ ] API rate limiting pro produkční nasazení
+- [ ] Automatické zálohy databáze
 - [ ] Integrace s externími systémy (SLČR databáze)
-- [ ] Optimalizace SQL dotazů pro větší objemy dat

@@ -4,7 +4,7 @@ const PostCard = ({ post, formatDate, formatText, getFileUrl }) => {
     const renderImage = () => {
         if (!post.image_file_id) return null;
 
-        const imageUrl = getFileUrl(post.image_file_id);
+        const imageUrl = getFileUrl(post.id);
         const positionClass = post.image_position === 'left' ? 'float-start me-3' : 
                              post.image_position === 'right' ? 'float-end ms-3' : 
                              post.image_position === 'center' ? 'd-block mx-auto' : 
@@ -15,7 +15,7 @@ const PostCard = ({ post, formatDate, formatText, getFileUrl }) => {
                 src={imageUrl}
                 alt={post.title}
                 className={`img-fluid mb-2 ${positionClass}`}
-                style={{ maxWidth: '300px', maxHeight: '200px' }}
+                style={{ maxWidth: '400px', maxHeight: '250px', objectFit: 'cover' }}
             />
         );
     };
@@ -39,8 +39,8 @@ const PostCard = ({ post, formatDate, formatText, getFileUrl }) => {
                     }}
                 />
                 
-                <div className="d-flex justify-content-end mt-3">
-                    {post.document_file_id && (
+                {post.document_file_id && (
+                    <div className="mt-3">
                         <a 
                             href={`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/posts/${post.id}/document/download`}
                             className="btn btn-sm btn-outline-primary"
@@ -50,8 +50,8 @@ const PostCard = ({ post, formatDate, formatText, getFileUrl }) => {
                             <i className="bi bi-file-text me-1"></i>
                             Stáhnout dokument
                         </a>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </article>
     );

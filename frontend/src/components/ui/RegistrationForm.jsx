@@ -21,47 +21,53 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                     setMsg={registration.setMsg}
                 />
 
-                <form onSubmit={registration.handleSubmit}>
-                    <RegistrationFormFields 
-                        formData={registration.formData}
-                        updateField={registration.updateField}
-                        clubs={registration.clubs}
-                    />
+                <div className="row">
+                    {/* Formulář vlevo */}
+                    <div className="col-lg-7">
+                        <form onSubmit={registration.handleSubmit}>
+                            <RegistrationFormFields 
+                                formData={registration.formData}
+                                updateField={registration.updateField}
+                                clubs={registration.clubs}
+                            />
 
-                    <RacerSearchResults 
-                        filteredRacers={registration.filteredRacers}
-                        isSearching={registration.isSearching}
-                        selectExistingRacer={registration.selectExistingRacer}
-                        getSexLabel={registration.getSexLabel}
-                        getAgeCategory={registration.getAgeCategory}
-                    />
+                            {/* Submit tlačítka */}
+                            <div className="d-flex gap-2 justify-content-end mt-3">
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-secondary"
+                                    onClick={registration.resetForm}
+                                >
+                                    <span className="bi bi-x-circle"></span>
+                                    Vymazat formulář
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary"
+                                >
+                                    <span className="bi bi-check-circle"></span>
+                                    Registrovat závodníka
+                                </button>
+                            </div>
+                        </form>
 
-                    {/* Submit tlačítka */}
-                    <div className="d-flex gap-2 justify-content-end">
-                        <button 
-                            type="button" 
-                            className="btn btn-outline-secondary"
-                            onClick={registration.resetForm}
-                        >
-                            <span className="bi bi-x-circle"></span>
-                            Vymazat formulář
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="btn btn-primary"
-                        >
-                            <span className="bi bi-check-circle"></span>
-                            {registration.selectedRacer ? 'Registrovat existujícího' : 'Registrovat nového závodníka'}
-                        </button>
+                        {/* Informační text */}
+                        <div className="mt-3 p-2 bg-light rounded">
+                            <small className="text-muted">
+                                <strong>Tip:</strong> Klikněte na závodníka vpravo pro automatické vyplnění formuláře.
+                            </small>
+                        </div>
                     </div>
-                </form>
 
-                {/* Informační text */}
-                <div className="mt-3 p-2 bg-light rounded">
-                    <small className="text-muted">
-                        <strong>Tip:</strong> Systém automaticky vyhledává podobné závodníky podle jména, příjmení a klubu. 
-                        Před registrací nového závodníka zkontrolujte, zda již není v databázi.
-                    </small>
+                    {/* Seznam závodníků vpravo */}
+                    <div className="col-lg-5">
+                        <RacerSearchResults 
+                            filteredRacers={registration.filteredRacers}
+                            isSearching={registration.isSearching}
+                            selectExistingRacer={registration.selectExistingRacer}
+                            getSexLabel={registration.getSexLabel}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

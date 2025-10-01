@@ -58,17 +58,38 @@ export const usePostManagement = () => {
 
     const loadAvailableFiles = async () => {
         try {
-            // Load images
-            const imagesData = await AdminAPI.get('/admin/files/available-for-posts?file_type=images');
-            // Load documents
-            const documentsData = await AdminAPI.get('/admin/files/available-for-posts?file_type=documents');
+            // Load all files and filter client-side
+            const allFiles = await AdminAPI.get('/admin/files');
+            
+            // Filter images strictly - only files that are definitely images
+            const images = allFiles.filter(file => 
+                file.file_type === 'image' || 
+                (file.mime_type && file.mime_type.startsWith('image/'))
+            );
+            
+            // Filter documents strictly - exclude anything that is an image
+            const documents = allFiles.filter(file => {
+                // Exclude if it's marked as image type
+                if (file.file_type === 'image') return false;
+                
+                // Exclude if mime_type indicates it's an image
+                if (file.mime_type && file.mime_type.startsWith('image/')) return false;
+                
+                // Include everything else (documents, PDFs, etc.)
+                return true;
+            });
             
             setAvailableFiles({
-                images: imagesData,
-                documents: documentsData
+                images: images,
+                documents: documents
             });
         } catch (err) {
             console.error('Chyba při načítání dostupných souborů:', err);
+            // Set empty arrays on error to prevent crashes
+            setAvailableFiles({
+                images: [],
+                documents: []
+            });
         }
     };
 
@@ -136,6 +157,11 @@ export const usePostManagement = () => {
         setStatusFilter('');
         setSelectedYear('');
         setSelectedMonth('');
+    };
+
+    const handleAdd = () => {
+        resetForm();
+        setShowForm(true);
     };
 
     // Form management functions
@@ -277,6 +303,7 @@ export const usePostManagement = () => {
         getAvailableMonths,
         clearFilters,
         resetForm,
+        handleAdd,
         handleSubmit,
         handleEdit,
         handleDelete,

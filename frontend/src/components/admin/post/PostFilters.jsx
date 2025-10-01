@@ -13,7 +13,6 @@ const PostFilters = ({
     availableMonths,
     monthNames,
     clearFilters,
-    setShowForm,
     error,
     success,
     setError,
@@ -100,23 +99,14 @@ const PostFilters = ({
                             </select>
                         </div>
                         <div className="col-md-2">
-                            <div className="d-flex gap-2">
-                                <button
-                                    type="button"
-                                    className="btn btn-outline-secondary btn-sm"
-                                    onClick={clearFilters}
-                                    title="Vymazat všechny filtry"
-                                >
-                                    🗑️ Vymazat
-                                </button>
-                                <button 
-                                    className="btn btn-primary btn-sm"
-                                    onClick={() => setShowForm(true)}
-                                >
-                                    <i className="bi bi-plus-lg me-1"></i>
-                                    Nový post
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={clearFilters}
+                                title="Vymazat všechny filtry"
+                            >
+                                🗑️ Vymazat filtry
+                            </button>
                         </div>
                     </div>
                 </div>

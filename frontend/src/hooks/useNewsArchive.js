@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import API, { API_CONFIG } from '../config/api.js';
+import { formatText as formatTextUtil } from '../utils/text.js';
 
 export const useNewsArchive = () => {
     // State management
@@ -111,8 +112,8 @@ export const useNewsArchive = () => {
     };
 
     // File helper
-    const getFileUrl = (fileId) => {
-        return `${API_CONFIG.BASE_URL}/files/${fileId}/download`;
+    const getFileUrl = (postId) => {
+        return `${API_CONFIG.BASE_URL}/posts/${postId}/image`;
     };
 
     // Date formatting
@@ -121,10 +122,7 @@ export const useNewsArchive = () => {
     };
 
     const formatText = (text) => {
-        if (!text) return '';
-        
-        // Basic text formatting - replace line breaks with <br>
-        return text.replace(/\n/g, '<br>');
+        return formatTextUtil(text);
     };
 
     return {

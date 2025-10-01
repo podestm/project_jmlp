@@ -143,12 +143,12 @@ function Homepage() {
                           <div className="row align-items-start">
                             {/* Obrázek vlevo */}
                             {showImage && imagePosition === 'left' && (
-                              <div className="col-md-3">
+                              <div className="col-md-5">
                                 <img 
                                   src={`${API_CONFIG.BASE_URL}/posts/${post.id}/image`} 
                                   className="img-thumbnail mb-3" 
                                   alt={post.title}
-                                  style={{ height: '120px', width: '120px', objectFit: 'cover' }}
+                                  style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
                                 />
                               </div>
                             )}
@@ -156,41 +156,43 @@ function Homepage() {
                             {/* Obsah textu */}
                             <div className={
                               showImage && (imagePosition === 'left' || imagePosition === 'right') 
-                                ? "col-md-9" 
+                                ? "col-md-7" 
                                 : "col-12"
                             }>
                               <div 
                                 className="card-text mb-3"
                                 dangerouslySetInnerHTML={{ __html: `<p>${formatText(post.content)}</p>` }}
                               />
+                              
+                              {/* Tlačítko pro stažení dokumentu pod textem */}
+                              {post.document_file_id && (
+                                <div className="mb-3">
+                                  <a 
+                                    href={`${API_CONFIG.BASE_URL}/posts/${post.id}/document/download`}
+                                    className="btn btn-sm btn-outline-primary"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <span className="bi bi-file-text me-1"></span>
+                                    Stáhnout přílohu
+                                  </a>
+                                </div>
+                              )}
                             </div>
                             
                             {/* Obrázek vpravo */}
                             {showImage && imagePosition === 'right' && (
-                              <div className="col-md-3">
+                              <div className="col-md-5">
                                 <img 
                                   src={`${API_CONFIG.BASE_URL}/posts/${post.id}/image`} 
                                   className="img-thumbnail mb-3" 
                                   alt={post.title}
-                                  style={{ height: '120px', width: '120px', objectFit: 'cover' }}
+                                  style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
                                 />
                               </div>
                             )}
                           </div>
                           
-                          {post.document_file_id && (
-                            <div className="mb-3">
-                              <a 
-                                href={`${API_CONFIG.BASE_URL}/posts/${post.id}/document/download`}
-                                className="btn btn-sm btn-outline-primary"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <span className="bi bi-file-text me-1"></span>
-                                Stáhnout přílohu
-                              </a>
-                            </div>
-                          )}
                           <small className="text-muted">
                             <span className="bi bi-calendar3 me-1"></span>
                             {formatDate(post.created_at)}

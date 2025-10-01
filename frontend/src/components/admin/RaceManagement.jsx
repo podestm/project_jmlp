@@ -53,7 +53,7 @@ const RaceManagement = () => {
                         seasonPreview={raceManagement.seasonPreview}
                         propositionDocuments={raceManagement.propositionDocuments}
                         resultsDocuments={raceManagement.resultsDocuments}
-                        availableDocuments={raceManagement.availableDocuments}
+                        availableDocuments={raceManagement.availableDocumentsOnly}
                         handleArealSearch={raceManagement.handleArealSearch}
                         handleOrganizerSearch={raceManagement.handleOrganizerSearch}
                         selectAreal={raceManagement.selectAreal}

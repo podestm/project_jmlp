@@ -108,6 +108,41 @@ export default function DocumentManagement() {
     }
   };
 
+  const handleDownloadFile = async (fileId, filename) => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/files/${fileId}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Download failed');
+      }
+
+      // Create blob from response
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      setError(error.message || 'Chyba při stahování souboru');
+    }
+  };
+
   const getFileTypeColor = (type) => {
     switch (type) {
       case 'propozice': return 'bg-primary';
@@ -135,6 +170,7 @@ export default function DocumentManagement() {
   };
 
   const formatFileSize = (bytes) => {
+    if (bytes === undefined || bytes === null) return 'Neznámá velikost';
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -266,15 +302,13 @@ export default function DocumentManagement() {
                           <td>{formatDate(file.uploaded_at)}</td>
                           <td>
                             <div className="btn-group">
-                              <a
-                                href={`${API_CONFIG.BASE_URL}/admin/files/${file.id}/download`}
+                              <button
+                                onClick={() => handleDownloadFile(file.id, file.original_filename)}
                                 className="btn btn-sm btn-outline-primary"
                                 title="Stáhnout"
-                                target="_blank"
-                                rel="noopener noreferrer"
                               >
                                 <i className="bi bi-download"></i>
-                              </a>
+                              </button>
                               <button
                                 onClick={() => handleDeleteFile(file.id, file.original_filename)}
                                 className="btn btn-sm btn-outline-danger"

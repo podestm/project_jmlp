@@ -7,20 +7,24 @@ Full-stack racing registration system with FastAPI backend, React frontend, MySQ
 
 ### Backend (FastAPI + SQLAlchemy + MySQL)
 - **Database**: MySQL with MyISAM engine for legacy compatibility, BigInt IDs, Czech table prefixes (`fuj_jmlp_*`)
-- **Season Logic**: Racing seasons run August-July (Aug 1st triggers new season), implemented in `backend/app/routers/races.py:get_current_season_id()`
+- **Season Logic**: Racing seasons run August-July (Aug 1st triggers new season), centralized in `backend/app/utils.py`
 - **Table Naming**: Legacy naming convention with `fuj_jmlp_` prefix (racer, race, club, areal, admin, document)
 - **Registration Table**: `race_registration` (not `fuj_jmlp_registration`) links races and racers
 - **Foreign Keys**: Minimal FK constraints due to MyISAM engine choice
-- **Admin System**: JWT-based authentication with bcrypt passwords, admin endpoints under `/admin` prefix
+- **Admin System**: JWT-based authentication with cleaned auth module, admin endpoints under `/admin` prefix
 - **Document Upload**: UUID-named files in `backend/documents/` directory with database tracking
+- **Error Handling**: Standardized Czech error messages via `utils.StandardExceptions`
+- **Utils Module**: Centralized season logic, UTF-8 encoding helpers, date parsing utilities
 
 ### Frontend (React + Vite + Bootstrap)
 - **Routing**: React Router with Czech paths (`/terminovka`, `/archiv`, `/zavod/:id`, `/admin`)
 - **API Client**: Custom API wrapper in `frontend/src/config/api.js` with environment-based base URL
 - **Styling**: Bootstrap 5 with custom CSS modules in `frontend/src/assets/styles/`
-- **State**: React hooks, no external state management
+- **State**: React hooks with custom business logic hooks (useRaceManagement, usePostManagement, useRegistration)
 - **Admin Auth**: React Context-based authentication with localStorage token persistence
-- **Admin Components**: Separate admin components in `src/components/admin/`
+- **Admin Components**: Separate admin components in `src/components/admin/` with modular structure
+- **Registration Form**: Side-by-side layout with form on left, racer list on right (no age categories)
+- **Admin Posts**: Single "New Post" button (removed duplicate buttons from filters)
 
 ### Data Processing Pipeline
 - **Legacy Support**: Designed to work with phpMyAdmin XML exports from existing system
@@ -57,11 +61,12 @@ docker compose down -v
 - **No AdminSession**: JWT tokens stored client-side, no server-side session tracking
 
 ### API Patterns
-- **Router Structure**: Organized by resource (`races.py`, `racers.py`, `clubs.py`, `registration.py`, `admin.py`, `posts.py`)
-- **Error Handling**: HTTPException with Czech messages for user-facing errors
+- **Router Structure**: Organized by resource with admin sub-routers (`admin/races.py`, `admin/posts.py`, etc.)
+- **Error Handling**: Standardized `utils.StandardExceptions` with Czech messages for user-facing errors
 - **Validation**: Heavy use of database existence checks before operations
-- **Authentication**: JWT tokens with Bearer scheme, implemented in `backend/app/auth.py`
+- **Authentication**: JWT tokens with Bearer scheme, cleaned implementation in `backend/app/auth.py`
 - **Admin Endpoints**: All admin operations under `/admin` prefix with JWT protection
+- **CSV Export**: UTF-8 with BOM for Excel compatibility, CONVERT operations for encoding fixes
 
 ### Frontend Patterns
 - **Component Organization**: Clear separation - `pages/`, `ui/`, `layouts/`, `admin/` folders
@@ -79,11 +84,11 @@ docker compose down -v
 - **Document Management**: UUID filenames with original name tracking
 
 ## Critical Integration Points
-- **CORS**: Backend configured for `http://localhost:3000`, update for production
-- **Environment Variables**: `VITE_API_BASE`, `DATABASE_URL`, `CORS_ORIGINS`, `SECRET_KEY`
+- **CORS**: Backend configured for development, update for production domains
+- **Environment Variables**: Use `.env` file for production: `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `SECRET_KEY`, `CORS_ORIGINS`, `VITE_API_BASE`
 - **Database Init**: `db/init_exact.sql` runs on first container start
 - **Season Boundary**: August 1st date logic affects race filtering throughout app
-- **Admin Access**: Default login `admin@jmlp.cz` / `admin123` (change in production)
+- **Admin Access**: Default login `admin@jmlp.cz` / `admin123` (⚠️ MUST change in production - see SECURITY.md)
 - **File Upload**: Max 10MB, stored in `backend/documents/` with UUID naming
 
 ## Testing & Debugging
@@ -98,21 +103,45 @@ docker compose down -v
 - **MyISAM Engine**: No foreign key constraints, manual relationship management required
 - **BigInt vs Int**: Use `BigInteger` in SQLAlchemy models to match database schema
 - **Date vs DateTime**: Race dates are `date` type, not `datetime`
-- **JWT Security**: Change SECRET_KEY environment variable in production
+- **JWT Security**: Use environment variables for SECRET_KEY, never hardcode in production
 - **File Uploads**: Default limit 10MB, stored in `backend/documents/` directory
 - **Encoding Issues**: Ensure UTF8MB4 in all database connections and file operations
 - **Season Logic**: Always consider current season when filtering races/data
 - **Table Names**: `race_registration` not `fuj_jmlp_registration` for registration table
 - **Admin Session**: No server-side session tracking, JWT tokens are stateless
+- **Environment Variables**: Use `.env` file for sensitive data, never commit to Git
+
+## Recent Code Improvements (October 2025)
+
+### Backend Refactoring
+- **auth.py cleanup**: Removed debug prints, fixed duplicate raise statements, improved error handling
+- **utils.py module**: Created centralized utility functions for season logic, date parsing, UTF-8 encoding
+- **StandardExceptions class**: Consistent Czech error messages across all endpoints
+- **API routing fixes**: Resolved conflicts between `/season/*` and `/{race_id}` routes
+- **CSV export enhancement**: Added UTF-8 BOM for proper Excel compatibility with Czech characters
+
+### Frontend UX Improvements  
+- **Admin posts interface**: Removed duplicate "New Post" button from filters, kept only main green button
+- **Registration form redesign**: Side-by-side layout with form on left, racer list on right
+- **Simplified racer display**: Removed age categories, show only essential info (name, year, sex, club)
+- **Consistent button text**: "Registrovat závodníka" instead of changing text based on selection
+- **Better mobile responsiveness**: Improved layout for smaller screens
+
+### Code Quality Enhancements
+- **Eliminated code duplication**: Season logic centralized in utils.py
+- **Improved type hints**: Better TypeScript-like annotations throughout Python code
+- **Standardized imports**: Consistent import structure across modules
+- **Enhanced documentation**: Better docstrings and inline comments
 
 ## Current Implementation Status
 - **Core Features**: ✅ Race management, racer registration, admin system
 - **Document Upload**: ✅ Propositions and results with UUID naming
-- **Registration Display**: ✅ Tabular view with club grouping on race detail pages
-- **Admin Interface**: ✅ Complete CRUD operations with CSV export
-- **Authentication**: ✅ JWT-based admin auth with Context API frontend
-- **Database**: ✅ MyISAM schema with proper UTF8MB4 encoding
+- **Registration Display**: ✅ Side-by-side layout with simplified racer list (no categories)
+- **Admin Interface**: ✅ Complete CRUD operations with CSV export and automatic race numbering
+- **Authentication**: ✅ JWT-based admin auth with cleaned implementation
+- **Database**: ✅ MyISAM schema with proper UTF8MB4 encoding and CONVERT fixes
 - **Docker**: ✅ Multi-container setup with persistent volumes
+- **Code Quality**: ✅ Refactored with utils module, standardized error handling, clean routing
 
 ## Architecture Decisions Made
 1. **MyISAM over InnoDB**: Chosen for legacy compatibility, no foreign keys
@@ -122,3 +151,6 @@ docker compose down -v
 5. **Bootstrap over Custom CSS**: Faster development, consistent UI
 6. **Direct Fetch over Axios**: Simpler API client, less dependencies
 7. **Context over Redux**: Sufficient state management for admin auth
+8. **Utils Module**: Centralized business logic to avoid code duplication
+9. **Side-by-side Registration**: Form on left, racer list on right for better UX
+10. **Simplified Racer Display**: Removed age categories, focus on essential info only

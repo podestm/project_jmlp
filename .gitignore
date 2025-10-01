@@ -17,10 +17,13 @@ build/
 *.log
 .DS_Store
 
-# Env
+# Environment variables and secrets
 .env
+.env.local
+.env.production
 frontend/.env.local
 backend/.env
+*.env
 
 # Uploaded files
 backend/documents/*
@@ -37,3 +40,9 @@ db_data/
 # OS
 Thumbs.db
 .DS_Store
+
+# Secrets and sensitive files
+secrets/
+*.key
+*.pem
+*.crt

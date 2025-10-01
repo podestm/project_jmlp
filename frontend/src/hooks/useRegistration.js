@@ -217,16 +217,6 @@ export const useRegistration = (raceId, onSuccess) => {
         return sex === 1 ? 'Muž' : 'Žena';
     };
 
-    const getAgeCategory = (year) => {
-        const currentYear = new Date().getFullYear();
-        const age = currentYear - year;
-        
-        if (age < 18) return 'Junioři';
-        if (age < 40) return 'Dospělí';
-        if (age < 60) return 'Veteráni';
-        return 'Senioři';
-    };
-
     return {
         // State
         formData,
@@ -244,7 +234,6 @@ export const useRegistration = (raceId, onSuccess) => {
         selectExistingRacer,
         handleSubmit,
         resetForm,
-        getSexLabel,
-        getAgeCategory
+        getSexLabel
     };
 };

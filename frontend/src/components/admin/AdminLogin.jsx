@@ -50,7 +50,7 @@ export default function AdminLogin() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoFocus
-                    placeholder="admin@jmlp.cz"
+                    placeholder="email@example.com"
                   />
                 </div>
                 
@@ -83,11 +83,14 @@ export default function AdminLogin() {
                 </button>
               </form>
               
-              <div className="mt-3 text-center text-muted">
-                <small>
-                  Výchozí údaje: admin@jmlp.cz / admin123
-                </small>
-              </div>
+              {/* Development note - remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-3 text-center text-muted">
+                  <small>
+                    Development: admin@jmlp.cz / admin123
+                  </small>
+                </div>
+              )}
             </div>
           </div>
         </div>

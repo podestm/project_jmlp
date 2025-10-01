@@ -89,11 +89,11 @@ const PostForm = ({
                                             onChange={(e) => setFormData({...formData, image_file_id: e.target.value})}
                                         >
                                             <option value="">Žádný obrázek</option>
-                                            {availableFiles.images.map(image => (
+                                            {availableFiles?.images?.map(image => (
                                                 <option key={image.id} value={image.id}>
                                                     {image.original_filename}
                                                 </option>
-                                            ))}
+                                            )) || []}
                                         </select>
                                         {formData.image_file_id && (
                                             <div className="form-text">
@@ -126,11 +126,11 @@ const PostForm = ({
                                             onChange={(e) => setFormData({...formData, document_file_id: e.target.value})}
                                         >
                                             <option value="">Žádný dokument</option>
-                                            {availableFiles.documents.map(doc => (
+                                            {availableFiles?.documents?.map(doc => (
                                                 <option key={doc.id} value={doc.id}>
                                                     {doc.original_filename}
                                                 </option>
-                                            ))}
+                                            )) || []}
                                         </select>
                                         {formData.document_file_id && (
                                             <div className="form-text">
