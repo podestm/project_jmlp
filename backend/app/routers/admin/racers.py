@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...utils import fix_encoding
 
 router = APIRouter(tags=["admin-racers"])
 
@@ -31,18 +32,23 @@ def get_racers(
     
     racers = []
     for row in result:
+        # Fix encoding for names
+        first_name = fix_encoding(row.firstName) if row.firstName else None
+        last_name = fix_encoding(row.lastName) if row.lastName else None
+        club_name = fix_encoding(row.club_name) if row.club_name else None
+        
         racer_data = {
             "id": row.id,
-            "firstName": row.firstName,
-            "lastName": row.lastName,
+            "firstName": first_name,
+            "lastName": last_name,
             "sex": row.sex,
             "birthYear": row.birthYear,
             "club_id": row.club_id,
             "idSlcr": row.idSlcr,
-            "club_name": row.club_name,
+            "club_name": club_name,
             # Also include base fields for compatibility
-            "name": row.firstName,
-            "surname": row.lastName,
+            "name": first_name,
+            "surname": last_name,
             "year": row.birthYear,
             "slcr_id": row.idSlcr
         }
@@ -68,6 +74,13 @@ def create_racer(
     db.add(db_racer)
     db.commit()
     db.refresh(db_racer)
+    
+    # Fix encoding in the returned racer data
+    if db_racer.name:
+        db_racer.name = fix_encoding(db_racer.name)
+    if db_racer.surname:
+        db_racer.surname = fix_encoding(db_racer.surname)
+    
     return db_racer
 
 
@@ -95,6 +108,13 @@ def update_racer(
     
     db.commit()
     db.refresh(db_racer)
+    
+    # Fix encoding in the returned racer data
+    if db_racer.name:
+        db_racer.name = fix_encoding(db_racer.name)
+    if db_racer.surname:
+        db_racer.surname = fix_encoding(db_racer.surname)
+    
     return db_racer
 
 

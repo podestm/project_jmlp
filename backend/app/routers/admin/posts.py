@@ -5,6 +5,7 @@ from sqlalchemy import desc
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...utils import fix_encoding
 
 router = APIRouter(tags=["admin-posts"])
 
@@ -18,6 +19,12 @@ def get_posts(
 ):
     """Get all posts for admin management."""
     posts = db.query(models.Post).order_by(desc(models.Post.created_at)).offset(skip).limit(limit).all()
+    
+    # Fix encoding issues in posts for admin interface
+    for post in posts:
+        post.title = fix_encoding(post.title)
+        post.content = fix_encoding(post.content)
+    
     return posts
 
 
@@ -28,10 +35,15 @@ def create_post(
     db: Session = Depends(get_db)
 ):
     """Create a new post."""
-    db_post = models.Post(**post_data.dict(), created_by=current_admin.id)
+    db_post = models.Post(**post_data.dict())
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
+    
+    # Fix encoding issues in the returned post
+    db_post.title = fix_encoding(db_post.title)
+    db_post.content = fix_encoding(db_post.content)
+    
     return db_post
 
 
@@ -53,6 +65,11 @@ def update_post(
     
     db.commit()
     db.refresh(db_post)
+    
+    # Fix encoding issues in the returned post
+    db_post.title = fix_encoding(db_post.title)
+    db_post.content = fix_encoding(db_post.content)
+    
     return db_post
 
 

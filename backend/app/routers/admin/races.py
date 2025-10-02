@@ -6,6 +6,7 @@ from sqlalchemy import desc
 from ...database import get_db
 from ... import models, schemas, auth
 from ...models import FileTypeEnum
+from ...utils import fix_encoding
 
 router = APIRouter(prefix="/races", tags=["admin-races"])
 
@@ -28,14 +29,14 @@ def get_races(
         # Add areal name
         if race.areal_id:
             areal = db.query(models.Areal).filter(models.Areal.id == race.areal_id).first()
-            race_dict["areal_name"] = areal.name if areal else None
+            race_dict["areal_name"] = fix_encoding(areal.name) if areal else None
         else:
             race_dict["areal_name"] = None
         
         # Add organizer name
         if race.organizer_id:
             organizer = db.query(models.Club).filter(models.Club.id == race.organizer_id).first()
-            race_dict["organizer_name"] = organizer.name if organizer else None
+            race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
         else:
             race_dict["organizer_name"] = None
             
@@ -60,14 +61,14 @@ def get_race(
     # Add areal name
     if race.areal_id:
         areal = db.query(models.Areal).filter(models.Areal.id == race.areal_id).first()
-        race_dict["areal_name"] = areal.name if areal else None
+        race_dict["areal_name"] = fix_encoding(areal.name) if areal else None
     else:
         race_dict["areal_name"] = None
     
     # Add organizer name
     if race.organizer_id:
         organizer = db.query(models.Club).filter(models.Club.id == race.organizer_id).first()
-        race_dict["organizer_name"] = organizer.name if organizer else None
+        race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
     else:
         race_dict["organizer_name"] = None
     
@@ -230,7 +231,7 @@ def autocomplete_areals(
         models.Areal.name.like(f"%{q}%")
     ).limit(10).all()
     
-    return [{"id": areal.id, "name": areal.name} for areal in areals]
+    return [{"id": areal.id, "name": fix_encoding(areal.name)} for areal in areals]
 
 
 @router.get("/autocomplete/organizers")
@@ -247,4 +248,50 @@ def autocomplete_organizers(
         models.Club.name.like(f"%{q}%")
     ).limit(10).all()
     
-    return [{"id": club.id, "name": club.name} for club in clubs]
+    return [{"id": club.id, "name": fix_encoding(club.name)} for club in clubs]
+
+
+@router.post("/autocomplete/areals", response_model=schemas.Areal)
+def create_areal(
+    areal_data: schemas.ArealCreate,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new areal."""
+    # Check if areal already exists
+    existing_areal = db.query(models.Areal).filter(
+        models.Areal.name == areal_data.name
+    ).first()
+    
+    if existing_areal:
+        return existing_areal
+    
+    # Create new areal
+    areal = models.Areal(name=areal_data.name)
+    db.add(areal)
+    db.commit()
+    db.refresh(areal)
+    return areal
+
+
+@router.post("/autocomplete/organizers", response_model=schemas.Club)
+def create_organizer(
+    organizer_data: schemas.ClubCreate,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new club/organizer."""
+    # Check if club already exists
+    existing_club = db.query(models.Club).filter(
+        models.Club.name == organizer_data.name
+    ).first()
+    
+    if existing_club:
+        return existing_club
+    
+    # Create new club
+    club = models.Club(name=organizer_data.name, valid=True)
+    db.add(club)
+    db.commit()
+    db.refresh(club)
+    return club

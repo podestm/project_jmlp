@@ -45,12 +45,20 @@ class Club(BaseModel):
         from_attributes = True
 
 
+class ClubCreate(BaseModel):
+    name: str
+
+
 class Areal(BaseModel):
     id: int
     name: str
 
     class Config:
         from_attributes = True
+
+
+class ArealCreate(BaseModel):
+    name: str
 
 
 class Race(BaseModel):

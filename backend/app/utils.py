@@ -7,6 +7,105 @@ from typing import Optional
 from fastapi import HTTPException, status
 
 
+def fix_encoding(text: str) -> str:
+    """
+    Fix double-encoded UTF-8 text that appears as garbled characters.
+    Common in data migrated from systems with encoding issues.
+    
+    Args:
+        text: Potentially corrupted text
+        
+    Returns:
+        str: Fixed text with proper Czech characters
+    """
+    if not text:
+        return text
+        
+    try:
+        # Multiple attempts to fix encoding
+        # First attempt: standard double-encoding fix
+        if any(char in text for char in ['Ã', 'Â']):
+            try:
+                # Method 1: encode as latin1, decode as utf-8
+                fixed = text.encode('latin1').decode('utf-8')
+                return fixed
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                pass
+                
+        # Manual replacement for common Czech characters that get corrupted
+        replacements = {
+            'Ã­': 'í',  # í
+            'Ã¡': 'á',  # á 
+            'Ã©': 'é',  # é
+            'Ã³': 'ó',  # ó
+            'Ãº': 'ú',  # ú
+            'Å¯': 'ů',  # ů
+            'Äâ€š': 'ě', # ě
+            'Ä›': 'ě',  # ě
+            'Å™': 'ř',  # ř
+            'Å¡': 'š',  # š
+            'Äâ€¡': 'č', # č
+            'Å¾': 'ž',  # ž
+            'Ä': 'ý',   # ý
+            'Åˆ': 'ň',  # ň
+            'Ä¯': 'ď',  # ď
+            'Å¥': 'ť',  # ť
+            'Ã': 'Í',   # Í
+            'Ã': 'Á',   # Á
+            'Ã‰': 'É',  # É
+            'VÃÂ­': 'Ví',
+            'VÃ­': 'Ví',
+            'tÃÂ¡me': 'táme',
+            'vÃÂ¡s': 'vás',
+            'novÃÂ©m': 'novém',
+            'JezernÃÂ­': 'Jezerní',
+            'MotolodnÃÂ­': 'Motolodní',
+            'ZahÃÂ¡jili': 'Zahájili',
+            'zimnÃÂ­': 'zimní',
+            'sezÃÂ³nu': 'sezónu',
+            'mÃÂ¯ÃÂ¾ete': 'můžete',
+            'jednotlivÃÂ©': 'jednotlivé',
+            'zÃÂ¡vody': 'závody',
+            'zÃÂ¡vodem': 'závodem',
+            'sekci': 'sekci',
+            'TermÃÂ­novka': 'Termínovka',
+            'NezapomeÃËte': 'Nezapomeňte',
+            'stÃÂ¡hnout': 'stáhnout',
+            'propozice': 'propozice',
+            'pÃâ¢ed': 'před',
+            # Common name fixes
+            'DvoÃ¡kovÃ¡': 'Dvořáková',
+            'DvoÃÂ¡kovÃÂ¡': 'Dvořáková', 
+            'NovÃ¡k': 'Novák',
+            'NovÃÂ¡k': 'Novák',
+            'HorÃ¡k': 'Horák',
+            'HorÃÂ¡k': 'Horák',
+            'FreedomÃ¡': 'Freedomá',
+            'SvobodÃ¡': 'Svobodá',
+            'SvobodÃÂ¡': 'Svobodá',
+            'KrejÃ­': 'Krejčí',
+            'KrejÃÂ­': 'Krejčí',
+            'MalÃ½': 'Malý',
+            'MalÃÂ½': 'Malý',
+            'StarÃ½': 'Starý',
+            'StarÃÂ½': 'Starý',
+            'KrÃ¡l': 'Král',
+            'KrÃÂ¡l': 'Král',
+            'ProcházkovÃ¡': 'Procházková',
+            'ProcházkÃÂ¡': 'Procházková'
+        }
+        
+        result = text
+        for old, new in replacements.items():
+            result = result.replace(old, new)
+            
+        return result
+        
+    except Exception:
+        # If all fixing fails, return original text
+        return text
+
+
 def get_current_season_id(reference_date: Optional[date] = None) -> int:
     """
     Dynamicky určí season_id podle data.

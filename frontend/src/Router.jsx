@@ -9,6 +9,7 @@ import NewsArchive from './components/pages/NewsArchive.jsx';
 // Admin components
 import { AuthProvider, useAuth } from './config/auth.jsx';
 import AdminLogin from './components/admin/AdminLogin.jsx';
+import AdminRegister from './components/admin/AdminRegister.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 import AdminDashboard from './components/admin/AdminDashboard.jsx';
 import RaceManagement from './components/admin/RaceManagement.jsx';
@@ -81,6 +82,11 @@ function AppRouter() {
               <Route path="/posts" element={
                 <ProtectedRoute>
                   <PostManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/register" element={
+                <ProtectedRoute>
+                  <AdminRegister />
                 </ProtectedRoute>
               } />
             </Routes>

@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AdminAPI, API_CONFIG } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 
 export const useRaceManagement = () => {
+    // Refs for debouncing
+    const arealSearchTimeoutRef = useRef(null);
+    const organizerSearchTimeoutRef = useRef(null);
+    
     // State management
     const [races, setRaces] = useState([]);
     const [filteredRaces, setFilteredRaces] = useState([]);
@@ -166,12 +170,28 @@ export const useRaceManagement = () => {
 
     const handleArealSearch = (value) => {
         setArealSearch(value);
-        searchAreals(value);
+        
+        // Debounce search
+        if (arealSearchTimeoutRef.current) {
+            clearTimeout(arealSearchTimeoutRef.current);
+        }
+        
+        arealSearchTimeoutRef.current = setTimeout(() => {
+            searchAreals(value);
+        }, 300);
     };
 
     const handleOrganizerSearch = (value) => {
         setOrganizerSearch(value);
-        searchOrganizers(value);
+        
+        // Debounce search
+        if (organizerSearchTimeoutRef.current) {
+            clearTimeout(organizerSearchTimeoutRef.current);
+        }
+        
+        organizerSearchTimeoutRef.current = setTimeout(() => {
+            searchOrganizers(value);
+        }, 300);
     };
 
     const selectAreal = async (areal) => {
@@ -356,16 +376,38 @@ export const useRaceManagement = () => {
         filterRaces();
     }, [races, seasonFilter]);
 
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (arealSearchTimeoutRef.current) {
+                clearTimeout(arealSearchTimeoutRef.current);
+            }
+            if (organizerSearchTimeoutRef.current) {
+                clearTimeout(organizerSearchTimeoutRef.current);
+            }
+        };
+    }, []);
+
     // Re-generate race number when races data is loaded and form has date
     useEffect(() => {
-        if (races.length > 0 && formData.datum && !editingRace) {
-            const result = generateRaceNumberLocal();
-            if (result) {
-                setFormData(prev => ({
-                    ...prev,
-                    raceNr: result.raceNr,
-                    season_id: result.seasonId
-                }));
+        if (races.length > 0 && formData.datum) {
+            // For new races, always generate
+            // For existing races, only if date changed from original
+            const shouldGenerate = !editingRace || 
+                (editingRace && formData.datum !== editingRace.datum);
+                
+            if (shouldGenerate) {
+                const result = generateRaceNumberLocal();
+                if (result) {
+                    setFormData(prev => ({
+                        ...prev,
+                        raceNr: result.raceNr,
+                        season_id: result.seasonId
+                    }));
+                    // Update preview too
+                    setRaceNumberPreview(result.raceNr);
+                    setSeasonPreview(result.seasonDisplay);
+                }
             }
         }
     }, [races.length, formData.datum, editingRace]);

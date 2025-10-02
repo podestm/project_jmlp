@@ -7,6 +7,7 @@ from pathlib import Path
 from ..database import get_db
 from ..models import Post, File
 from ..schemas import Post as PostSchema, PostCreate, PostUpdate
+from ..utils import fix_encoding
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -25,6 +26,12 @@ def get_posts(
         query = query.filter(Post.published == True)
     
     posts = query.order_by(desc(Post.created_at)).offset(skip).limit(limit).all()
+    
+    # Fix encoding issues in posts
+    for post in posts:
+        post.title = fix_encoding(post.title)
+        post.content = fix_encoding(post.content)
+    
     return posts
 
 

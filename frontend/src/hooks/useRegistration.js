@@ -93,8 +93,8 @@ export const useRegistration = (raceId, onSuccess) => {
             year: racer.year,
             sex: racer.sex,
             club: racer.club_name || '',
-            telefon: racer.telefon || '',
-            email: racer.email || '',
+            telefon: '', // Záměrně prázdné - nechceme automaticky vyplňovat
+            email: '',   // Záměrně prázdné - nechceme automaticky vyplňovat
             slcr_id: racer.slcr_id || ''
         });
         setSelectedRacer(racer);

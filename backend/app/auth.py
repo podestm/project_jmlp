@@ -1,11 +1,12 @@
 import os
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Session
 
 from .database import get_db
@@ -16,7 +17,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "development-only-secret-key-change-in-prod
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
@@ -27,14 +27,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return True
     
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        return check_password_hash(hashed_password, plain_password)
     except Exception:
         return False
 
 
 def get_password_hash(password: str) -> str:
     """Generate password hash."""
-    return pwd_context.hash(password)
+    return generate_password_hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

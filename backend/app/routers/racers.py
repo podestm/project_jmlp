@@ -5,6 +5,7 @@ from typing import List
 import logging
 from ..database import get_db
 from .. import models, schemas
+from ..utils import fix_encoding
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter(prefix="/racers", tags=["racers"])
@@ -22,8 +23,8 @@ def search_racers(
     
     from sqlalchemy import text
     
-    # Nejdříve načteme všechny závodníky
-    sql = "SELECT id, name, surname, year, sex, telefon, email, slcr_id, club_id FROM fuj_jmlp_racer WHERE 1=1"
+    # Nejdříve načteme všechny závodníky (bez emailu a telefonu pro vyhledávání)
+    sql = "SELECT id, name, surname, year, sex, slcr_id, club_id FROM fuj_jmlp_racer WHERE 1=1"
     params = {}
     
     # Přidáme filtry pro závodníka
@@ -67,15 +68,14 @@ def search_racers(
         
         results.append({
             "id": row.id,
-            "name": row.name,
-            "surname": row.surname,
+            "name": fix_encoding(row.name) if row.name else None,
+            "surname": fix_encoding(row.surname) if row.surname else None,
             "year": row.year,
             "sex": row.sex,
-            "telefon": row.telefon,
-            "email": row.email,
             "slcr_id": row.slcr_id,
             "club_id": row.club_id,
-            "club_name": club_name
+            "club_name": fix_encoding(club_name) if club_name else None
+            # telefon a email se záměrně nevrací při vyhledávání
         })
     
     return results

@@ -43,6 +43,13 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-newspaper me-2"></i>
               Posty a zprávy
             </Link>
+            
+            <hr className="border-secondary my-3" />
+            
+            <Link to="/admin/register" className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
+              <i className="bi bi-person-plus me-2"></i>
+              Nový administrátor
+            </Link>
           </div>
         </nav>
         

@@ -56,7 +56,7 @@ const RaceForm = ({
                                             value={formData.datum}
                                             onChange={(e) => {
                                                 setFormData(prev => ({...prev, datum: e.target.value}));
-                                                if (e.target.value && !editingRace) {
+                                                if (e.target.value) {
                                                     try {
                                                         const result = generateRaceNumberLocal(e.target.value);
                                                         if (result) {

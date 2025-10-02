@@ -141,5 +141,5 @@ ON DUPLICATE KEY UPDATE `title`=VALUES(`title`);
 -- Default admin user (email: admin@jmlp.cz, password: admin123)
 -- Password hash for 'admin123' using bcrypt
 INSERT INTO `fuj_jmlp_admin` (`email`, `password_hash`, `full_name`, `is_active`) VALUES
-  ('admin@jmlp.cz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNi8F/G9fzOUi', 'Administrátor JMLP', 1)
+  ('admin@jmlp.cz', '$2b$12$66qeiRQxfxV9F2Q9LCg.5.GeenyJW2UwS9/EpnomZs49S6GnqDpj.', 'Administrátor JMLP', 1)
 ON DUPLICATE KEY UPDATE `email`=VALUES(`email`);
