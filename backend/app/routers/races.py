@@ -299,40 +299,9 @@ def download_document(race_id: int, doc_type: str, db: Session = Depends(get_db)
     )
 
 
-# Public document endpoints
-@router.get("/{race_id}/documents", response_model=List[schemas.Document])
-def list_race_documents_public(race_id: int, db: Session = Depends(get_db)):
-    """List public documents for a race."""
-    race = db.query(models.Race).filter(models.Race.id == race_id).first()
-    if not race:
-        raise HTTPException(status_code=404, detail="Race not found")
-    
-    documents = db.query(models.Document).filter(models.Document.race_id == race_id).all()
-    return documents
-
-
-@router.get("/documents/{document_id}/download")
-def download_document_public(document_id: int, db: Session = Depends(get_db)):
-    """Download a document (public endpoint)."""
-    from pathlib import Path
-    from fastapi.responses import FileResponse
-    
-    document = db.query(models.Document).filter(models.Document.id == document_id).first()
-    if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
-    
-    file_path = Path(document.file_path)
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found on disk")
-    
-    return FileResponse(
-        path=str(file_path),
-        filename=document.original_filename,
-        media_type=document.mime_type or 'application/octet-stream'
-    )
-
-
-# Public document download endpoints
+# ============================================================================
+# PUBLIC DOCUMENT DOWNLOAD ENDPOINTS (fuj_jmlp_files table)
+# ============================================================================
 @router.get("/{race_id}/proposition")
 def download_race_proposition(race_id: int, db: Session = Depends(get_db)):
     """Download race proposition document (public access)."""

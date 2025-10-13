@@ -178,22 +178,6 @@ class TokenData(BaseModel):
     admin_id: Optional[int] = None
 
 
-# Document schemas
-class DocumentBase(BaseModel):
-    race_id: Optional[int] = None
-    type: str = "other"  # 'propozice', 'vysledky', 'other'
-
-
-class Document(DocumentBase):
-    id: int
-    filename: str
-    path: str
-    size: int = 0
-
-    class Config:
-        from_attributes = True
-
-
 # File schemas
 class FileBase(BaseModel):
     filename: str

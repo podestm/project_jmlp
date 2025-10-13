@@ -29,7 +29,7 @@ services:
       - db
     volumes:
       - ./backend/app:/app/app
-      - ./backend/documents:/app/documents
+      - documents_data:/app/uploads/documents
 
   frontend:
     build: ./frontend
@@ -44,3 +44,4 @@ services:
 
 volumes:
   db_data:
+  documents_data:

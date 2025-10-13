@@ -87,7 +87,7 @@ export default function AdminLogin() {
               {process.env.NODE_ENV === 'development' && (
                 <div className="mt-3 text-center text-muted">
                   <small>
-                    Development: admin@jmlp.cz / admin123
+                    Vstup, kdo s dobrým úmyslem přicházíš.
                   </small>
                 </div>
               )}

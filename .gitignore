@@ -25,9 +25,8 @@ frontend/.env.local
 backend/.env
 *.env
 
-# Uploaded files
-backend/documents/*
-!backend/documents/.gitkeep
+# Uploaded files (now stored in Docker volumes, not local filesystem)
+backend/documents/
 
 # Database
 db_data/
@@ -46,3 +45,22 @@ secrets/
 *.key
 *.pem
 *.crt
+
+# Legacy/temporary scripts (don't commit to GitHub)
+test_password_hashing.py
+test_login.py
+generate_hash.py
+update_admin.sql
+generate_admin_hash.py
+*_test.py
+*_temp.py
+
+# Temporary/redundant documentation
+SUMMARY.md
+PRODUCTION.md
+SECURITY.md
+ARCHITECTURE.md
+SECURITY_FIX.md
+CHANGELOG.md
+TODO.md
+NOTES.md

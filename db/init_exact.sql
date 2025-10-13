@@ -19,10 +19,10 @@ CREATE TABLE `fuj_jmlp_race` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `closed` bit(1) NOT NULL,
   `datum` date DEFAULT NULL,
-  `proposition` varchar(255) DEFAULT NULL,
   `raceNr` varchar(255) DEFAULT NULL,
   `registration` bit(1) NOT NULL,
-  `result` varchar(255) DEFAULT NULL,
+  `proposition_file_id` bigint(20) DEFAULT NULL COMMENT 'FK to fuj_jmlp_files',
+  `results_file_id` bigint(20) DEFAULT NULL COMMENT 'FK to fuj_jmlp_files',
   `areal_id` bigint(20) DEFAULT NULL,
   `organizer_id` bigint(20) DEFAULT NULL,
   `raceCategory_id` bigint(20) NOT NULL,
@@ -35,7 +35,9 @@ CREATE TABLE `fuj_jmlp_race` (
   KEY `FK8F3E04454AD4A38A` (`raceCategory_id`),
   KEY `FK8F3E0445922922EA` (`season_id`),
   KEY `FK8F3E0445A4CC64F1` (`organizer_id`),
-  KEY `FK8F3E04458568B4A` (`areal_id`)
+  KEY `FK8F3E04458568B4A` (`areal_id`),
+  KEY `idx_proposition_file` (`proposition_file_id`),
+  KEY `idx_results_file` (`results_file_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=106 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 CREATE TABLE `fuj_jmlp_areal` (
@@ -70,9 +72,9 @@ INSERT INTO `fuj_jmlp_racer` (`name`, `surname`, `sex`, `year`, `telefon`, `slcr
   ('Eva', 'Dvořáková', 2, 2009, NULL, NULL, 1)
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);
 
-INSERT INTO `fuj_jmlp_race` (`closed`, `datum`, `proposition`, `raceNr`, `registration`, `result`, `areal_id`, `organizer_id`, `raceCategory_id`, `raceMethod_id`, `raceType_id`, `season_id`) VALUES
-  (b'0', CURDATE() + INTERVAL 7 DAY, NULL, 'JMLP-001', b'1', NULL, 1, NULL, 1, 1, 1, 2025),
-  (b'0', CURDATE() + INTERVAL 14 DAY, NULL, 'JMLP-002', b'1', NULL, 2, NULL, 1, 1, 1, 2025);
+INSERT INTO `fuj_jmlp_race` (`closed`, `datum`, `raceNr`, `registration`, `proposition_file_id`, `results_file_id`, `areal_id`, `organizer_id`, `raceCategory_id`, `raceMethod_id`, `raceType_id`, `season_id`) VALUES
+  (b'0', CURDATE() + INTERVAL 7 DAY, 'JMLP-001', b'1', NULL, NULL, 1, NULL, 1, 1, 1, 2025),
+  (b'0', CURDATE() + INTERVAL 14 DAY, 'JMLP-002', b'1', NULL, NULL, 2, NULL, 1, 1, 1, 2025);
 
 -- Registration table (not part of original dump, required for app functionality)
 CREATE TABLE IF NOT EXISTS `race_registration` (
@@ -114,22 +116,21 @@ CREATE TABLE IF NOT EXISTS `fuj_jmlp_admin` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- File uploads table for documents (propozice, vysledky)
-CREATE TABLE IF NOT EXISTS `fuj_jmlp_document` (
+-- File uploads table (propozice, vysledky, images, documents)
+CREATE TABLE IF NOT EXISTS `fuj_jmlp_files` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `race_id` bigint(20) DEFAULT NULL,
-  `type` enum('propozice','vysledky','other') NOT NULL DEFAULT 'other',
-  `filename` varchar(191) NOT NULL,
-  `original_filename` varchar(191) NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `file_size` bigint(20) DEFAULT NULL,
+  `filename` varchar(255) NOT NULL,
+  `original_filename` varchar(255) NOT NULL,
+  `file_path` varchar(500) NOT NULL,
+  `file_size` bigint(20) NOT NULL DEFAULT 0,
   `mime_type` varchar(100) DEFAULT NULL,
-  `uploaded_by` bigint(20) NOT NULL,
+  `file_type` enum('document','image','propozice','vysledky','posty','neprirazene') NOT NULL DEFAULT 'neprirazene',
   `uploaded_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `uploaded_by` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_race_id` (`race_id`),
-  KEY `idx_type` (`type`),
-  KEY `idx_uploaded_by` (`uploaded_by`)
+  KEY `idx_file_type` (`file_type`),
+  KEY `idx_uploaded_by` (`uploaded_by`),
+  KEY `idx_uploaded_at` (`uploaded_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sample posts data
@@ -139,7 +140,8 @@ INSERT INTO `posts` (`title`, `content`, `image_path`, `published`) VALUES
 ON DUPLICATE KEY UPDATE `title`=VALUES(`title`);
 
 -- Default admin user (email: admin@jmlp.cz, password: admin123)
--- Password hash for 'admin123' using bcrypt
+-- ⚠️ CHANGE PASSWORD after first deployment!
+-- Password hash for 'admin123' using werkzeug scrypt (default method)
 INSERT INTO `fuj_jmlp_admin` (`email`, `password_hash`, `full_name`, `is_active`) VALUES
-  ('admin@jmlp.cz', '$2b$12$66qeiRQxfxV9F2Q9LCg.5.GeenyJW2UwS9/EpnomZs49S6GnqDpj.', 'Administrátor JMLP', 1)
+  ('admin@jmlp.cz', 'scrypt:32768:8:1$is0kNTnH6Q5fmokn$b1cbc88d0c0cfb050e43a7187a3201bf0354e57bcb8d1e6f8086a4333f88e11dc5d62f8a698f75325ef864eb374c47480156884bbb613a626793109fbdc0df88', 'Administrátor JMLP', 1)
 ON DUPLICATE KEY UPDATE `email`=VALUES(`email`);

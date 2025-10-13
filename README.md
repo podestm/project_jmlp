@@ -2,14 +2,17 @@
 
 Full-stack registrační systém postavený na FastAPI (backend), React (frontend), MySQL databázi a Docker kontejnerizaci. Slouží pro správu registrací na závody České "Jezerní Motolodní Liga Pardubice".
 
-## 🚀 Rychlý start
+## 🚀 Rychlý start (Development)
 
-1. **Spuštění aplikace:**
 ```cmd
+# 1. Spuštění aplikace
 docker compose up --build
+
+# docker-compose.yml je safe pro Git - obsahuje pouze dev fallback hesla
+# Skutečná hesla jsou v .env souboru (v .gitignore)
 ```
 
-2. **Otevření aplikace:**
+**Otevření aplikace:**
 - **Frontend (veřejná stránka):** http://localhost:3000
 - **API dokumentace:** http://localhost:8000/docs  
 - **Admin rozhraní:** http://localhost:3000/admin
@@ -18,6 +21,53 @@ docker compose up --build
 ⚠️ **SECURITY:** Před nasazením do produkce vytvořte `.env` soubor z `.env.example` a nastavte silná hesla!
 
 Databáze se automaticky inicializuje z `db/init_exact.sql` s testovacími daty klubů, závodníků a závodů.
+
+---
+
+## 🚀 Production Deployment
+
+**Projekt je připravený pro produkční nasazení!**
+
+### Quick Start:
+```bash
+# 1. Vytvořte .env s produkčními hodnotami
+cp .env.example .env
+nano .env  # Změňte hesla a domény!
+
+# 2. Build a spusťte production
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+
+# 3. IHNED změňte admin heslo po nasazení!
+```
+
+### ⚠️ Kritické kroky před nasazením:
+
+1. **`.env` soubor** - změňte:
+   - `MYSQL_ROOT_PASSWORD` (min. 16 znaků)
+   - `MYSQL_PASSWORD` (min. 16 znaků)
+   - `CORS_ORIGINS=https://vase-domena.cz`
+   - `VITE_API_BASE=https://api.vase-domena.cz`
+
+2. **Admin heslo** - po nasazení:
+   - Přihlaste se: `admin@jmlp.cz` / `admin123`
+   - **Okamžitě změňte heslo!**
+
+3. **SSL certifikát**:
+   - Použijte Let's Encrypt nebo jiný certifikát
+   - Nakonfigurujte reverse proxy (nginx/Caddy)
+
+### Production vs Development:
+
+| Komponenta | Development | Production |
+|------------|-------------|------------|
+| Frontend | Vite dev (port 3000) | Nginx (port 80) |
+| Backend | 1 worker | 4 workers, non-root |
+| Volumes | Source mounted | Data only |
+| DB Port | 3307 exposed | Internal only |
+| Security Headers | ❌ | ✅ |
+
+---
 
 ## 📁 Struktura projektu
 
@@ -186,46 +236,42 @@ FastAPI automaticky generuje interaktivní dokumentaci na `http://localhost:8000
 - **Správa závodníků a klubů** s vyhledáváním
 - **Zobrazení detailních statistik** registrací podle klubů
 
-## 🚨 Poznámky k produkci
+## � Bezpečnost
 
-- **Změnit SECRET_KEY** v produkčním prostředí
-- **Aktualizovat CORS_ORIGINS** na produkční domény  
-## 🔐 Bezpečnost pro produkci
+### Implementované features:
+- ✅ JWT autentifikace s 64-char hex SECRET_KEY
+- ✅ Werkzeug scrypt hashed hesla (32768 iterations)
+- ✅ Non-root Docker users v produkci
+- ✅ Security headers (X-Frame-Options, X-XSS-Protection)
+- ✅ Internal Docker network (db nepřístupná zvenčí)
+- ✅ `.env` soubor v `.gitignore`
 
-**⚠️ KRITICKÉ PŘED NASAZENÍM:**
+### Doporučené další kroky:
+- [ ] SSL/TLS certifikát (Let's Encrypt)
+- [ ] Reverse proxy s rate limiting
+- [ ] Firewall (pouze 80/443)
+- [ ] Pravidelné zálohy (db_data, documents_data)
 
-1. **Vytvořte `.env` soubor:**
-   ```cmd
-   copy .env.example .env
-   ```
+---
 
-2. **Nastavte silná hesla v `.env`:**
-   ```env
-   MYSQL_ROOT_PASSWORD=vase_silne_heslo_zde
-   MYSQL_PASSWORD=vase_app_heslo_zde  
-   SECRET_KEY=vase_jwt_secret_key_zde
-   ```
+## � Poznámky
 
-3. **Změňte admin účet v databázi** z default `admin123`
-- **Zvážit přechod na InnoDB** místo MyISAM pro referenční integritu
-- **Nastavit SSL** pro produkční deployment
+### Legacy záležitosti:
+- **MyISAM engine** - legacy kompatibilita, zvážit přechod na InnoDB
+- **BigInt IDs** - kvůli kompatibilitě se starým systémem
+- **Prefix `fuj_jmlp_`** - historické pojmenování tabulek
 
-## 📋 Nedávná vylepšení
+### Technické detaily:
+- **Sezóny:** Srpen-Červenec (1.8. = nová sezóna)
+- **UTF-8:** Kompletní podpora českých znaků
+- **Docker volumes:** Persistentní data pro db a dokumenty
+- **Health checks:** Automatická kontrola stavu služeb v produkci
 
-### ✅ **Backend optimalizace (2025-10)**
-- 🧹 **Vyčištěn auth modul** - odstraněny debug printy a duplikovaný kód
-- 📦 **Nový utils.py modul** - centralizované season funkce a encoding utility
-- 🎯 **Standardizované error handling** - konzistentní české chybové zprávy
-- 🔄 **Opraveno API routování** - vyřešeny konflikty `/season/*` vs `/{race_id}`
+---
 
-### ✅ **Frontend UX vylepšení (2025-10)**
-- 🎨 **Vylepšené admin rozhraní příspěvků** - jediné tlačítko pro nový příspěvek
-- 📱 **Nový registrační layout** - formulář vlevo, seznam závodníků vpravo
-- 🚫 **Odstraněny věkové kategorie** - zjednodušený seznam bez zbytečných informací
-- 🎯 **Jednotný text tlačítek** - "Registrovat závodníka" místo měnících se textů
+## 🤝 Kontribuce
 
-### ✅ **CSV export vylepšení (2025-10)**
-- 🔤 **UTF-8 s BOM** - správné zobrazení českých znaků v Excelu
+Pro AI asistenty (GitHub Copilot): Projekt má detailní kontext v `.github/copilot-instructions.md`
 - 🔄 **CONVERT operace** - automatická oprava legacy encoding v databázi
 
 ## 📋 TODO & Budoucí vylepšení

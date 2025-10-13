@@ -111,11 +111,6 @@ export const useNewsArchive = () => {
         setCurrentPage(1);
     };
 
-    // File helper
-    const getFileUrl = (postId) => {
-        return `${API_CONFIG.BASE_URL}/posts/${postId}/image`;
-    };
-
     // Date formatting
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('cs-CZ');
@@ -151,7 +146,6 @@ export const useNewsArchive = () => {
         monthNames,
         handlePageChange,
         clearFilters,
-        getFileUrl,
         formatDate,
         formatText
     };

@@ -63,7 +63,6 @@ function NewsArchive() {
                         posts={newsArchive.currentPosts}
                         formatDate={newsArchive.formatDate}
                         formatText={newsArchive.formatText}
-                        getFileUrl={newsArchive.getFileUrl}
                     />
 
                     <NewsPagination 

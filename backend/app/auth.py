@@ -21,11 +21,7 @@ security = HTTPBearer()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    # TODO: Remove legacy plain text password support in production
-    if hashed_password == "admin123" and plain_password == "admin123":
-        return True
-    
+    """Verify a password against its hash using werkzeug (bcrypt)."""
     try:
         return check_password_hash(hashed_password, plain_password)
     except Exception:

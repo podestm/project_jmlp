@@ -112,7 +112,6 @@ const PostForm = ({
                                             >
                                                 <option value="left">Vlevo</option>
                                                 <option value="right">Vpravo</option>
-                                                <option value="center">Na střed</option>
                                                 <option value="top">Nahoře</option>
                                             </select>
                                         </div>

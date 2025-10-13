@@ -123,6 +123,8 @@ function Homepage() {
                 {posts.map((post) => {
                   const showImage = post.image_file_id && post.image_position !== 'none';
                   const imagePosition = post.image_position || 'right';
+                  // Add cache busting parameter using updated_at timestamp
+                  const imageUrl = `${API_CONFIG.BASE_URL}/posts/${post.id}/image?v=${new Date(post.updated_at).getTime()}`;
                   
                   return (
                     <div key={post.id} className="col-12">
@@ -130,7 +132,7 @@ function Homepage() {
                         {/* Obrázek nad textem (top) */}
                         {showImage && imagePosition === 'top' && (
                           <img 
-                            src={`${API_CONFIG.BASE_URL}/posts/${post.id}/image`} 
+                            src={imageUrl} 
                             className="card-img-top" 
                             alt={post.title}
                             style={{ height: '200px', objectFit: 'cover' }}
@@ -145,7 +147,7 @@ function Homepage() {
                             {showImage && imagePosition === 'left' && (
                               <div className="col-md-5">
                                 <img 
-                                  src={`${API_CONFIG.BASE_URL}/posts/${post.id}/image`} 
+                                  src={imageUrl} 
                                   className="img-thumbnail mb-3" 
                                   alt={post.title}
                                   style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
@@ -169,7 +171,7 @@ function Homepage() {
                                 <div className="mb-3">
                                   <a 
                                     href={`${API_CONFIG.BASE_URL}/posts/${post.id}/document/download`}
-                                    className="btn btn-sm btn-outline-primary"
+                                    className="btn btn-outline-primary"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
@@ -184,7 +186,7 @@ function Homepage() {
                             {showImage && imagePosition === 'right' && (
                               <div className="col-md-5">
                                 <img 
-                                  src={`${API_CONFIG.BASE_URL}/posts/${post.id}/image`} 
+                                  src={imageUrl} 
                                   className="img-thumbnail mb-3" 
                                   alt={post.title}
                                   style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}

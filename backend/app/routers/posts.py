@@ -91,11 +91,20 @@ def get_post_image(post_id: int, db: Session = Depends(get_db)):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Soubor nenalezen na disku")
     
-    return FileResponse(
+    # Return file with cache control headers based on post's updated_at timestamp
+    response = FileResponse(
         path=str(file_path),
         filename=file_record.original_filename,
         media_type=file_record.mime_type or 'application/octet-stream'
     )
+    
+    # Add ETag based on post's updated_at timestamp and image_file_id
+    # This ensures browser cache is invalidated when image changes
+    etag = f'"{post.updated_at.timestamp()}-{post.image_file_id}"'
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour, but check ETag
+    
+    return response
 
 
 # Admin endpoints (zatím bez autentizace)

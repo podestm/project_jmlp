@@ -118,20 +118,6 @@ class AdminUser(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class Document(Base):
-    __tablename__ = "fuj_jmlp_document"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    race_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race.id"), nullable=True)
-    type: Mapped[str] = mapped_column(String(20))  # 'propozice', 'vysledky', 'other'
-    filename: Mapped[str] = mapped_column(String(191))
-    original_filename: Mapped[str] = mapped_column(String(191))
-    file_path: Mapped[str] = mapped_column(String(255))
-    file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    uploaded_by: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_admin.id"))
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
 class File(Base):
     __tablename__ = "fuj_jmlp_files"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
