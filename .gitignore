@@ -47,13 +47,12 @@ secrets/
 *.crt
 
 # Legacy/temporary scripts (don't commit to GitHub)
-test_password_hashing.py
-test_login.py
-generate_hash.py
-update_admin.sql
-generate_admin_hash.py
+test_*.py
+generate_*.py
 *_test.py
 *_temp.py
+*.sql.bak
+update_*.sql
 
 # Temporary/redundant documentation
 SUMMARY.md

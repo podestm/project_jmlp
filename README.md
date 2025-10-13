@@ -277,7 +277,7 @@ Pro AI asistenty (GitHub Copilot): Projekt má detailní kontext v `.github/copi
 ## 📋 TODO & Budoucí vylepšení
 
 - [ ] Migrace z MyISAM na InnoDB s foreign keys
-- [ ] Email notifikace pro nové registrace
+- [ ] Email notifikace
 - [ ] Pokročilé reporty a statistiky v admin rozhraní
 - [ ] API rate limiting pro produkční nasazení
 - [ ] Automatické zálohy databáze
