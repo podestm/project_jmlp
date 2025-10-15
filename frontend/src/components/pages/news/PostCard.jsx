@@ -1,4 +1,5 @@
 import React from 'react';
+import { API } from '../../../config/api.js';
 
 const PostCard = ({ post, formatDate, formatText }) => {
     const showImage = post.image_file_id && post.image_position !== 'none';
@@ -6,7 +7,7 @@ const PostCard = ({ post, formatDate, formatText }) => {
     
     // Add cache busting parameter using updated_at timestamp
     const imageUrl = showImage 
-        ? `${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/posts/${post.id}/image?v=${new Date(post.updated_at).getTime()}`
+        ? API.getImageUrl(post.id, post.updated_at)
         : null;
 
     return (
@@ -49,7 +50,7 @@ const PostCard = ({ post, formatDate, formatText }) => {
                 {post.document_file_id && (
                     <div className="mt-3">
                         <a 
-                            href={`${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}/posts/${post.id}/document/download`}
+                            href={API.getDocumentUrl(post.id)}
                             className="btn btn-outline-primary"
                             target="_blank"
                             rel="noopener noreferrer"

@@ -3,6 +3,7 @@ import { usePostManagement } from '../../hooks/usePostManagement.js';
 import PostFilters from './post/PostFilters.jsx';
 import PostTable from './post/PostTable.jsx';
 import PostForm from './post/PostForm.jsx';
+import Alert from '../ui/Alert.jsx';
 
 const PostManagement = () => {
     const postManagement = usePostManagement();
@@ -38,9 +39,11 @@ const PostManagement = () => {
             )}
 
             {postManagement.error && (
-                <div className="alert alert-danger mt-3">
-                    {postManagement.error}
-                </div>
+                <Alert 
+                    type="danger" 
+                    message={postManagement.error}
+                    onDismiss={() => postManagement.setError(null)}
+                />
             )}
         </div>
     );

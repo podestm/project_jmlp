@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../config/auth.jsx';
-import { API_CONFIG } from '../../config/api.js';
+import { AdminAPI } from '../../config/api.js';
+import Alert from '../ui/Alert.jsx';
 
 export default function DocumentManagement() {
   const { token } = useAuth();
@@ -29,19 +30,8 @@ export default function DocumentManagement() {
   const loadFiles = async () => {
     try {
       setLoading(true);
-      const filterParam = fileTypeFilter !== 'all' ? `?file_type=${fileTypeFilter}` : '';
-      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/files${filterParam}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const params = fileTypeFilter !== 'all' ? { file_type: fileTypeFilter } : {};
+      const data = await AdminAPI.get('/admin/files', params);
       setAllFiles(data);
       setError(null);
     } catch (error) {
@@ -118,20 +108,7 @@ export default function DocumentManagement() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/files/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Upload failed');
-      }
-
-      const result = await response.json();
+      const result = await AdminAPI.upload('/admin/files/upload', formData);
       setSuccess(`Soubor "${result.original_filename}" byl úspěšně nahrán`);
       
       // Reset file input
@@ -153,18 +130,7 @@ export default function DocumentManagement() {
     }
 
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/files/${fileId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Delete failed');
-      }
-
+      await AdminAPI.delete(`/admin/files/${fileId}`);
       setSuccess(`Soubor "${filename}" byl úspěšně smazán`);
       await loadFiles();
     } catch (error) {
@@ -175,17 +141,15 @@ export default function DocumentManagement() {
 
   const handleDownloadFile = async (fileId, filename) => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/files/${fileId}/download`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const token = localStorage.getItem('admin_token');
+      const endpoint = `/admin/files/${fileId}/download`;
+      
+      // Potřebujeme fetch pro blob response
+      const response = await fetch(endpoint, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Download failed');
-      }
+      if (!response.ok) throw new Error('Download failed');
 
       // Create blob from response
       const blob = await response.blob();
@@ -411,26 +375,42 @@ export default function DocumentManagement() {
           </div>
 
           {error && (
-            <div className="alert alert-danger" role="alert">
-              <i className="bi bi-exclamation-triangle-fill me-2"></i>
-              {error}
-            </div>
+            <Alert 
+              type="danger" 
+              message={
+                <>
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  {error}
+                </>
+              }
+              onDismiss={() => setError(null)}
+            />
           )}
 
           {success && (
-            <div className="alert alert-success" role="alert">
-              <i className="bi bi-check-circle-fill me-2"></i>
-              {success}
-            </div>
+            <Alert 
+              type="success" 
+              message={
+                <>
+                  <i className="bi bi-check-circle-fill me-2"></i>
+                  {success}
+                </>
+              }
+              onDismiss={() => setSuccess('')}
+            />
           )}
 
           {uploading && (
-            <div className="alert alert-info" role="alert">
-              <div className="d-flex align-items-center">
-                <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                Nahrávám soubor...
-              </div>
-            </div>
+            <Alert 
+              type="info" 
+              message={
+                <div className="d-flex align-items-center">
+                  <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                  Nahrávám soubor...
+                </div>
+              }
+              autoDismissDelay={0}
+            />
           )}
 
           <div className="card">

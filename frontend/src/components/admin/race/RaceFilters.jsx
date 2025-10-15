@@ -1,4 +1,5 @@
 import React from 'react';
+import Alert from '../../ui/Alert.jsx';
 
 const RaceFilters = ({ 
     seasonFilter, 
@@ -37,24 +38,18 @@ const RaceFilters = ({
             </div>
             <div className="col-md-6">
                 {error && (
-                    <div className="alert alert-danger alert-dismissible">
-                        {error}
-                        <button 
-                            type="button" 
-                            className="btn-close" 
-                            onClick={() => setError(null)}
-                        ></button>
-                    </div>
+                    <Alert 
+                        type="danger" 
+                        message={error}
+                        onDismiss={() => setError(null)}
+                    />
                 )}
                 {success && (
-                    <div className="alert alert-success alert-dismissible">
-                        {success}
-                        <button 
-                            type="button" 
-                            className="btn-close" 
-                            onClick={() => setSuccess(null)}
-                        ></button>
-                    </div>
+                    <Alert 
+                        type="success" 
+                        message={success}
+                        onDismiss={() => setSuccess(null)}
+                    />
                 )}
             </div>
         </div>

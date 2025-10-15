@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function RaceList({ currentSeason = false }) {
   const [races, setRaces] = useState([])
@@ -8,7 +7,7 @@ export default function RaceList({ currentSeason = false }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const url = currentSeason ? `${API}/races/?current_season=true` : `${API}/races/`
+    const url = currentSeason ? '/races/?current_season=true' : '/races/'
     fetch(url)
       .then(r => r.json())
       .then(setRaces)

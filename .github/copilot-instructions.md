@@ -88,7 +88,7 @@ docker compose down -v
 - **Environment Variables**: Use `.env` file for production: `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `SECRET_KEY`, `CORS_ORIGINS`, `VITE_API_BASE`
 - **Database Init**: `db/init_exact.sql` runs on first container start
 - **Season Boundary**: August 1st date logic affects race filtering throughout app
-- **Admin Access**: Default login `admin@jmlp.cz` / `admin123` (⚠️ MUST change in production - see SECURITY.md)
+- **Admin Access**: Default login `admin@jmlp.cz` / `admin123` (⚠️ MUST change in production – see README.md Security)
 - **File Upload**: Max 10MB, stored in `backend/documents/` with UUID naming
 
 ## Testing & Debugging

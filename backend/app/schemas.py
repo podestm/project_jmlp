@@ -12,6 +12,7 @@ class RacerBase(BaseModel):
     email: Optional[str] = None
     slcr_id: Optional[str] = None  # idSlcr
     club_id: Optional[int] = None
+    category_id: Optional[int] = None
 
 
 class RacerCreate(BaseModel):
@@ -31,6 +32,7 @@ class Racer(RacerBase):
     birthYear: Optional[int] = None
     idSlcr: Optional[str] = None
     club_name: Optional[str] = None
+    category_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -47,6 +49,33 @@ class Club(BaseModel):
 
 class ClubCreate(BaseModel):
     name: str
+
+
+class CategoryBase(BaseModel):
+    name: str
+    min_birth_year: int  # Nejstarší ročník (např. 1990)
+    max_birth_year: int  # Nejmladší ročník (např. 2005)
+    active: bool = True
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    min_birth_year: Optional[int] = None
+    max_birth_year: Optional[int] = None
+    active: Optional[bool] = None
+
+
+class Category(CategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class Areal(BaseModel):
@@ -77,6 +106,7 @@ class Race(BaseModel):
     raceMethod_id: int
     raceType_id: int
     season_id: int
+    registrations_count: Optional[int] = None
 
     class Config:
         from_attributes = True

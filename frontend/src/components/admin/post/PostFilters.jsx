@@ -1,4 +1,5 @@
 import React from 'react';
+import Alert from '../../ui/Alert.jsx';
 
 const PostFilters = ({
     searchTerm,
@@ -22,17 +23,19 @@ const PostFilters = ({
         <>
             {/* Alerts */}
             {error && (
-                <div className="alert alert-danger alert-dismissible fade show">
-                    {error}
-                    <button type="button" className="btn-close" onClick={() => setError('')}></button>
-                </div>
+                <Alert 
+                    type="danger" 
+                    message={error}
+                    onDismiss={() => setError('')}
+                />
             )}
 
             {success && (
-                <div className="alert alert-success alert-dismissible fade show">
-                    {success}
-                    <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
-                </div>
+                <Alert 
+                    type="success" 
+                    message={success}
+                    onDismiss={() => setSuccess('')}
+                />
             )}
 
             {/* Filter Bar */}

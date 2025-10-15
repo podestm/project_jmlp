@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../config/auth.jsx';
-import { API } from '../../config/api.js';
+import { AdminAPI } from '../../config/api.js';
+import Alert from '../ui/Alert.jsx';
 
 export default function RacerManagement() {
   const { token } = useAuth();
@@ -27,8 +28,8 @@ export default function RacerManagement() {
     try {
       setLoading(true);
       const [racersData, clubsData] = await Promise.all([
-        API.get('/admin/racers', {}, { 'Authorization': `Bearer ${token}` }),
-        API.get('/races/organizers')
+        AdminAPI.get('/admin/racers'),
+        AdminAPI.get('/races/organizers')
       ]);
       
       setRacers(racersData);
@@ -46,14 +47,10 @@ export default function RacerManagement() {
     try {
       if (editingRacer) {
         // Update racer
-        await API.put(`/admin/racers/${editingRacer.id}`, formData, {
-          'Authorization': `Bearer ${token}`
-        });
+        await AdminAPI.put(`/admin/racers/${editingRacer.id}`, formData);
       } else {
         // Create racer
-        await API.post('/admin/racers', formData, {
-          'Authorization': `Bearer ${token}`
-        });
+        await AdminAPI.post('/admin/racers', formData);
       }
       
       // Reset form and reload data
@@ -90,9 +87,7 @@ export default function RacerManagement() {
   const handleDelete = async (racerId) => {
     if (window.confirm('Opravdu chcete smazat tohoto závodníka?')) {
       try {
-        await API.delete(`/admin/racers/${racerId}`, {
-          'Authorization': `Bearer ${token}`
-        });
+        await AdminAPI.delete(`/admin/racers/${racerId}`);
         loadData();
       } catch (err) {
         console.error('Error deleting racer:', err);
@@ -143,10 +138,16 @@ export default function RacerManagement() {
           </div>
 
           {error && (
-            <div className="alert alert-danger" role="alert">
-              <i className="bi bi-exclamation-triangle-fill me-2"></i>
-              {error}
-            </div>
+            <Alert 
+              type="danger" 
+              message={
+                <>
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  {error}
+                </>
+              }
+              onDismiss={() => setError(null)}
+            />
           )}
 
           <div className="card">

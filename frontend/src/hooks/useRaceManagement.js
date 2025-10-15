@@ -338,7 +338,8 @@ export const useRaceManagement = () => {
     const downloadRegistrationsCsv = async (raceId, raceNr) => {
         try {
             const token = localStorage.getItem('admin_token');
-            const response = await fetch(`${API_CONFIG.BASE_URL}/admin/races/${raceId}/export-csv`, {
+            const endpoint = `/admin/races/${raceId}/export-csv`;
+            const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -350,14 +351,14 @@ export const useRaceManagement = () => {
             }
             
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
+            link.href = downloadUrl;
             link.download = `registrace_${raceNr}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(downloadUrl);
             
             setSuccess('CSV soubor byl stažen');
         } catch (err) {

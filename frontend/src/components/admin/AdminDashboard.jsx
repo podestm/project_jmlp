@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
-import { API } from '../../config/api.js';
+import { AdminAPI } from '../../config/api.js';
+import Alert from '../ui/Alert.jsx';
 
 export default function AdminDashboard() {
   const { token } = useAuth();
   const [stats, setStats] = useState({
     totalRaces: 0,
     openRaces: 0,
-    upcomingRaces: 0,
+    storageSize: 'Načítám...',
+    fileCount: 0,
+    visitsLast7Days: 0,
     recentActivity: []
   });
   const [loading, setLoading] = useState(true);
@@ -22,24 +26,39 @@ export default function AdminDashboard() {
       setLoading(true);
       
       // Get races data
-      const races = await API.get('/admin/races', {}, {
-        'Authorization': `Bearer ${token}`
-      });
+      const races = await AdminAPI.get('/admin/races');
 
       // Calculate stats
       const totalRaces = races.length;
       const openRaces = races.filter(race => race.registration && !race.closed).length;
-      const today = new Date();
-      const upcomingRaces = races.filter(race => {
-        if (!race.datum) return false;
-        const raceDate = new Date(race.datum);
-        return raceDate > today;
-      }).length;
+
+      // Get storage stats
+      let storageSize = 'N/A';
+      let fileCount = 0;
+      try {
+        const storageStats = await AdminAPI.get('/admin/files/storage-stats');
+        storageSize = storageStats.total_size_formatted;
+        fileCount = storageStats.file_count;
+      } catch (storageErr) {
+        console.error('Error loading storage stats:', storageErr);
+        storageSize = 'Chyba';
+      }
+
+      // Get visitor stats
+      let visitsLast7Days = 0;
+      try {
+        const visitorStats = await AdminAPI.get('/admin/analytics/visitors?days=7');
+        visitsLast7Days = visitorStats.total_visits;
+      } catch (visitorErr) {
+        console.error('Error loading visitor stats:', visitorErr);
+      }
 
       setStats({
         totalRaces,
         openRaces,
-        upcomingRaces,
+        storageSize,
+        fileCount,
+        visitsLast7Days,
         recentActivity: races.slice(0, 5) // Last 5 races
       });
 
@@ -64,10 +83,16 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="alert alert-danger" role="alert">
-        <i className="bi bi-exclamation-triangle-fill me-2"></i>
-        Chyba při načítání dashboard: {error}
-      </div>
+      <Alert 
+        type="danger" 
+        message={
+          <>
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            Chyba při načítání dashboard: {error}
+          </>
+        }
+        onDismiss={() => setError(null)}
+      />
     );
   }
 
@@ -78,12 +103,8 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="mb-4">
         <h1>Dashboard</h1>
-        <button onClick={loadDashboardData} className="btn btn-outline-primary">
-          <i className="bi bi-arrow-clockwise me-2"></i>
-          Obnovit
-        </button>
       </div>
 
       {/* Stats Cards */}
@@ -121,10 +142,11 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h4>{stats.upcomingRaces}</h4>
-                  <p className="mb-0">Nadcházející závody</p>
+                  <h4>{stats.storageSize}</h4>
+                  <p className="mb-0">Velikost souborů</p>
+                  {stats.fileCount > 0}
                 </div>
-                <i className="bi bi-calendar-event fs-1 opacity-50"></i>
+                <i className="bi bi-hdd fs-1 opacity-50"></i>
               </div>
             </div>
           </div>
@@ -135,10 +157,10 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h4>Admin</h4>
-                  <p className="mb-0">Aktivní session</p>
+                  <h4>{stats.visitsLast7Days.toLocaleString('cs-CZ')}</h4>
+                  <p className="mb-0">Návštěv (7 dní)</p>
                 </div>
-                <i className="bi bi-person-check fs-1 opacity-50"></i>
+                <i className="bi bi-people fs-1 opacity-50"></i>
               </div>
             </div>
           </div>
@@ -208,18 +230,22 @@ export default function AdminDashboard() {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <a href="/admin/races" className="btn btn-primary">
+                <Link to="/admin/races" className="btn btn-primary">
                   <i className="bi bi-plus-circle me-2"></i>
                   Nový závod
-                </a>
-                <a href="/admin/races" className="btn btn-outline-primary">
+                </Link>
+                <Link to="/admin/races" className="btn btn-outline-primary">
                   <i className="bi bi-list me-2"></i>
                   Spravovat závody
-                </a>
-                <a href="/admin/documents" className="btn btn-outline-success">
+                </Link>
+                <Link to="/admin/documents" className="btn btn-outline-success">
                   <i className="bi bi-upload me-2"></i>
                   Nahrát dokumenty
-                </a>
+                </Link>
+                <Link to="/admin/categories" className="btn btn-outline-warning">
+                  <i className="bi bi-tag me-2"></i>
+                  Správa kategorií
+                </Link>
                 <hr />
                 <a href="/" target="_blank" className="btn btn-outline-info">
                   <i className="bi bi-box-arrow-up-right me-2"></i>

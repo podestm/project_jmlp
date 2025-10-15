@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
-import { API } from '../../config/api.js';
+import { AdminAPI } from '../../config/api.js';
+import Alert from '../ui/Alert.jsx';
 
 export default function RaceRegistrations() {
   const { raceId } = useParams();
@@ -23,8 +24,8 @@ export default function RaceRegistrations() {
       
       // Load race details and registrations in parallel
       const [raceData, registrationsData] = await Promise.all([
-        API.get(`/admin/races/${raceId}`, {}, { 'Authorization': `Bearer ${token}` }),
-        API.get(`/admin/races/${raceId}/registrations`, {}, { 'Authorization': `Bearer ${token}` })
+        AdminAPI.get(`/admin/races/${raceId}`),
+        AdminAPI.get(`/admin/races/${raceId}/registrations`)
       ]);
       
       setRace(raceData);
@@ -59,10 +60,16 @@ export default function RaceRegistrations() {
 
   if (error) {
     return (
-      <div className="alert alert-danger" role="alert">
-        <i className="bi bi-exclamation-triangle-fill me-2"></i>
-        {error}
-      </div>
+      <Alert 
+        type="danger" 
+        message={
+          <>
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {error}
+          </>
+        }
+        onDismiss={() => setError(null)}
+      />
     );
   }
 

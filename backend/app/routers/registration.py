@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models, schemas
+from ..utils import get_category_for_birth_year
 import logging
 
 logger = logging.getLogger("uvicorn.error")
@@ -31,6 +32,9 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             racer.email = payload.racer_email.strip()
         if payload.racer_slcr_id and payload.racer_slcr_id.strip():
             racer.slcr_id = payload.racer_slcr_id.strip()
+        
+        # Přiřadíme kategorii podle roku narození (vždy aktuální)
+        racer.category_id = get_category_for_birth_year(racer.year, db)
     else:
         # creating new racer
         if not all([payload.racer_name, payload.racer_surname, payload.racer_sex is not None, payload.racer_year]):
@@ -46,7 +50,12 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         
         if existing_racer:
             racer = existing_racer
+            # Aktualizujeme kategorii i pro existujícího závodníka
+            racer.category_id = get_category_for_birth_year(racer.year, db)
         else:
+            # Přiřadíme kategorii podle roku narození
+            category_id = get_category_for_birth_year(payload.racer_year, db)
+            
             racer = models.Racer(
                 name=payload.racer_name,
                 surname=payload.racer_surname,
@@ -54,7 +63,8 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
                 year=payload.racer_year,
                 telefon=payload.racer_telefon,
                 email=payload.racer_email,
-                slcr_id=payload.racer_slcr_id
+                slcr_id=payload.racer_slcr_id,
+                category_id=category_id
             )
             db.add(racer)
             db.flush()  # get racer.id
@@ -70,8 +80,12 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
     # update racer's club_id
     racer.club_id = club.id
 
-    # create registration record
-    reg = models.Registration(race_id=payload.race_id, racer_id=racer.id)
+    # create registration record with category_id snapshot
+    reg = models.Registration(
+        race_id=payload.race_id, 
+        racer_id=racer.id,
+        category_id=racer.category_id  # Uložíme aktuální kategorii do registrace
+    )
     db.add(reg)
     
     try:

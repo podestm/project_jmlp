@@ -13,15 +13,42 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="d-flex vh-100">
+    <div className="d-flex" style={{ minHeight: '100vh' }}>
       {/* Sidebar */}
-      <div className="bg-dark text-white" style={{ minWidth: '250px' }}>
-        <div className="p-3 border-bottom border-secondary">
-          <h5 className="mb-0">JMLP Admin</h5>
-          <small className="text-muted">Administrace závodů</small>
+      <div 
+        className="bg-dark text-white d-flex flex-column" 
+        style={{ 
+          width: '280px',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto'
+        }}
+      >
+        {/* Header with logo/icon */}
+        <div className="p-4 border-bottom border-secondary bg-gradient" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' }}>
+          <div className="d-flex align-items-center mb-2">
+            <div className="me-3" style={{ 
+              width: '48px', 
+              height: '48px', 
+              background: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(13, 110, 253, 0.3)'
+            }}>
+              <i className="bi bi-gear-fill text-white" style={{ fontSize: '24px' }}></i>
+            </div>
+            <div>
+              <h5 className="mb-0 fw-bold">JMLP Admin</h5>
+              <small className="text-white-50">Správa závodů</small>
+            </div>
+          </div>
         </div>
         
-        <nav className="p-3">
+        {/* Navigation */}
+        <nav className="p-3 flex-grow-1">
           <div className="nav nav-pills flex-column">
             <Link to="/admin" className={`nav-link text-white ${isActive('/admin') ? 'active' : ''}`}>
               <i className="bi bi-speedometer2 me-2"></i>
@@ -43,6 +70,10 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-newspaper me-2"></i>
               Posty a zprávy
             </Link>
+            <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
+              <i className="bi bi-tag me-2"></i>
+              Kategorie (ve vývoji)
+            </Link>
             
             <hr className="border-secondary my-3" />
             
@@ -54,19 +85,32 @@ export default function AdminLayout({ children }) {
         </nav>
         
         {/* User info at bottom */}
-        <div className="mt-auto p-3 border-top border-secondary">
-          <div className="d-flex align-items-center">
-            <div className="me-2">
-              <i className="bi bi-person-circle fs-4"></i>
+        <div className="p-3 border-top border-secondary" style={{ marginTop: 'auto', background: 'rgba(0,0,0,0.2)' }}>
+          <div className="d-flex align-items-center mb-2">
+            <div className="me-2" style={{
+              width: '40px',
+              height: '40px',
+              background: 'linear-gradient(135deg, #198754 0%, #146c43 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-person-fill text-white" style={{ fontSize: '20px' }}></i>
             </div>
             <div className="flex-grow-1">
-              <div className="fw-semibold">{admin?.full_name || admin?.email}</div>
-              <small className="text-muted">{admin?.email}</small>
+              <div className="fw-semibold text-white">{admin?.full_name || admin?.email}</div>
+              <small className="text-white-50" style={{ fontSize: '0.75rem' }}>{admin?.email}</small>
             </div>
           </div>
           <button
             onClick={logout}
-            className="btn btn-outline-light btn-sm mt-2 w-100"
+            className="btn btn-outline-light btn-sm w-100"
+            style={{ 
+              borderRadius: '8px',
+              fontWeight: '500',
+              transition: 'all 0.2s'
+            }}
           >
             <i className="bi bi-box-arrow-right me-2"></i>
             Odhlásit se
@@ -75,27 +119,12 @@ export default function AdminLayout({ children }) {
       </div>
 
       {/* Main content */}
-      <div className="flex-grow-1 d-flex flex-column">
-        {/* Top navbar */}
-        <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-          <div className="container-fluid">
-            <span className="navbar-brand mb-0 h1">Administrace</span>
-            
-            <div className="d-flex align-items-center">
-              <a href="/" target="_blank" className="btn btn-outline-primary me-2">
-                <i className="bi bi-box-arrow-up-right me-1"></i>
-                Zobrazit web
-              </a>
-              <span className="text-muted">
-                Přihlášen jako <strong>{admin?.full_name || admin?.email}</strong>
-              </span>
-            </div>
-          </div>
-        </nav>
-
+      <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
         {/* Page content */}
-        <main className="flex-grow-1 p-4 bg-light">
-          {children}
+        <main className="flex-grow-1 p-4 bg-light" style={{ overflowY: 'auto' }}>
+          <div className="container-fluid">
+            {children}
+          </div>
         </main>
       </div>
     </div>

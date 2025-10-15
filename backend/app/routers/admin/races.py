@@ -21,7 +21,7 @@ def get_races(
     """List all races for admin management."""
     races = db.query(models.Race).order_by(desc(models.Race.datum)).offset(skip).limit(limit).all()
     
-    # Add areal names and organizer names
+    # Add areal names, organizer names and registration counts
     result = []
     for race in races:
         race_dict = race.__dict__.copy()
@@ -39,6 +39,12 @@ def get_races(
             race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
         else:
             race_dict["organizer_name"] = None
+        
+        # Add registrations count
+        registrations_count = db.query(models.Registration).filter(
+            models.Registration.race_id == race.id
+        ).count()
+        race_dict["registrations_count"] = registrations_count
             
         result.append(race_dict)
     
@@ -71,6 +77,12 @@ def get_race(
         race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
     else:
         race_dict["organizer_name"] = None
+    
+    # Add registrations count
+    registrations_count = db.query(models.Registration).filter(
+        models.Registration.race_id == race.id
+    ).count()
+    race_dict["registrations_count"] = registrations_count
     
     return race_dict
 

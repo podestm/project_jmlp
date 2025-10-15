@@ -247,3 +247,29 @@ class StandardExceptions:
     @staticmethod
     def invalid_date_format() -> HTTPException:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
+
+
+def get_category_for_birth_year(birth_year: int, db) -> Optional[int]:
+    """
+    Přiřadí kategorii podle roku narození závodníka.
+    
+    Args:
+        birth_year: Rok narození závodníka
+        db: Database session
+        
+    Returns:
+        Optional[int]: ID kategorie nebo None pokud nenalezena
+    """
+    from sqlalchemy import and_
+    from .models import Category
+    
+    # Najdi aktivní kategorii, kde birth_year spadá do rozmezí
+    category = db.query(Category).filter(
+        and_(
+            Category.active == True,
+            Category.min_birth_year <= birth_year,
+            Category.max_birth_year >= birth_year
+        )
+    ).first()
+    
+    return category.id if category else None

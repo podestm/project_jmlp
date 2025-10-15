@@ -5,6 +5,7 @@ import RaceList from './components/pages/RaceList.jsx';
 import Archive from './components/pages/Archive.jsx';
 import RaceDetail from './components/pages/RaceDetail.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
+import { usePageTracking } from './hooks/usePageTracking';
 
 // Admin components
 import { AuthProvider, useAuth } from './config/auth.jsx';
@@ -17,6 +18,7 @@ import RacerManagement from './components/admin/RacerManagement.jsx';
 import DocumentManagement from './components/admin/DocumentManagement.jsx';
 import PostManagement from './components/admin/PostManagement.jsx';
 import RaceRegistrations from './components/admin/RaceRegistrations.jsx';
+import CategoryManagement from './components/admin/CategoryManagement.jsx';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -39,13 +41,14 @@ const ProtectedRoute = ({ children }) => {
   return <AdminLayout>{children}</AdminLayout>;
 };
 
-function AppRouter() {
+// Wrapper pro tracking, který musí být uvnitř BrowserRouter
+const RouterContent = () => {
+  usePageTracking(); // Zde máme přístup k useLocation()
+  
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Layout><Homepage /></Layout>} />
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Layout><Homepage /></Layout>} />
           <Route path="/terminovka" element={<Layout><RaceList currentSeason={true} /></Layout>} />
           <Route path="/archiv" element={<Layout><Archive /></Layout>} />
           <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
@@ -84,6 +87,11 @@ function AppRouter() {
                   <PostManagement />
                 </ProtectedRoute>
               } />
+              <Route path="/categories" element={
+                <ProtectedRoute>
+                  <CategoryManagement />
+                </ProtectedRoute>
+              } />
               <Route path="/register" element={
                 <ProtectedRoute>
                   <AdminRegister />
@@ -103,6 +111,14 @@ function AppRouter() {
             </Layout>
           } />
         </Routes>
+  );
+};
+
+function AppRouter() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <RouterContent />
       </BrowserRouter>
     </AuthProvider>
   );

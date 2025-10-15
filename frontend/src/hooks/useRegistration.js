@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
-
 export const useRegistration = (raceId, onSuccess) => {
     // Formulářová data
     const [formData, setFormData] = useState({
@@ -30,7 +28,7 @@ export const useRegistration = (raceId, onSuccess) => {
 
     // Načtení klubů
     useEffect(() => {
-        fetch(`${API}/clubs/`).then(r => r.json()).then(setClubs);
+        fetch('/clubs/').then(r => r.json()).then(setClubs);
     }, []);
 
     // Debounced search funkce
@@ -53,7 +51,7 @@ export const useRegistration = (raceId, onSuccess) => {
                         if (searchParams.club) params.append('club', searchParams.club);
                         if (searchParams.slcr_id) params.append('slcr_id', searchParams.slcr_id);
                         
-                        const response = await fetch(`${API}/racers/search?${params}`);
+                        const response = await fetch(`/racers/search?${params}`);
                         const data = await response.json();
                         setFilteredRacers(data);
                     } catch (error) {
@@ -119,7 +117,7 @@ export const useRegistration = (raceId, onSuccess) => {
             params.append('name', formData.name.trim());
             params.append('surname', formData.surname.trim());
             
-            const response = await fetch(`${API}/racers/search?${params}`);
+            const response = await fetch(`/racers/search?${params}`);
             const allMatches = await response.json();
             
             exactMatch = allMatches.find(r => 
@@ -160,7 +158,7 @@ export const useRegistration = (raceId, onSuccess) => {
         }
 
         try {
-            const response = await fetch(`${API}/races/${raceId}/register`, {
+            const response = await fetch(`/races/${raceId}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function Archive() {
   const [races, setRaces] = useState([])
@@ -9,7 +8,7 @@ export default function Archive() {
   const [expandedSeasons, setExpandedSeasons] = useState(new Set())
 
   useEffect(() => {
-    fetch(`${API}/races/`)
+    fetch('/races/')
       .then(r => r.json())
       .then(setRaces)
       .catch(setError)

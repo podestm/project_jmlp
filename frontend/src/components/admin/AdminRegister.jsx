@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
-import { API } from '../../config/api.js';
+import { AdminAPI } from '../../config/api.js';
+import Alert from '../ui/Alert.jsx';
 
 export default function AdminRegister() {
   const [formData, setFormData] = useState({
@@ -72,13 +73,11 @@ export default function AdminRegister() {
     setErrors({});
     
     try {
-      const response = await API.post('/admin/auth/register', {
+      const response = await AdminAPI.post('/admin/auth/register', {
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
         is_active: formData.is_active
-      }, {
-        'Authorization': `Bearer ${token}`,
       });
 
       setSuccess(true);
@@ -122,15 +121,19 @@ export default function AdminRegister() {
               <div className="card">
                 <div className="card-body">
                   {success && (
-                    <div className="alert alert-success" role="alert">
-                      Administrátor byl úspěšně zaregistrován! Přesměrování...
-                    </div>
+                    <Alert 
+                      type="success" 
+                      message="Administrátor byl úspěšně zaregistrován! Přesměrování..."
+                      autoDismissDelay={0}
+                    />
                   )}
 
                   {errors.submit && (
-                    <div className="alert alert-danger" role="alert">
-                      {errors.submit}
-                    </div>
+                    <Alert 
+                      type="danger" 
+                      message={errors.submit}
+                      onDismiss={() => setErrors(prev => ({ ...prev, submit: '' }))}
+                    />
                   )}
 
                   <form onSubmit={handleSubmit}>

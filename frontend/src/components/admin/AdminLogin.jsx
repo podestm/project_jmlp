@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../config/auth.jsx';
+import Alert from '../ui/Alert.jsx';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -33,10 +34,16 @@ export default function AdminLogin() {
             </div>
             <div className="card-body p-4">
               {error && (
-                <div className="alert alert-danger" role="alert">
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                  {error}
-                </div>
+                <Alert 
+                  type="danger" 
+                  message={
+                    <>
+                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                      {error}
+                    </>
+                  }
+                  onDismiss={() => setError('')}
+                />
               )}
               
               <form onSubmit={handleSubmit}>

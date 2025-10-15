@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: jmlp-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "127.0.0.1:3307:3306" #Only localhost on port 3307
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init_exact.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - jmlp_internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # BEZPEČNOST: MySQL není exposed navenek!
+    # Přístup pouze z internal network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: jmlp-backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    volumes:
+      - documents_data:/app/uploads/documents
+    networks:
+      - jmlp_internal
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # BEZPEČNOST: Backend není exposed navenek!
+    # Přístup pouze z frontend containeru
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE: ${VITE_API_BASE}
+    container_name: jmlp-frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      - jmlp_internal
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # BEZPEČNOST: Frontend je exposed pouze na internal port
+    # Nginx reverse proxy bude směrovat traffic
+
+volumes:
+  db_data:
+  documents_data:
+
+networks:
+  jmlp_internal:
+    driver: bridge
+    internal: false  # Potřebujeme internet pro build

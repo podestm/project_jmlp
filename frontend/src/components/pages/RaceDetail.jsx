@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
-const API = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function RaceDetail() {
   const { id } = useParams()
@@ -16,11 +15,11 @@ export default function RaceDetail() {
     setLoading(true)
     setError(null)
     Promise.all([
-      fetch(`${API}/races/${raceId}`).then(r => {
+      fetch(`/races/${raceId}`).then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
         return r.json()
       }),
-      fetch(`${API}/races/${raceId}/registrations`).then(r => {
+      fetch(`/races/${raceId}/registrations`).then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
         return r.json()
       })

@@ -19,8 +19,8 @@ build/
 
 # Environment variables and secrets
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 frontend/.env.local
 backend/.env
 *.env
@@ -30,6 +30,8 @@ backend/documents/
 
 # Database
 db_data/
+*.sql
+!db/init_exact.sql
 
 # IDE
 .idea/
@@ -45,6 +47,10 @@ secrets/
 *.key
 *.pem
 *.crt
+*_id_rsa
+*_id_rsa.pub
+*.ppk
+C:*
 
 # Legacy/temporary scripts (don't commit to GitHub)
 test_*.py
@@ -53,6 +59,10 @@ generate_*.py
 *_temp.py
 *.sql.bak
 update_*.sql
+
+# Server-specific scripts
+restart-*.sh
+quick-reference.sh
 
 # Temporary/redundant documentation
 SUMMARY.md

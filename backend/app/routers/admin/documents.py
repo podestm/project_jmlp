@@ -2,7 +2,7 @@ import os
 import uuid
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import FileResponse
@@ -47,9 +47,9 @@ async def upload_file(
     # Generate unique filename
     unique_filename = f"{uuid.uuid4().hex}{file_extension}"
     
-    # Create documents directory if it doesn't exist
-    documents_dir = Path("documents")
-    documents_dir.mkdir(exist_ok=True)
+    # Create documents directory if it doesn't exist (persistent volume)
+    documents_dir = Path("uploads/documents")
+    documents_dir.mkdir(parents=True, exist_ok=True)
     
     file_path = documents_dir / unique_filename
     
@@ -110,6 +110,49 @@ def get_files(
     
     result = []
     for file_obj in files:
+        # Check where this file is used
+        usage_info = []
+        
+        # Check if used as proposition
+        races_with_proposition = db.query(models.Race).filter(
+            models.Race.proposition_file_id == file_obj.id
+        ).all()
+        for race in races_with_proposition:
+            usage_info.append({
+                "type": "Propozice",
+                "title": f"Závod {race.raceNr or race.id} - {race.datum}"
+            })
+        
+        # Check if used as results
+        races_with_results = db.query(models.Race).filter(
+            models.Race.results_file_id == file_obj.id
+        ).all()
+        for race in races_with_results:
+            usage_info.append({
+                "type": "Výsledky",
+                "title": f"Závod {race.raceNr or race.id} - {race.datum}"
+            })
+        
+        # Check if used as post image
+        posts_with_image = db.query(models.Post).filter(
+            models.Post.image_file_id == file_obj.id
+        ).all()
+        for post in posts_with_image:
+            usage_info.append({
+                "type": "Obrázek příspěvku",
+                "title": post.title
+            })
+        
+        # Check if used as post document
+        posts_with_document = db.query(models.Post).filter(
+            models.Post.document_file_id == file_obj.id
+        ).all()
+        for post in posts_with_document:
+            usage_info.append({
+                "type": "Dokument příspěvku",
+                "title": post.title
+            })
+        
         result.append({
             "id": file_obj.id,
             "original_filename": file_obj.original_filename,
@@ -119,7 +162,8 @@ def get_files(
             "mime_type": file_obj.mime_type,
             "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene",
             "uploaded_at": file_obj.uploaded_at,
-            "uploaded_by": file_obj.uploaded_by
+            "uploaded_by": file_obj.uploaded_by,
+            "usage_info": usage_info
         })
     
     return result
@@ -195,3 +239,51 @@ def download_file(
         filename=file_obj.original_filename,
         media_type=file_obj.mime_type or 'application/octet-stream'
     )
+
+
+@router.get("/files/storage-stats")
+def get_storage_stats(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Vrací statistiku úložného prostoru nahraných souborů.
+    """
+    # Spočítáme velikost všech souborů v databázi
+    files = db.query(models.File).all()
+    
+    total_size = 0
+    file_count = 0
+    existing_files = 0
+    missing_files = 0
+    
+    for file_obj in files:
+        file_count += 1
+        # Použijeme file_size z databáze (spolehlivější než kontrola disku)
+        total_size += file_obj.file_size
+        
+        # Pro info: kontrola existence na disku
+        if os.path.exists(file_obj.file_path):
+            existing_files += 1
+        else:
+            missing_files += 1
+    
+    # Formátování velikosti
+    def format_size(size_bytes):
+        """Převede byty na čitelný formát."""
+        if size_bytes < 1024:
+            return f"{size_bytes} B"
+        elif size_bytes < 1024 * 1024:
+            return f"{size_bytes / 1024:.2f} KB"
+        elif size_bytes < 1024 * 1024 * 1024:
+            return f"{size_bytes / (1024 * 1024):.2f} MB"
+        else:
+            return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+    
+    return {
+        "total_size_bytes": total_size,
+        "total_size_formatted": format_size(total_size),
+        "file_count": file_count,
+        "existing_files": existing_files,
+        "missing_files": missing_files
+    }

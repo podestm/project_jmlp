@@ -57,6 +57,7 @@ const RaceTable = ({
                         <th>Areál</th>
                         <th>Organizátor</th>
                         <th>Registrace</th>
+                        <th>Přihlášených</th>
                         <th>Dokumenty</th>
                         <th>Akce</th>
                     </tr>
@@ -88,6 +89,11 @@ const RaceTable = ({
                                     <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'}`}></i>
                                     {race.registration ? ' Aktivní' : ' Neaktivní'}
                                 </button>
+                            </td>
+                            <td>
+                                <span className="badge bg-info text-dark fs-6">
+                                    {race.registrations_count || 0}
+                                </span>
                             </td>
                             <td>{renderDocumentLinks(race)}</td>
                             <td>

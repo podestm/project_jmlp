@@ -46,8 +46,9 @@ class Racer(Base):
     email: Mapped[str | None] = mapped_column(String(100), nullable=True)
     slcr_id: Mapped[str | None] = mapped_column(String(10), nullable=True)
     club_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_club.id"), nullable=True)
+    category_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_category.id"), nullable=True)
 
-    # Odstraníme relationship - budeme kluby načítat explicitně
+    # Odstraníme relationship - budeme kluby a kategorie načítat explicitně
 
 
 class Club(Base):
@@ -55,6 +56,17 @@ class Club(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), unique=True)
     valid: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class Category(Base):
+    __tablename__ = "fuj_jmlp_category"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100, collation='utf8mb4_unicode_ci'), unique=True)
+    min_birth_year: Mapped[int] = mapped_column(Integer)  # Nejstarší ročník
+    max_birth_year: Mapped[int] = mapped_column(Integer)  # Nejmladší ročník
+    active: Mapped[bool] = mapped_column(BitBoolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class Areal(Base):
@@ -85,6 +97,7 @@ class Registration(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     race_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race.id"))
     racer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_racer.id"))
+    category_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_category.id"), nullable=True)
     registered_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (
@@ -96,9 +109,9 @@ class Post(Base):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255))
-    content: Mapped[str] = mapped_column(String)  # TEXT type
-    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Legacy - keep for backward compatibility
-    image_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
+    content: Mapped[str] = mapped_column(String)
+    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     image_position: Mapped[str | None] = mapped_column(String(20), nullable=True, default="right")  # "left", "right", "top", "none"
     document_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     published: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -129,3 +142,12 @@ class File(Base):
     file_type: Mapped[FileTypeEnum] = mapped_column(Enum(FileTypeEnum), default=FileTypeEnum.neprirazene)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     uploaded_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class VisitorLog(Base):
+    __tablename__ = "fuj_jmlp_visitor_log"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)  # IPv6 support
+    user_agent: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    visited_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
