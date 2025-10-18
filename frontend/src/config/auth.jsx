@@ -1,6 +1,6 @@
 // Admin authentication context
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { API } from './api.js';
+import API from './api.js';
 
 const AuthContext = createContext();
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
 
+// API base URL for document links
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export default function RaceDetail() {
   const { id } = useParams()
   const raceId = parseInt(id)
@@ -115,7 +118,7 @@ export default function RaceDetail() {
                 {/* Tlačítka pro dokumenty */}
                 <div className="mt-3 p-3 border rounded bg-light">
                   <a
-                    href={race.proposition_file_id ? `${API}/races/${raceId}/proposition` : '#'}
+                    href={race.proposition_file_id ? `${API_BASE}/races/${raceId}/proposition` : '#'}
                     target={race.proposition_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
                     className={`btn w-100 mb-2 ${race.proposition_file_id ? 'btn-outline-primary' : 'btn-outline-dark'}`}
@@ -127,7 +130,7 @@ export default function RaceDetail() {
                   </a>
                   
                   <a
-                    href={race.results_file_id ? `${API}/races/${raceId}/results` : '#'}
+                    href={race.results_file_id ? `${API_BASE}/races/${raceId}/results` : '#'}
                     target={race.results_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
                     className={`btn w-100 ${race.results_file_id ? 'btn-outline-success' : 'btn-outline-dark'}`}
