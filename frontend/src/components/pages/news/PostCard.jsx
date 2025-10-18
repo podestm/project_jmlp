@@ -1,5 +1,5 @@
 import React from 'react';
-import { API } from '../../../config/api.js';
+import API from '../../../config/api.js';
 
 const PostCard = ({ post, formatDate, formatText }) => {
     const showImage = post.image_file_id && post.image_position !== 'none';
