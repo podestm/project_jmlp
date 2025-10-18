@@ -1,6 +1,6 @@
 from datetime import date, datetime
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, field_validator
+from typing import Optional, Union
 
 
 class RacerBase(BaseModel):
@@ -233,30 +233,58 @@ class File(FileBase):
 
 # Race management schemas
 class RaceCreate(BaseModel):
+    model_config = ConfigDict(extra='ignore')  # Pydantic v2 syntax
+    
     datum: Optional[str] = None  # Changed from date to str - will be converted in backend
     raceNr: Optional[str] = None
     registration: bool = False
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
-    areal_id: Optional[int] = None
-    organizer_id: Optional[int] = None
+    # Frontend sends names, not IDs - backend will resolve to IDs
+    areal_name: Optional[str] = None  # Areal name from form
+    organizer_name: Optional[str] = None  # Organizer name from form
+    # Legacy support for ID fields (from autocomplete)
+    areal_id: Optional[Union[int, str]] = None
+    organizer_id: Optional[Union[int, str]] = None
     raceCategory_id: Optional[int] = 1  # Default value
     raceMethod_id: Optional[int] = 1    # Default value
     raceType_id: Optional[int] = 1      # Default value
     season_id: Optional[int] = None     # Will be auto-generated
     closed: bool = False
+    
+    @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
+    @classmethod
+    def empty_string_to_none(cls, v):
+        """Convert empty strings to None for optional integer fields"""
+        if v == '' or v == 'null':
+            return None
+        return v
 
 
 class RaceUpdate(BaseModel):
+    model_config = ConfigDict(extra='ignore')  # Pydantic v2 syntax
+    
     datum: Optional[date] = None
     raceNr: Optional[str] = None
     registration: Optional[bool] = None
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
-    areal_id: Optional[int] = None
-    organizer_id: Optional[int] = None
+    # Frontend sends names, not IDs - backend will resolve to IDs
+    areal_name: Optional[str] = None  # Areal name from form
+    organizer_name: Optional[str] = None  # Organizer name from form
+    # Legacy support for ID fields
+    areal_id: Optional[Union[int, str]] = None
+    organizer_id: Optional[Union[int, str]] = None
     raceCategory_id: Optional[int] = None
     raceMethod_id: Optional[int] = None
     raceType_id: Optional[int] = None
     season_id: Optional[int] = None
     closed: Optional[bool] = None
+    
+    @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
+    @classmethod
+    def empty_string_to_none(cls, v):
+        """Convert empty strings to None for optional integer fields"""
+        if v == '' or v == 'null':
+            return None
+        return v

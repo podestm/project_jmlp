@@ -24,8 +24,8 @@ export default function RaceRegistrations() {
       
       // Load race details and registrations in parallel
       const [raceData, registrationsData] = await Promise.all([
-        AdminAPI.get(`/admin/races/${raceId}`),
-        AdminAPI.get(`/admin/races/${raceId}/registrations`)
+        AdminAPI.get(`/api/admin/races/${raceId}`),
+        AdminAPI.get(`/api/admin/races/${raceId}/registrations`)
       ]);
       
       setRace(raceData);

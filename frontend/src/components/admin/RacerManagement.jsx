@@ -28,7 +28,7 @@ export default function RacerManagement() {
     try {
       setLoading(true);
       const [racersData, clubsData] = await Promise.all([
-        AdminAPI.get('/admin/racers'),
+        AdminAPI.get('/api/admin/racers'),
         AdminAPI.get('/races/organizers')
       ]);
       
@@ -47,10 +47,10 @@ export default function RacerManagement() {
     try {
       if (editingRacer) {
         // Update racer
-        await AdminAPI.put(`/admin/racers/${editingRacer.id}`, formData);
+        await AdminAPI.put(`/api/admin/racers/${editingRacer.id}`, formData);
       } else {
         // Create racer
-        await AdminAPI.post('/admin/racers', formData);
+        await AdminAPI.post('/api/admin/racers', formData);
       }
       
       // Reset form and reload data
@@ -87,7 +87,7 @@ export default function RacerManagement() {
   const handleDelete = async (racerId) => {
     if (window.confirm('Opravdu chcete smazat tohoto závodníka?')) {
       try {
-        await AdminAPI.delete(`/admin/racers/${racerId}`);
+        await AdminAPI.delete(`/api/admin/racers/${racerId}`);
         loadData();
       } catch (err) {
         console.error('Error deleting racer:', err);

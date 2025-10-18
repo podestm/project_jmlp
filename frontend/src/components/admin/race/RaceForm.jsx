@@ -131,16 +131,6 @@ const RaceForm = ({
                                                             {areal.name}
                                                         </div>
                                                     ))}
-                                                    {arealSearch && !arealSuggestions.some(a => a.name.toLowerCase() === arealSearch.toLowerCase()) && (
-                                                        <div 
-                                                            className="p-2 text-primary cursor-pointer hover-bg-light"
-                                                            onClick={() => selectAreal({name: arealSearch})}
-                                                            style={{cursor: 'pointer'}}
-                                                        >
-                                                            <i className="bi bi-plus-circle me-2"></i>
-                                                            Vytvořit nový areál: "{arealSearch}"
-                                                        </div>
-                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -170,16 +160,6 @@ const RaceForm = ({
                                                             {organizer.name}
                                                         </div>
                                                     ))}
-                                                    {organizerSearch && !organizerSuggestions.some(o => o.name.toLowerCase() === organizerSearch.toLowerCase()) && (
-                                                        <div 
-                                                            className="p-2 text-primary cursor-pointer hover-bg-light"
-                                                            onClick={() => selectOrganizer({name: organizerSearch})}
-                                                            style={{cursor: 'pointer'}}
-                                                        >
-                                                            <i className="bi bi-plus-circle me-2"></i>
-                                                            Vytvořit nového organizátora: "{organizerSearch}"
-                                                        </div>
-                                                    )}
                                                 </div>
                                             )}
                                         </div>

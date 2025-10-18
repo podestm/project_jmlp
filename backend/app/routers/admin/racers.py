@@ -130,8 +130,8 @@ def delete_racer(
         raise HTTPException(status_code=404, detail="Závodník nenalezen")
     
     # Check if racer has any registrations
-    registrations = db.query(models.RaceRegistration).filter(
-        models.RaceRegistration.racer_id == racer_id
+    registrations = db.query(models.Registration).filter(
+        models.Registration.racer_id == racer_id
     ).first()
     if registrations:
         raise HTTPException(

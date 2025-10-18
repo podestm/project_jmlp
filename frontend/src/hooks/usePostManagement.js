@@ -47,7 +47,7 @@ export const usePostManagement = () => {
     const loadPosts = async () => {
         try {
             setLoading(true);
-            const data = await AdminAPI.get('/admin/posts');
+            const data = await AdminAPI.get('/api/admin/posts');
             setPosts(data);
         } catch (err) {
             setError('Chyba při načítání postů');
@@ -59,7 +59,7 @@ export const usePostManagement = () => {
     const loadAvailableFiles = async () => {
         try {
             // Load all files and filter client-side
-            const allFiles = await AdminAPI.get('/admin/files');
+            const allFiles = await AdminAPI.get('/api/admin/files');
             
             // Filter images strictly - only files that are definitely images
             const images = allFiles.filter(file => 
@@ -195,10 +195,10 @@ export const usePostManagement = () => {
             };
 
             if (editingPost) {
-                await AdminAPI.put(`/admin/posts/${editingPost.id}`, payload);
+                await AdminAPI.put(`/api/admin/posts/${editingPost.id}`, payload);
                 setSuccess('Post byl úspěšně aktualizován');
             } else {
-                await AdminAPI.post('/admin/posts', payload);
+                await AdminAPI.post('/api/admin/posts', payload);
                 setSuccess('Post byl úspěšně vytvořen');
             }
 
@@ -228,7 +228,7 @@ export const usePostManagement = () => {
         }
 
         try {
-            await AdminAPI.delete(`/admin/posts/${postId}`);
+            await AdminAPI.delete(`/api/admin/posts/${postId}`);
             setSuccess('Post byl úspěšně smazán');
             loadPosts();
         } catch (err) {

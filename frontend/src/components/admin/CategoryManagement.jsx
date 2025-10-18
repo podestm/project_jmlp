@@ -28,7 +28,7 @@ export default function CategoryManagement() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const data = await AdminAPI.get('/admin/categories');
+      const data = await AdminAPI.get('/api/admin/categories');
       setCategories(data);
       setError(null);
     } catch (err) {
@@ -50,10 +50,10 @@ export default function CategoryManagement() {
 
     try {
       if (editingCategory) {
-        await AdminAPI.put(`/admin/categories/${editingCategory.id}`, formData);
+        await AdminAPI.put(`/api/admin/categories/${editingCategory.id}`, formData);
         setSuccess('Kategorie úspěšně upravena');
       } else {
-        await AdminAPI.post('/admin/categories', formData);
+        await AdminAPI.post('/api/admin/categories', formData);
         setSuccess('Kategorie úspěšně vytvořena');
       }
       
@@ -84,7 +84,7 @@ export default function CategoryManagement() {
     }
 
     try {
-      await AdminAPI.delete(`/admin/categories/${categoryId}`);
+      await AdminAPI.delete(`/api/admin/categories/${categoryId}`);
       setSuccess('Kategorie úspěšně smazána');
       loadCategories();
     } catch (err) {
@@ -123,7 +123,7 @@ export default function CategoryManagement() {
   const handleCheckCoverage = async () => {
     try {
       setLoading(true);
-      const data = await AdminAPI.get('/admin/categories/check/coverage');
+      const data = await AdminAPI.get('/api/admin/categories/check/coverage');
       setCoverageReport(data);
       setShowCoverageReport(true);
       setError(null);
@@ -142,7 +142,7 @@ export default function CategoryManagement() {
 
     try {
       setRecalculating(true);
-      const data = await AdminAPI.post('/admin/categories/recalculate/all', {});
+      const data = await AdminAPI.post('/api/admin/categories/recalculate/all', {});
       setSuccess(`${data.message}. Celkem: ${data.stats.total}, aktualizováno: ${data.stats.updated}, beze změny: ${data.stats.unchanged}, bez kategorie: ${data.stats.no_category}`);
       setError(null);
     } catch (err) {

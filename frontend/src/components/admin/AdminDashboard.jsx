@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
+import VisitsChart from './VisitsChart.jsx';
 
 export default function AdminDashboard() {
   const { token } = useAuth();
@@ -26,7 +27,7 @@ export default function AdminDashboard() {
       setLoading(true);
       
       // Get races data
-      const races = await AdminAPI.get('/admin/races');
+      const races = await AdminAPI.get('/api/admin/races');
 
       // Calculate stats
       const totalRaces = races.length;
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
       let storageSize = 'N/A';
       let fileCount = 0;
       try {
-        const storageStats = await AdminAPI.get('/admin/files/storage-stats');
+        const storageStats = await AdminAPI.get('/api/admin/files/storage-stats');
         storageSize = storageStats.total_size_formatted;
         fileCount = storageStats.file_count;
       } catch (storageErr) {
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
       // Get visitor stats
       let visitsLast7Days = 0;
       try {
-        const visitorStats = await AdminAPI.get('/admin/analytics/visitors?days=7');
+        const visitorStats = await AdminAPI.get('/api/admin/analytics/visitors?days=7');
         visitsLast7Days = visitorStats.total_visits;
       } catch (visitorErr) {
         console.error('Error loading visitor stats:', visitorErr);
@@ -165,6 +166,11 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Visits Chart */}
+      <div className="mb-4">
+        <VisitsChart />
       </div>
 
       {/* Recent Activity */}

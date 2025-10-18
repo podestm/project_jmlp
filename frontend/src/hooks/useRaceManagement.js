@@ -69,7 +69,7 @@ export const useRaceManagement = () => {
     // Data loading functions
     const loadDocuments = async () => {
         try {
-            const data = await AdminAPI.get('/admin/files');
+            const data = await AdminAPI.get('/api/admin/files');
             setAvailableDocuments(data);
             
             // Filter for documents only (exclude images) for propositions
@@ -90,7 +90,7 @@ export const useRaceManagement = () => {
     const loadRaces = async () => {
         try {
             setError(null);
-            const data = await AdminAPI.get('/admin/races');
+            const data = await AdminAPI.get('/api/admin/races');
             setRaces(data);
             
             const seasons = [...new Set(data.map(race => race.season_id))];
@@ -147,7 +147,7 @@ export const useRaceManagement = () => {
         }
         
         try {
-            const data = await AdminAPI.get(`/admin/races/autocomplete/areals?q=${encodeURIComponent(query)}`);
+            const data = await AdminAPI.get(`/api/admin/races/autocomplete/areals?q=${encodeURIComponent(query)}`);
             setArealSuggestions(data);
         } catch (err) {
             console.error('Error searching areals:', err);
@@ -161,7 +161,7 @@ export const useRaceManagement = () => {
         }
         
         try {
-            const data = await AdminAPI.get(`/admin/races/autocomplete/organizers?q=${encodeURIComponent(query)}`);
+            const data = await AdminAPI.get(`/api/admin/races/autocomplete/organizers?q=${encodeURIComponent(query)}`);
             setOrganizerSuggestions(data);
         } catch (err) {
             console.error('Error searching organizers:', err);
@@ -196,14 +196,8 @@ export const useRaceManagement = () => {
 
     const selectAreal = async (areal) => {
         try {
-            if (typeof areal.id === 'undefined') {
-                const newAreal = await AdminAPI.post('/admin/races/autocomplete/areals', { name: areal.name });
-                setFormData(prev => ({...prev, areal_id: newAreal.id}));
-                setArealSearch(newAreal.name);
-            } else {
-                setFormData(prev => ({...prev, areal_id: areal.id}));
-                setArealSearch(areal.name);
-            }
+            // Just set the search text - backend will handle find-or-create
+            setArealSearch(areal.name);
             setArealSuggestions([]);
         } catch (err) {
             console.error('Error selecting areal:', err);
@@ -212,14 +206,8 @@ export const useRaceManagement = () => {
 
     const selectOrganizer = async (organizer) => {
         try {
-            if (typeof organizer.id === 'undefined') {
-                const newOrganizer = await AdminAPI.post('/admin/races/autocomplete/organizers', { name: organizer.name });
-                setFormData(prev => ({...prev, organizer_id: newOrganizer.id}));
-                setOrganizerSearch(newOrganizer.name);
-            } else {
-                setFormData(prev => ({...prev, organizer_id: organizer.id}));
-                setOrganizerSearch(organizer.name);
-            }
+            // Just set the search text - backend will handle find-or-create
+            setOrganizerSearch(organizer.name);
             setOrganizerSuggestions([]);
         } catch (err) {
             console.error('Error selecting organizer:', err);
@@ -236,6 +224,13 @@ export const useRaceManagement = () => {
         try {
             const submitData = { ...formData };
             
+            // Replace IDs with names for auto-create functionality
+            submitData.areal_name = arealSearch.trim();
+            submitData.organizer_name = organizerSearch.trim();
+            delete submitData.areal_id;
+            delete submitData.organizer_id;
+            
+            
             if (!editingRace) {
                 const result = generateRaceNumberLocal();
                 if (result) {
@@ -246,9 +241,9 @@ export const useRaceManagement = () => {
 
             let response;
             if (editingRace) {
-                response = await AdminAPI.put(`/admin/races/${editingRace.id}`, submitData);
+                response = await AdminAPI.put(`/api/admin/races/${editingRace.id}`, submitData);
             } else {
-                response = await AdminAPI.post('/admin/races', submitData);
+                response = await AdminAPI.post('/api/admin/races', submitData);
             }
 
             setSuccess(editingRace ? 'Závod byl úspěšně aktualizován' : 'Závod byl úspěšně vytvořen');
@@ -315,7 +310,7 @@ export const useRaceManagement = () => {
         if (!window.confirm('Opravdu chcete smazat tento závod?')) return;
         
         try {
-            await AdminAPI.delete(`/admin/races/${raceId}`);
+            await AdminAPI.delete(`/api/admin/races/${raceId}`);
             setSuccess('Závod byl úspěšně smazán');
             loadRaces();
         } catch (err) {
@@ -326,7 +321,7 @@ export const useRaceManagement = () => {
 
     const toggleRegistration = async (raceId) => {
         try {
-            await AdminAPI.post(`/admin/races/${raceId}/toggle-registration`);
+            await AdminAPI.post(`/api/admin/races/${raceId}/toggle-registration`);
             setSuccess('Stav registrace byl změněn');
             loadRaces();
         } catch (err) {
@@ -338,7 +333,7 @@ export const useRaceManagement = () => {
     const downloadRegistrationsCsv = async (raceId, raceNr) => {
         try {
             const token = localStorage.getItem('admin_token');
-            const endpoint = `/admin/races/${raceId}/export-csv`;
+            const endpoint = `/api/admin/races/${raceId}/export-csv`;
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {

@@ -73,7 +73,7 @@ export default function AdminRegister() {
     setErrors({});
     
     try {
-      const response = await AdminAPI.post('/admin/auth/register', {
+      const response = await AdminAPI.post('/api/admin/auth/register', {
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,

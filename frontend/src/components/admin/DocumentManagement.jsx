@@ -31,7 +31,7 @@ export default function DocumentManagement() {
     try {
       setLoading(true);
       const params = fileTypeFilter !== 'all' ? { file_type: fileTypeFilter } : {};
-      const data = await AdminAPI.get('/admin/files', params);
+      const data = await AdminAPI.get('/api/admin/files', params);
       setAllFiles(data);
       setError(null);
     } catch (error) {
@@ -108,7 +108,7 @@ export default function DocumentManagement() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const result = await AdminAPI.upload('/admin/files/upload', formData);
+      const result = await AdminAPI.upload('/api/admin/files/upload', formData);
       setSuccess(`Soubor "${result.original_filename}" byl úspěšně nahrán`);
       
       // Reset file input
@@ -130,7 +130,7 @@ export default function DocumentManagement() {
     }
 
     try {
-      await AdminAPI.delete(`/admin/files/${fileId}`);
+      await AdminAPI.delete(`/api/admin/files/${fileId}`);
       setSuccess(`Soubor "${filename}" byl úspěšně smazán`);
       await loadFiles();
     } catch (error) {
@@ -142,7 +142,7 @@ export default function DocumentManagement() {
   const handleDownloadFile = async (fileId, filename) => {
     try {
       const token = localStorage.getItem('admin_token');
-      const endpoint = `/admin/files/${fileId}/download`;
+      const endpoint = `/api/admin/files/${fileId}/download`;
       
       // Potřebujeme fetch pro blob response
       const response = await fetch(endpoint, {

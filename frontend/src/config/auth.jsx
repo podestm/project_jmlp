@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const adminData = await API.get('/admin/auth/me', {}, {
+      const adminData = await API.get('/api/admin/auth/me', {}, {
         'Authorization': `Bearer ${token}`
       });
       setAdmin(adminData);
@@ -42,14 +42,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await API.post('/admin/auth/login', { email, password });
+      const response = await API.post('/api/admin/auth/login', { email, password });
       const { access_token, expires_in } = response;
       
       localStorage.setItem('admin_token', access_token);
       setToken(access_token);
       
       // Get admin details
-      const adminData = await API.get('/admin/auth/me', {}, {
+      const adminData = await API.get('/api/admin/auth/me', {}, {
         'Authorization': `Bearer ${access_token}`
       });
       setAdmin(adminData);

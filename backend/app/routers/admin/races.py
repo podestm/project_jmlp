@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
@@ -93,8 +93,66 @@ def create_race(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Create a new race."""
-    race = models.Race(**race_data.dict())
+    """Create a new race. Auto-creates areal/organizer from name if needed."""
+    
+    # Convert race_data to dict
+    race_dict = race_data.dict()
+    
+    # Handle AREAL: priority is areal_name, fallback to areal_id (if it's a string)
+    final_areal_id = None
+    areal_name = race_dict.get('areal_name')
+    
+    # If areal_name is empty/None, try areal_id as string
+    if not areal_name and race_dict.get('areal_id') and isinstance(race_dict['areal_id'], str):
+        areal_name = race_dict['areal_id']
+    
+    if areal_name and areal_name.strip():
+        areal_name = areal_name.strip()
+        # Find existing or create new areal
+        areal = db.query(models.Areal).filter(models.Areal.name == areal_name).first()
+        if not areal:
+            areal = models.Areal(name=areal_name)
+            db.add(areal)
+            db.commit()
+            db.refresh(areal)
+        final_areal_id = areal.id
+    
+    # Handle ORGANIZER: priority is organizer_name, fallback to organizer_id (if it's a string)
+    final_organizer_id = None
+    organizer_name = race_dict.get('organizer_name')
+    
+    # If organizer_name is empty/None, try organizer_id as string
+    if not organizer_name and race_dict.get('organizer_id') and isinstance(race_dict['organizer_id'], str):
+        organizer_name = race_dict['organizer_id']
+    
+    if organizer_name and organizer_name.strip():
+        organizer_name = organizer_name.strip()
+        # Find existing or create new club
+        organizer = db.query(models.Club).filter(models.Club.name == organizer_name).first()
+        if not organizer:
+            organizer = models.Club(name=organizer_name, valid=True)
+            db.add(organizer)
+            db.commit()
+            db.refresh(organizer)
+        final_organizer_id = organizer.id
+    
+    # Update race_dict with resolved IDs
+    race_dict['areal_id'] = final_areal_id
+    race_dict['organizer_id'] = final_organizer_id
+    
+    # Remove the _name fields before creating Race model
+    race_dict.pop('areal_name', None)
+    race_dict.pop('organizer_name', None)
+    
+    # Convert datum from string to date object if provided
+    if race_dict.get('datum'):
+        from ...utils import parse_date_string
+        try:
+            race_dict['datum'] = parse_date_string(race_dict['datum'])
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    race = models.Race(**race_dict)
     db.add(race)
     db.commit()
     db.refresh(race)
@@ -137,6 +195,54 @@ def update_race(
     
     # Update only provided fields
     update_data = race_data.dict(exclude_unset=True)
+    
+    # Handle AREAL auto-create (same logic as create_race)
+    if 'areal_name' in update_data or 'areal_id' in update_data:
+        final_areal_id = None
+        areal_name = update_data.get('areal_name')
+        
+        # If areal_name is empty/None, try areal_id as string
+        if not areal_name and update_data.get('areal_id') and isinstance(update_data['areal_id'], str):
+            areal_name = update_data['areal_id']
+        
+        if areal_name and areal_name.strip():
+            areal_name = areal_name.strip()
+            # Find existing or create new areal
+            areal = db.query(models.Areal).filter(models.Areal.name == areal_name).first()
+            if not areal:
+                areal = models.Areal(name=areal_name)
+                db.add(areal)
+                db.commit()
+                db.refresh(areal)
+            final_areal_id = areal.id
+            update_data['areal_id'] = final_areal_id
+        
+        # Remove the _name field before updating
+        update_data.pop('areal_name', None)
+    
+    # Handle ORGANIZER auto-create (same logic as create_race)
+    if 'organizer_name' in update_data or 'organizer_id' in update_data:
+        final_organizer_id = None
+        organizer_name = update_data.get('organizer_name')
+        
+        # If organizer_name is empty/None, try organizer_id as string
+        if not organizer_name and update_data.get('organizer_id') and isinstance(update_data['organizer_id'], str):
+            organizer_name = update_data['organizer_id']
+        
+        if organizer_name and organizer_name.strip():
+            organizer_name = organizer_name.strip()
+            # Find existing or create new club
+            organizer = db.query(models.Club).filter(models.Club.name == organizer_name).first()
+            if not organizer:
+                organizer = models.Club(name=organizer_name, valid=True)
+                db.add(organizer)
+                db.commit()
+                db.refresh(organizer)
+            final_organizer_id = organizer.id
+            update_data['organizer_id'] = final_organizer_id
+        
+        # Remove the _name field before updating
+        update_data.pop('organizer_name', None)
     
     # Handle file assignments and disconnections
     if 'proposition_file_id' in update_data:
@@ -200,31 +306,35 @@ def delete_race(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Delete a race."""
+    """Delete a race and all its registrations (cascade delete)."""
     try:
         race = db.query(models.Race).filter(models.Race.id == race_id).first()
         if not race:
             raise HTTPException(status_code=404, detail="Závod nenalezen")
         
-        # Check if race has any registrations
+        # Delete all registrations for this race (cascade delete)
         registrations_count = db.query(models.Registration).filter(
             models.Registration.race_id == race_id
         ).count()
         
         if registrations_count > 0:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Nelze smazat závod s {registrations_count} registracemi"
-            )
+            db.query(models.Registration).filter(
+                models.Registration.race_id == race_id
+            ).delete()
         
+        # Delete the race itself
         db.delete(race)
         db.commit()
-        return {"message": "Závod úspěšně smazán"}
+        
+        message = f"Závod úspěšně smazán"
+        if registrations_count > 0:
+            message += f" (včetně {registrations_count} registrací)"
+        
+        return {"message": message}
     
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error deleting race {race_id}: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Chyba při mazání závodu: {str(e)}")
 
@@ -261,49 +371,5 @@ def autocomplete_organizers(
     ).limit(10).all()
     
     return [{"id": club.id, "name": fix_encoding(club.name)} for club in clubs]
-
-
-@router.post("/autocomplete/areals", response_model=schemas.Areal)
-def create_areal(
-    areal_data: schemas.ArealCreate,
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Create a new areal."""
-    # Check if areal already exists
-    existing_areal = db.query(models.Areal).filter(
-        models.Areal.name == areal_data.name
-    ).first()
-    
-    if existing_areal:
-        return existing_areal
-    
-    # Create new areal
-    areal = models.Areal(name=areal_data.name)
-    db.add(areal)
-    db.commit()
-    db.refresh(areal)
-    return areal
-
-
-@router.post("/autocomplete/organizers", response_model=schemas.Club)
-def create_organizer(
-    organizer_data: schemas.ClubCreate,
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Create a new club/organizer."""
-    # Check if club already exists
-    existing_club = db.query(models.Club).filter(
-        models.Club.name == organizer_data.name
-    ).first()
-    
-    if existing_club:
-        return existing_club
-    
-    # Create new club
-    club = models.Club(name=organizer_data.name, valid=True)
-    db.add(club)
-    db.commit()
     db.refresh(club)
     return club
