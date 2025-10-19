@@ -11,6 +11,10 @@ const RaceForm = ({
     arealSuggestions,
     organizerSearch,
     organizerSuggestions,
+    propositionSearch,
+    propositionSuggestions,
+    resultsSearch,
+    resultsSuggestions,
     raceNumberPreview,
     seasonPreview,
     propositionDocuments,
@@ -18,8 +22,14 @@ const RaceForm = ({
     availableDocuments,
     handleArealSearch,
     handleOrganizerSearch,
+    handlePropositionSearch,
+    handleResultsSearch,
     selectAreal,
     selectOrganizer,
+    selectPropositionDocument,
+    selectResultsDocument,
+    clearPropositionDocument,
+    clearResultsDocument,
     generateRaceNumberLocal,
     handleSubmit,
     resetForm
@@ -188,49 +198,115 @@ const RaceForm = ({
                                 <div className="col-md-6">
                                     <div className="mb-3">
                                         <label className="form-label">Propozice</label>
-                                        <select
-                                            className="form-select"
-                                            value={formData.proposition_file_id || ''}
-                                            onChange={(e) => setFormData(prev => ({...prev, proposition_file_id: e.target.value || null}))}
-                                        >
-                                            <option value="">Bez propozic</option>
-                                            {propositionDocuments.map(doc => (
-                                                <option key={doc.id} value={doc.id}>
-                                                    {doc.original_filename}
-                                                </option>
-                                            ))}
-                                            {availableDocuments.filter(doc => 
-                                                !propositionDocuments.some(p => p.id === doc.id)
-                                            ).map(doc => (
-                                                <option key={doc.id} value={doc.id}>
-                                                    {doc.original_filename} (ostatní)
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="position-relative">
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={propositionSearch}
+                                                    onChange={(e) => handlePropositionSearch(e.target.value)}
+                                                    placeholder="Začněte psát název dokumentu..."
+                                                />
+                                                {formData.proposition_file_id && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={clearPropositionDocument}
+                                                        title="Odebrat propozice"
+                                                    >
+                                                        <i className="bi bi-x-lg"></i>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {propositionSuggestions.length > 0 && (
+                                                <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
+                                                    {propositionSuggestions.map((doc, index) => (
+                                                        <div 
+                                                            key={index}
+                                                            className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                                            onClick={() => selectPropositionDocument(doc)}
+                                                            style={{cursor: 'pointer'}}
+                                                        >
+                                                            <div className="d-flex justify-content-between align-items-center">
+                                                                <span>{doc.original_filename}</span>
+                                                                {doc.file_type && (
+                                                                    <span className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
+                                                                        {doc.file_type}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="form-text">
+                                            {formData.proposition_file_id ? (
+                                                <span className="text-success">
+                                                    <i className="bi bi-check-circle me-1"></i>
+                                                    Dokument vybrán
+                                                </span>
+                                            ) : (
+                                                'Začněte psát pro vyhledání dokumentu'
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="col-md-6">
                                     <div className="mb-3">
                                         <label className="form-label">Výsledky</label>
-                                        <select
-                                            className="form-select"
-                                            value={formData.results_file_id || ''}
-                                            onChange={(e) => setFormData(prev => ({...prev, results_file_id: e.target.value || null}))}
-                                        >
-                                            <option value="">Bez výsledků</option>
-                                            {resultsDocuments.map(doc => (
-                                                <option key={doc.id} value={doc.id}>
-                                                    {doc.original_filename}
-                                                </option>
-                                            ))}
-                                            {availableDocuments.filter(doc => 
-                                                !resultsDocuments.some(r => r.id === doc.id)
-                                            ).map(doc => (
-                                                <option key={doc.id} value={doc.id}>
-                                                    {doc.original_filename} (ostatní)
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="position-relative">
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    value={resultsSearch}
+                                                    onChange={(e) => handleResultsSearch(e.target.value)}
+                                                    placeholder="Začněte psát název dokumentu..."
+                                                />
+                                                {formData.results_file_id && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-secondary"
+                                                        onClick={clearResultsDocument}
+                                                        title="Odebrat výsledky"
+                                                    >
+                                                        <i className="bi bi-x-lg"></i>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {resultsSuggestions.length > 0 && (
+                                                <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
+                                                    {resultsSuggestions.map((doc, index) => (
+                                                        <div 
+                                                            key={index}
+                                                            className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                                            onClick={() => selectResultsDocument(doc)}
+                                                            style={{cursor: 'pointer'}}
+                                                        >
+                                                            <div className="d-flex justify-content-between align-items-center">
+                                                                <span>{doc.original_filename}</span>
+                                                                {doc.file_type && (
+                                                                    <span className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
+                                                                        {doc.file_type}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="form-text">
+                                            {formData.results_file_id ? (
+                                                <span className="text-success">
+                                                    <i className="bi bi-check-circle me-1"></i>
+                                                    Dokument vybrán
+                                                </span>
+                                            ) : (
+                                                'Začněte psát pro vyhledání dokumentu'
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

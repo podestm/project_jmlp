@@ -49,6 +49,10 @@ const RaceManagement = () => {
                         arealSuggestions={raceManagement.arealSuggestions}
                         organizerSearch={raceManagement.organizerSearch}
                         organizerSuggestions={raceManagement.organizerSuggestions}
+                        propositionSearch={raceManagement.propositionSearch}
+                        propositionSuggestions={raceManagement.propositionSuggestions}
+                        resultsSearch={raceManagement.resultsSearch}
+                        resultsSuggestions={raceManagement.resultsSuggestions}
                         raceNumberPreview={raceManagement.raceNumberPreview}
                         seasonPreview={raceManagement.seasonPreview}
                         propositionDocuments={raceManagement.propositionDocuments}
@@ -56,8 +60,14 @@ const RaceManagement = () => {
                         availableDocuments={raceManagement.availableDocumentsOnly}
                         handleArealSearch={raceManagement.handleArealSearch}
                         handleOrganizerSearch={raceManagement.handleOrganizerSearch}
+                        handlePropositionSearch={raceManagement.handlePropositionSearch}
+                        handleResultsSearch={raceManagement.handleResultsSearch}
                         selectAreal={raceManagement.selectAreal}
                         selectOrganizer={raceManagement.selectOrganizer}
+                        selectPropositionDocument={raceManagement.selectPropositionDocument}
+                        selectResultsDocument={raceManagement.selectResultsDocument}
+                        clearPropositionDocument={raceManagement.clearPropositionDocument}
+                        clearResultsDocument={raceManagement.clearResultsDocument}
                         generateRaceNumberLocal={raceManagement.generateRaceNumberLocal}
                         handleSubmit={raceManagement.handleSubmit}
                         resetForm={raceManagement.resetForm}

@@ -37,6 +37,10 @@ export const useRaceManagement = () => {
     const [arealSuggestions, setArealSuggestions] = useState([]);
     const [organizerSearch, setOrganizerSearch] = useState('');
     const [organizerSuggestions, setOrganizerSuggestions] = useState([]);
+    const [propositionSearch, setPropositionSearch] = useState('');
+    const [propositionSuggestions, setPropositionSuggestions] = useState([]);
+    const [resultsSearch, setResultsSearch] = useState('');
+    const [resultsSuggestions, setResultsSuggestions] = useState([]);
     const [raceNumberPreview, setRaceNumberPreview] = useState('');
     const [seasonPreview, setSeasonPreview] = useState('');
     
@@ -214,6 +218,63 @@ export const useRaceManagement = () => {
         }
     };
 
+    // Document autocomplete handlers
+    const handlePropositionSearch = (value) => {
+        setPropositionSearch(value);
+        
+        if (!value.trim()) {
+            setPropositionSuggestions([]);
+            return;
+        }
+        
+        // Filter documents by search query
+        const filtered = availableDocumentsOnly.filter(doc =>
+            doc.original_filename.toLowerCase().includes(value.toLowerCase())
+        ).slice(0, 10); // Limit to 10 suggestions
+        
+        setPropositionSuggestions(filtered);
+    };
+
+    const handleResultsSearch = (value) => {
+        setResultsSearch(value);
+        
+        if (!value.trim()) {
+            setResultsSuggestions([]);
+            return;
+        }
+        
+        // Filter documents by search query
+        const filtered = availableDocumentsOnly.filter(doc =>
+            doc.original_filename.toLowerCase().includes(value.toLowerCase())
+        ).slice(0, 10); // Limit to 10 suggestions
+        
+        setResultsSuggestions(filtered);
+    };
+
+    const selectPropositionDocument = (doc) => {
+        setFormData(prev => ({...prev, proposition_file_id: doc.id}));
+        setPropositionSearch(doc.original_filename);
+        setPropositionSuggestions([]);
+    };
+
+    const selectResultsDocument = (doc) => {
+        setFormData(prev => ({...prev, results_file_id: doc.id}));
+        setResultsSearch(doc.original_filename);
+        setResultsSuggestions([]);
+    };
+
+    const clearPropositionDocument = () => {
+        setFormData(prev => ({...prev, proposition_file_id: null}));
+        setPropositionSearch('');
+        setPropositionSuggestions([]);
+    };
+
+    const clearResultsDocument = () => {
+        setFormData(prev => ({...prev, results_file_id: null}));
+        setResultsSearch('');
+        setResultsSuggestions([]);
+    };
+
     // CRUD operations
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -272,10 +333,14 @@ export const useRaceManagement = () => {
         setEditingRace(null);
         setArealSearch('');
         setOrganizerSearch('');
+        setPropositionSearch('');
+        setResultsSearch('');
         setRaceNumberPreview('');
         setSeasonPreview('');
         setArealSuggestions([]);
         setOrganizerSuggestions([]);
+        setPropositionSuggestions([]);
+        setResultsSuggestions([]);
     };
 
     const editRace = (race) => {
@@ -294,6 +359,20 @@ export const useRaceManagement = () => {
         // Set areál and organizer names for autocomplete display
         setArealSearch(race.areal_name || '');
         setOrganizerSearch(race.organizer_name || '');
+        
+        // Set document names for autocomplete display
+        if (race.proposition_file_id) {
+            const propDoc = availableDocumentsOnly.find(doc => doc.id === race.proposition_file_id);
+            if (propDoc) {
+                setPropositionSearch(propDoc.original_filename);
+            }
+        }
+        if (race.results_file_id) {
+            const resDoc = availableDocumentsOnly.find(doc => doc.id === race.results_file_id);
+            if (resDoc) {
+                setResultsSearch(resDoc.original_filename);
+            }
+        }
         
         // Set preview values for editing
         if (race.raceNr) {
@@ -426,6 +505,10 @@ export const useRaceManagement = () => {
         arealSuggestions,
         organizerSearch,
         organizerSuggestions,
+        propositionSearch,
+        propositionSuggestions,
+        resultsSearch,
+        resultsSuggestions,
         raceNumberPreview,
         seasonPreview,
         seasonFilter,
@@ -439,8 +522,14 @@ export const useRaceManagement = () => {
         setSeasonFilter,
         handleArealSearch,
         handleOrganizerSearch,
+        handlePropositionSearch,
+        handleResultsSearch,
         selectAreal,
         selectOrganizer,
+        selectPropositionDocument,
+        selectResultsDocument,
+        clearPropositionDocument,
+        clearResultsDocument,
         generateRaceNumberLocal,
         handleSubmit,
         resetForm,
