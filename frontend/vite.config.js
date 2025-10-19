@@ -5,7 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    host: true
+    host: true,
+    proxy: {
+      '/uploads': {
+        target: 'http://backend:8000',
+        changeOrigin: true
+      }
+    }
   },
   build: {
     rollupOptions: {

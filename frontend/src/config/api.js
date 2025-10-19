@@ -2,11 +2,11 @@
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE || '',
   ENDPOINTS: {
-    RACES: '/races',
-    POSTS: '/posts',
-    CLUBS: '/clubs',
-    RACERS: '/racers',
-    REGISTRATIONS: '/registrations'
+    RACES: '/races/',
+    POSTS: '/posts/',
+    CLUBS: '/clubs/',
+    RACERS: '/racers/',
+    REGISTRATIONS: '/registrations/'
   },
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',

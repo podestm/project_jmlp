@@ -5,6 +5,9 @@
   background: var(--primary-blue);
   border-bottom: 1px solid var(--primary-blue-dark);
   box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
 }
 
 .navbar-brand {

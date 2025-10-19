@@ -248,6 +248,10 @@ export default function AdminDashboard() {
                   <i className="bi bi-upload me-2"></i>
                   Nahrát dokumenty
                 </Link>
+                <Link to="/admin/season-results" className="btn btn-outline-info">
+                  <i className="bi bi-trophy me-2"></i>
+                  Celkové výsledky sezón
+                </Link>
                 <Link to="/admin/categories" className="btn btn-outline-warning">
                   <i className="bi bi-tag me-2"></i>
                   Správa kategorií

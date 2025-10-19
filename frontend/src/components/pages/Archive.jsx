@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import API from '../../config/api.js'
+
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 export default function Archive() {
   const [races, setRaces] = useState([])
+  const [seasonResults, setSeasonResults] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [expandedSeasons, setExpandedSeasons] = useState(new Set())
@@ -13,6 +17,20 @@ export default function Archive() {
       .then(setRaces)
       .catch(setError)
       .finally(() => setLoading(false))
+    
+    // Fetch all season results
+    fetch('/season-results/')
+      .then(r => r.json())
+      .then(results => {
+        // Create a map of season key to result
+        const resultMap = {}
+        results.forEach(result => {
+          const seasonKey = `JMLP${result.season_year_start}`
+          resultMap[seasonKey] = result
+        })
+        setSeasonResults(resultMap)
+      })
+      .catch(err => console.debug('Celkové výsledky nejsou dostupné:', err))
   }, [])
 
   // Seskupení závodů podle sezón (pouze historické)
@@ -98,10 +116,25 @@ export default function Archive() {
                     onClick={() => toggleSeason(season)}
                   >
                     <div className="d-flex justify-content-between align-items-center w-100 me-3">
-                      <span>
-                        <i className="bi bi-calendar3 me-2"></i>
-                        Sezóna {getSeasonDisplayName(season)}
-                      </span>
+                      <div className="d-flex align-items-center gap-3">
+                        <span>
+                          <i className="bi bi-calendar3 me-2"></i>
+                          Sezóna {getSeasonDisplayName(season)}
+                        </span>
+                        {seasonResults[season] && (
+                          <a
+                            href={`${API_BASE}${seasonResults[season].document_file_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-sm btn-success"
+                            onClick={(e) => e.stopPropagation()}
+                            title="Stáhnout celkové výsledky"
+                          >
+                            <i className="bi bi-trophy-fill me-1"></i>
+                            Celkové výsledky
+                          </a>
+                        )}
+                      </div>
                       <span className="badge bg-primary rounded-pill">
                         {groupedRaces.historicalGroups[season].length} závodů
                       </span>

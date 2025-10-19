@@ -1,9 +1,10 @@
 import os
+from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from .routers import races, racers, clubs, registration, posts, analytics
+from fastapi.responses import JSONResponse, FileResponse
+from .routers import races, racers, clubs, registration, posts, analytics, season_results
 from .routers.admin import router as admin_router
 from .middleware import VisitorLogMiddleware
 
@@ -52,7 +53,24 @@ app.include_router(clubs.router)
 app.include_router(registration.router)
 app.include_router(posts.router)
 app.include_router(analytics.router)  # Public analytics router
+app.include_router(season_results.router)  # Season results public router
 app.include_router(admin_router)  # New modular admin router
+
+# Serve uploaded documents
+@app.get("/uploads/documents/{filename}")
+async def serve_document(filename: str):
+    """Serve uploaded PDF documents"""
+    file_path = Path("uploads/documents") / filename
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(
+            path=file_path,
+            media_type="application/pdf",
+            filename=filename
+        )
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Soubor nebyl nalezen"}
+    )
 
 @app.get("/")
 def root():

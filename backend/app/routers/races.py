@@ -46,7 +46,13 @@ def list_organizers(db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[schemas.Race])
-def list_races(current_season: bool = False, upcoming: bool = False, db: Session = Depends(get_db)):
+def list_races(
+    current_season: bool = False, 
+    upcoming: bool = False, 
+    past: bool = False,
+    limit: int = None,
+    db: Session = Depends(get_db)
+):
     # Sestavíme SQL dotaz s filtry
     base_query = """
         SELECT r.id, r.closed+0 as closed, r.datum, r.raceNr, 
@@ -71,8 +77,16 @@ def list_races(current_season: bool = False, upcoming: bool = False, db: Session
         # Pouze nadcházející závody
         base_query += " AND r.datum >= CURDATE()"
         base_query += " ORDER BY r.datum ASC"
+    elif past:
+        # Pouze uplynulé závody
+        base_query += " AND r.datum < CURDATE()"
+        base_query += " ORDER BY r.datum DESC"
     else:
         base_query += " ORDER BY r.datum DESC"
+    
+    # Přidáme LIMIT pokud je zadán
+    if limit:
+        base_query += f" LIMIT {limit}"
     
     # Používáme raw SQL pro správné čtení bit hodnot a načítání areálu
     result = db.execute(text(base_query)).fetchall()

@@ -137,6 +137,27 @@ def get_current_season_id(reference_date: Optional[date] = None) -> int:
     return season_id
 
 
+def get_current_season(reference_date: Optional[date] = None) -> dict:
+    """
+    Vrátí aktuální sezónu jako dictionary s year_start a year_end.
+    
+    Args:
+        reference_date: Datum pro určení sezóny (pokud None, použije se aktuální datum)
+    
+    Returns:
+        dict: {'year_start': int, 'year_end': int}
+    
+    Příklad:
+        - 15.7.2025 -> {'year_start': 2024, 'year_end': 2025}
+        - 1.8.2025 -> {'year_start': 2025, 'year_end': 2026}
+    """
+    season_id = get_current_season_id(reference_date)
+    return {
+        'year_start': season_id - 1,
+        'year_end': season_id
+    }
+
+
 def parse_date_string(date_string: str) -> date:
     """
     Parse date string in various formats to date object.

@@ -288,3 +288,30 @@ class RaceUpdate(BaseModel):
         if v == '' or v == 'null':
             return None
         return v
+
+
+# Season Results Schemas
+class SeasonResultBase(BaseModel):
+    season_year_start: int
+    season_year_end: int
+    document_id: int
+
+
+class SeasonResultCreate(SeasonResultBase):
+    pass
+
+
+class SeasonResultUpdate(BaseModel):
+    document_id: Optional[int] = None
+
+
+class SeasonResult(SeasonResultBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    # Document details populated by join
+    document_filename: Optional[str] = None
+    document_original_filename: Optional[str] = None
+    document_file_path: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)

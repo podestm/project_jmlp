@@ -151,3 +151,17 @@ class VisitorLog(Base):
     user_agent: Mapped[str | None] = mapped_column(String(255), nullable=True)
     path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     visited_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+class SeasonResult(Base):
+    __tablename__ = "fuj_jmlp_season_results"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    season_year_start: Mapped[int] = mapped_column(Integer, nullable=False)
+    season_year_end: Mapped[int] = mapped_column(Integer, nullable=False)
+    document_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    __table_args__ = (
+        UniqueConstraint('season_year_start', 'season_year_end', name='unique_season'),
+    )

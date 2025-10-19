@@ -19,6 +19,7 @@ import DocumentManagement from './components/admin/DocumentManagement.jsx';
 import PostManagement from './components/admin/PostManagement.jsx';
 import RaceRegistrations from './components/admin/RaceRegistrations.jsx';
 import CategoryManagement from './components/admin/CategoryManagement.jsx';
+import SeasonResultsManagement from './components/admin/SeasonResultsManagement.jsx';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -90,6 +91,11 @@ const RouterContent = () => {
               <Route path="/categories" element={
                 <ProtectedRoute>
                   <CategoryManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/season-results" element={
+                <ProtectedRoute>
+                  <SeasonResultsManagement />
                 </ProtectedRoute>
               } />
               <Route path="/register" element={

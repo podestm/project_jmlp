@@ -9,6 +9,7 @@ from .registrations import router as registrations_router
 from .categories import router as categories_router
 from .analytics import router as analytics_router
 from .stats import router as stats_router
+from .season_results import router as season_results_router
 
 # Main admin router that includes all sub-routers
 router = APIRouter(prefix="/api/admin")
@@ -23,3 +24,4 @@ router.include_router(registrations_router)
 router.include_router(categories_router)
 router.include_router(analytics_router)
 router.include_router(stats_router)
+router.include_router(season_results_router)

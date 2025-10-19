@@ -70,6 +70,10 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-newspaper me-2"></i>
               Posty a zprávy
             </Link>
+            <Link to="/admin/season-results" className={`nav-link text-white ${isActive('/admin/season-results') ? 'active' : ''}`}>
+              <i className="bi bi-trophy-fill me-2"></i>
+              Celkové výsledky
+            </Link>
             <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
               <i className="bi bi-tag me-2"></i>
               Kategorie (ve vývoji)
