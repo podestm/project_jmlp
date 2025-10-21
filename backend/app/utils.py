@@ -270,27 +270,33 @@ class StandardExceptions:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
 
 
-def get_category_for_birth_year(birth_year: int, db) -> Optional[int]:
+def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
     """
-    Přiřadí kategorii podle roku narození závodníka.
+    Přiřadí kategorii podle roku narození a pohlaví závodníka.
     
     Args:
         birth_year: Rok narození závodníka
+        racer_sex: Pohlaví závodníka (1 = muž, 2 = žena)
         db: Database session
         
     Returns:
         Optional[int]: ID kategorie nebo None pokud nenalezena
     """
-    from sqlalchemy import and_
+    from sqlalchemy import and_, or_
     from .models import Category
     
-    # Najdi aktivní kategorii, kde birth_year spadá do rozmezí
+    # Najdi aktivní kategorii, kde birth_year spadá do rozmezí a pohlaví se shoduje
+    # Kategorie s sex=0 (mix) jsou univerzální pro všechna pohlaví
     category = db.query(Category).filter(
         and_(
             Category.active == True,
             Category.min_birth_year <= birth_year,
-            Category.max_birth_year >= birth_year
+            Category.max_birth_year >= birth_year,
+            or_(
+                Category.sex == 0,  # Mix kategorie
+                Category.sex == racer_sex  # Kategorie pro konkrétní pohlaví
+            )
         )
-    ).first()
+    ).order_by(Category.sex.desc()).first()  # Preferuj specifické kategorie před mix
     
     return category.id if category else None

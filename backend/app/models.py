@@ -61,10 +61,11 @@ class Club(Base):
 class Category(Base):
     __tablename__ = "fuj_jmlp_category"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(100, collation='utf8mb4_unicode_ci'), unique=True)
+    name: Mapped[str] = mapped_column(String(100, collation='utf8mb4_unicode_ci'))
     min_birth_year: Mapped[int] = mapped_column(Integer)  # Nejstarší ročník
     max_birth_year: Mapped[int] = mapped_column(Integer)  # Nejmladší ročník
-    active: Mapped[bool] = mapped_column(BitBoolean, default=True)
+    sex: Mapped[int] = mapped_column(SmallInteger)  # 1 = muži, 2 = ženy, 0 = mix
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

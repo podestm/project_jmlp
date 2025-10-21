@@ -10,41 +10,13 @@ from ...utils import get_category_for_birth_year
 router = APIRouter(tags=["admin-categories"])
 
 
-@router.get("/categories", response_model=List[schemas.Category])
+@router.get("/categories")
 def get_categories(
-    skip: int = 0,
-    limit: int = 100,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
-):
-    """List all categories for admin management."""
-    # Use raw SQL with CONVERT for proper UTF-8 encoding
-    query = text("""
-        SELECT 
-            id,
-            CONVERT(CONVERT(name USING binary) USING utf8mb4) as name,
-            min_birth_year,
-            max_birth_year,
-            active,
-            created_at,
-            updated_at
-        FROM fuj_jmlp_category
-        ORDER BY active DESC, min_birth_year ASC
-        LIMIT :limit OFFSET :skip
-    """)
-    result = db.execute(query, {"limit": limit, "skip": skip})
-    categories = []
-    for row in result:
-        categories.append(schemas.Category(
-            id=row[0],
-            name=row[1],
-            min_birth_year=row[2],
-            max_birth_year=row[3],
-            active=bool(row[4]),
-            created_at=row[5],
-            updated_at=row[6]
-        ))
-    return categories
+) -> List[schemas.Category]:
+    """Get all categories."""
+    return db.query(models.Category).order_by(models.Category.name).all()
 
 
 @router.get("/categories/{category_id}", response_model=schemas.Category)
@@ -95,12 +67,22 @@ def create_category(
             detail="Nejstarší ročník (min_birth_year) musí být menší nebo roven nejmladšímu ročníku (max_birth_year)"
         )
     
-    # Check for duplicate name
+    # Validate sex value
+    if category_data.sex not in [0, 1, 2]:
+        raise HTTPException(
+            status_code=400,
+            detail="Pohlaví musí být 0 (mix), 1 (muži) nebo 2 (ženy)"
+        )
+    
+    # Check for duplicate combination of name and sex
     existing = db.query(models.Category).filter(
-        models.Category.name == category_data.name
+        and_(
+            models.Category.name == category_data.name,
+            models.Category.sex == category_data.sex
+        )
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Kategorie s tímto názvem již existuje")
+        raise HTTPException(status_code=400, detail="Kategorie s tímto názvem a pohlavím již existuje")
     
     category = models.Category(**category_data.dict())
     db.add(category)
@@ -134,16 +116,35 @@ def update_category(
             detail="Nejstarší ročník musí být menší nebo roven nejmladšímu ročníku"
         )
     
-    # Check for duplicate name if name is being updated
-    if 'name' in update_data and update_data['name'] != category.name:
+    # Validate sex value if being updated
+    if 'sex' in update_data and update_data['sex'] not in [0, 1, 2]:
+        raise HTTPException(
+            status_code=400,
+            detail="Pohlaví musí být 0 (mix), 1 (muži) nebo 2 (ženy)"
+        )
+    
+    # Check for duplicate combination of name and sex if either is being updated
+    check_name = update_data.get('name', category.name)
+    check_sex = update_data.get('sex', category.sex)
+    
+    if ('name' in update_data and update_data['name'] != category.name) or \
+       ('sex' in update_data and update_data['sex'] != category.sex):
         existing = db.query(models.Category).filter(
-            models.Category.name == update_data['name']
+            and_(
+                models.Category.name == check_name,
+                models.Category.sex == check_sex,
+                models.Category.id != category_id
+            )
         ).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Kategorie s tímto názvem již existuje")
+            raise HTTPException(status_code=400, detail="Kategorie s tímto názvem a pohlavím již existuje")
     
     for key, value in update_data.items():
         setattr(category, key, value)
+    
+    # Explicitní nastavení pro bit field - ujišťujeme se, že se správně uloží
+    if 'active' in update_data:
+        category.active = bool(update_data['active'])
     
     db.commit()
     db.refresh(category)
@@ -172,8 +173,8 @@ def check_category_coverage(
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Kontroluje pokrytí kategorií od roku 1900 do současnosti - zjišťuje:
-    - Rozsahy roků, které nejsou pokryté žádnou kategorií
+    Kontroluje pokrytí kategorií od roku 1900 do současnosti podle pohlaví - zjišťuje:
+    - Rozsahy roků, které nejsou pokryté žádnou kategorií pro muže/ženy
     - Roky, které se překrývají ve více kategoriích
     - Neaktivní kategorie
     """
@@ -199,70 +200,93 @@ def check_category_coverage(
     min_racer_year = racer_years[0] if racer_years and racer_years[0] else None
     max_racer_year = racer_years[1] if racer_years and racer_years[1] else None
     
-    # Kontrola mezer a překryvů
-    gap_years = []
-    overlap_details = []
+    # Kontrola pro jednotlivá pohlaví
+    results_by_sex = {}
+    all_gaps = []
+    all_overlaps = []
     
-    # Zkontrolujeme všechny roky od 1900 do současnosti
-    for year in range(min_check_year, max_check_year + 1):
-        matching_categories = []
+    for sex in [1, 2]:  # 1=muži, 2=ženy (mix kategorie se počítají pro obojí)
+        sex_name = "Muži" if sex == 1 else "Ženy"
+        
+        # Najdeme kategorie relevantní pro toto pohlaví
+        relevant_categories = []
         for cat in active_categories:
-            if cat.min_birth_year <= year <= cat.max_birth_year:
-                matching_categories.append(cat.name)
+            if cat.sex == 0 or cat.sex == sex:  # mix kategorie nebo kategorie pro konkrétní pohlaví
+                relevant_categories.append(cat)
         
-        if len(matching_categories) == 0:
-            gap_years.append(year)
-        elif len(matching_categories) > 1:
-            overlap_details.append({
-                "year": year,
-                "categories": matching_categories,
-                "message": f"Ročník {year} je pokryt více kategoriemi: {', '.join(matching_categories)}"
-            })
-    
-    # Seskupíme mezery do souvislých rozsahů
-    gap_ranges = []
-    if gap_years:
-        range_start = gap_years[0]
-        range_end = gap_years[0]
+        gap_years = []
+        overlap_details = []
         
-        for i in range(1, len(gap_years)):
-            if gap_years[i] == range_end + 1:
-                # Pokračující rozsah
-                range_end = gap_years[i]
-            else:
-                # Konec aktuálního rozsahu, začátek nového
-                if range_start == range_end:
-                    gap_ranges.append({
-                        "start": range_start,
-                        "end": range_end,
-                        "count": 1,
-                        "message": f"Ročník {range_start} není pokryt žádnou kategorií"
-                    })
+        # Zkontrolujeme všechny roky od 1900 do současnosti
+        for year in range(min_check_year, max_check_year + 1):
+            matching_categories = []
+            for cat in relevant_categories:
+                if cat.min_birth_year <= year <= cat.max_birth_year:
+                    cat_label = f"{cat.name} ({'Mix' if cat.sex == 0 else sex_name})"
+                    matching_categories.append(cat_label)
+            
+            if len(matching_categories) == 0:
+                gap_years.append(year)
+            elif len(matching_categories) > 1:
+                overlap_details.append({
+                    "year": year,
+                    "categories": matching_categories,
+                    "message": f"Ročník {year} pro {sex_name} je pokryt více kategoriemi: {', '.join(matching_categories)}"
+                })
+        
+        # Seskupíme mezery do souvislých rozsahů
+        gap_ranges = []
+        if gap_years:
+            range_start = gap_years[0]
+            range_end = gap_years[0]
+            
+            for i in range(1, len(gap_years)):
+                if gap_years[i] == range_end + 1:
+                    range_end = gap_years[i]
                 else:
-                    gap_ranges.append({
-                        "start": range_start,
-                        "end": range_end,
-                        "count": range_end - range_start + 1,
-                        "message": f"Ročníky {range_start}–{range_end} ({range_end - range_start + 1} let) nejsou pokryty žádnou kategorií"
-                    })
-                range_start = gap_years[i]
-                range_end = gap_years[i]
+                    # Konec aktuálního rozsahu
+                    if range_start == range_end:
+                        gap_ranges.append({
+                            "start": range_start,
+                            "end": range_end,
+                            "count": 1,
+                            "message": f"Ročník {range_start} pro {sex_name} není pokryt žádnou kategorií"
+                        })
+                    else:
+                        gap_ranges.append({
+                            "start": range_start,
+                            "end": range_end,
+                            "count": range_end - range_start + 1,
+                            "message": f"Ročníky {range_start}–{range_end} ({range_end - range_start + 1} let) pro {sex_name} nejsou pokryty žádnou kategorií"
+                        })
+                    range_start = gap_years[i]
+                    range_end = gap_years[i]
+            
+            # Přidáme poslední rozsah
+            if range_start == range_end:
+                gap_ranges.append({
+                    "start": range_start,
+                    "end": range_end,
+                    "count": 1,
+                    "message": f"Ročník {range_start} pro {sex_name} není pokryt žádnou kategorií"
+                })
+            else:
+                gap_ranges.append({
+                    "start": range_start,
+                    "end": range_end,
+                    "count": range_end - range_start + 1,
+                    "message": f"Ročníky {range_start}–{range_end} ({range_end - range_start + 1} let) pro {sex_name} nejsou pokryty žádnou kategorií"
+                })
         
-        # Přidáme poslední rozsah
-        if range_start == range_end:
-            gap_ranges.append({
-                "start": range_start,
-                "end": range_end,
-                "count": 1,
-                "message": f"Ročník {range_start} není pokryt žádnou kategorií"
-            })
-        else:
-            gap_ranges.append({
-                "start": range_start,
-                "end": range_end,
-                "count": range_end - range_start + 1,
-                "message": f"Ročníky {range_start}–{range_end} ({range_end - range_start + 1} let) nejsou pokryty žádnou kategorií"
-            })
+        results_by_sex[sex_name] = {
+            "gap_ranges": gap_ranges,
+            "overlap_details": overlap_details,
+            "total_gaps": len(gap_years),
+            "total_overlaps": len(overlap_details)
+        }
+        
+        all_gaps.extend(gap_ranges)
+        all_overlaps.extend(overlap_details)
     
     # Seznam neaktivních kategorií
     inactive_categories = db.query(models.Category).filter(
@@ -272,19 +296,20 @@ def check_category_coverage(
     inactive_list = [{
         "id": cat.id,
         "name": cat.name,
+        "sex": "Mix" if cat.sex == 0 else "Muži" if cat.sex == 1 else "Ženy",
         "range": f"{cat.min_birth_year}-{cat.max_birth_year}"
     } for cat in inactive_categories]
     
-    total_gap_years = len(gap_years)
-    total_overlap_years = len(overlap_details)
+    total_gap_ranges = len(all_gaps)
+    total_overlap_years = len(all_overlaps)
     
-    status = "ok" if not gap_ranges and not overlap_details else "warning"
-    message = "Kategorie jsou správně nastaveny pro celý rozsah 1900–současnost"
-    if gap_ranges or overlap_details:
+    status = "ok" if not all_gaps and not all_overlaps else "warning"
+    message = "Kategorie jsou správně nastaveny pro celý rozsah 1900–současnost pro obě pohlaví"
+    if all_gaps or all_overlaps:
         issues = []
-        if gap_ranges:
-            issues.append(f"{total_gap_years} nepokrytých ročníků v {len(gap_ranges)} rozsazích")
-        if overlap_details:
+        if all_gaps:
+            issues.append(f"{total_gap_ranges} nepokrytých rozsahů")
+        if all_overlaps:
             issues.append(f"{total_overlap_years} překrývajících se ročníků")
         message = f"Nalezeny problémy: {', '.join(issues)}"
     
@@ -301,9 +326,7 @@ def check_category_coverage(
             "max": max_racer_year
         } if min_racer_year else None,
         "active_categories": len(active_categories),
-        "total_gap_years": total_gap_years,
-        "gap_ranges": gap_ranges,
-        "overlaps": overlap_details,
+        "results_by_sex": results_by_sex,
         "inactive_categories": inactive_list
     }
 
@@ -330,7 +353,7 @@ def recalculate_all_racer_categories(
     
     for racer in racers:
         old_category_id = racer.category_id
-        new_category_id = get_category_for_birth_year(racer.year, db)
+        new_category_id = get_category_for_birth_year(racer.year, racer.sex, db)
         
         if old_category_id != new_category_id:
             racer.category_id = new_category_id

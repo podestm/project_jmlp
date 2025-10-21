@@ -34,7 +34,7 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             racer.slcr_id = payload.racer_slcr_id.strip()
         
         # Přiřadíme kategorii podle roku narození (vždy aktuální)
-        racer.category_id = get_category_for_birth_year(racer.year, db)
+        racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
     else:
         # creating new racer
         if not all([payload.racer_name, payload.racer_surname, payload.racer_sex is not None, payload.racer_year]):
@@ -51,10 +51,10 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         if existing_racer:
             racer = existing_racer
             # Aktualizujeme kategorii i pro existujícího závodníka
-            racer.category_id = get_category_for_birth_year(racer.year, db)
+            racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
         else:
             # Přiřadíme kategorii podle roku narození
-            category_id = get_category_for_birth_year(payload.racer_year, db)
+            category_id = get_category_for_birth_year(payload.racer_year, payload.racer_sex, db)
             
             racer = models.Racer(
                 name=payload.racer_name,

@@ -55,6 +55,7 @@ class CategoryBase(BaseModel):
     name: str
     min_birth_year: int  # Nejstarší ročník (např. 1990)
     max_birth_year: int  # Nejmladší ročník (např. 2005)
+    sex: int  # 0 = mix, 1 = muži, 2 = ženy
     active: bool = True
 
 
@@ -66,6 +67,7 @@ class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     min_birth_year: Optional[int] = None
     max_birth_year: Optional[int] = None
+    sex: Optional[int] = None
     active: Optional[bool] = None
 
 

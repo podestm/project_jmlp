@@ -130,13 +130,14 @@ export const API = {
 
 // Helper function to handle auth errors
 const handleAuthError = (status) => {
-  if (status === 401 || status === 403) {
-    // Clear token and redirect to login
+  if (status === 401) {
+    // Clear token and redirect to login only for 401 (token invalid/expired)
     localStorage.removeItem('admin_token');
     if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
       window.location.href = '/admin';
     }
   }
+  // 403 môže byť aj iný problém než neplatný token, takže nemazať token automaticky
 };
 
 // Admin API with authentication
