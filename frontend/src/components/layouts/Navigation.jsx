@@ -27,11 +27,16 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="navbar navbar-dark mb-4">
+    <nav className="navbar navbar-dark mb-4" style={{
+      background: 'rgba(20, 30, 50, 0.6)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+    }}>
       <div className="container">
         <div className="d-flex justify-content-between align-items-center w-100">
           {/* Brand */}
-          <Link to="/" className="navbar-brand mb-0 h1 text-decoration-none">
+          <Link to="/" className="navbar-brand mb-0 h1 text-decoration-none" style={{color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'}}>
             <i className="bi bi-snow2 me-2"></i>
             {APP_CONFIG.FULL_NAME}
           </Link>
@@ -44,9 +49,14 @@ export default function Navigation() {
                 to={item.path}
                 className={`btn ${
                   currentPage === item.key 
-                    ? 'btn-light' 
+                    ? 'btn-primary' 
                     : 'btn-outline-light'
                 } me-2 text-decoration-none`}
+                style={currentPage === item.key ? {
+                  borderBottom: '2px solid var(--sunset-orange)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--sunset-orange)'
+                } : {}}
               >
                 <i className={`${item.icon} me-1`}></i>
                 {item.label}

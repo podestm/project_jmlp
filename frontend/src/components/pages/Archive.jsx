@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import API from '../../config/api.js'
+import { formatDate } from '../../utils/date.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
@@ -156,7 +157,7 @@ export default function Archive() {
                       {groupedRaces.groups[selectedSeason]?.map(race => (
                         <tr key={race.id}>
                           <td>
-                            <strong>{race.datum}</strong>
+                            <strong>{formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}</strong>
                             <br />
                             <small className="text-muted">{race.areal_name}</small>
                           </td>

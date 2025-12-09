@@ -19,8 +19,10 @@ body {
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
-  color: var(--gray-900);
-  background: var(--bg-gradient);
+  color: var(--text-primary);
+  background: linear-gradient(var(--dark-overlay), var(--dark-overlay)),
+              url('/src/assets/images/background.png') no-repeat center center fixed;
+  background-size: cover;
   min-height: 100vh;
   height: 100%;
   -webkit-font-smoothing: antialiased;
@@ -111,4 +113,57 @@ img {
   .container {
     padding: 0 var(--spacing-xl);
   }
+}
+
+/* Glassmorphism Cards */
+.card {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--border-radius-lg) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px 0 var(--glass-shadow);
+  color: var(--text-primary);
+}
+
+.card-header {
+  background: rgba(255, 107, 0, 0.15) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-body {
+  color: var(--text-secondary);
+}
+
+.table {
+  color: var(--text-primary);
+}
+
+.table-light {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(255, 107, 0, 0.1) !important;
+}
+
+.btn-primary {
+  background-color: var(--sunset-orange) !important;
+  border-color: var(--sunset-orange) !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--sunset-orange-light) !important;
+  border-color: var(--sunset-orange-light) !important;
+}
+
+.bg-primary {
+  background-color: var(--sunset-orange) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
 }

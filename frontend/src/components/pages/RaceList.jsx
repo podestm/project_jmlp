@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { formatDate } from '../../utils/date.js'
 
 export default function RaceList({ currentSeason = false }) {
   const [races, setRaces] = useState([])
@@ -73,7 +74,7 @@ export default function RaceList({ currentSeason = false }) {
                       </h6>
                       <p className="card-text mb-2">
                         <i className="bi bi-calendar3 me-2"></i>
-                        {race.datum}
+                        {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       </p>
                       <p className="card-text mb-2 text-muted">
                         <i className="bi bi-buildings me-2"></i>
@@ -189,7 +190,7 @@ export default function RaceList({ currentSeason = false }) {
                         </h6>
                         <p className="card-text mb-2">
                           <i className="bi bi-calendar3 me-2"></i>
-                          {race.datum}
+                          {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </p>
                         <p className="card-text mb-2 text-muted">
                           <i className="bi bi-building me-2"></i>

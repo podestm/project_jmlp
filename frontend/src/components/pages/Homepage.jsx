@@ -35,52 +35,31 @@ function Homepage() {
 
   const fetchUpcomingRaces = async () => {
     try {
-      // Načteme nadcházející závody
-      const upcomingData = await API.get(API_CONFIG.ENDPOINTS.RACES, { 
-        current_season: true, 
-        upcoming: true 
+      // Načteme všechny závody aktuální sezóny
+      const allRaces = await API.get(API_CONFIG.ENDPOINTS.RACES, { 
+        current_season: true
       });
       
-      // Oprav kódování u nadcházejících
-      const fixedUpcoming = upcomingData.map(race => ({
+      // Oprav kódování
+      const fixedRaces = allRaces.map(race => ({
         ...race,
         areal_name: fixEncoding(race.areal_name),
-        organizer_name: fixEncoding(race.organizer_name),
-        isPast: false
+        organizer_name: fixEncoding(race.organizer_name)
       }));
       
-      // Vždy chceme 3 závody celkem
-      const totalToShow = 3;
-      const upcomingCount = fixedUpcoming.length;
+      // Seřaď: nejprve s otevřenou registrací (nejnovější první), 
+      // pak bez registrace (nejnovější první)
+      const sorted = fixedRaces.sort((a, b) => {
+        // Pokud jeden má registraci a druhý ne, registrace má přednost
+        if (a.registration && !b.registration) return -1;
+        if (!a.registration && b.registration) return 1;
+        
+        // Pokud mají stejný stav registrace, seřaď podle data (nejnovější první)
+        return new Date(b.datum) - new Date(a.datum);
+      });
       
-      // Pokud máme méně než 3 nadcházející, doplníme uplynulými
-      if (upcomingCount < totalToShow) {
-        const needPast = totalToShow - upcomingCount;
-        
-        const pastData = await API.get(API_CONFIG.ENDPOINTS.RACES, { 
-          current_season: true,
-          past: true,
-          limit: needPast
-        });
-        
-        const fixedPast = pastData.map(race => ({
-          ...race,
-          areal_name: fixEncoding(race.areal_name),
-          organizer_name: fixEncoding(race.organizer_name),
-          isPast: true
-        }));
-        
-        // Uplynulé na začátek (nejnovější první), pak nadcházející
-        const combined = [
-          ...fixedPast.slice(0, needPast).reverse(),
-          ...fixedUpcoming
-        ];
-        
-        setUpcomingRaces(combined);
-      } else {
-        // Máme dost nadcházejících, zobrazíme jen první 3
-        setUpcomingRaces(fixedUpcoming.slice(0, totalToShow));
-      }
+      // Zobraz prvních 5
+      setUpcomingRaces(sorted.slice(0, 5));
     } catch (err) {
       console.error('Chyba při načítání závodů:', err);
     }
@@ -178,14 +157,16 @@ function Homepage() {
       <div className="row g-4">
         <div className="col-lg-8">
           <div className="mb-4" style={{
-            background: 'linear-gradient(135deg, #8b95a1 0%, #7a8694 100%)',
-            color: 'white',
-            borderRadius: '12px',
-            padding: '1rem 1.25rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            borderBottom: '2px solid rgba(255, 107, 0, 0.3)',
+            paddingBottom: '0.75rem'
           }}>
-            <h2 className="mb-0" style={{ fontSize: '1.5rem', fontWeight: '600' }}>
-              <span className="bi bi-newspaper me-2"></span>
+            <h2 className="mb-0" style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: '500',
+              color: 'var(--text-primary)',
+              opacity: '0.9'
+            }}>
+              <span className="bi bi-newspaper me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
               Aktuality
             </h2>
           </div>
@@ -208,18 +189,20 @@ function Homepage() {
                     <div key={post.id} className="col-12">
                       <div className="card" style={{
                         borderRadius: '12px',
-                        border: '1px solid #dee2e6',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'var(--glass-bg)',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                         cursor: 'default'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                       }}>
                         {/* Obrázek nad textem (top) */}
                         {showImage && imagePosition === 'top' && (
@@ -238,7 +221,7 @@ function Homepage() {
                         
                         <div className="card-body" style={{ padding: '1.5rem' }}>
                           <h5 className="card-title fw-bold mb-3" style={{ 
-                            color: '#2c3e50',
+                            color: 'var(--text-primary)',
                             fontSize: '1.5rem'
                           }}>
                             {post.title}
@@ -352,18 +335,20 @@ function Homepage() {
           {/* Nadcházející závody */}
           <div className="card mb-4" style={{
             borderRadius: '12px',
-            border: '1px solid #dee2e6',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
           }}>
             <div className="card-header" style={{
-              background: 'linear-gradient(135deg, #4a90e2 0%, #357abd 100%)',
+              background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
               color: 'white',
               borderTopLeftRadius: '12px',
               borderTopRightRadius: '12px',
               padding: '1rem 1.25rem'
             }}>
               <h5 className="card-title mb-0">
-                <span className="bi bi-trophy-fill me-2"></span>
+                <span className="bi bi-calendar-event-fill me-2"></span>
                 Nadcházející závody
               </h5>
             </div>
@@ -371,7 +356,7 @@ function Homepage() {
               {upcomingRaces.length === 0 ? (
                 <p className="text-muted mb-0">
                   <span className="bi bi-info-circle me-1"></span>
-                  Žádné nadcházející závody
+                  Žádné závody
                 </p>
               ) : (
                 <div className="list-group list-group-flush">
@@ -380,53 +365,47 @@ function Homepage() {
                       key={race.id} 
                       className="list-group-item py-3"
                       style={{
-                        borderLeft: race.isPast 
-                          ? '4px solid #d3d3d3'  // Světle šedá pro uplynulé závody
-                          : race.registration 
-                            ? '4px solid #198754'  // Zelená pro otevřenou registraci
-                            : '4px solid #dc3545', // Červená pro uzavřenou
+                        borderLeft: 'none',
                         paddingLeft: '1rem',
                         paddingRight: '0',
                         marginLeft: '0.5rem',
                         borderTop: index === 0 ? 'none' : undefined,
                         borderRight: 'none',
                         borderBottom: index === upcomingRaces.length - 1 ? 'none' : undefined,
-                        transition: 'background-color 0.2s ease'
+                        transition: 'background-color 0.2s ease',
+                        background: 'transparent'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <div className="d-flex justify-content-between align-items-start mb-2">
-                        <div className="flex-grow-1">
-                          <h6 className="mb-1 fw-bold" style={{ color: '#2c3e50' }}>
-                            {race.areal_name || 'Závod'}
-                          </h6>
-                          <small className="text-muted">
-                            <span className="bi bi-calendar3 me-2"></span>
-                            {new Date(race.datum).toLocaleDateString('cs-CZ')}
-                          </small>
+                        <div className="flex-grow-1 d-flex align-items-start">
+                          {/* Status tečka */}
+                          <span 
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              backgroundColor: race.registration ? '#10b981' : '#ef4444',
+                              marginRight: '12px',
+                              marginTop: '4px',
+                              flexShrink: 0
+                            }}
+                            title={race.registration ? 'Registrace otevřena' : 'Registrace uzavřena'}
+                          />
+                          <div>
+                            <h6 className="mb-1 fw-bold" style={{ color: 'var(--text-primary)' }}>
+                              {race.areal_name || 'Závod'}
+                            </h6>
+                            <small className="text-muted">
+                              <span className="bi bi-calendar3 me-2"></span>
+                              {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </small>
+                          </div>
                         </div>
-                        <span 
-                          className={`badge ${
-                            race.isPast 
-                              ? 'bg-secondary' 
-                              : race.registration 
-                                ? 'bg-success' 
-                                : 'bg-danger'
-                          }`}
-                          style={{
-                            fontSize: '0.7rem',
-                            padding: '0.35rem 0.65rem',
-                            borderRadius: '6px'
-                          }}
-                        >
-                          {race.isPast ? 'Ukončeno' : race.registration ? 'Otevřeno' : 'Uzavřeno'}
-                        </span>
                       </div>
-                      <div className="mt-2">
+                      <div className="mt-2 ms-4">
                         <Link 
                           to={`/zavod/${race.id}`}
-                          className="btn btn-sm btn-outline-primary text-decoration-none"
+                          className="btn btn-sm btn-primary text-decoration-none"
                           style={{
                             borderRadius: '6px',
                             fontSize: '0.875rem',
@@ -434,8 +413,8 @@ function Homepage() {
                             fontWeight: '500'
                           }}
                         >
-                          <span className="bi bi-eye me-1"></span>
-                          Detail závodu
+                          <span className={`bi ${race.registration ? 'bi-pencil-square' : 'bi-info-circle'} me-1`}></span>
+                          {race.registration ? 'Registrace' : 'Detail'}
                         </Link>
                       </div>
                     </div>
@@ -463,63 +442,6 @@ function Homepage() {
               )}
             </div>
           </div>
-
-          {/* Celkové výsledky sezóny */}
-          {seasonResult && (
-            <div 
-              className="card mb-4"
-              style={{
-                borderRadius: '12px',
-                border: '1px solid #dee2e6',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-              }}
-            >
-              <div className="card-header" style={{
-                background: 'linear-gradient(135deg, #5bc0de 0%, #46b8da 100%)',
-                color: 'white',
-                borderTopLeftRadius: '12px',
-                borderTopRightRadius: '12px',
-                padding: '1rem 1.25rem'
-              }}>
-                <h5 className="card-title mb-0" style={{ fontSize: '1.1rem' }}>
-                  <span className="bi bi-file-earmark-text-fill me-2"></span>
-                  Celkové výsledky sezóny {seasonResult.season_year_start}/{seasonResult.season_year_end}
-                </h5>
-              </div>
-              <div className="card-body" style={{ padding: '1.25rem' }}>
-                <p className="text-muted mb-3" style={{ fontSize: '0.95rem' }}>
-                  <span className="bi bi-info-circle me-2"></span>
-                  Celkové pořadí závodníků za aktuální sezónu
-                </p>
-                <a 
-                  href={`${API_BASE}${seasonResult.document_file_path}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn w-100 text-white text-decoration-none"
-                  style={{
-                    background: 'linear-gradient(135deg, #5bc0de 0%, #46b8da 100%)',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    fontWeight: '500',
-                    border: 'none',
-                    boxShadow: '0 2px 4px rgba(91, 192, 222, 0.3)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(91, 192, 222, 0.4)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(91, 192, 222, 0.3)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <span className="bi bi-file-earmark-pdf me-2"></span>
-                  Stáhnout celkové výsledky
-                </a>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

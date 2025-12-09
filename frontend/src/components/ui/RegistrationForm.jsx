@@ -8,11 +8,23 @@ export default function RegistrationForm({ raceId, onSuccess }) {
     const registration = useRegistration(raceId, onSuccess);
 
     return (
-        <div className="card">
-            <div className="card-header">
+        <div className="card" style={{
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+            <div className="card-header" style={{
+                background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
+                color: 'white',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px',
+                padding: '1rem 1.25rem'
+            }}>
                 <h5 className="card-title mb-0">
-                    <span className="bi bi-person-plus"></span>
-                    Registrace na závod
+                    <span className="bi bi-person-plus me-2"></span>
+                    Registrovat závodníka
                 </h5>
             </div>
             <div className="card-body">
@@ -35,26 +47,49 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                             <div className="d-flex gap-2 justify-content-end mt-3">
                                 <button 
                                     type="button" 
-                                    className="btn btn-outline-secondary"
+                                    className="btn"
                                     onClick={registration.resetForm}
+                                    style={{
+                                        background: 'rgba(239, 68, 68, 0.2)',
+                                        color: '#ef4444',
+                                        border: '1px solid #ef4444',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = '#ef4444';
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                        e.currentTarget.style.color = '#ef4444';
+                                    }}
                                 >
-                                    <span className="bi bi-x-circle"></span>
+                                    <span className="bi bi-x-circle me-1"></span>
                                     Vymazat formulář
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="btn btn-primary"
+                                    className="btn"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontWeight: '500'
+                                    }}
                                 >
-                                    <span className="bi bi-check-circle"></span>
+                                    <span className="bi bi-check-circle me-1"></span>
                                     Registrovat závodníka
                                 </button>
                             </div>
                         </form>
 
                         {/* Informační text */}
-                        <div className="mt-3 p-2 bg-light rounded">
-                            <small className="text-muted">
-                                <strong>Tip:</strong> Klikněte na závodníka vpravo pro automatické vyplnění formuláře.
+                        <div className="mt-3 p-2 rounded" style={{
+                            background: 'rgba(255, 107, 0, 0.1)',
+                            border: '1px solid rgba(255, 107, 0, 0.3)'
+                        }}>
+                            <small style={{ color: 'var(--text-secondary)' }}>
+                                <strong style={{ color: 'var(--sunset-orange)' }}>Tip:</strong> Klikněte na závodníka vpravo pro automatické vyplnění formuláře.
                             </small>
                         </div>
                     </div>

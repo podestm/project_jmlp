@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
+import { formatDate } from '../../utils/date.js'
 
 // API base URL for document links
 const API_BASE = import.meta.env.VITE_API_BASE || '';
@@ -88,26 +89,78 @@ export default function RaceDetail() {
       <div className="row g-4">
         {/* Race Info Card */}
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
+          <div className="card" style={{
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}>
+            <div className="card-header" style={{
+              background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
+              color: 'white',
+              borderTopLeftRadius: '12px',
+              borderTopRightRadius: '12px',
+              padding: '1rem 1.25rem'
+            }}>
               <h5 className="card-title mb-0">
-                <span className="bi bi-info-circle"></span>
-              Detail závodu
-            </h5>
-          </div>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-6">
-                <h4 className="text-primary">
-                  <span className="bi bi-flag-fill"></span>
-                  {race.areal_name || 'Závod'}
-                </h4>
-                <p className="mb-2">
-                  <span className="bi bi-calendar3"></span>
-                  <strong>Datum:</strong> {race.datum}
-                </p>
-              </div>
-              <div className="col-md-6">
+                <span className="bi bi-info-circle me-2"></span>
+                Detail závodu
+              </h5>
+            </div>
+            <div className="card-body" style={{ padding: '2rem' }}>
+              <div className="row align-items-center">
+                <div className="col-md-8">
+                  {/* Areál - výraznější */}
+                  <div className="mb-3">
+                    <h2 className="mb-2" style={{
+                      color: 'var(--text-primary)',
+                      fontSize: '2rem',
+                      fontWeight: '600',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                    }}>
+                      <span className="bi bi-flag-fill me-3" style={{ color: 'var(--sunset-orange)' }}></span>
+                      {race.areal_name || 'Závod'}
+                    </h2>
+                  </div>
+                  
+                  {/* Datum - větší a výraznější */}
+                  <div className="d-flex align-items-center mb-3">
+                    <span className="bi bi-calendar-event" style={{
+                      fontSize: '1.5rem',
+                      color: 'var(--sunset-orange)',
+                      marginRight: '1rem'
+                    }}></span>
+                    <span style={{
+                      fontSize: '1.4rem',
+                      fontWeight: '600',
+                      color: 'var(--text-primary)'
+                    }}>
+                      {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </span>
+                  </div>
+                  
+                  {/* Typ závodu */}
+                  {race.raceMethod_id && (
+                    <div className="d-flex align-items-center">
+                      <span style={{
+                        fontSize: '1.5rem',
+                        marginRight: '1rem'
+                      }}>
+                        {race.raceMethod_id === 1 ? '❄️' : '🌲'}
+                      </span>
+                      <span style={{
+                        fontSize: '1.1rem',
+                        fontWeight: '500',
+                        color: 'var(--text-primary)'
+                      }}>
+                        {race.raceMethod_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="col-md-4">
                 <div className="text-end">
                   <span className={`badge fs-6 ${race.registration ? 'bg-success' : 'bg-danger'}`}>
                     <span className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'}`}></span>
@@ -116,13 +169,26 @@ export default function RaceDetail() {
                 </div>
                 
                 {/* Tlačítka pro dokumenty */}
-                <div className="mt-3 p-3 border rounded bg-light">
+                <div className="mt-3 p-3 rounded" style={{
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
                   <a
                     href={race.proposition_file_id ? `${API_BASE}/races/${raceId}/proposition` : '#'}
                     target={race.proposition_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
-                    className={`btn w-100 mb-2 ${race.proposition_file_id ? 'btn-outline-primary' : 'btn-outline-dark'}`}
-                    style={race.proposition_file_id ? { border: '1px solid #0d6efd' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
+                    className="btn w-100 mb-2"
+                    style={race.proposition_file_id ? {
+                      background: 'rgba(255, 107, 0, 0.2)',
+                      color: 'var(--sunset-orange)',
+                      border: '1px solid var(--sunset-orange)'
+                    } : {
+                      pointerEvents: 'none',
+                      opacity: 0.4,
+                      background: 'rgba(100, 100, 100, 0.2)',
+                      color: '#999',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
                     onClick={race.proposition_file_id ? undefined : (e) => e.preventDefault()}
                   >
                     <span className="bi bi-file-earmark-text me-1"></span>
@@ -133,8 +199,18 @@ export default function RaceDetail() {
                     href={race.results_file_id ? `${API_BASE}/races/${raceId}/results` : '#'}
                     target={race.results_file_id ? "_blank" : "_self"}
                     rel="noopener noreferrer"
-                    className={`btn w-100 ${race.results_file_id ? 'btn-outline-success' : 'btn-outline-dark'}`}
-                    style={race.results_file_id ? { border: '1px solid #198754' } : { pointerEvents: 'none', opacity: 0.6, border: '1px solid #6c757d' }}
+                    className="btn w-100"
+                    style={race.results_file_id ? {
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      color: '#10b981',
+                      border: '1px solid #10b981'
+                    } : {
+                      pointerEvents: 'none',
+                      opacity: 0.4,
+                      background: 'rgba(100, 100, 100, 0.2)',
+                      color: '#999',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
                     onClick={race.results_file_id ? undefined : (e) => e.preventDefault()}
                   >
                     <span className="bi bi-file-earmark-check me-1"></span>
@@ -150,26 +226,28 @@ export default function RaceDetail() {
       {/* Registration Form */}
       {race.registration && (
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">
-                <span className="bi bi-person-plus"></span>
-                Registrovat závodníka
-              </h5>
-            </div>
-            <div className="card-body">
-              <RegistrationForm raceId={raceId} onSuccess={load} />
-            </div>
-          </div>
+          <RegistrationForm raceId={raceId} onSuccess={load} />
         </div>
       )}
 
       {/* Seznam registrovaných závodníků */}
       <div className="col-12">
-        <div className="card">
-          <div className="card-header">
+        <div className="card" style={{
+          borderRadius: '12px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+          <div className="card-header" style={{
+            background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
+            color: 'white',
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
+            padding: '1rem 1.25rem'
+          }}>
             <h5 className="card-title mb-0">
-              <span className="bi bi-people"></span>
+              <span className="bi bi-people me-2"></span>
               Seznam registrovaných závodníků ({clubStats?.total_racers || 0})
             </h5>
           </div>
