@@ -77,7 +77,7 @@ export default function RaceDetail() {
       {/* Back Button */}
       <div className="mb-3">
         <Link 
-          to="/terminovka" 
+          to="/registrace" 
           className="btn btn-outline-primary text-decoration-none"
         >
           <i className="bi bi-arrow-left me-2"></i>

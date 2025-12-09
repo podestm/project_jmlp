@@ -24,8 +24,9 @@ export const APP_CONFIG = {
 export const NAVIGATION = {
   MAIN: [
     { key: 'uvod', label: 'Úvod', icon: 'bi-house' },
-    { key: 'terminovka', label: 'Termínovka', icon: 'bi-calendar-event' },
-    { key: 'archiv', label: 'Archiv', icon: 'bi-archive' },
+    { key: 'registrace', label: 'Registrace', icon: 'bi-calendar-event' },
+    { key: 'aktuality', label: 'Aktuality', icon: 'bi-newspaper' },
+    { key: 'vysledky', label: 'Výsledky', icon: 'bi-trophy' },
     { key: 'dokumenty', label: 'Dokumenty', icon: 'bi-file-text' },
     { key: 'kontakty', label: 'Kontakty', icon: 'bi-envelope' },
     { key: 'sutezni-rady', label: 'Soutěžní řády', icon: 'bi-book' },

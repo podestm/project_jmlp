@@ -18,7 +18,8 @@ export default function SeasonResultsManagement() {
   const [formData, setFormData] = useState({
     season_year_start: new Date().getMonth() >= 7 ? new Date().getFullYear() : new Date().getFullYear() - 1,
     season_year_end: new Date().getMonth() >= 7 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
-    document_id: ''
+    document_id: '',
+    final_results: 1
   });
 
   useEffect(() => {
@@ -55,11 +56,15 @@ export default function SeasonResultsManagement() {
 
     try {
       const payload = editingId 
-        ? { document_id: parseInt(formData.document_id) }
+        ? { 
+            document_id: parseInt(formData.document_id),
+            final_results: parseInt(formData.final_results)
+          }
         : {
             season_year_start: parseInt(formData.season_year_start),
             season_year_end: parseInt(formData.season_year_end),
-            document_id: parseInt(formData.document_id)
+            document_id: parseInt(formData.document_id),
+            final_results: parseInt(formData.final_results)
           };
 
       if (editingId) {
@@ -84,7 +89,8 @@ export default function SeasonResultsManagement() {
     setFormData({
       season_year_start: seasonResult.season_year_start,
       season_year_end: seasonResult.season_year_end,
-      document_id: seasonResult.document_id
+      document_id: seasonResult.document_id,
+      final_results: seasonResult.final_results || 1
     });
     setShowForm(true);
     setError(null);
@@ -109,7 +115,8 @@ export default function SeasonResultsManagement() {
     setFormData({
       season_year_start: new Date().getMonth() >= 7 ? new Date().getFullYear() : new Date().getFullYear() - 1,
       season_year_end: new Date().getMonth() >= 7 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
-      document_id: ''
+      document_id: '',
+      final_results: 1
     });
     setEditingId(null);
   };
@@ -206,6 +213,23 @@ export default function SeasonResultsManagement() {
                     ))}
                   </select>
                   <small className="text-muted">Vyberte nahrané celkové výsledky</small>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-md-12 mb-3">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="finalResultsCheck"
+                      checked={formData.final_results === 1}
+                      onChange={(e) => setFormData({ ...formData, final_results: e.target.checked ? 1 : 0 })}
+                    />
+                    <label className="form-check-label" htmlFor="finalResultsCheck">
+                      Celkové výsledky (pokud není zaškrtnuto, jedná se o průběžné výsledky)
+                    </label>
+                  </div>
                 </div>
               </div>
 

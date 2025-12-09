@@ -192,3 +192,51 @@
 .select-none { user-select: none; }
 .select-all { user-select: all; }
 .select-auto { user-select: auto; }
+
+/* Bootstrap Color Overrides - Matching Palette */
+.bg-primary { background-color: var(--bs-primary) !important; }
+.bg-secondary { background-color: var(--bs-secondary) !important; }
+.bg-success { background-color: var(--bs-success) !important; }
+.bg-info { background-color: var(--bs-info) !important; }
+.bg-warning { background-color: var(--bs-warning) !important; }
+.bg-danger { background-color: var(--bs-danger) !important; }
+.bg-pink { background-color: var(--bs-pink) !important; }
+
+.text-primary { color: var(--bs-primary) !important; }
+.text-secondary { color: var(--bs-secondary) !important; }
+.text-success { color: var(--bs-success) !important; }
+.text-info { color: var(--bs-info) !important; }
+.text-warning { color: var(--bs-warning) !important; }
+.text-danger { color: var(--bs-danger) !important; }
+
+.border-primary { border-color: var(--bs-primary) !important; }
+.border-secondary { border-color: var(--bs-secondary) !important; }
+.border-success { border-color: var(--bs-success) !important; }
+.border-info { border-color: var(--bs-info) !important; }
+.border-warning { border-color: var(--bs-warning) !important; }
+.border-danger { border-color: var(--bs-danger) !important; }
+
+.btn-primary { 
+  background-color: var(--bs-primary) !important; 
+  border-color: var(--bs-primary) !important; 
+}
+.btn-secondary { 
+  background-color: var(--bs-secondary) !important; 
+  border-color: var(--bs-secondary) !important; 
+}
+.btn-success { 
+  background-color: var(--bs-success) !important; 
+  border-color: var(--bs-success) !important; 
+}
+.btn-info { 
+  background-color: var(--bs-info) !important; 
+  border-color: var(--bs-info) !important; 
+}
+.btn-warning { 
+  background-color: var(--bs-warning) !important; 
+  border-color: var(--bs-warning) !important; 
+}
+.btn-danger { 
+  background-color: var(--bs-danger) !important; 
+  border-color: var(--bs-danger) !important; 
+}

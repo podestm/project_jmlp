@@ -118,14 +118,19 @@ const RegistrationFormFields = ({
                 <div className="col-md-4">
                     <label className="form-label">
                         <span className="bi bi-card-text"></span>
-                        SLČR ID
+                        ID závodníka
                     </label>
                     <input 
                         type="text"
                         className="form-control" 
-                        placeholder="Číslo licence" 
+                        placeholder="6 místné číslo" 
                         value={formData.slcr_id} 
-                        onChange={e => updateField('slcr_id', e.target.value)}
+                        onChange={e => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                            updateField('slcr_id', value);
+                        }}
+                        maxLength="6"
+                        pattern="\d{0,6}"
                     />
                 </div>
             </div>

@@ -8,9 +8,9 @@ export default function Navigation() {
   const getPageFromPath = (pathname) => {
     switch (pathname) {
       case '/': return 'uvod';
-      case '/terminovka': return 'terminovka';
-      case '/archiv-zprav': return 'archiv';
-      case '/archiv': return 'archiv'; // fallback pro starou URL
+      case '/registrace': return 'registrace';
+      case '/archiv-zprav': return 'aktuality';
+      case '/vysledky': return 'vysledky';
       default: 
         if (pathname.startsWith('/zavod/')) return 'detail';
         return 'uvod';
@@ -21,8 +21,9 @@ export default function Navigation() {
   
   const navigationItems = [
     { key: 'uvod', label: 'Úvod', icon: 'bi-house', path: '/' },
-    { key: 'terminovka', label: 'Termínovka', icon: 'bi-calendar-event', path: '/terminovka' },
-    { key: 'archiv', label: 'Archiv zpráv', icon: 'bi-newspaper', path: '/archiv-zprav' }
+    { key: 'registrace', label: 'Registrace', icon: 'bi-calendar-event', path: '/registrace' },
+    { key: 'aktuality', label: 'Aktuality', icon: 'bi-newspaper', path: '/archiv-zprav' },
+    { key: 'vysledky', label: 'Výsledky', icon: 'bi-trophy', path: '/vysledky' }
   ];
 
   return (

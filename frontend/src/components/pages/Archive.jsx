@@ -9,7 +9,7 @@ export default function Archive() {
   const [seasonResults, setSeasonResults] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [expandedSeasons, setExpandedSeasons] = useState(new Set())
+  const [selectedSeason, setSelectedSeason] = useState(null)
 
   useEffect(() => {
     fetch('/races/')
@@ -33,7 +33,7 @@ export default function Archive() {
       .catch(err => console.debug('Celkové výsledky nejsou dostupné:', err))
   }, [])
 
-  // Seskupení závodů podle sezón (pouze historické)
+  // Seskupení závodů podle sezón (všechny sezóny včetně aktuální)
   const groupedRaces = useMemo(() => {
     const groups = {}
     races.forEach(race => {
@@ -50,25 +50,22 @@ export default function Archive() {
     const sortedSeasons = Object.keys(groups).sort().reverse()
     
     return {
-      historicalSeasons: sortedSeasons.slice(1), // přeskočíme aktuální sezónu
-      historicalGroups: groups
+      allSeasons: sortedSeasons,
+      groups: groups
     }
   }, [races])
+
+  // Nastavit první sezónu jako výchozí při načtení
+  useEffect(() => {
+    if (groupedRaces.allSeasons.length > 0 && !selectedSeason) {
+      setSelectedSeason(groupedRaces.allSeasons[0])
+    }
+  }, [groupedRaces.allSeasons, selectedSeason])
 
   const getSeasonDisplayName = (season) => {
     const year = season.replace('JMLP', '')
     const yearNum = parseInt(year)
     return `${year}/${(yearNum+1).toString().slice(-2)}`
-  }
-
-  const toggleSeason = (season) => {
-    const newExpanded = new Set(expandedSeasons)
-    if (newExpanded.has(season)) {
-      newExpanded.delete(season)
-    } else {
-      newExpanded.add(season)
-    }
-    setExpandedSeasons(newExpanded)
   }
 
   if (loading) {
@@ -93,98 +90,134 @@ export default function Archive() {
 
   return (
     <div className="card">
-      <div className="card-header bg-secondary text-white">
+      <div className="card-header bg-primary text-white">
         <h5 className="card-title mb-0">
-          <i className="bi bi-archive me-2"></i>
-          Archiv závodů
+          <i className="bi bi-trophy me-2"></i>
+          Výsledky závodů
         </h5>
       </div>
       <div className="card-body">
-        {groupedRaces.historicalSeasons.length === 0 ? (
-          <div className="text-center text-muted">
+        {groupedRaces.allSeasons.length === 0 ? (
+          <div className="text-center text-muted py-5">
             <i className="bi bi-inbox display-1"></i>
-            <p className="mt-2">Zatím nejsou k dispozici žádné historické závody</p>
+            <p className="mt-2">Zatím nejsou k dispozici žádné závody</p>
           </div>
         ) : (
-          <div className="accordion" id="seasonAccordion">
-            {groupedRaces.historicalSeasons.map((season, index) => (
-              <div key={season} className="accordion-item mb-3">
-                <h2 className="accordion-header">
+          <>
+            {/* Seznam sezón */}
+            <div className="mb-4 pb-3 border-bottom">
+              <div className="d-flex flex-wrap gap-2">
+                {groupedRaces.allSeasons.map((season) => (
                   <button
-                    className={`accordion-button ${!expandedSeasons.has(season) ? 'collapsed' : ''}`}
-                    type="button"
-                    onClick={() => toggleSeason(season)}
+                    key={season}
+                    className={`btn ${selectedSeason === season ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setSelectedSeason(season)}
                   >
-                    <div className="d-flex justify-content-between align-items-center w-100 me-3">
-                      <div className="d-flex align-items-center gap-3">
-                        <span>
-                          <i className="bi bi-calendar3 me-2"></i>
-                          Sezóna {getSeasonDisplayName(season)}
-                        </span>
-                        {seasonResults[season] && (
-                          <a
-                            href={`${API_BASE}${seasonResults[season].document_file_path}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-sm btn-success"
-                            onClick={(e) => e.stopPropagation()}
-                            title="Stáhnout celkové výsledky"
-                          >
-                            <i className="bi bi-trophy-fill me-1"></i>
-                            Celkové výsledky
-                          </a>
-                        )}
-                      </div>
-                      <span className="badge bg-primary rounded-pill">
-                        {groupedRaces.historicalGroups[season].length} závodů
-                      </span>
-                    </div>
+                    {getSeasonDisplayName(season)}
                   </button>
-                </h2>
-                {expandedSeasons.has(season) && (
-                  <div className="accordion-body">
-                    <div className="row g-3">
-                      {groupedRaces.historicalGroups[season].map(race => (
-                        <div key={race.id} className="col-md-6 col-lg-4">
-                          <div className="card h-100 race-card border-light">
-                            <div className="card-body d-flex flex-column">
-                              <h6 className="card-title text-muted">
-                                <i className="bi bi-geo-alt me-2"></i>
-                                {race.areal_name}
-                              </h6>
-                              <p className="card-text mb-2">
-                                <i className="bi bi-calendar3 me-2"></i>
-                                {race.datum}
-                              </p>
-                              <p className="card-text mb-2 text-muted">
-                                <i className="bi bi-buildings me-2"></i>
-                                <small>{race.organizer_name}</small>
-                              </p>
-                              <div className="mb-3">
-                                <span className="badge bg-secondary">
-                                  <i className="bi bi-archive me-1"></i>
-                                  Archivní závod
-                                </span>
-                              </div>
-                              <div className="mt-auto">
-                                <Link 
-                                  to={`/zavod/${race.id}`}
-                                  className="btn btn-outline-primary w-100 text-decoration-none"
-                                >
-                                  <i className="bi bi-arrow-right me-2"></i>
-                                  Zobrazit detail
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+
+            {/* Vybraná sezóna */}
+            {selectedSeason && (
+              <>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">
+                    <i className="bi bi-calendar3 me-2"></i>
+                    Sezóna: {getSeasonDisplayName(selectedSeason)}
+                  </h5>
+                  {seasonResults[selectedSeason] && (
+                    <a
+                      href={`${API_BASE}${seasonResults[selectedSeason].document_file_path}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-success"
+                      title={seasonResults[selectedSeason].final_results === 1 ? "Stáhnout celkové výsledky" : "Stáhnout průběžné výsledky"}
+                    >
+                      <i className="bi bi-trophy-fill me-2"></i>
+                      {seasonResults[selectedSeason].final_results === 1 ? 'Celkové výsledky' : 'Průběžné výsledky'}
+                    </a>
+                  )}
+                </div>
+
+                {/* Tabulka závodů */}
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Datum</th>
+                        <th>Pořadatel</th>
+                        <th>Typ</th>
+                        <th className="text-end">Akce</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupedRaces.groups[selectedSeason]?.map(race => (
+                        <tr key={race.id}>
+                          <td>
+                            <strong>{race.datum}</strong>
+                            <br />
+                            <small className="text-muted">{race.areal_name}</small>
+                          </td>
+                          <td>{race.organizer_name}</td>
+                          <td className="text-center">
+                            <span title={race.raceMethod_id === 2 ? 'Suchý závod' : 'Závod na sněhu'} style={{fontSize: '1.5rem'}}>
+                              {race.raceMethod_id === 2 ? '🌲' : '❄️'}
+                            </span>
+                          </td>
+                          <td className="text-end">
+                            <div className="d-flex gap-2 justify-content-end">
+                              {race.proposition_file_path && (
+                                <a
+                                  href={`${API_BASE}${race.proposition_file_path}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-sm btn-outline-danger"
+                                  title="Stáhnout propozice"
+                                >
+                                  <i className="bi bi-download me-1"></i>
+                                  Propozice
+                                </a>
+                              )}
+                              {race.results_file_path && (
+                                <a
+                                  href={`${API_BASE}${race.results_file_path}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-sm btn-outline-success"
+                                  title="Stáhnout výsledky"
+                                >
+                                  <i className="bi bi-download me-1"></i>
+                                  Výsledky
+                                </a>
+                              )}
+                              <Link 
+                                to={`/zavod/${race.id}`}
+                                className="btn btn-sm btn-primary"
+                              >
+                                {race.registration ? (
+                                  <>
+                                    <i className="bi bi-pencil-square me-1"></i>
+                                    Registrace
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="bi bi-info-circle me-1"></i>
+                                    Detail
+                                  </>
+                                )}
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
     </div>

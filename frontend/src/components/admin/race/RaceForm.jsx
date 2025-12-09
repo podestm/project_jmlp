@@ -328,6 +328,26 @@ const RaceForm = ({
                                         </div>
                                     </div>
                                 </div>
+                                <div className="col-md-6">
+                                    <div className="mb-3">
+                                        <div className="form-check">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="suchySlalom"
+                                                checked={formData.raceMethod_id === 2}
+                                                onChange={(e) => setFormData(prev => ({
+                                                    ...prev, 
+                                                    raceMethod_id: e.target.checked ? 2 : 1
+                                                }))}
+                                            />
+                                            <label className="form-check-label" htmlFor="suchySlalom">
+                                                Suchý slalom
+                                            </label>
+                                        </div>
+                                        <div className="form-text">Pokud nezaškrtnuto = závod na sněhu (default)</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         

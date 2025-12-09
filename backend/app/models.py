@@ -160,6 +160,7 @@ class SeasonResult(Base):
     season_year_start: Mapped[int] = mapped_column(Integer, nullable=False)
     season_year_end: Mapped[int] = mapped_column(Integer, nullable=False)
     document_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    final_results: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False)  # 0 = průběžné, 1 = celkové
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

@@ -41,6 +41,7 @@ def admin_get_all_season_results(
             "season_year_start": season_result.season_year_start,
             "season_year_end": season_result.season_year_end,
             "document_id": season_result.document_id,
+            "final_results": season_result.final_results,
             "created_at": season_result.created_at,
             "updated_at": season_result.updated_at,
             "document_filename": row[1],
@@ -83,7 +84,8 @@ def admin_create_season_result(
     new_season_result = models.SeasonResult(
         season_year_start=season_result.season_year_start,
         season_year_end=season_result.season_year_end,
-        document_id=season_result.document_id
+        document_id=season_result.document_id,
+        final_results=season_result.final_results
     )
     
     db.add(new_season_result)
@@ -141,6 +143,9 @@ def admin_update_season_result(
         
         db_season_result.document_id = season_result_update.document_id
     
+    if season_result_update.final_results is not None:
+        db_season_result.final_results = season_result_update.final_results
+    
     db.commit()
     db.refresh(db_season_result)
     
@@ -163,6 +168,7 @@ def admin_update_season_result(
         "season_year_start": season_result_obj.season_year_start,
         "season_year_end": season_result_obj.season_year_end,
         "document_id": season_result_obj.document_id,
+        "final_results": season_result_obj.final_results,
         "created_at": season_result_obj.created_at,
         "updated_at": season_result_obj.updated_at,
         "document_filename": result[1],

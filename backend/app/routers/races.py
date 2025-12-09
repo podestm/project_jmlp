@@ -60,10 +60,14 @@ def list_races(
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
                r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
-               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
+               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
+               fp.file_path as proposition_file_path,
+               fr.file_path as results_file_path
         FROM fuj_jmlp_race r 
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
+        LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
+        LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
         WHERE r.raceNr IS NOT NULL
     """
     
@@ -101,6 +105,8 @@ def list_races(
             "registration": bool(row.registration),
             "proposition_file_id": row.proposition_file_id,
             "results_file_id": row.results_file_id,
+            "proposition_file_path": row.proposition_file_path,
+            "results_file_path": row.results_file_path,
             "areal_id": row.areal_id,
             "areal_name": row.areal_name or "Bez areálu",
             "organizer_id": row.organizer_id,
@@ -166,10 +172,14 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
                r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
                r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
-               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name
+               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
+               fp.file_path as proposition_file_path,
+               fr.file_path as results_file_path
         FROM fuj_jmlp_race r 
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
+        LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
+        LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
         WHERE r.id = :race_id
     """), {"race_id": race_id}).fetchone()
     
@@ -185,6 +195,8 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
         "registration": bool(result.registration),
         "proposition_file_id": result.proposition_file_id,
         "results_file_id": result.results_file_id,
+        "proposition_file_path": result.proposition_file_path,
+        "results_file_path": result.results_file_path,
         "areal_id": result.areal_id,
         "areal_name": result.areal_name or "Bez areálu",
         "organizer_id": result.organizer_id,

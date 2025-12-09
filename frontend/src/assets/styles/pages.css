@@ -2,10 +2,10 @@
 
 /* Homepage */
 .hero-section {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: var(--bg-gradient);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-primary);
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border-color);
   margin-bottom: var(--spacing-xl);
 }
 
@@ -204,9 +204,9 @@
 }
 
 .registration-status.open {
-  background-color: rgba(16, 185, 129, 0.1);
+  background-color: rgba(47, 149, 146, 0.1);
   color: var(--success-dark);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(47, 149, 146, 0.2);
 }
 
 .registration-status.closed {

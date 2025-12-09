@@ -446,7 +446,7 @@ function Homepage() {
               {upcomingRaces.length > 0 && (
                 <div className="mt-3 pt-3 border-top">
                   <Link 
-                    to="/terminovka"
+                    to="/registrace"
                     className="btn btn-primary w-100 text-decoration-none"
                     style={{
                       borderRadius: '8px',

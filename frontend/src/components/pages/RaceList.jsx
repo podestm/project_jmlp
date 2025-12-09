@@ -90,8 +90,17 @@ export default function RaceList({ currentSeason = false }) {
                           to={`/zavod/${race.id}`}
                           className="btn btn-primary w-100 text-decoration-none"
                         >
-                          <i className="bi bi-arrow-right-circle me-2"></i>
-                          Přejít na závod
+                          {race.registration ? (
+                            <>
+                              <i className="bi bi-pencil-square me-2"></i>
+                              Registrace
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-info-circle me-2"></i>
+                              Detail
+                            </>
+                          )}
                         </Link>
                       </div>
                     </div>
@@ -221,8 +230,17 @@ export default function RaceList({ currentSeason = false }) {
                             to={`/zavod/${race.id}`}
                             className="btn btn-primary w-100 text-decoration-none"
                           >
-                            <i className="bi bi-arrow-right-circle me-2"></i>
-                            Přejít na závod
+                            {race.registration ? (
+                              <>
+                                <i className="bi bi-pencil-square me-2"></i>
+                                Registrace
+                              </>
+                            ) : (
+                              <>
+                                <i className="bi bi-info-circle me-2"></i>
+                                Detail
+                              </>
+                            )}
                           </Link>
                         </div>
                       </div>

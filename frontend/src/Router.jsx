@@ -50,8 +50,8 @@ const RouterContent = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Layout><Homepage /></Layout>} />
-          <Route path="/terminovka" element={<Layout><RaceList currentSeason={true} /></Layout>} />
-          <Route path="/archiv" element={<Layout><Archive /></Layout>} />
+          <Route path="/registrace" element={<Layout><RaceList currentSeason={true} /></Layout>} />
+          <Route path="/vysledky" element={<Layout><Archive /></Layout>} />
           <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
           <Route path="/zavod/:id" element={<Layout><RaceDetail /></Layout>} />
           

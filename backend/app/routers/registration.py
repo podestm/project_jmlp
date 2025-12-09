@@ -33,6 +33,12 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         if payload.racer_slcr_id and payload.racer_slcr_id.strip():
             racer.slcr_id = payload.racer_slcr_id.strip()
         
+        # Trim name and surname if they have trailing spaces
+        if racer.name:
+            racer.name = racer.name.strip()
+        if racer.surname:
+            racer.surname = racer.surname.strip()
+        
         # Přiřadíme kategorii podle roku narození (vždy aktuální)
         racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
     else:
@@ -40,10 +46,17 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         if not all([payload.racer_name, payload.racer_surname, payload.racer_sex is not None, payload.racer_year]):
             raise HTTPException(status_code=400, detail="Missing required racer fields: name, surname, sex, year")
         
+        # Trim input values
+        racer_name = payload.racer_name.strip() if payload.racer_name else None
+        racer_surname = payload.racer_surname.strip() if payload.racer_surname else None
+        racer_telefon = payload.racer_telefon.strip() if payload.racer_telefon else None
+        racer_email = payload.racer_email.strip() if payload.racer_email else None
+        racer_slcr_id = payload.racer_slcr_id.strip() if payload.racer_slcr_id else None
+        
         # check if racer already exists (unique constraint: name, surname, year, sex)
         existing_racer = db.query(models.Racer).filter(
-            models.Racer.name == payload.racer_name,
-            models.Racer.surname == payload.racer_surname,
+            models.Racer.name == racer_name,
+            models.Racer.surname == racer_surname,
             models.Racer.year == payload.racer_year,
             models.Racer.sex == payload.racer_sex
         ).first()
@@ -57,13 +70,13 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             category_id = get_category_for_birth_year(payload.racer_year, payload.racer_sex, db)
             
             racer = models.Racer(
-                name=payload.racer_name,
-                surname=payload.racer_surname,
+                name=racer_name,
+                surname=racer_surname,
                 sex=payload.racer_sex,
                 year=payload.racer_year,
-                telefon=payload.racer_telefon,
-                email=payload.racer_email,
-                slcr_id=payload.racer_slcr_id,
+                telefon=racer_telefon,
+                email=racer_email,
+                slcr_id=racer_slcr_id,
                 category_id=category_id
             )
             db.add(racer)

@@ -20,7 +20,8 @@ export const useRaceManagement = () => {
         organizer_id: '',
         registration: true,
         proposition_file_id: null,
-        results_file_id: null
+        results_file_id: null,
+        raceMethod_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -328,7 +329,8 @@ export const useRaceManagement = () => {
             organizer_id: '',
             registration: true,
             proposition_file_id: null,
-            results_file_id: null
+            results_file_id: null,
+            raceMethod_id: 1
         });
         setEditingRace(null);
         setArealSearch('');
@@ -353,7 +355,8 @@ export const useRaceManagement = () => {
             organizer_id: race.organizer_id,
             registration: race.registration,
             proposition_file_id: race.proposition_file_id,
-            results_file_id: race.results_file_id
+            results_file_id: race.results_file_id,
+            raceMethod_id: race.raceMethod_id || 1
         });
         
         // Set areál and organizer names for autocomplete display

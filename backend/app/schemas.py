@@ -100,6 +100,8 @@ class Race(BaseModel):
     registration: bool
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
+    proposition_file_path: Optional[str] = None
+    results_file_path: Optional[str] = None
     areal_id: Optional[int] = None
     areal_name: Optional[str] = None
     organizer_id: Optional[int] = None
@@ -297,6 +299,7 @@ class SeasonResultBase(BaseModel):
     season_year_start: int
     season_year_end: int
     document_id: int
+    final_results: int = 1  # 0 = průběžné výsledky, 1 = celkové výsledky
 
 
 class SeasonResultCreate(SeasonResultBase):
@@ -305,6 +308,7 @@ class SeasonResultCreate(SeasonResultBase):
 
 class SeasonResultUpdate(BaseModel):
     document_id: Optional[int] = None
+    final_results: Optional[int] = None
 
 
 class SeasonResult(SeasonResultBase):

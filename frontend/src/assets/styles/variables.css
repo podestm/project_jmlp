@@ -1,43 +1,43 @@
 /* CSS Custom Properties (Variables) */
 :root {
-  /* Primary Colors */
-  --primary-blue: #2563eb;
-  --primary-blue-light: #3b82f6;
-  --primary-blue-dark: #1d4ed8;
-  --secondary-blue: #60a5fa;
-  --light-blue: #dbeafe;
+  /* Primary Colors - Updated from palette */
+  --primary-blue: #2664EB;
+  --primary-blue-light: #2F9592;
+  --primary-blue-dark: #235E5C;
+  --secondary-blue: #A6C2C0;
+  --light-blue: #E6F4F1;
   
-  /* Gray Scale */
+  /* Gray Scale - Updated with palette colors */
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
+  --gray-300: #AAAABC;
   --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
+  --gray-500: #464555;
+  --gray-600: #464555;
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
   
-  /* Semantic Colors */
-  --success: #10b981;
-  --success-light: #34d399;
-  --success-dark: #059669;
+  /* Semantic Colors - Updated with palette colors */
+  --success: #2F9592;
+  --success-light: #A6C2C0;
+  --success-dark: #235E5C;
   --danger: #ef4444;
   --danger-light: #f87171;
   --danger-dark: #dc2626;
-  --warning: #f59e0b;
-  --warning-light: #fbbf24;
-  --warning-dark: #d97706;
-  --info: #3b82f6;
-  --info-light: #60a5fa;
-  --info-dark: #2563eb;
+  --warning: #896A00;
+  --warning-light: #C59D00;
+  --warning-dark: #896A00;
+  --info: #2664EB;
+  --info-light: #A6A7DD;
+  --info-dark: #2664EB;
   
-  /* Background Colors */
+  /* Background Colors - Updated with palette colors */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
+  --bg-secondary: #E6F4F1;
   --bg-tertiary: #f1f5f9;
-  --bg-gradient: linear-gradient(135deg, var(--light-blue) 0%, #f8fafc 100%);
+  --bg-gradient: linear-gradient(135deg, var(--light-blue) 0%, #E6F4F1 100%);
   
   /* Border */
   --border-color: var(--gray-200);
@@ -77,4 +77,16 @@
   --transition-fast: 0.15s ease;
   --transition-base: 0.2s ease;
   --transition-slow: 0.3s ease;
+
+  /* Bootstrap Color Overrides - Based on Matching Palette */
+  --bs-primary: #2664EB;
+  --bs-secondary: #464555;
+  --bs-success: #2F9592;
+  --bs-info: #A6C2C0;
+  --bs-warning: #C59D00;
+  --bs-danger: #ef4444;
+  
+  /* Custom colors from Highlight Palette */
+  --bs-pink: #EEE8A9;
+  --bs-teal: #2F9592;
 }

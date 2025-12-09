@@ -7,6 +7,117 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>JMLP – Registrace závodů</title>
+    
+    <!-- JMLP Custom Colors - Override Bootstrap CDN -->
+    <style>
+      /* Primary Color - Blue */
+      :root {
+        --jmlp-primary: #2664EB;
+        --jmlp-primary-hover: #1d4ed8;
+        --jmlp-secondary: #464555;
+        --jmlp-secondary-hover: #374151;
+        --jmlp-success: #2F9592;
+        --jmlp-success-hover: #235E5C;
+        --jmlp-warning: #C59D00;
+        --jmlp-warning-hover: #896A00;
+        --jmlp-info: #A6C2C0;
+        --jmlp-info-hover: #8da8a6;
+      }
+      
+      /* Bootstrap Button Overrides */
+      .btn-primary,
+      .btn-primary:not(:disabled):not(.disabled) {
+        background-color: var(--jmlp-primary) !important;
+        border-color: var(--jmlp-primary) !important;
+        color: white !important;
+      }
+      
+      .btn-primary:hover,
+      .btn-primary:focus,
+      .btn-primary:active {
+        background-color: var(--jmlp-primary-hover) !important;
+        border-color: var(--jmlp-primary-hover) !important;
+        color: white !important;
+      }
+      
+      .btn-outline-primary {
+        color: var(--jmlp-primary) !important;
+        border-color: var(--jmlp-primary) !important;
+        background-color: transparent !important;
+      }
+      
+      .btn-outline-primary:hover,
+      .btn-outline-primary:focus,
+      .btn-outline-primary:active {
+        background-color: var(--jmlp-primary) !important;
+        border-color: var(--jmlp-primary) !important;
+        color: white !important;
+      }
+      
+      .btn-secondary {
+        background-color: var(--jmlp-secondary) !important;
+        border-color: var(--jmlp-secondary) !important;
+        color: white !important;
+      }
+      
+      .btn-secondary:hover,
+      .btn-secondary:focus,
+      .btn-secondary:active {
+        background-color: var(--jmlp-secondary-hover) !important;
+        border-color: var(--jmlp-secondary-hover) !important;
+        color: white !important;
+      }
+      
+      .btn-outline-secondary {
+        color: var(--jmlp-secondary) !important;
+        border-color: var(--jmlp-secondary) !important;
+        background-color: transparent !important;
+      }
+      
+      .btn-outline-secondary:hover,
+      .btn-outline-secondary:focus,
+      .btn-outline-secondary:active {
+        background-color: var(--jmlp-secondary) !important;
+        border-color: var(--jmlp-secondary) !important;
+        color: white !important;
+      }
+      
+      .btn-success {
+        background-color: var(--jmlp-success) !important;
+        border-color: var(--jmlp-success) !important;
+      }
+      
+      .btn-success:hover,
+      .btn-success:focus,
+      .btn-success:active {
+        background-color: var(--jmlp-success-hover) !important;
+        border-color: var(--jmlp-success-hover) !important;
+      }
+      
+      /* Text and Background Colors */
+      .text-primary { color: var(--jmlp-primary) !important; }
+      .bg-primary { background-color: var(--jmlp-primary) !important; }
+      .border-primary { border-color: var(--jmlp-primary) !important; }
+      
+      .text-secondary { color: var(--jmlp-secondary) !important; }
+      .bg-secondary { background-color: var(--jmlp-secondary) !important; }
+      .border-secondary { border-color: var(--jmlp-secondary) !important; }
+      
+      .text-success { color: var(--jmlp-success) !important; }
+      .bg-success { background-color: var(--jmlp-success) !important; }
+      .border-success { border-color: var(--jmlp-success) !important; }
+      
+      /* Spinner */
+      .spinner-border.text-primary {
+        color: var(--jmlp-primary) !important;
+      }
+      
+      /* Navigation colors */
+      .navbar-brand,
+      .nav-link {
+        color: white !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

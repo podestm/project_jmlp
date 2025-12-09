@@ -80,12 +80,12 @@ def export_race_registrations_csv(
     # Get registrations with racer and club data
     query = """
         SELECT 
-            CONVERT(CONVERT(r.name USING binary) USING utf8mb4) as firstName,
-            CONVERT(CONVERT(r.surname USING binary) USING utf8mb4) as lastName,
+            TRIM(CONVERT(CONVERT(r.name USING binary) USING utf8mb4)) as firstName,
+            TRIM(CONVERT(CONVERT(r.surname USING binary) USING utf8mb4)) as lastName,
             r.sex,
             r.year as birthYear,
-            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as clubName,
-            r.slcr_id as idSlcr
+            TRIM(CONVERT(CONVERT(c.name USING binary) USING utf8mb4)) as clubName,
+            TRIM(r.slcr_id) as idSlcr
         FROM race_registration reg
         JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
