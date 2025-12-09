@@ -103,3 +103,36 @@
   --bs-pink: #EEE8A9;
   --bs-teal: #2F9592;
 }
+/* Override Bootstrap primary colors to match dark theme */
+:root {
+  --bs-primary: #5B8DBE;
+  --bs-primary-rgb: 91, 141, 190;
+  --bs-btn-active-bg: #4A7AA8;
+  --bs-btn-active-border-color: #4A7AA8;
+}
+
+/* Softer blue for cards and headers */
+.card-header.bg-primary {
+  background: linear-gradient(135deg, #5B8DBE 0%, #4A7AA8 100%) !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #5B8DBE 0%, #4A7AA8 100%);
+  border-color: #5B8DBE;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4A7AA8 0%, #3A6A98 100%);
+  border-color: #4A7AA8;
+}
+
+.btn-outline-primary {
+  color: #7BA3D1;
+  border-color: #7BA3D1;
+}
+
+.btn-outline-primary:hover {
+  background-color: rgba(91, 141, 190, 0.2);
+  border-color: #5B8DBE;
+  color: #7BA3D1;
+}

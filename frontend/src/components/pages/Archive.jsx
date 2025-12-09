@@ -105,14 +105,29 @@ export default function Archive() {
           </div>
         ) : (
           <>
-            {/* Seznam sezón */}
+            {/* Seznam sezón - horizontální scroll */}
             <div className="mb-4 pb-3 border-bottom">
-              <div className="d-flex flex-wrap gap-2">
+              <div 
+                className="d-flex gap-2"
+                style={{
+                  overflowX: 'auto',
+                  overflowY: 'hidden',
+                  whiteSpace: 'nowrap',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'var(--sunset-orange) rgba(255, 255, 255, 0.1)',
+                  paddingBottom: '0.5rem'
+                }}
+              >
                 {groupedRaces.allSeasons.map((season) => (
                   <button
                     key={season}
                     className={`btn ${selectedSeason === season ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setSelectedSeason(season)}
+                    style={{
+                      flexShrink: 0,
+                      minWidth: 'fit-content'
+                    }}
                   >
                     {getSeasonDisplayName(season)}
                   </button>
@@ -163,8 +178,8 @@ export default function Archive() {
                           </td>
                           <td>{race.organizer_name}</td>
                           <td className="text-center">
-                            <span title={race.raceMethod_id === 2 ? 'Suchý závod' : 'Závod na sněhu'} style={{fontSize: '1.5rem'}}>
-                              {race.raceMethod_id === 2 ? '🌲' : '❄️'}
+                            <span title={race.raceMethod_id === 1 ? 'Závod na sněhu' : 'Suchý závod'} style={{fontSize: '1.5rem'}}>
+                              {race.raceMethod_id === 1 ? '❄️' : '🌲'}
                             </span>
                           </td>
                           <td className="text-end">

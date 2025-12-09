@@ -35,7 +35,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
 
                 <div className="row">
                     {/* Formulář vlevo */}
-                    <div className="col-lg-7">
+                    <div className="col-12 col-lg-7 mb-4 mb-lg-0">
                         <form onSubmit={registration.handleSubmit}>
                             <RegistrationFormFields 
                                 formData={registration.formData}
@@ -95,7 +95,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                     </div>
 
                     {/* Seznam závodníků vpravo */}
-                    <div className="col-lg-5">
+                    <div className="col-12 col-lg-5">
                         <RacerSearchResults 
                             filteredRacers={registration.filteredRacers}
                             isSearching={registration.isSearching}

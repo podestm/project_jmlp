@@ -271,3 +271,185 @@
   background-color: rgba(239, 68, 68, 0.1);
   border-color: rgba(239, 68, 68, 0.2);
 }
+/* ========================================
+   RESPONSIVE / MOBILE STYLES
+   ======================================== */
+
+/* Mobile Navigation */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    background: rgba(20, 30, 50, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+  }
+
+  /* Tlačítka v mobilní navigaci */
+  .navbar-collapse .btn {
+    width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .navbar-collapse .gap-2 {
+    gap: 0.5rem !important;
+  }
+}
+
+/* Mobile Cards & Tables */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .table {
+    font-size: 0.875rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+  }
+
+  /* Smaller badges on mobile */
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Adjust spacing */
+  .mb-4 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .mb-3 {
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* Mobile Typography */
+@media (max-width: 576px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  /* Smaller padding on small screens */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Full width buttons on very small screens */
+  .btn:not(.btn-sm):not(.btn-lg) {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile optimizations for tables */
+@media (max-width: 768px) {
+    /* Horizontální scroll pro široké tabulky */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Menší font v tabulkách */
+    table {
+        font-size: 0.8125rem;
+    }
+    
+    table th,
+    table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    /* Zmenšení buttonů v tabulkách */
+    table .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    table .btn-group {
+        gap: 0.125rem;
+    }
+}
+
+/* Mobile optimizations for Homepage race calendar */
+@media (max-width: 576px) {
+    /* Celá šířka pro race cards */
+    .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+    
+    /* Race card optimizations */
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .card-title {
+        font-size: 0.9rem;
+    }
+    
+    /* Menší spacing v listech */
+    .list-group-item {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Modals na celou obrazovku na velmi malých zařízeních */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-header,
+    .modal-footer {
+        padding: 0.75rem 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* Horizontal scroll for season buttons */
+.d-flex[style*="overflowX"]::-webkit-scrollbar {
+  height: 8px;
+}
+
+.d-flex[style*="overflowX"]::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.d-flex[style*="overflowX"]::-webkit-scrollbar-thumb {
+  background: var(--sunset-orange);
+  border-radius: 4px;
+}
+
+.d-flex[style*="overflowX"]::-webkit-scrollbar-thumb:hover {
+  background: #e65a00;
+}

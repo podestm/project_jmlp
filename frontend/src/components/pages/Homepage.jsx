@@ -155,7 +155,7 @@ function Homepage() {
 
       {/* Aktuality */}
       <div className="row g-4">
-        <div className="col-lg-8">
+        <div className="col-12 col-lg-8 order-2 order-lg-1">
           <div className="mb-4" style={{
             borderBottom: '2px solid rgba(255, 107, 0, 0.3)',
             paddingBottom: '0.75rem'
@@ -331,7 +331,7 @@ function Homepage() {
         </div>
 
         {/* Boční panel */}
-        <div className="col-lg-4">
+        <div className="col-12 col-lg-4 order-1 order-lg-2">
           {/* Nadcházející závody */}
           <div className="card mb-4" style={{
             borderRadius: '12px',
@@ -349,7 +349,7 @@ function Homepage() {
             }}>
               <h5 className="card-title mb-0">
                 <span className="bi bi-calendar-event-fill me-2"></span>
-                Nadcházející závody
+                Závody
               </h5>
             </div>
             <div className="card-body" style={{ padding: '1.25rem' }}>
@@ -391,10 +391,24 @@ function Homepage() {
                             }}
                             title={race.registration ? 'Registrace otevřena' : 'Registrace uzavřena'}
                           />
-                          <div>
-                            <h6 className="mb-1 fw-bold" style={{ color: 'var(--text-primary)' }}>
-                              {race.areal_name || 'Závod'}
-                            </h6>
+                          <div className="flex-grow-1">
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                              <h6 className="mb-0 fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                {race.areal_name || 'Závod'}
+                              </h6>
+                              {/* Ikona podle typu závodu (raceMethod_id: 1=sníh, 2=sucho) */}
+                              {race.raceMethod_id && (
+                                <span 
+                                  style={{ 
+                                    fontSize: '1.5rem',
+                                    lineHeight: '1'
+                                  }}
+                                  title={race.raceMethod_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}
+                                >
+                                  {race.raceMethod_id === 1 ? '❄️' : '🌲'}
+                                </span>
+                              )}
+                            </div>
                             <small className="text-muted">
                               <span className="bi bi-calendar3 me-2"></span>
                               {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}

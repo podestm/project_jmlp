@@ -5,6 +5,8 @@ import RaceList from './components/pages/RaceList.jsx';
 import Archive from './components/pages/Archive.jsx';
 import RaceDetail from './components/pages/RaceDetail.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
+import Documents from './components/pages/Documents.jsx';
+import Contacts from './components/pages/Contacts.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 
 // Admin components
@@ -53,6 +55,8 @@ const RouterContent = () => {
           <Route path="/registrace" element={<Layout><RaceList currentSeason={true} /></Layout>} />
           <Route path="/vysledky" element={<Layout><Archive /></Layout>} />
           <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
+          <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
+          <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
           <Route path="/zavod/:id" element={<Layout><RaceDetail /></Layout>} />
           
           {/* Admin routes */}
