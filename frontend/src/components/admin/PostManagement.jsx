@@ -9,7 +9,7 @@ const PostManagement = () => {
     const postManagement = usePostManagement();
 
     return (
-        <div className="container-fluid p-4">
+        <div className="container-fluid p-4 admin-section">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2 className="text-primary mb-0">Správa příspěvků</h2>
                 <button 

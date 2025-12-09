@@ -15,6 +15,10 @@ export default function SeasonResultsManagement() {
   const [editingId, setEditingId] = useState(null);
   const { token } = useAuth();
 
+  // Document search states
+  const [documentSearch, setDocumentSearch] = useState('');
+  const [documentSuggestions, setDocumentSuggestions] = useState([]);
+
   const [formData, setFormData] = useState({
     season_year_start: new Date().getMonth() >= 7 ? new Date().getFullYear() : new Date().getFullYear() - 1,
     season_year_end: new Date().getMonth() >= 7 ? new Date().getFullYear() + 1 : new Date().getFullYear(),
@@ -92,6 +96,13 @@ export default function SeasonResultsManagement() {
       document_id: seasonResult.document_id,
       final_results: seasonResult.final_results || 1
     });
+    
+    // Set document search to selected document name
+    const selectedDoc = documents.find(d => d.id === seasonResult.document_id);
+    if (selectedDoc) {
+      setDocumentSearch(selectedDoc.original_filename);
+    }
+    
     setShowForm(true);
     setError(null);
     setSuccess(null);
@@ -119,6 +130,35 @@ export default function SeasonResultsManagement() {
       final_results: 1
     });
     setEditingId(null);
+    setDocumentSearch('');
+    setDocumentSuggestions([]);
+  };
+
+  const handleDocumentSearch = (searchValue) => {
+    setDocumentSearch(searchValue);
+    
+    if (searchValue.trim() === '') {
+      setDocumentSuggestions([]);
+      setFormData(prev => ({ ...prev, document_id: '' }));
+      return;
+    }
+
+    const filtered = documents.filter(doc =>
+      doc.original_filename.toLowerCase().includes(searchValue.toLowerCase())
+    );
+    setDocumentSuggestions(filtered);
+  };
+
+  const selectDocument = (doc) => {
+    setFormData(prev => ({ ...prev, document_id: doc.id }));
+    setDocumentSearch(doc.original_filename);
+    setDocumentSuggestions([]);
+  };
+
+  const clearDocument = () => {
+    setFormData(prev => ({ ...prev, document_id: '' }));
+    setDocumentSearch('');
+    setDocumentSuggestions([]);
   };
 
   const handleCancel = () => {
@@ -134,7 +174,7 @@ export default function SeasonResultsManagement() {
   }
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid admin-section">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Správa celkových výsledků sezón</h2>
         {!showForm && (
@@ -199,20 +239,59 @@ export default function SeasonResultsManagement() {
 
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Dokument *</label>
-                  <select
-                    className="form-select"
-                    value={formData.document_id}
-                    onChange={(e) => setFormData({ ...formData, document_id: e.target.value })}
-                    required
-                  >
-                    <option value="">-- Vyberte dokument --</option>
-                    {documents.map(doc => (
-                      <option key={doc.id} value={doc.id}>
-                        {doc.original_filename}
-                      </option>
-                    ))}
-                  </select>
-                  <small className="text-muted">Vyberte nahrané celkové výsledky</small>
+                  <div className="position-relative">
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={documentSearch}
+                        onChange={(e) => handleDocumentSearch(e.target.value)}
+                        placeholder="Začněte psát název dokumentu..."
+                        required
+                      />
+                      {formData.document_id && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={clearDocument}
+                          title="Odebrat dokument"
+                        >
+                          <i className="bi bi-x-lg"></i>
+                        </button>
+                      )}
+                    </div>
+                    {documentSuggestions.length > 0 && (
+                      <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
+                        {documentSuggestions.map((doc) => (
+                          <div 
+                            key={doc.id}
+                            className="p-2 border-bottom cursor-pointer hover-bg-light"
+                            onClick={() => selectDocument(doc)}
+                            style={{cursor: 'pointer'}}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <span>{doc.original_filename}</span>
+                              {doc.file_type && (
+                                <span className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
+                                  {doc.file_type}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="form-text">
+                    {formData.document_id ? (
+                      <span className="text-success">
+                        <i className="bi bi-check-circle me-1"></i>
+                        Dokument vybrán
+                      </span>
+                    ) : (
+                      'Začněte psát pro vyhledání dokumentu'
+                    )}
+                  </div>
                 </div>
               </div>
 

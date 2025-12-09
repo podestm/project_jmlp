@@ -275,7 +275,7 @@ export default function DocumentManagement() {
   }
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid admin-section">
       <div className="row">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">

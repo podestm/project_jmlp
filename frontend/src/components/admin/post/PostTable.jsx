@@ -35,7 +35,7 @@ const PostTable = ({
                     </div>
                 ) : (
                     <div className="table-responsive">
-                        <table className="table table-hover mb-0">
+                        <table className="table table-hover mb-0 admin-table">
                             <thead className="bg-light">
                                 <tr>
                                     <th className="fw-semibold">Nadpis</th>

@@ -266,7 +266,7 @@ export default function CategoryManagement() {
   }
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid admin-section">
       <div className="row">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
@@ -399,7 +399,7 @@ export default function CategoryManagement() {
               {recalculateResult.summary && (
                 <div className="row mt-3">
                   <div className="col-md-4">
-                    <div className="card bg-light text-center">
+                    <div className="card bg-transparent border-0 text-center">
                       <div className="card-body py-2">
                         <small className="text-muted d-block">Celkem zkontrolováno</small>
                         <strong>{recalculateResult.summary.total_racers || 0}</strong>
@@ -407,18 +407,18 @@ export default function CategoryManagement() {
                     </div>
                   </div>
                   <div className="col-md-4">
-                    <div className="card bg-primary text-white text-center">
+                    <div className="card text-center" style={{backgroundColor: 'rgba(13, 110, 253, 0.1)', border: '1px solid rgba(13, 110, 253, 0.3)'}}>
                       <div className="card-body py-2">
                         <small className="d-block">Aktualizováno</small>
-                        <strong>{recalculateResult.summary.updated_racers || 0}</strong>
+                        <strong className="text-primary">{recalculateResult.summary.updated_racers || 0}</strong>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
-                    <div className="card bg-success text-white text-center">
+                    <div className="card text-center" style={{backgroundColor: 'rgba(25, 135, 84, 0.1)', border: '1px solid rgba(25, 135, 84, 0.3)'}}>
                       <div className="card-body py-2">
                         <small className="d-block">Bez změny</small>
-                        <strong>{recalculateResult.summary.unchanged_racers || 0}</strong>
+                        <strong className="text-success">{recalculateResult.summary.unchanged_racers || 0}</strong>
                       </div>
                     </div>
                   </div>
@@ -470,7 +470,7 @@ export default function CategoryManagement() {
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-md-3">
-                    <div className="card bg-light">
+                    <div className="card bg-transparent border-0">
                       <div className="card-body text-center">
                         <h6 className="text-muted mb-2">Status</h6>
                         <span className={`badge ${coverageReport.status === 'ok' ? 'bg-success' : 'bg-warning'} fs-6`}>
@@ -480,7 +480,7 @@ export default function CategoryManagement() {
                     </div>
                   </div>
                   <div className="col-md-3">
-                    <div className="card bg-light">
+                    <div className="card bg-transparent border-0">
                       <div className="card-body text-center">
                         <h6 className="text-muted mb-2">Kontrolovaný rozsah</h6>
                         <strong>{coverageReport.check_range?.min} - {coverageReport.check_range?.max}</strong>
@@ -490,7 +490,7 @@ export default function CategoryManagement() {
                     </div>
                   </div>
                   <div className="col-md-3">
-                    <div className="card bg-light">
+                    <div className="card bg-transparent border-0">
                       <div className="card-body text-center">
                         <h6 className="text-muted mb-2">Aktivních kategorií</h6>
                         <strong>{coverageReport.active_categories}</strong>
@@ -498,7 +498,7 @@ export default function CategoryManagement() {
                     </div>
                   </div>
                   <div className="col-md-3">
-                    <div className="card bg-light">
+                    <div className="card bg-transparent border-0">
                       <div className="card-body text-center">
                         <h6 className="text-muted mb-2">Nepokryté rozmezí</h6>
                         <strong className="text-danger">
@@ -531,7 +531,7 @@ export default function CategoryManagement() {
                   <div className="row mb-4">
                     {Object.entries(coverageReport.results_by_sex).map(([sexName, sexData]) => (
                       <div key={sexName} className="col-md-6 mb-3">
-                        <div className="card h-100 border-primary">
+                        <div className="card h-100 border-primary" style={{backgroundColor: 'rgba(13, 110, 253, 0.05)'}}>
                           <div className="card-header bg-primary text-white">
                             <h6 className="mb-0">
                               <i className={`bi ${sexName === 'Muži' ? 'bi-person-fill' : 'bi-person-dress-fill'} me-2`}></i>

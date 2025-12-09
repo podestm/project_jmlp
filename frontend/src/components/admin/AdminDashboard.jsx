@@ -103,7 +103,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div>
+    <div className="admin-section">
       <div className="mb-4">
         <h1>Dashboard</h1>
       </div>

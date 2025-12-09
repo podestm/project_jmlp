@@ -74,7 +74,7 @@ export default function RaceRegistrations() {
   }
 
   return (
-    <div className="container-fluid">
+    <div className="container-fluid admin-section">
       <div className="row">
         <div className="col-12">
           {/* Header */}

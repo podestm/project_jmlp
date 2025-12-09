@@ -1,0 +1,210 @@
+/* Admin Section Light Mode Styles */
+/* Keep admin interface separate from public dark mode theme */
+
+/* Override dark mode body styles for admin */
+.admin-section {
+  background: #f8f9fa !important;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+/* Reset all dark mode card styles */
+.admin-section .card,
+.admin-section .card-body,
+.admin-section .card-header {
+  background: white !important;
+  border: 1px solid #dee2e6 !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #212529 !important;
+}
+
+.admin-section .card-header {
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+.admin-section .table {
+  background: white !important;
+  color: #212529 !important;
+}
+
+.admin-section .table thead {
+  background: #343a40 !important;
+  color: white !important;
+}
+
+.admin-section .table-dark {
+  background: #343a40 !important;
+  color: white !important;
+}
+
+.admin-section .table-dark th {
+  color: white !important;
+}
+
+.admin-section .table thead th {
+  color: white !important;
+  background: #343a40 !important;
+}
+
+.admin-section .table tbody {
+  background: white !important;
+}
+
+.admin-section .table tbody tr {
+  background: white !important;
+}
+
+.admin-section .table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+
+.admin-section .table tbody td {
+  color: #212529 !important;
+  background: transparent !important;
+}
+
+.admin-section .form-control,
+.admin-section .form-select {
+  background: white;
+  border: 1px solid #ced4da;
+  color: #212529;
+}
+
+.admin-section .form-control:focus,
+.admin-section .form-select:focus {
+  background: white;
+  border-color: #86b7fe;
+  color: #212529;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.admin-section .modal-content {
+  background: white;
+  color: #212529;
+}
+
+.admin-section h1, 
+.admin-section h2, 
+.admin-section h3,
+.admin-section h4,
+.admin-section h5,
+.admin-section h6,
+.admin-section p,
+.admin-section span,
+.admin-section label,
+.admin-section td,
+.admin-section th {
+  color: #212529 !important;
+}
+
+.admin-section .text-muted {
+  color: #6c757d !important;
+}
+
+.admin-section .badge {
+  color: white !important;
+}
+
+/* Remove forced background from outline buttons */
+.admin-section .btn-outline-primary,
+.admin-section .btn-outline-secondary,
+.admin-section .btn-outline-danger,
+.admin-section .btn-outline-success,
+.admin-section .btn-outline-info,
+.admin-section .btn-outline-warning {
+  background: transparent !important;
+}
+
+/* Icon visibility fixes */
+.admin-section .bi,
+.admin-section i {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  vertical-align: -0.125em !important;
+}
+
+.admin-section .bi::before,
+.admin-section i.bi::before {
+  display: inline-block !important;
+  font-family: "bootstrap-icons" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  vertical-align: -0.125em !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+.admin-section .btn-outline-primary {
+  color: #0d6efd;
+}
+
+.admin-section .btn-outline-primary .bi,
+.admin-section .btn-outline-primary i {
+  color: #0d6efd !important;
+}
+
+.admin-section .btn-outline-success {
+  color: #198754;
+}
+
+.admin-section .btn-outline-success .bi,
+.admin-section .btn-outline-success i {
+  color: #198754 !important;
+}
+
+.admin-section .btn-outline-danger {
+  color: #dc3545;
+}
+
+.admin-section .btn-outline-danger .bi,
+.admin-section .btn-outline-danger i {
+  color: #dc3545 !important;
+}
+
+.admin-section .btn-outline-info {
+  color: #0dcaf0;
+}
+
+.admin-section .btn-outline-info .bi,
+.admin-section .btn-outline-info i {
+  color: #0dcaf0 !important;
+}
+
+.admin-section .btn-outline-warning {
+  color: #ffc107;
+}
+
+.admin-section .btn-outline-warning .bi,
+.admin-section .btn-outline-warning i {
+  color: #ffc107 !important;
+}
+
+.admin-section .btn-outline-secondary {
+  color: #6c757d;
+}
+
+.admin-section .btn-outline-secondary .bi,
+.admin-section .btn-outline-secondary i {
+  color: #6c757d !important;
+}
+
+/* Autocomplete suggestions */
+.admin-section .hover-bg-light:hover {
+  background-color: #f8f9fa !important;
+}
+
+.admin-section .cursor-pointer {
+  cursor: pointer !important;
+}

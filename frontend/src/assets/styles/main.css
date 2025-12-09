@@ -9,6 +9,9 @@
 /* 2. Base Styles */
 @import './base.css';
 
+/* 3. Admin Styles */
+@import './admin.css';
+
 /* 3. Layout Components */
 @import './layout.css';
 
