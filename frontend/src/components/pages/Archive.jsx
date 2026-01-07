@@ -145,7 +145,7 @@ export default function Archive() {
                   </h5>
                   {seasonResults[selectedSeason] && (
                     <a
-                      href={`${API_BASE}${seasonResults[selectedSeason].document_file_path}`}
+                      href={`${API_BASE}/${seasonResults[selectedSeason].document_file_path}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-success"
@@ -186,7 +186,7 @@ export default function Archive() {
                             <div className="d-flex gap-2 justify-content-end">
                               {race.proposition_file_path && (
                                 <a
-                                  href={`${API_BASE}${race.proposition_file_path}`}
+                                  href={`${API_BASE}/${race.proposition_file_path}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="btn btn-sm btn-outline-danger"
@@ -198,7 +198,7 @@ export default function Archive() {
                               )}
                               {race.results_file_path && (
                                 <a
-                                  href={`${API_BASE}${race.results_file_path}`}
+                                  href={`${API_BASE}/${race.results_file_path}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="btn btn-sm btn-outline-success"

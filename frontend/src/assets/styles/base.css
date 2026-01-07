@@ -21,7 +21,7 @@ body {
   line-height: var(--line-height-base);
   color: var(--text-primary);
   background: linear-gradient(var(--dark-overlay), var(--dark-overlay)),
-              url('/src/assets/images/background.png') no-repeat center center fixed;
+              url('/src/assets/images/background.jpg') no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
   height: 100%;

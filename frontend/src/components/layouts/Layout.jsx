@@ -33,16 +33,16 @@ export default function Layout({ children }) {
           <div className="row">
             <div className="col-md-6">
               <p className="mb-0 text-muted">
-                © 2024 Jihomoravský lyžařský pohár. Všechna práva vyhrazena.
+                © 2024 Jihomoravský lyžařský pohár.
               </p>
             </div>
             <div className="col-md-6">
               <div className="d-flex justify-content-center justify-content-md-end">
                 <a href="mailto:info@jmlp.cz" className="text-muted me-3">
-                  <i className="bi bi-envelope"></i> info@jmlp.cz
+                  <i className="bi bi-envelope"></i>
                 </a>
                 <a href="tel:+420123456789" className="text-muted">
-                  <i className="bi bi-phone"></i> +420 123 456 789
+                  <i className="bi bi-phone"></i>
                 </a>
               </div>
             </div>

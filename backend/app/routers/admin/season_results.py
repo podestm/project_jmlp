@@ -10,7 +10,7 @@ from ...utils import StandardExceptions
 router = APIRouter(prefix="/season-results", tags=["admin-season-results"])
 
 
-@router.get("/", response_model=List[schemas.SeasonResult])
+@router.get("", response_model=List[schemas.SeasonResult])
 def admin_get_all_season_results(
     db: Session = Depends(get_db),
     current_admin: models.AdminUser = Depends(get_current_admin)

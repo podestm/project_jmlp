@@ -11,7 +11,7 @@ from ...utils import fix_encoding
 router = APIRouter(prefix="/races", tags=["admin-races"])
 
 
-@router.get("/", response_model=List[schemas.Race])
+@router.get("", response_model=List[schemas.Race])
 def get_races(
     skip: int = 0, 
     limit: int = 100,

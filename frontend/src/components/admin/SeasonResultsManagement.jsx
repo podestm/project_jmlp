@@ -354,7 +354,7 @@ export default function SeasonResultsManagement() {
                       </td>
                       <td>
                         <a 
-                          href={`${API_BASE}${sr.document_file_path}`}
+                          href={`${API_BASE}/${sr.document_file_path}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-decoration-none"

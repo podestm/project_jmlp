@@ -8,7 +8,7 @@ from .routers import races, racers, clubs, registration, posts, analytics, seaso
 from .routers.admin import router as admin_router
 from .middleware import VisitorLogMiddleware
 
-app = FastAPI(title="JMLP API")
+app = FastAPI(title="JMLP API", redirect_slashes=False)
 
 # Custom validation error handler for debugging
 @app.exception_handler(RequestValidationError)
