@@ -87,7 +87,7 @@ def get_race(
     return race_dict
 
 
-@router.post("/", response_model=schemas.Race)
+@router.post("", response_model=schemas.Race)
 def create_race(
     race_data: schemas.RaceCreate,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),

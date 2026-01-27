@@ -13,7 +13,7 @@ export default function Contacts() {
     { name: 'SKI klub Hluboká', email: 'petra.novot@tiscali.cz' },
     { name: 'Ski klub VICTORIA Brno', email: 'milenabogalkova@gmail.com' },
     { name: 'TJ SOKOL Předklášteří', email: 'aivankova@volny.cz' },
-    { name: 'SK Nové Město na Moravě', email: 'samikpes@gmail.com' },
+    { name: 'SK Nové Město na Moravě', email: 'lp.nmnm@gmail.com' },
     { name: 'FreeSki Academy Brno', email: 'marketa@freeskiacademy.net' },
     { name: 'TJ Sport Nemčičky', email: 'tj@sportnemcicky.cz' },
     { name: 'Lyžařský klub Trhová Kamenice', email: 'petr.makovsky@seznam.cz' },

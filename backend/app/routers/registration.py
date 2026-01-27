@@ -65,6 +65,13 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             racer = existing_racer
             # Aktualizujeme kategorii i pro existujícího závodníka
             racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
+            # Aktualizujeme telefon, email a SLCR ID pokud jsou vyplněné
+            if racer_telefon:
+                racer.telefon = racer_telefon
+            if racer_email:
+                racer.email = racer_email
+            if racer_slcr_id:
+                racer.slcr_id = racer_slcr_id
         else:
             # Přiřadíme kategorii podle roku narození
             category_id = get_category_for_birth_year(payload.racer_year, payload.racer_sex, db)

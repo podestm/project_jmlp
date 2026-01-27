@@ -7,20 +7,24 @@ const RegistrationFormFields = ({
 }) => {
     // Funkce pro určení stylu input pole podle toho, jestli je vyplněno
     const getInputStyle = (value) => {
-        const isFilled = value !== '' && value !== null && value !== undefined && value !== 0;
+        const isFilled = value !== '' && value !== null && value !== undefined;
         return {
             background: isFilled ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.2)',
-            color: 'var(--text-primary)',
+            color: isFilled ? 'var(--text-primary)' : 'rgba(255, 255, 255, 0.5)',
             border: isFilled ? '1px solid rgba(255, 107, 0, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
             transition: 'all 0.2s ease'
         };
     };
 
-    // Globální styl pro placeholdery
+    // Globální styl pro placeholdery a select
     const placeholderStyles = `
         .registration-input::placeholder {
-            color: rgba(255, 255, 255, 0.3) !important;
-            opacity: 0.5 !important;
+            color: rgba(255, 255, 255, 0.55) !important;
+            opacity: 1 !important;
+        }
+        .registration-select option {
+            color: #212529 !important;
+            background: white !important;
         }
     `;
 
@@ -82,11 +86,12 @@ const RegistrationFormFields = ({
                         Pohlaví <span className="text-danger">*</span>
                     </label>
                     <select 
-                        className="form-select" 
+                        className="form-select registration-select" 
                         value={formData.sex} 
-                        onChange={e => updateField('sex', Number(e.target.value))}
+                        onChange={e => updateField('sex', e.target.value === '' ? '' : Number(e.target.value))}
                         style={getInputStyle(formData.sex)}
                     >
+                        <option value="" disabled>Vyberte pohlaví</option>
                         <option value={1}>Muž</option>
                         <option value={2}>Žena</option>
                     </select>

@@ -5,8 +5,8 @@ export const useRegistration = (raceId, onSuccess) => {
     const [formData, setFormData] = useState({
         name: '',
         surname: '',
-        year: new Date().getFullYear() - 10,
-        sex: 1, // 1 = muž, 2 = žena
+        year: '',
+        sex: '', // 1 = muž, 2 = žena
         club: '',
         telefon: '',
         email: '',
@@ -123,7 +123,7 @@ export const useRegistration = (raceId, onSuccess) => {
             exactMatch = allMatches.find(r => 
                 r.name.toLowerCase() === formData.name.trim().toLowerCase() &&
                 r.surname.toLowerCase() === formData.surname.trim().toLowerCase() &&
-                r.year === formData.year
+                r.year === parseInt(formData.year, 10)
             );
         } catch (error) {
             console.error('Error checking for existing racer:', error);
