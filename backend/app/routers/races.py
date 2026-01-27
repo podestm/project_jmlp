@@ -221,16 +221,20 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             r.slcr_id as idSlcr,
             CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
             c.id as club_id,
-            rr.registered_at
+            rr.registered_at,
+            CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name,
+            cat.id as category_id
         FROM race_registration rr
         JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
+        LEFT JOIN fuj_jmlp_category cat ON rr.category_id = cat.id
         WHERE rr.race_id = :race_id
         ORDER BY c.name ASC, r.surname ASC, r.name ASC
     """), {"race_id": race_id}).fetchall()
     
     # Group by clubs
     clubs = {}
+    categories = set()  # Pro sběr unikátních kategorií
     for row in result:
         club_name = row.club_name or "Bez klubu"
         if club_name not in clubs:
@@ -239,13 +243,19 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
                 "racers": []
             }
         
+        # Přidáme kategorii do setu
+        if row.category_name:
+            categories.add((row.category_id, row.category_name))
+        
         clubs[club_name]["racers"].append({
             "firstName": row.firstName,
             "lastName": row.lastName,
             "sex": "M" if row.sex == 1 else ("Z" if row.sex == 2 else ""),
             "birthYear": row.birthYear,
             "idSlcr": row.idSlcr,
-            "registered_at": row.registered_at
+            "registered_at": row.registered_at,
+            "category_name": row.category_name,
+            "category_id": row.category_id
         })
     
     # Convert to list and add counts
@@ -259,9 +269,13 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
     # Sort by racer count descending, then by club name
     club_list.sort(key=lambda x: (-x["racer_count"], x["club_name"]))
     
+    # Seznam kategorií pro filtry
+    category_list = [{"id": cat_id, "name": cat_name} for cat_id, cat_name in sorted(categories, key=lambda x: x[1])]
+    
     return {
         "clubs": club_list,
-        "total_racers": total_racers
+        "total_racers": total_racers,
+        "categories": category_list
     }
 
 @router.get("/{race_id}/club-stats")

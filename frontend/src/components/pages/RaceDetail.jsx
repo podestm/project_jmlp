@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import RegistrationForm from '../ui/RegistrationForm.jsx'
+import SearchableSelect from '../ui/SearchableSelect.jsx'
 import { formatDate } from '../../utils/date.js'
 
 // API base URL for document links
@@ -14,6 +15,10 @@ export default function RaceDetail() {
   const [clubStats, setClubStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  // Filtry
+  const [filterClub, setFilterClub] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -43,6 +48,43 @@ export default function RaceDetail() {
       load()
     }
   }, [load, raceId])
+
+  // Filtrované data
+  const filteredData = useMemo(() => {
+    if (!clubStats || !clubStats.clubs) return { clubs: [], total_racers: 0 };
+    
+    let filteredClubs = clubStats.clubs.map(club => ({
+      ...club,
+      racers: club.racers.filter(racer => {
+        // Filtr podle kategorie
+        if (filterCategory && racer.category_id !== parseInt(filterCategory)) {
+          return false;
+        }
+        return true;
+      })
+    }));
+    
+    // Filtr podle klubu
+    if (filterClub) {
+      filteredClubs = filteredClubs.filter(club => 
+        club.club_name === filterClub
+      );
+    }
+    
+    // Odstraníme kluby bez závodníků po filtrování
+    filteredClubs = filteredClubs.filter(club => club.racers.length > 0);
+    
+    // Přepočítáme celkový počet
+    const total = filteredClubs.reduce((sum, club) => sum + club.racers.length, 0);
+    
+    return { clubs: filteredClubs, total_racers: total };
+  }, [clubStats, filterClub, filterCategory]);
+
+  // Resetovat filtry
+  const resetFilters = () => {
+    setFilterClub('');
+    setFilterCategory('');
+  };
 
   if (loading) {
     return (
@@ -258,42 +300,105 @@ export default function RaceDetail() {
                 <p className="mt-2">Zatím není nikdo přihlášen</p>
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Jméno</th>
-                      <th>Příjmení</th>
-                      <th>Pohlaví</th>
-                      <th>Ročník</th>
-                      <th>SLČR ID</th>
-                      <th>Klub</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {clubStats.clubs.flatMap(club =>
-                      club.racers.map((racer, index) => (
-                        <tr key={`${club.club_name}-${index}`}>
-                          <td>{racer.firstName}</td>
-                          <td>{racer.lastName}</td>
-                          <td>
-                            {racer.sex && (
-                              <span className={`badge ${racer.sex === 'M' ? 'bg-primary' : 'bg-warning'}`}>
-                                {racer.sex === 'M' ? 'Muž' : 'Žena'}
-                              </span>
-                            )}
-                          </td>
-                          <td>{racer.birthYear || '-'}</td>
-                          <td className="text-danger">{racer.idSlcr || '-'}</td>
-                          <td>
-                            <span className="badge bg-secondary">{club.club_name}</span>
-                          </td>
-                        </tr>
-                      ))
+              <>
+                {/* Filtry */}
+                <div className="row g-3 mb-4">
+                  <div className="col-md-4">
+                    <label className="form-label text-muted small">
+                      <i className="bi bi-building me-1"></i>
+                      Filtr podle klubu
+                    </label>
+                    <SearchableSelect
+                      options={clubStats.clubs.map(club => ({
+                        value: club.club_name,
+                        label: `${club.club_name} (${club.racer_count})`
+                      }))}
+                      value={filterClub}
+                      onChange={setFilterClub}
+                      placeholder="Všechny kluby"
+                      allLabel="Všechny kluby"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label text-muted small">
+                      <i className="bi bi-tag me-1"></i>
+                      Filtr podle kategorie
+                    </label>
+                    <SearchableSelect
+                      options={(clubStats.categories || []).map(cat => ({
+                        value: String(cat.id),
+                        label: cat.name
+                      }))}
+                      value={filterCategory}
+                      onChange={setFilterCategory}
+                      placeholder="Všechny kategorie"
+                      allLabel="Všechny kategorie"
+                    />
+                  </div>
+                  <div className="col-md-4 d-flex align-items-end">
+                    {(filterClub || filterCategory) && (
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={resetFilters}
+                      >
+                        <i className="bi bi-x-circle me-1"></i>
+                        Zrušit filtry
+                      </button>
                     )}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+                
+                {/* Info o filtrovaných výsledcích */}
+                {(filterClub || filterCategory) && (
+                  <div className="alert alert-info mb-3 py-2">
+                    <i className="bi bi-funnel me-2"></i>
+                    Zobrazeno {filteredData.total_racers} z {clubStats.total_racers} závodníků
+                  </div>
+                )}
+
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Jméno</th>
+                        <th>Příjmení</th>
+                        <th>Pohlaví</th>
+                        <th>Ročník</th>
+                        <th>Kategorie</th>
+                        <th>SLČR ID</th>
+                        <th>Klub</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredData.clubs.flatMap(club =>
+                        club.racers.map((racer, index) => (
+                          <tr key={`${club.club_name}-${index}`}>
+                            <td>{racer.firstName}</td>
+                            <td>{racer.lastName}</td>
+                            <td>
+                              {racer.sex && (
+                                <span className={`badge ${racer.sex === 'M' ? 'bg-primary' : 'bg-warning'}`}>
+                                  {racer.sex === 'M' ? 'Muž' : 'Žena'}
+                                </span>
+                              )}
+                            </td>
+                            <td>{racer.birthYear || '-'}</td>
+                            <td>
+                              {racer.category_name ? (
+                                <span className="badge bg-info">{racer.category_name}</span>
+                              ) : '-'}
+                            </td>
+                            <td className="text-danger">{racer.idSlcr || '-'}</td>
+                            <td>
+                              <span className="badge bg-secondary">{club.club_name}</span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         </div>
