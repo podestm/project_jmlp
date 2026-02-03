@@ -13,17 +13,20 @@ router = APIRouter(tags=["admin-racers"])
 @router.get("/racers", response_model=List[schemas.Racer])
 def get_racers(
     skip: int = 0, 
-    limit: int = 100,
+    limit: int = 10000,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
     """List all racers for admin management."""
-    # Use raw SQL to get racer with club name
+    # Use raw SQL to get racer with club name and category
     query = """
-        SELECT r.id, r.name as firstName, r.surname as lastName, r.sex, r.year as birthYear, r.club_id, r.slcr_id as idSlcr,
-               CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name
+        SELECT r.id, r.name as firstName, r.surname as lastName, r.sex, r.year as birthYear, 
+               r.club_id, r.slcr_id as idSlcr, r.category_id,
+               CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
+               CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name
         FROM fuj_jmlp_racer r 
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
+        LEFT JOIN fuj_jmlp_category cat ON r.category_id = cat.id
         ORDER BY r.surname, r.name
         LIMIT :limit OFFSET :skip
     """
@@ -36,6 +39,7 @@ def get_racers(
         first_name = fix_encoding(row.firstName) if row.firstName else None
         last_name = fix_encoding(row.lastName) if row.lastName else None
         club_name = fix_encoding(row.club_name) if row.club_name else None
+        category_name = fix_encoding(row.category_name) if row.category_name else None
         
         racer_data = {
             "id": row.id,
@@ -46,6 +50,8 @@ def get_racers(
             "club_id": row.club_id,
             "idSlcr": row.idSlcr,
             "club_name": club_name,
+            "category_id": row.category_id,
+            "category_name": category_name,
             # Also include base fields for compatibility
             "name": first_name,
             "surname": last_name,

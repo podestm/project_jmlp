@@ -1,16 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
+import SearchableSelect from '../ui/SearchableSelect.jsx';
 
 export default function RacerManagement() {
   const { token } = useAuth();
   const [racers, setRacers] = useState([]);
   const [clubs, setClubs] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingRacer, setEditingRacer] = useState(null);
+  
+  // Filtry
+  const [filterClub, setFilterClub] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterSex, setFilterSex] = useState('');
+  const [searchText, setSearchText] = useState('');
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -27,19 +36,58 @@ export default function RacerManagement() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [racersData, clubsData] = await Promise.all([
+      const [racersData, clubsData, categoriesData] = await Promise.all([
         AdminAPI.get('/api/admin/racers'),
-        AdminAPI.get('/races/organizers')
+        AdminAPI.get('/races/organizers'),
+        AdminAPI.get('/api/admin/categories')
       ]);
       
       setRacers(racersData);
       setClubs(clubsData);
+      setCategories(categoriesData || []);
     } catch (err) {
       console.error('Error loading data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Filtrovaní závodníci
+  const filteredRacers = useMemo(() => {
+    return racers.filter(racer => {
+      // Filtr podle klubu
+      if (filterClub && racer.club_id !== parseInt(filterClub)) {
+        return false;
+      }
+      // Filtr podle kategorie
+      if (filterCategory && racer.category_id !== parseInt(filterCategory)) {
+        return false;
+      }
+      // Filtr podle pohlaví
+      if (filterSex && racer.sex !== parseInt(filterSex)) {
+        return false;
+      }
+      // Textové vyhledávání (jméno, příjmení, SLCR ID)
+      if (searchText) {
+        const search = searchText.toLowerCase();
+        const matchesName = (racer.firstName || '').toLowerCase().includes(search);
+        const matchesSurname = (racer.lastName || '').toLowerCase().includes(search);
+        const matchesSlcr = (racer.idSlcr || '').toLowerCase().includes(search);
+        if (!matchesName && !matchesSurname && !matchesSlcr) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [racers, filterClub, filterCategory, filterSex, searchText]);
+
+  // Reset filtrů
+  const resetFilters = () => {
+    setFilterClub('');
+    setFilterCategory('');
+    setFilterSex('');
+    setSearchText('');
   };
 
   const handleSubmit = async (e) => {
@@ -150,6 +198,91 @@ export default function RacerManagement() {
             />
           )}
 
+          {/* Filtry */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <div className="row g-3">
+                <div className="col-md-3">
+                  <label className="form-label small text-muted">
+                    <i className="bi bi-search me-1"></i>
+                    Hledat
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Jméno, příjmení, SLCR..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label small text-muted">
+                    <i className="bi bi-building me-1"></i>
+                    Klub
+                  </label>
+                  <SearchableSelect
+                    options={clubs.map(club => ({
+                      value: String(club.id),
+                      label: club.name
+                    }))}
+                    value={filterClub}
+                    onChange={setFilterClub}
+                    placeholder="Všechny kluby"
+                    allLabel="Všechny kluby"
+                  />
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label small text-muted">
+                    <i className="bi bi-tag me-1"></i>
+                    Kategorie
+                  </label>
+                  <SearchableSelect
+                    options={categories.map(cat => ({
+                      value: String(cat.id),
+                      label: cat.name
+                    }))}
+                    value={filterCategory}
+                    onChange={setFilterCategory}
+                    placeholder="Všechny kategorie"
+                    allLabel="Všechny kategorie"
+                  />
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label small text-muted">
+                    <i className="bi bi-gender-ambiguous me-1"></i>
+                    Pohlaví
+                  </label>
+                  <select
+                    className="form-select"
+                    value={filterSex}
+                    onChange={(e) => setFilterSex(e.target.value)}
+                  >
+                    <option value="">Všichni</option>
+                    <option value="1">Muži</option>
+                    <option value="2">Ženy</option>
+                  </select>
+                </div>
+                <div className="col-md-2 d-flex align-items-end">
+                  {(filterClub || filterCategory || filterSex || searchText) && (
+                    <button
+                      className="btn btn-outline-secondary w-100"
+                      onClick={resetFilters}
+                    >
+                      <i className="bi bi-x-circle me-1"></i>
+                      Zrušit
+                    </button>
+                  )}
+                </div>
+              </div>
+              {(filterClub || filterCategory || filterSex || searchText) && (
+                <div className="mt-2 text-muted small">
+                  <i className="bi bi-funnel me-1"></i>
+                  Zobrazeno {filteredRacers.length} z {racers.length} závodníků
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="card">
             <div className="card-body">
               <div className="table-responsive">
@@ -160,20 +293,21 @@ export default function RacerManagement() {
                       <th>Příjmení</th>
                       <th>Pohlaví</th>
                       <th>Ročník</th>
+                      <th>Kategorie</th>
                       <th>Oddíl</th>
                       <th>ID SLCR</th>
                       <th>Akce</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {racers.length === 0 ? (
+                    {filteredRacers.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">
-                          Žádní závodníci nenalezeni
+                        <td colSpan="8" className="text-center text-muted">
+                          {racers.length === 0 ? 'Žádní závodníci nenalezeni' : 'Žádní závodníci neodpovídají filtru'}
                         </td>
                       </tr>
                     ) : (
-                      racers.map((racer) => (
+                      filteredRacers.map((racer) => (
                         <tr key={racer.id}>
                           <td>{racer.firstName}</td>
                           <td>{racer.lastName}</td>
@@ -183,6 +317,11 @@ export default function RacerManagement() {
                             </span>
                           </td>
                           <td>{racer.birthYear}</td>
+                          <td>
+                            {racer.category_name ? (
+                              <span className="badge bg-info">{racer.category_name}</span>
+                            ) : '-'}
+                          </td>
                           <td>{racer.club_name || 'Bez oddílu'}</td>
                           <td><code>{racer.idSlcr || 'N/A'}</code></td>
                           <td>

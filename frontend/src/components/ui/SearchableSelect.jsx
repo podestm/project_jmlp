@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * Searchable Select - dropdown s live vyhledáváním
+ * Používá Portal pro vykreslení dropdown mimo parent kontejner
  */
 export default function SearchableSelect({ 
   options, 
@@ -14,6 +16,7 @@ export default function SearchableSelect({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const containerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -21,6 +24,11 @@ export default function SearchableSelect({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
+        // Zkontrolujeme i kliknutí na dropdown (v portálu)
+        const dropdown = document.getElementById('searchable-select-dropdown');
+        if (dropdown && dropdown.contains(event.target)) {
+          return;
+        }
         setIsOpen(false);
         setSearchTerm('');
       }
@@ -28,6 +36,18 @@ export default function SearchableSelect({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Aktualizace pozice dropdown při otevření
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 2,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  }, [isOpen]);
 
   // Filtrované options podle searchTerm
   const filteredOptions = options.filter(option => {
@@ -48,7 +68,9 @@ export default function SearchableSelect({
     return value;
   };
 
-  const handleSelect = (optionValue) => {
+  const handleSelect = (e, optionValue) => {
+    e.preventDefault();
+    e.stopPropagation();
     onChange(optionValue);
     setIsOpen(false);
     setSearchTerm('');
@@ -56,12 +78,6 @@ export default function SearchableSelect({
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
-    if (!isOpen) setIsOpen(true);
-  };
-
-  const handleInputFocus = () => {
-    setIsOpen(true);
-    setSearchTerm('');
   };
 
   const handleClear = (e) => {
@@ -70,6 +86,108 @@ export default function SearchableSelect({
     setSearchTerm('');
     setIsOpen(false);
   };
+
+  const handleToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+    setSearchTerm('');
+    if (!isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  };
+
+  // Dropdown obsah jako Portal
+  const dropdownContent = isOpen && createPortal(
+    <div 
+      id="searchable-select-dropdown"
+      onMouseDown={(e) => e.preventDefault()}
+      style={{
+        position: 'fixed',
+        top: dropdownPosition.top,
+        left: dropdownPosition.left,
+        width: dropdownPosition.width,
+        background: '#fff',
+        border: '1px solid rgba(0,0,0,0.15)',
+        borderRadius: '0.375rem',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        zIndex: 9999,
+        maxHeight: '300px',
+        overflowY: 'auto'
+      }}
+    >
+      {/* Vyhledávací pole */}
+      <div style={{ 
+        padding: '0.5rem', 
+        borderBottom: '1px solid #eee',
+        position: 'sticky',
+        top: 0,
+        background: '#fff',
+        zIndex: 1
+      }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          placeholder="Hledat..."
+          className="form-control form-control-sm"
+          style={{
+            background: '#f8f9fa',
+            border: '1px solid #dee2e6'
+          }}
+          autoFocus
+        />
+      </div>
+
+      {/* Možnost "Vše" */}
+      <div
+        onClick={(e) => handleSelect(e, '')}
+        style={{
+          padding: '0.5rem 0.75rem',
+          cursor: 'pointer',
+          background: !value ? '#e9ecef' : '#fff',
+          color: '#212529',
+          borderBottom: '1px solid #eee'
+        }}
+        onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
+        onMouseLeave={(e) => e.target.style.background = !value ? '#e9ecef' : '#fff'}
+      >
+        {allLabel}
+      </div>
+
+      {filteredOptions.length === 0 ? (
+        <div style={{ padding: '0.5rem 0.75rem', color: '#6c757d', fontStyle: 'italic' }}>
+          Žádné výsledky
+        </div>
+      ) : (
+        filteredOptions.map((option, index) => {
+          const optValue = typeof option === 'string' ? option : option[valueKey];
+          const optLabel = typeof option === 'string' ? option : option[labelKey];
+          const isSelected = optValue === value || String(optValue) === String(value);
+
+          return (
+            <div
+              key={index}
+              onClick={(e) => handleSelect(e, optValue)}
+              style={{
+                padding: '0.5rem 0.75rem',
+                cursor: 'pointer',
+                background: isSelected ? '#e9ecef' : '#fff',
+                color: '#212529',
+                borderBottom: index < filteredOptions.length - 1 ? '1px solid #f0f0f0' : 'none'
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
+              onMouseLeave={(e) => e.target.style.background = isSelected ? '#e9ecef' : '#fff'}
+            >
+              {optLabel}
+            </div>
+          );
+        })
+      )}
+    </div>,
+    document.body
+  );
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
@@ -82,33 +200,11 @@ export default function SearchableSelect({
           cursor: 'pointer',
           minHeight: '38px'
         }}
-        onClick={() => {
-          setIsOpen(true);
-          setTimeout(() => inputRef.current?.focus(), 0);
-        }}
+        onClick={handleToggle}
       >
-        {isOpen ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={searchTerm}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            placeholder={value ? getCurrentLabel() : placeholder}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: 'var(--text-primary)',
-              width: '100%'
-            }}
-            autoFocus
-          />
-        ) : (
-          <span style={{ color: value ? 'var(--text-primary)' : 'rgba(255,255,255,0.5)' }}>
-            {value ? getCurrentLabel() : placeholder}
-          </span>
-        )}
+        <span style={{ color: value ? 'var(--text-primary)' : 'rgba(255,255,255,0.5)' }}>
+          {value ? getCurrentLabel() : placeholder}
+        </span>
         <div className="d-flex align-items-center gap-1">
           {value && (
             <i 
@@ -125,70 +221,7 @@ export default function SearchableSelect({
         </div>
       </div>
 
-      {isOpen && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: '#fff',
-            border: '1px solid rgba(0,0,0,0.15)',
-            borderRadius: '0.375rem',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            zIndex: 1050,
-            maxHeight: '250px',
-            overflowY: 'auto',
-            marginTop: '2px'
-          }}
-        >
-          {/* Možnost "Vše" */}
-          <div
-            onClick={() => handleSelect('')}
-            style={{
-              padding: '0.5rem 0.75rem',
-              cursor: 'pointer',
-              background: !value ? '#e9ecef' : '#fff',
-              color: '#212529',
-              borderBottom: '1px solid #eee'
-            }}
-            onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
-            onMouseLeave={(e) => e.target.style.background = !value ? '#e9ecef' : '#fff'}
-          >
-            {allLabel}
-          </div>
-
-          {filteredOptions.length === 0 ? (
-            <div style={{ padding: '0.5rem 0.75rem', color: '#6c757d', fontStyle: 'italic' }}>
-              Žádné výsledky
-            </div>
-          ) : (
-            filteredOptions.map((option, index) => {
-              const optValue = typeof option === 'string' ? option : option[valueKey];
-              const optLabel = typeof option === 'string' ? option : option[labelKey];
-              const isSelected = optValue === value || String(optValue) === String(value);
-
-              return (
-                <div
-                  key={index}
-                  onClick={() => handleSelect(optValue)}
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    cursor: 'pointer',
-                    background: isSelected ? '#e9ecef' : '#fff',
-                    color: '#212529',
-                    borderBottom: index < filteredOptions.length - 1 ? '1px solid #f0f0f0' : 'none'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
-                  onMouseLeave={(e) => e.target.style.background = isSelected ? '#e9ecef' : '#fff'}
-                >
-                  {optLabel}
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
+      {dropdownContent}
     </div>
   );
 }
