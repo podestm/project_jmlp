@@ -11,13 +11,14 @@ Full-stack racing registration system with FastAPI backend, React frontend, MySQ
 - **Table Naming**: Legacy naming convention with `fuj_jmlp_` prefix (racer, race, club, areal, admin, document)
 - **Registration Table**: `race_registration` (not `fuj_jmlp_registration`) links races and racers
 - **Foreign Keys**: Minimal FK constraints due to MyISAM engine choice
-- **Admin System**: JWT-based authentication with cleaned auth module, admin endpoints under `/admin` prefix
-- **Document Upload**: UUID-named files in `backend/documents/` directory with database tracking
+- **Admin System**: JWT-based authentication with cleaned auth module, admin endpoints under `/api/admin` prefix
+- **Document Upload**: UUID-named files in `/app/uploads/documents/` with database tracking
 - **Error Handling**: Standardized Czech error messages via `utils.StandardExceptions`
+- **Visitor Analytics**: Public logging endpoint `/visitor-log`, admin analytics under `/api/admin/analytics` and `/api/admin/stats`
 - **Utils Module**: Centralized season logic, UTF-8 encoding helpers, date parsing utilities
 
 ### Frontend (React + Vite + Bootstrap)
-- **Routing**: React Router with Czech paths (`/terminovka`, `/archiv`, `/zavod/:id`, `/admin`)
+- **Routing**: React Router with Czech paths (`/registrace`, `/vysledky`, `/archiv-zprav`, `/dokumenty`, `/kontakty`, `/zavod/:id`, `/admin`)
 - **API Client**: Custom API wrapper in `frontend/src/config/api.js` with environment-based base URL
 - **Styling**: Bootstrap 5 with custom CSS modules in `frontend/src/assets/styles/`
 - **State**: React hooks with custom business logic hooks (useRaceManagement, usePostManagement, useRegistration)
@@ -65,7 +66,7 @@ docker compose down -v
 - **Error Handling**: Standardized `utils.StandardExceptions` with Czech messages for user-facing errors
 - **Validation**: Heavy use of database existence checks before operations
 - **Authentication**: JWT tokens with Bearer scheme, cleaned implementation in `backend/app/auth.py`
-- **Admin Endpoints**: All admin operations under `/admin` prefix with JWT protection
+- **Admin Endpoints**: All admin operations under `/api/admin` prefix with JWT protection
 - **CSV Export**: UTF-8 with BOM for Excel compatibility, CONVERT operations for encoding fixes
 
 ### Frontend Patterns
@@ -89,7 +90,8 @@ docker compose down -v
 - **Database Init**: `db/init_exact.sql` runs on first container start
 - **Season Boundary**: August 1st date logic affects race filtering throughout app
 - **Admin Access**: Default login `admin@jmlp.cz` / `admin123` (⚠️ MUST change in production – see README.md Security)
-- **File Upload**: Max 10MB, stored in `backend/documents/` with UUID naming
+- **File Upload**: Max 10MB, stored in `/app/uploads/documents/` with UUID naming
+- **Admin API Prefix**: All admin API calls must use `/api/admin/*` (frontend AdminAPI already uses this)
 
 ## Testing & Debugging
 - Use FastAPI `/docs` endpoint for API testing with JWT authentication
@@ -104,7 +106,7 @@ docker compose down -v
 - **BigInt vs Int**: Use `BigInteger` in SQLAlchemy models to match database schema
 - **Date vs DateTime**: Race dates are `date` type, not `datetime`
 - **JWT Security**: Use environment variables for SECRET_KEY, never hardcode in production
-- **File Uploads**: Default limit 10MB, stored in `backend/documents/` directory
+- **File Uploads**: Default limit 10MB, stored in `/app/uploads/documents/` directory
 - **Encoding Issues**: Ensure UTF8MB4 in all database connections and file operations
 - **Season Logic**: Always consider current season when filtering races/data
 - **Table Names**: `race_registration` not `fuj_jmlp_registration` for registration table
