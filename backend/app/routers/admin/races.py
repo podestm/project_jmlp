@@ -170,13 +170,33 @@ def create_race(
             file_record.file_type = FileTypeEnum.vysledky
             db.commit()
     
-    # Add areal name
+    # Re-query the race to get a fresh object with all attributes loaded
+    # (MyISAM + multiple commits can expire the SQLAlchemy instance state)
+    race_id = race.id
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
+    
+    # Build response dict with all required fields
     race_dict = race.__dict__.copy()
+    
+    # Add areal name
     if race.areal_id:
         areal = db.query(models.Areal).filter(models.Areal.id == race.areal_id).first()
-        race_dict["areal_name"] = areal.name if areal else None
+        race_dict["areal_name"] = fix_encoding(areal.name) if areal else None
     else:
         race_dict["areal_name"] = None
+    
+    # Add organizer name
+    if race.organizer_id:
+        organizer = db.query(models.Club).filter(models.Club.id == race.organizer_id).first()
+        race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
+    else:
+        race_dict["organizer_name"] = None
+    
+    # Add registrations count
+    registrations_count = db.query(models.Registration).filter(
+        models.Registration.race_id == race.id
+    ).count()
+    race_dict["registrations_count"] = registrations_count
     
     return race_dict
 
@@ -266,15 +286,30 @@ def update_race(
         setattr(race, field, value)
     
     db.commit()
-    db.refresh(race)
+    
+    # Re-query the race to get a fresh object with all attributes loaded
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
     
     # Add areal name
     race_dict = race.__dict__.copy()
     if race.areal_id:
         areal = db.query(models.Areal).filter(models.Areal.id == race.areal_id).first()
-        race_dict["areal_name"] = areal.name if areal else None
+        race_dict["areal_name"] = fix_encoding(areal.name) if areal else None
     else:
         race_dict["areal_name"] = None
+    
+    # Add organizer name
+    if race.organizer_id:
+        organizer = db.query(models.Club).filter(models.Club.id == race.organizer_id).first()
+        race_dict["organizer_name"] = fix_encoding(organizer.name) if organizer else None
+    else:
+        race_dict["organizer_name"] = None
+    
+    # Add registrations count
+    registrations_count = db.query(models.Registration).filter(
+        models.Registration.race_id == race.id
+    ).count()
+    race_dict["registrations_count"] = registrations_count
     
     return race_dict
 
