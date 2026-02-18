@@ -64,50 +64,71 @@ export default function RaceList({ currentSeason = false }) {
             </div>
           ) : (
             <div className="row g-3">
-              {groupedRaces.currentRaces.map(race => (
-                <div key={race.id} className="col-md-6 col-lg-4">
-                  <div className="card h-100 race-card shadow-sm">
-                    <div className="card-body d-flex flex-column">
-                      <h6 className="card-title text-primary">
-                        <i className="bi bi-geo-alt-fill me-2"></i>
-                        {race.areal_name}
-                      </h6>
-                      <p className="card-text mb-2">
-                        <i className="bi bi-calendar3 me-2"></i>
-                        {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                      </p>
-                      <p className="card-text mb-2 text-muted">
-                        <i className="bi bi-buildings me-2"></i>
-                        <small>{race.organizer_name}</small>
-                      </p>
-                      <div className="mb-3">
-                        <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
-                          <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
-                          Registrace {race.registration ? 'otevřena' : 'uzavřena'}
-                        </span>
-                      </div>
-                      <div className="mt-auto">
-                        <Link 
-                          to={`/zavod/${race.id}`}
-                          className="btn btn-primary w-100 text-decoration-none"
-                        >
-                          {race.registration ? (
-                            <>
-                              <i className="bi bi-pencil-square me-2"></i>
-                              Registrace
-                            </>
+              {groupedRaces.currentRaces.map(race => {
+                // Zjistíme, jestli se závod už jel (datum v minulosti)
+                const raceDate = new Date(race.datum);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const isPast = raceDate < today;
+                
+                // Určíme text a ikonu tlačítka
+                let buttonText, buttonIcon, buttonClass;
+                if (isPast) {
+                  buttonText = 'Výsledky';
+                  buttonIcon = 'bi-trophy';
+                  buttonClass = 'btn-secondary';
+                } else if (race.registration) {
+                  buttonText = 'Registrace';
+                  buttonIcon = 'bi-pencil-square';
+                  buttonClass = 'btn-primary';
+                } else {
+                  buttonText = 'Detail';
+                  buttonIcon = 'bi-info-circle';
+                  buttonClass = 'btn-primary';
+                }
+                
+                return (
+                  <div key={race.id} className="col-md-6 col-lg-4">
+                    <div className="card h-100 race-card shadow-sm">
+                      <div className="card-body d-flex flex-column">
+                        <h6 className="card-title text-primary">
+                          <i className="bi bi-geo-alt-fill me-2"></i>
+                          {race.areal_name}
+                        </h6>
+                        <p className="card-text mb-2">
+                          <i className="bi bi-calendar3 me-2"></i>
+                          {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </p>
+                        <p className="card-text mb-2 text-muted">
+                          <i className="bi bi-buildings me-2"></i>
+                          <small>{race.organizer_name}</small>
+                        </p>
+                        <div className="mb-3">
+                          {isPast ? (
+                            <span className="badge bg-secondary">
+                              Závod ukončen
+                            </span>
                           ) : (
-                            <>
-                              <i className="bi bi-info-circle me-2"></i>
-                              Detail
-                            </>
+                            <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
+                              <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
+                              Registrace {race.registration ? 'otevřena' : 'uzavřena'}
+                            </span>
                           )}
-                        </Link>
+                        </div>
+                        <div className="mt-auto">
+                          <Link 
+                            to={`/zavod/${race.id}`}
+                            className={`btn ${buttonClass} w-100 text-decoration-none`}
+                          >
+                            <i className={`bi ${buttonIcon} me-2`}></i>
+                            {buttonText}
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           
@@ -180,74 +201,95 @@ export default function RaceList({ currentSeason = false }) {
               </div>
             ) : (
               <div className="row g-3">
-                {groupedRaces.currentRaces.map(race => (
-                  <div key={race.id} className="col-md-6 col-lg-4">
-                    <div className="card h-100 race-card shadow-sm">
-                      <div className="card-body d-flex flex-column">
-                        <h6 className="card-title text-primary">
-                          <i className="bi bi-geo-alt-fill me-2"></i>
-                          {race.areal_name}
-                        </h6>
-                        <p className="card-text mb-2">
-                          <i className="bi bi-calendar3 me-2"></i>
-                          {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                        </p>
-                        <p className="card-text mb-2 text-muted">
-                          <i className="bi bi-building me-2"></i>
-                          <small>{race.organizer_name}</small>
-                        </p>
-                        <div className="mb-2">
-                          {race.proposition && (
-                            <a 
-                              href={`${API}/races/${race.id}/proposition`}
-                              target="_blank"
-                              rel="noopener noreferrer" 
-                              className="btn btn-sm btn-outline-primary me-2"
-                              title="Stáhnout propozice"
-                            >
-                              <i className="bi bi-file-earmark-text"></i>
-                            </a>
-                          )}
-                          {race.result && (
-                            <a 
-                              href={`${API}/races/${race.id}/results`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn btn-sm btn-outline-success"
-                              title="Stáhnout výsledky"
-                            >
-                              <i className="bi bi-file-earmark-check"></i>
-                            </a>
-                          )}
-                        </div>
-                        <div className="mb-3">
-                          <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
-                            <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
-                            Registrace {race.registration ? 'otevřena' : 'uzavřena'}
-                          </span>
-                        </div>
-                        <div className="mt-auto">
-                          <Link 
-                            to={`/zavod/${race.id}`}
-                            className="btn btn-primary w-100 text-decoration-none"
-                          >
-                            {race.registration ? (
-                              <>
-                                <i className="bi bi-pencil-square me-2"></i>
-                                Registrace
-                              </>
-                            ) : (
-                              <>
-                                <i className="bi bi-info-circle me-2"></i>
-                                Detail
-                              </>
+                {groupedRaces.currentRaces.map(race => {
+                  // Zjistíme, jestli se závod už jel (datum v minulosti)
+                  const raceDate = new Date(race.datum);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const isPast = raceDate < today;
+                  
+                  // Určíme text a ikonu tlačítka
+                  let buttonText, buttonIcon, buttonClass;
+                  if (isPast) {
+                    buttonText = 'Výsledky';
+                    buttonIcon = 'bi-trophy';
+                    buttonClass = 'btn-secondary';
+                  } else if (race.registration) {
+                    buttonText = 'Registrace';
+                    buttonIcon = 'bi-pencil-square';
+                    buttonClass = 'btn-primary';
+                  } else {
+                    buttonText = 'Detail';
+                    buttonIcon = 'bi-info-circle';
+                    buttonClass = 'btn-primary';
+                  }
+                  
+                  return (
+                    <div key={race.id} className="col-md-6 col-lg-4">
+                      <div className="card h-100 race-card shadow-sm">
+                        <div className="card-body d-flex flex-column">
+                          <h6 className="card-title text-primary">
+                            <i className="bi bi-geo-alt-fill me-2"></i>
+                            {race.areal_name}
+                          </h6>
+                          <p className="card-text mb-2">
+                            <i className="bi bi-calendar3 me-2"></i>
+                            {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          </p>
+                          <p className="card-text mb-2 text-muted">
+                            <i className="bi bi-building me-2"></i>
+                            <small>{race.organizer_name}</small>
+                          </p>
+                          <div className="mb-2">
+                            {race.proposition && (
+                              <a 
+                                href={`${API}/races/${race.id}/proposition`}
+                                target="_blank"
+                                rel="noopener noreferrer" 
+                                className="btn btn-sm btn-outline-primary me-2"
+                                title="Stáhnout propozice"
+                              >
+                                <i className="bi bi-file-earmark-text"></i>
+                              </a>
                             )}
-                          </Link>
+                            {race.result && (
+                              <a 
+                                href={`${API}/races/${race.id}/results`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-sm btn-outline-success"
+                                title="Stáhnout výsledky"
+                              >
+                                <i className="bi bi-file-earmark-check"></i>
+                              </a>
+                            )}
+                          </div>
+                          <div className="mb-3">
+                            {isPast ? (
+                              <span className="badge bg-secondary">
+                                Závod ukončen
+                              </span>
+                            ) : (
+                              <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
+                                <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
+                                Registrace {race.registration ? 'otevřena' : 'uzavřena'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-auto">
+                            <Link 
+                              to={`/zavod/${race.id}`}
+                              className={`btn ${buttonClass} w-100 text-decoration-none`}
+                            >
+                              <i className={`bi ${buttonIcon} me-2`}></i>
+                              {buttonText}
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

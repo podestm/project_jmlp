@@ -53,7 +53,7 @@ def admin_get_all_season_results(
     return season_results
 
 
-@router.post("/", response_model=schemas.SeasonResult)
+@router.post("", response_model=schemas.SeasonResult)
 def admin_create_season_result(
     season_result: schemas.SeasonResultCreate,
     db: Session = Depends(get_db),
@@ -111,6 +111,7 @@ def admin_create_season_result(
         "season_year_start": season_result_obj.season_year_start,
         "season_year_end": season_result_obj.season_year_end,
         "document_id": season_result_obj.document_id,
+        "final_results": season_result_obj.final_results,
         "created_at": season_result_obj.created_at,
         "updated_at": season_result_obj.updated_at,
         "document_filename": result[1],

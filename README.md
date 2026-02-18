@@ -82,8 +82,8 @@ Databáze se při prvním startu naplní podle `db/init_exact.sql`.
 1) Připravte `.env` se silnými hodnotami (viz níže) a doménami.
 
 ```bash
-docker compose -f docker-compose.prod.yml build
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.server.yml build
+docker compose -f docker-compose.server.yml up -d
 ```
 
 Po nasazení ihned změňte admin heslo.
@@ -92,9 +92,9 @@ Po nasazení ihned změňte admin heslo.
 
 | Komponenta | Development | Production |
 |---|---|---|
-| Frontend | Vite (3000) | Nginx (80) |
-| Backend | 1 worker | 4 workers, non-root |
-| DB | Port 3307 exposed | internal only |
+| Frontend | Vite (3000) | Nginx (8080 host / 80 container) |
+| Backend | 1 worker | 2 workers, non-root |
+| DB | Port 3307 exposed | 3307 bound to localhost only |
 | Volumes | source bind | data-only |
 | Security headers | základní | zapnuté |
 
@@ -108,7 +108,7 @@ Příklad klíčů:
 # Backend
 DATABASE_URL=mysql+pymysql://app:app@db:3306/jmlpcz?charset=utf8mb4
 SECRET_KEY=<silný klíč>
-CORS_ORIGINS=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000,http://localhost:8080
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Frontend
@@ -123,9 +123,9 @@ MYSQL_PASSWORD=<min 16 znaků>
 
 ## Docker služby a porty
 
-- Frontend: 3000 (dev) / 80 (prod přes Nginx)
-- Backend: 8000
-- MySQL: 3307 (dev z hosta), interně 3306
+- Frontend: 3000 (dev) / 8080 (prod přes Nginx)
+- Backend: 8000 (dev), interně 8000 (prod)
+- MySQL: 3307 (dev z hosta), 3307 pouze localhost (prod)
 
 Zdraví kontejneru ověříte přes `docker ps` a healthchecky.
 
@@ -148,7 +148,7 @@ docker exec -it jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz
 
 ## Soubory a úložiště dokumentů
 
-- Volume: `jmlp_documents_data`
+- Volume: `documents_data` (v Dockeru obvykle `jmlp_documents_data`)
 - Mount v backendu: `/app/uploads/documents/`
 - Ukládání: UUID názvy, metadata v DB
 
@@ -156,13 +156,13 @@ Statistiky úložiště (přes admin API používající `file_size` z DB):
 
 ```bash
 # získej token
-TOKEN=$(curl -s -X POST http://localhost:8080/admin/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:8080/api/admin/auth/login \
    -H "Content-Type: application/json" \
    -d '{"email":"admin@jmlp.cz","password":"admin123"}' \
    | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
 curl -H "Authorization: Bearer $TOKEN" \
-   "http://localhost:8080/admin/files/storage-stats" | python3 -m json.tool
+  "http://localhost:8080/api/admin/files/storage-stats" | python3 -m json.tool
 ```
 
 ---
@@ -197,7 +197,7 @@ from app.models import AdminUser
 db = SessionLocal()
 admin = db.query(AdminUser).filter(AdminUser.email == 'admin@jmlp.cz').first()
 if admin:
-    admin.hashed_password = get_password_hash('NOVE_SILNE_HESLO')
+    admin.password_hash = get_password_hash('NOVE_SILNE_HESLO')
     db.commit()
     print('✅ Heslo změněno!')
 db.close()
@@ -215,7 +215,7 @@ print(get_password_hash('NOVE_SILNE_HESLO'))
 
 # Poté aktualizujte v databázi
 docker exec -i jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz \
-  -e "UPDATE fuj_jmlp_admin SET hashed_password = 'VYGENEROVANY_HASH' WHERE email = 'admin@jmlp.cz';"
+  -e "UPDATE fuj_jmlp_admin SET password_hash = 'VYGENEROVANY_HASH' WHERE email = 'admin@jmlp.cz';"
 ```
 
 ### JWT konfigurace
@@ -227,8 +227,8 @@ docker exec -i jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz \
 
 ### Bezpečnostní opatření
 
-- **Hesla**: Bcrypt hash s 12 rounds
-- **Token invalidace**: Restart backendu zneplatní všechny aktivní tokeny
+- **Hesla**: `werkzeug.security` (PBKDF2)
+- **Token invalidace**: Tokeny jsou stateless (expirace nebo změna `SECRET_KEY`)
 - **CORS**: Omezeno na povolené domény (nastavit `CORS_ORIGINS` v produkci)
 
 ---
@@ -253,7 +253,7 @@ Používejte připravené skripty nebo manuální příkazy:
 ```bash
 # Pomocí skriptu (doporučeno)
 cd /opt/jmlp
-./restart-backend.sh
+./rebuild.sh backend
 
 # Nebo manuálně
 docker stop jmlp-backend
@@ -267,7 +267,7 @@ docker-compose -f docker-compose.server.yml up -d backend
 ```bash
 # Pomocí skriptu (doporučeno)
 cd /opt/jmlp
-./restart-frontend.sh
+./rebuild.sh frontend
 
 # Nebo manuálně
 docker stop jmlp-frontend
@@ -323,14 +323,14 @@ sudo ls -la /var/lib/docker/volumes/jmlp_documents_data/_data/
 
 ```bash
 # 1. Získat JWT token
-TOKEN=$(curl -s -X POST http://localhost:8080/admin/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:8080/api/admin/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@jmlp.cz","password":"admin123"}' \
   | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
 
 # 2. Zjistit velikost úložiště
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/admin/files/storage-stats" | python3 -m json.tool
+  "http://localhost:8080/api/admin/files/storage-stats" | python3 -m json.tool
 ```
 
 **Poznámka:** Storage stats endpoint používá `file_size` z databáze, takže funguje i když soubory fyzicky chybí.
@@ -364,11 +364,12 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ### Přehled restart skriptů
 
-Projekt obsahuje připravené skripty pro bezpečný restart bez ztráty dat:
+Projekt obsahuje `rebuild.sh` pro bezpečný rebuild bez ztráty dat:
 
 ```bash
-./restart-backend.sh   # Rebuild a restart backendu
-./restart-frontend.sh  # Rebuild a restart frontendu
+./rebuild.sh            # Rebuild všech služeb
+./rebuild.sh backend    # Pouze backend
+./rebuild.sh frontend   # Pouze frontend
 ```
 
 ### Kdy restartovat
@@ -387,7 +388,7 @@ docker exec jmlp-db mysqldump -uroot -p$MYSQL_ROOT_PASSWORD jmlpcz > backup_$(da
 # 2. Proveďte změny v kódu
 
 # 3. Rebuild a restart (podle komponenty)
-./restart-backend.sh   # nebo ./restart-frontend.sh
+./rebuild.sh backend   # nebo ./rebuild.sh frontend
 
 # 4. Ověření
 docker ps              # Zkontrolovat health status
@@ -582,11 +583,15 @@ Dashboard v admin rozhraní (`/admin`) zobrazuje:
 ### API monitoring
 
 ```bash
-# Testování backend health
+# Testování backend health (dev)
 curl http://localhost:8000/health
 
+# Testování backend health (server přes Nginx)
+curl http://localhost:8080/health
+
 # API dokumentace
-open http://localhost:8000/docs  # nebo browse ručně
+open http://localhost:8000/docs  # dev
+open http://localhost:8080/docs  # server přes Nginx
 ```
 
 ### Nginx konfigurace (produkce)
@@ -607,7 +612,7 @@ docker logs jmlp-backend --tail 1000 | grep "401\|403"
 
 # Zkontrolovat failed login attempts
 docker exec -i jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz \
-  -e "SELECT * FROM fuj_jmlp_visitor_log WHERE path = '/admin/auth/login' ORDER BY visited_at DESC LIMIT 50;"
+  -e "SELECT * FROM fuj_jmlp_visitor_log WHERE path = '/api/admin/auth/login' ORDER BY visited_at DESC LIMIT 50;"
 
 # Zkontrolovat admin přístupy
 docker logs jmlp-backend | grep "admin"
@@ -619,16 +624,26 @@ docker logs jmlp-backend | grep "admin"
 
 Veřejné API:
 - GET `/races/`, `/races/{id}`, `/races/{id}/registrations`, `/races/{id}/club-stats`
-- GET `/racers/`, `/clubs/`
-- POST `/racers/`, `/registrations/`
-- GET `/posts/`
+- GET `/races/season/current`, `/races/season/calculate?race_date=YYYY-MM-DD`
+- GET `/racers/`, `/racers/search`
+- GET `/clubs/`
+- GET `/posts/`, `/posts/{id}`, `/posts/{id}/image`, `/posts/{id}/document/download`
+- POST `/registrations/`
+- GET `/season-results/`, `/season-results/current`, `/season-results/{start}/{end}`
+- POST `/visitor-log`
+- GET `/uploads/documents/{filename}`
 
-Admin API (`/admin`):
-- POST `/admin/login`
-- GET `/admin/races/`, `/admin/races/{id}/registrations`, export CSV, upload dokumentů
-- GET `/admin/posts/`, `/admin/documents/`, `/admin/racers/`
+Admin API (`/api/admin`):
+- POST `/api/admin/auth/login`
+- GET `/api/admin/auth/me`
+- POST `/api/admin/auth/register`
+- CRUD `/api/admin/races`, `/api/admin/racers`, `/api/admin/posts`
+- Files `/api/admin/files/*`
+- Categories `/api/admin/categories/*`
+- Season results `/api/admin/season-results/*`
+- Analytics `/api/admin/analytics/*`, `/api/admin/stats/*`
 
-Swagger UI: `http://localhost:8000/docs`
+Swagger UI: `http://localhost:8000/docs` (dev), `http://localhost:8080/docs` (server)
 
 ---
 
@@ -636,9 +651,12 @@ Swagger UI: `http://localhost:8000/docs`
 
 Veřejné stránky:
 - `/` – homepage (aktuality + nadcházející závody)
-- `/terminovka` – přehled závodů
+- `/registrace` – přehled aktuálních závodů
+- `/vysledky` – archiv závodů
+- `/archiv-zprav` – archiv aktualit
+- `/dokumenty` – dokumenty ke stažení
+- `/kontakty` – kontakty
 - `/zavod/:id` – detail závodu
-- `/archiv` – archiv závodů / zpráv
 
 Admin rozhraní: `/admin` (React Router, JWT v LocalStorage, chráněné routy).
 
@@ -719,7 +737,8 @@ docker logs jmlp-backend --tail 100
 curl http://localhost:8000/health
 
 # Zkontrolovat DB připojení
-docker exec jmlp-backend python -c "from app.database import engine; print(engine.execute('SELECT 1').scalar())"
+docker exec jmlp-backend python -c "from sqlalchemy import text; from app.database import engine; \
+  conn = engine.connect(); print(conn.execute(text('SELECT 1')).scalar()); conn.close()"
 ```
 
 #### ImportError nebo ModuleNotFoundError
@@ -881,7 +900,7 @@ from app.models import AdminUser
 db = SessionLocal()
 admin = db.query(AdminUser).filter(AdminUser.email == 'admin@jmlp.cz').first()
 if admin:
-    admin.hashed_password = get_password_hash('NOVE_SILNE_HESLO')
+  admin.password_hash = get_password_hash('NOVE_SILNE_HESLO')
     db.commit()
     print('✅ Heslo změněno!')
 db.close()
@@ -911,7 +930,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 CORS_ORIGINS=https://vase-domena.cz
 
 # Frontend
-VITE_API_BASE=https://vase-domena.cz/api
+VITE_API_BASE=https://vase-domena.cz
 ```
 
 **Generování bezpečných hesel:**
@@ -966,10 +985,10 @@ sudo certbot renew --dry-run
 - **Algorithm:** HS256
 - **Secret key:** Z environment variable (NIKDY v kódu!)
 - **Storage:** Client-side localStorage
-- **Invalidace:** Restart backendu zneplatní všechny tokeny
+- **Invalidace:** Tokeny expirují nebo se zneplatní změnou `SECRET_KEY`
 
 #### Databázová bezpečnost
-- **Hesla:** Bcrypt hash (12 rounds)
+- **Hesla:** `werkzeug.security` (PBKDF2)
 - **MySQL user:** Omezená práva (ne root v produkci)
 - **Port binding:** `127.0.0.1:3307` (pouze localhost v dev)
 - **SQL Injection:** Parametrizované dotazy (SQLAlchemy/PyMySQL)
@@ -1086,7 +1105,7 @@ chmod +x /opt/jmlp/backup_database.sh
 sudo systemctl restart docker
 
 # Zobrazení logů
-docker-compose -f docker-compose.prod.yml logs --follow --tail 100
+docker-compose -f docker-compose.server.yml logs --follow --tail 100
 ```
 
 ### 🔍 Security Audit
@@ -1139,10 +1158,10 @@ docker logs jmlp-backend --tail 1000 | grep "401\|403"
 
 # 2. Zkontrolovat failed login attempts
 docker exec -i jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz \
-  -e "SELECT * FROM fuj_jmlp_visitor_log WHERE path = '/admin/auth/login' ORDER BY visited_at DESC LIMIT 50;"
+  -e "SELECT * FROM fuj_jmlp_visitor_log WHERE path = '/api/admin/auth/login' ORDER BY visited_at DESC LIMIT 50;"
 
 # 3. Zkontrolovat admin přístupy
-docker logs jmlp-backend | grep "admin" | grep -v "GET /admin/auth/check"
+docker logs jmlp-backend | grep "admin" | grep -v "GET /api/admin/auth/me"
 
 # 4. Zkontrolovat změny v databázi
 docker exec -i jmlp-db mysql -u root -p$MYSQL_ROOT_PASSWORD jmlpcz \
@@ -1278,13 +1297,11 @@ Pro nahlášení bezpečnostního problému:
 #### Implementace
 ```python
 # backend/app/utils.py
-def get_current_season() -> int:
-    """Returns current racing season year (August-July)"""
-    today = date.today()
-    if today.month >= 8:  # Aug-Dec
-        return today.year
-    else:  # Jan-Jul
-        return today.year - 1
+def get_current_season_id(reference_date: Optional[date] = None) -> int:
+  """Vrací season_id (rok, kdy sezóna končí)."""
+  if reference_date is None:
+    reference_date = date.today()
+  return reference_date.year + 1 if reference_date.month >= 8 else reference_date.year
 ```
 
 #### Použití
@@ -1299,9 +1316,12 @@ Veškeré veřejné routy jsou v češtině:
 | Route | Význam | Komponenta |
 |-------|--------|------------|
 | `/` | Homepage | `Homepage.jsx` |
-| `/terminovka` | Rozpis závodů | `RaceList.jsx` |
+| `/registrace` | Přehled závodů | `RaceList.jsx` |
+| `/vysledky` | Archiv závodů | `Archive.jsx` |
+| `/archiv-zprav` | Archiv aktualit | `NewsArchive.jsx` |
+| `/dokumenty` | Dokumenty | `Documents.jsx` |
+| `/kontakty` | Kontakty | `Contacts.jsx` |
 | `/zavod/:id` | Detail závodu | `RaceDetail.jsx` |
-| `/archiv` | Archiv | `Archive.jsx` |
 | `/admin` | Admin rozhraní | `AdminDashboard.jsx` |
 
 ### CSV Export Specifics
@@ -1331,7 +1351,7 @@ ALLOWED_EXTENSIONS = {
 
 #### Storage Path
 - **Container:** `/app/uploads/documents/`
-- **Volume:** `jmlp_documents_data`
+- **Volume:** `documents_data` (Docker obvykle `jmlp_documents_data`)
 - **Host:** `/var/lib/docker/volumes/jmlp_documents_data/_data/`
 
 #### Metadata
@@ -1344,7 +1364,7 @@ file_size INT
 mime_type VARCHAR(100)
 uploaded_at DATETIME
 race_id BIGINT              -- FK to fuj_jmlp_race
-file_type ENUM('proposition', 'result', 'other')
+file_type ENUM('document', 'image', 'propozice', 'vysledky', 'posty', 'neprirazene')
 ```
 
 ### API Versioning Strategy
@@ -1378,9 +1398,9 @@ file_type ENUM('proposition', 'result', 'other')
    - Manual cascade deletes required
 
 2. **JWT Invalidation**
-   - No token blacklist
-   - Restart backend to invalidate all tokens
-   - Tokens valid until expiration (30 min)
+  - No token blacklist
+  - Tokeny jsou stateless (expirace nebo změna `SECRET_KEY`)
+  - Tokens valid until expiration (default 30 min)
 
 3. **File Upload**
    - No virus scanning
@@ -1403,7 +1423,7 @@ file_type ENUM('proposition', 'result', 'other')
 1. Export from phpMyAdmin (XML format)
 2. Convert to SQL with proper UTF8MB4 encoding
 3. Import via `db/init_exact.sql`
-4. Run encoding fixes: `backend/fix_charset.py`
+4. Případné encoding fixy řešit SQL konverzí (viz `utils.convert_utf8_field`)
 
 #### Document Migration
 1. Copy files from old server to Docker volume
@@ -1424,14 +1444,14 @@ file_type ENUM('proposition', 'result', 'other')
 ### Pro administrátory
 
 - **Admin přístup:** `https://vase-domena.cz/admin`
-- **API dokumentace:** `https://vase-domena.cz/api/docs`
+- **API dokumentace:** `https://vase-domena.cz/docs`
 - **Support email:** admin@jmlp.cz
 
 ### Pro AI asistenty
 
 - **Context:** `.github/copilot-instructions.md`
 - **Guidelines:** Tento README (single source of truth)
-- **Code style:** Python Black, ESLint (React)
+- **Code style:** Zachovat stávající styl projektu (bez vynuceného formatteru)
 
 ---
 
@@ -1448,6 +1468,6 @@ Pro AI asistenty existuje detailní kontext v `.github/copilot-instructions.md`,
 
 ---
 
-**Poslední aktualizace:** Říjen 2025  
-**Verze:** 1.0  
+**Poslední aktualizace:** Únor 2026  
+**Verze:** 1.1  
 **Status:** Production Ready

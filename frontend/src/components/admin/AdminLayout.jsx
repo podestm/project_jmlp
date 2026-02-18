@@ -76,7 +76,7 @@ export default function AdminLayout({ children }) {
             </Link>
             <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
               <i className="bi bi-tag me-2"></i>
-              Kategorie (ve vývoji)
+              Kategorie
             </Link>
             
             <hr className="border-secondary my-3" />

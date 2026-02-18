@@ -360,79 +360,116 @@ function Homepage() {
                 </p>
               ) : (
                 <div className="list-group list-group-flush">
-                  {upcomingRaces.map((race, index) => (
-                    <div 
-                      key={race.id} 
-                      className="list-group-item py-3"
-                      style={{
-                        borderLeft: 'none',
-                        paddingLeft: '1rem',
-                        paddingRight: '0',
-                        marginLeft: '0.5rem',
-                        borderTop: index === 0 ? 'none' : undefined,
-                        borderRight: 'none',
-                        borderBottom: index === upcomingRaces.length - 1 ? 'none' : undefined,
-                        transition: 'background-color 0.2s ease',
-                        background: 'transparent'
-                      }}
-                    >
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <div className="flex-grow-1 d-flex align-items-start">
-                          {/* Status tečka */}
-                          <span 
-                            style={{
-                              width: '12px',
-                              height: '12px',
-                              borderRadius: '50%',
-                              backgroundColor: race.registration ? '#10b981' : '#ef4444',
-                              marginRight: '12px',
-                              marginTop: '4px',
-                              flexShrink: 0
-                            }}
-                            title={race.registration ? 'Registrace otevřena' : 'Registrace uzavřena'}
-                          />
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                              <h6 className="mb-0 fw-bold" style={{ color: 'var(--text-primary)' }}>
-                                {race.areal_name || 'Závod'}
-                              </h6>
-                              {/* Ikona podle typu závodu (raceMethod_id: 1=sníh, 2=sucho) */}
-                              {race.raceMethod_id && (
-                                <span 
-                                  style={{ 
-                                    fontSize: '1.5rem',
-                                    lineHeight: '1'
-                                  }}
-                                  title={race.raceMethod_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}
-                                >
-                                  {race.raceMethod_id === 1 ? '❄️' : '🌲'}
-                                </span>
-                              )}
+                  {upcomingRaces.map((race, index) => {
+                    // Zjistíme, jestli se závod už jel (datum v minulosti)
+                    const raceDate = new Date(race.datum);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const isPast = raceDate < today;
+                    
+                    // Určíme text a ikonu tlačítka
+                    let buttonText, buttonIcon;
+                    if (isPast) {
+                      buttonText = 'Výsledky';
+                      buttonIcon = 'bi-trophy';
+                    } else if (race.registration) {
+                      buttonText = 'Registrace';
+                      buttonIcon = 'bi-pencil-square';
+                    } else {
+                      buttonText = 'Detail';
+                      buttonIcon = 'bi-info-circle';
+                    }
+                    
+                    return (
+                      <div 
+                        key={race.id} 
+                        className="list-group-item py-3"
+                        style={{
+                          borderLeft: 'none',
+                          paddingLeft: '1rem',
+                          paddingRight: '0',
+                          marginLeft: '0.5rem',
+                          borderTop: index === 0 ? 'none' : undefined,
+                          borderRight: 'none',
+                          borderBottom: index === upcomingRaces.length - 1 ? 'none' : undefined,
+                          transition: 'background-color 0.2s ease',
+                          background: 'transparent'
+                        }}
+                      >
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <div className="flex-grow-1 d-flex align-items-start">
+                            {/* Status tečka - šedá pro odjeté, zelená pro otevřenou reg., červená pro zavřenou */}
+                            <span 
+                              style={{
+                                width: '12px',
+                                height: '12px',
+                                borderRadius: '50%',
+                                backgroundColor: isPast ? '#6b7280' : (race.registration ? '#10b981' : '#ef4444'),
+                                marginRight: '12px',
+                                marginTop: '4px',
+                                flexShrink: 0
+                              }}
+                              title={isPast ? 'Závod proběhl' : (race.registration ? 'Registrace otevřena' : 'Registrace uzavřena')}
+                            />
+                            <div className="flex-grow-1">
+                              <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <h6 className="mb-0 fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                  {race.areal_name || 'Závod'}
+                                </h6>
+                                {/* Ikona podle typu závodu (raceMethod_id: 1=sníh, 2=sucho) */}
+                                {race.raceMethod_id && (
+                                  <span 
+                                    style={{ 
+                                      fontSize: '1.5rem',
+                                      lineHeight: '1'
+                                    }}
+                                    title={race.raceMethod_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}
+                                  >
+                                    {race.raceMethod_id === 1 ? '❄️' : '🌲'}
+                                  </span>
+                                )}
+                                {/* Badge pro ukončený závod */}
+                                {isPast && (
+                                  <span 
+                                    className="badge"
+                                    style={{
+                                      backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                                      color: '#9ca3af',
+                                      fontSize: '0.7rem',
+                                      fontWeight: '500',
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '4px'
+                                    }}
+                                  >
+                                    Závod ukončen
+                                  </span>
+                                )}
+                              </div>
+                              <small className="text-muted">
+                                <span className="bi bi-calendar3 me-2"></span>
+                                {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </small>
                             </div>
-                            <small className="text-muted">
-                              <span className="bi bi-calendar3 me-2"></span>
-                              {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                            </small>
                           </div>
                         </div>
+                        <div className="mt-2 ms-4">
+                          <Link 
+                            to={`/zavod/${race.id}`}
+                            className={`btn btn-sm text-decoration-none ${isPast ? 'btn-secondary' : 'btn-primary'}`}
+                            style={{
+                              borderRadius: '6px',
+                              fontSize: '0.875rem',
+                              padding: '0.375rem 0.75rem',
+                              fontWeight: '500'
+                            }}
+                          >
+                            <span className={`bi ${buttonIcon} me-1`}></span>
+                            {buttonText}
+                          </Link>
+                        </div>
                       </div>
-                      <div className="mt-2 ms-4">
-                        <Link 
-                          to={`/zavod/${race.id}`}
-                          className="btn btn-sm btn-primary text-decoration-none"
-                          style={{
-                            borderRadius: '6px',
-                            fontSize: '0.875rem',
-                            padding: '0.375rem 0.75rem',
-                            fontWeight: '500'
-                          }}
-                        >
-                          <span className={`bi ${race.registration ? 'bi-pencil-square' : 'bi-info-circle'} me-1`}></span>
-                          {race.registration ? 'Registrace' : 'Detail'}
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               
