@@ -2,11 +2,12 @@ import os
 import uuid
 import shutil
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from ...database import get_db
 from ... import models, schemas, auth
@@ -22,6 +23,193 @@ ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".jpg", ".jpeg", ".png", 
 
 
 # ============================================================================
+# FOLDER MANAGEMENT (uses fuj_jmlp_folders table)
+# ============================================================================
+
+@router.get("/folders")
+def get_folders(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Get all folders with file counts."""
+    # Get all folders from the folders table
+    all_folders = db.query(models.Folder).order_by(models.Folder.name).all()
+    
+    # Get file counts per folder name
+    file_counts = dict(
+        db.query(
+            models.File.folder,
+            func.count(models.File.id)
+        )
+        .filter(models.File.folder.isnot(None), models.File.folder != "")
+        .group_by(models.File.folder)
+        .all()
+    )
+    
+    folders = [
+        {"id": f.id, "name": f.name, "file_count": file_counts.get(f.name, 0)}
+        for f in all_folders
+    ]
+    
+    # Count files without folder
+    unassigned_count = (
+        db.query(func.count(models.File.id))
+        .filter((models.File.folder == None) | (models.File.folder == ""))
+        .scalar()
+    )
+    
+    total_count = db.query(func.count(models.File.id)).scalar()
+    
+    return {
+        "folders": folders,
+        "unassigned_count": unassigned_count,
+        "total_count": total_count
+    }
+
+
+@router.post("/folders")
+def create_folder(
+    name: str = Form(...),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Create a new folder."""
+    name = name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Název složky nesmí být prázdný")
+    
+    # Check if folder already exists in the table
+    existing = db.query(models.Folder).filter(models.Folder.name == name).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Složka s tímto názvem již existuje")
+    
+    folder = models.Folder(name=name)
+    db.add(folder)
+    db.commit()
+    db.refresh(folder)
+    
+    return {"message": f"Složka '{name}' vytvořena", "id": folder.id, "name": folder.name}
+
+
+@router.post("/folders/rename")
+def rename_folder(
+    name: str = Form(...),
+    new_name: str = Form(...),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Rename a folder (updates folder table + all files in it)."""
+    new_name = new_name.strip()
+    name = name.strip()
+    if not new_name:
+        raise HTTPException(status_code=400, detail="Nový název nesmí být prázdný")
+    
+    folder = db.query(models.Folder).filter(models.Folder.name == name).first()
+    if not folder:
+        raise HTTPException(status_code=404, detail="Složka nenalezena")
+    
+    # Check if new name already exists
+    if db.query(models.Folder).filter(models.Folder.name == new_name).first():
+        raise HTTPException(status_code=400, detail="Složka s tímto názvem již existuje")
+    
+    # Update folder table
+    folder.name = new_name
+    
+    # Update all files in this folder
+    files = db.query(models.File).filter(models.File.folder == name).all()
+    for f in files:
+        f.folder = new_name
+    
+    db.commit()
+    
+    return {"message": f"Složka přejmenována na '{new_name}'", "affected_files": len(files)}
+
+
+@router.delete("/folders")
+def delete_folder(
+    name: str = Query(..., description="Folder name to delete"),
+    delete_files: bool = Query(False, description="Also delete all files in the folder"),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Remove folder. Optionally delete all files in it."""
+    folder = db.query(models.Folder).filter(models.Folder.name == name).first()
+    if not folder:
+        raise HTTPException(status_code=404, detail="Složka nenalezena")
+    
+    files = db.query(models.File).filter(models.File.folder == name).all()
+    
+    if delete_files:
+        # Delete files from filesystem and DB
+        for f in files:
+            try:
+                if os.path.exists(f.file_path):
+                    os.remove(f.file_path)
+            except Exception as e:
+                print(f"Warning: Could not delete file {f.file_path}: {e}")
+            db.delete(f)
+        msg = f"Složka '{name}' odstraněna, {len(files)} souborů smazáno"
+    else:
+        # Just unassign files
+        for f in files:
+            f.folder = None
+        msg = f"Složka '{name}' odstraněna, {len(files)} souborů přesunuto do Nepřiřazené"
+    
+    db.delete(folder)
+    db.commit()
+    
+    return {"message": msg}
+
+
+@router.post("/files/{file_id}/move")
+def move_file_to_folder(
+    file_id: int,
+    folder: Optional[str] = Form(None),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Move a file to a different folder (or remove from folder)."""
+    file_obj = db.query(models.File).filter(models.File.id == file_id).first()
+    if not file_obj:
+        raise HTTPException(status_code=404, detail="Soubor nenalezen")
+    
+    file_obj.folder = folder.strip() if folder and folder.strip() else None
+    db.commit()
+    
+    return {"message": "Soubor přesunut", "folder": file_obj.folder}
+
+
+@router.post("/files/batch-move")
+def batch_move_files(
+    file_ids: str = Form(...),
+    folder: Optional[str] = Form(None),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Move multiple files to a folder at once. file_ids is comma-separated."""
+    try:
+        ids = [int(x.strip()) for x in file_ids.split(",") if x.strip()]
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Neplatný formát ID souborů")
+    
+    if not ids:
+        raise HTTPException(status_code=400, detail="Žádné soubory k přesunu")
+    
+    target_folder = folder.strip() if folder and folder.strip() else None
+    
+    files = db.query(models.File).filter(models.File.id.in_(ids)).all()
+    for f in files:
+        f.folder = target_folder
+    db.commit()
+    
+    return {
+        "message": f"{len(files)} souborů přesunuto",
+        "folder": target_folder,
+        "moved_count": len(files)
+    }
+
+
+# ============================================================================
 # ACTIVE FILE MANAGEMENT ENDPOINTS (fuj_jmlp_files table)
 # ============================================================================
 
@@ -29,10 +217,11 @@ ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".jpg", ".jpeg", ".png", 
 async def upload_file(
     file: UploadFile = File(...),
     file_type: str = Form("neprirazene"),
+    folder: str = Form(None),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Upload a general file."""
+    """Upload a general file, optionally into a folder."""
     # Validate file
     if file.size > MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="Soubor je příliš velký (max 10MB)")
@@ -75,6 +264,7 @@ async def upload_file(
         file_size=actual_file_size,
         mime_type=file.content_type,
         file_type=file_type_enum,
+        folder=folder.strip() if folder and folder.strip() else None,
         uploaded_by=current_admin.id
     )
     
@@ -86,7 +276,9 @@ async def upload_file(
         "message": "Soubor úspěšně nahrán", 
         "file_id": file_record.id,
         "original_filename": file_record.original_filename,
-        "filename": file_record.filename
+        "filename": file_record.filename,
+        "file_type": file_record.file_type.value if file_record.file_type else "neprirazene",
+        "folder": file_record.folder
     }
 
 
@@ -161,6 +353,7 @@ def get_files(
             "file_size": file_obj.file_size,
             "mime_type": file_obj.mime_type,
             "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene",
+            "folder": file_obj.folder,
             "uploaded_at": file_obj.uploaded_at,
             "uploaded_by": file_obj.uploaded_by,
             "usage_info": usage_info
@@ -184,7 +377,8 @@ def get_files_for_race(
         result.append({
             "id": file_obj.id,
             "original_name": file_obj.original_filename,
-            "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene"
+            "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene",
+            "folder": file_obj.folder
         })
     
     return result

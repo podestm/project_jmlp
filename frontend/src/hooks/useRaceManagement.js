@@ -276,6 +276,42 @@ export const useRaceManagement = () => {
         setResultsSuggestions([]);
     };
 
+    // Inline file upload handler for race form
+    const handleInlineUpload = async (file, type) => {
+        // type = 'proposition' or 'results'
+        if (!file) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('file_type', type === 'proposition' ? 'propozice' : 'vysledky');
+
+            const result = await AdminAPI.upload('/api/admin/files/upload', formData);
+
+            // Create a doc object matching the format used by select functions
+            const doc = {
+                id: result.file_id,
+                original_filename: result.original_filename,
+                file_type: result.file_type || (type === 'proposition' ? 'propozice' : 'vysledky')
+            };
+
+            // Auto-select the uploaded document
+            if (type === 'proposition') {
+                selectPropositionDocument(doc);
+            } else {
+                selectResultsDocument(doc);
+            }
+
+            // Refresh documents list
+            await loadDocuments();
+
+            return { success: true, filename: result.original_filename };
+        } catch (err) {
+            console.error('Inline upload error:', err);
+            throw err;
+        }
+    };
+
     // CRUD operations
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -533,6 +569,7 @@ export const useRaceManagement = () => {
         selectResultsDocument,
         clearPropositionDocument,
         clearResultsDocument,
+        handleInlineUpload,
         generateRaceNumberLocal,
         handleSubmit,
         resetForm,

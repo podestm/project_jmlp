@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 const RaceForm = ({ 
     showForm,
@@ -30,11 +30,31 @@ const RaceForm = ({
     selectResultsDocument,
     clearPropositionDocument,
     clearResultsDocument,
+    handleInlineUpload,
     generateRaceNumberLocal,
     handleSubmit,
     resetForm
 }) => {
+    const [uploadingProposition, setUploadingProposition] = useState(false);
+    const [uploadingResults, setUploadingResults] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
+    const propositionFileRef = useRef(null);
+    const resultsFileRef = useRef(null);
+
     if (!showForm) return null;
+
+    const onInlineUpload = async (file, type) => {
+        const setUploading = type === 'proposition' ? setUploadingProposition : setUploadingResults;
+        setUploading(true);
+        setUploadError(null);
+        try {
+            await handleInlineUpload(file, type);
+        } catch (err) {
+            setUploadError(err.message || 'Chyba při nahrávání souboru');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     return (
         <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
@@ -191,6 +211,11 @@ const RaceForm = ({
                                             Spravovat dokumenty
                                         </a>
                                     </div>
+                                    {uploadError && (
+                                        <div className="alert alert-danger alert-sm py-1 px-2 mb-2" role="alert">
+                                            <small><i className="bi bi-exclamation-triangle me-1"></i>{uploadError}</small>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -206,6 +231,7 @@ const RaceForm = ({
                                                     value={propositionSearch}
                                                     onChange={(e) => handlePropositionSearch(e.target.value)}
                                                     placeholder="Začněte psát název dokumentu..."
+                                                    disabled={uploadingProposition}
                                                 />
                                                 {formData.proposition_file_id && (
                                                     <button
@@ -217,6 +243,28 @@ const RaceForm = ({
                                                         <i className="bi bi-x-lg"></i>
                                                     </button>
                                                 )}
+                                                <label
+                                                    className={`btn ${uploadingProposition ? 'btn-secondary' : 'btn-outline-primary'}`}
+                                                    title="Nahrát nový soubor"
+                                                >
+                                                    {uploadingProposition ? (
+                                                        <span className="spinner-border spinner-border-sm"></span>
+                                                    ) : (
+                                                        <i className="bi bi-cloud-upload"></i>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        ref={propositionFileRef}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) onInlineUpload(file, 'proposition');
+                                                            e.target.value = '';
+                                                        }}
+                                                        disabled={uploadingProposition}
+                                                        style={{ display: 'none' }}
+                                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                                    />
+                                                </label>
                                             </div>
                                             {propositionSuggestions.length > 0 && (
                                                 <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
@@ -247,7 +295,7 @@ const RaceForm = ({
                                                     Dokument vybrán
                                                 </span>
                                             ) : (
-                                                'Začněte psát pro vyhledání dokumentu'
+                                                'Vyhledejte existující nebo nahrajte nový'
                                             )}
                                         </div>
                                     </div>
@@ -263,6 +311,7 @@ const RaceForm = ({
                                                     value={resultsSearch}
                                                     onChange={(e) => handleResultsSearch(e.target.value)}
                                                     placeholder="Začněte psát název dokumentu..."
+                                                    disabled={uploadingResults}
                                                 />
                                                 {formData.results_file_id && (
                                                     <button
@@ -274,6 +323,28 @@ const RaceForm = ({
                                                         <i className="bi bi-x-lg"></i>
                                                     </button>
                                                 )}
+                                                <label
+                                                    className={`btn ${uploadingResults ? 'btn-secondary' : 'btn-outline-primary'}`}
+                                                    title="Nahrát nový soubor"
+                                                >
+                                                    {uploadingResults ? (
+                                                        <span className="spinner-border spinner-border-sm"></span>
+                                                    ) : (
+                                                        <i className="bi bi-cloud-upload"></i>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        ref={resultsFileRef}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) onInlineUpload(file, 'results');
+                                                            e.target.value = '';
+                                                        }}
+                                                        disabled={uploadingResults}
+                                                        style={{ display: 'none' }}
+                                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                                    />
+                                                </label>
                                             </div>
                                             {resultsSuggestions.length > 0 && (
                                                 <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
@@ -304,7 +375,7 @@ const RaceForm = ({
                                                     Dokument vybrán
                                                 </span>
                                             ) : (
-                                                'Začněte psát pro vyhledání dokumentu'
+                                                'Vyhledejte existující nebo nahrajte nový'
                                             )}
                                         </div>
                                     </div>

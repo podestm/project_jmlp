@@ -43,6 +43,7 @@ Thumbs.db
 .DS_Store
 
 # Secrets and sensitive files
+secret/
 secrets/
 *.key
 *.pem

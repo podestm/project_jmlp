@@ -142,8 +142,16 @@ class File(Base):
     file_size: Mapped[int] = mapped_column(BigInteger, default=0)
     mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     file_type: Mapped[FileTypeEnum] = mapped_column(Enum(FileTypeEnum), default=FileTypeEnum.neprirazene)
+    folder: Mapped[str | None] = mapped_column(String(255), nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     uploaded_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class Folder(Base):
+    __tablename__ = "fuj_jmlp_folders"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class VisitorLog(Base):

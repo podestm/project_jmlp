@@ -68,6 +68,7 @@ const RaceManagement = () => {
                         selectResultsDocument={raceManagement.selectResultsDocument}
                         clearPropositionDocument={raceManagement.clearPropositionDocument}
                         clearResultsDocument={raceManagement.clearResultsDocument}
+                        handleInlineUpload={raceManagement.handleInlineUpload}
                         generateRaceNumberLocal={raceManagement.generateRaceNumberLocal}
                         handleSubmit={raceManagement.handleSubmit}
                         resetForm={raceManagement.resetForm}

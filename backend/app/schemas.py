@@ -219,7 +219,8 @@ class FileBase(BaseModel):
     file_path: str
     file_size: int = 0
     mime_type: Optional[str] = None
-    file_type: str = "document"  # 'document' or 'image'
+    file_type: str = "document"
+    folder: Optional[str] = None
 
 
 class FileCreate(FileBase):

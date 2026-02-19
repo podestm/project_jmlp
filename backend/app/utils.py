@@ -1,127 +1,24 @@
-"""
-Utility functions used across the application.
-"""
-
 from datetime import date, datetime
 from typing import Optional
 from fastapi import HTTPException, status
 
 
 def fix_encoding(text: str) -> str:
-    """
-    Fix double-encoded UTF-8 text that appears as garbled characters.
-    Common in data migrated from systems with encoding issues.
-    
-    Args:
-        text: Potentially corrupted text
-        
-    Returns:
-        str: Fixed text with proper Czech characters
-    """
     if not text:
         return text
-        
-    try:
-        # Multiple attempts to fix encoding
-        # First attempt: standard double-encoding fix
-        if any(char in text for char in ['Ã', 'Â']):
-            try:
-                # Method 1: encode as latin1, decode as utf-8
-                fixed = text.encode('latin1').decode('utf-8')
-                return fixed
-            except (UnicodeEncodeError, UnicodeDecodeError):
-                pass
-                
-        # Manual replacement for common Czech characters that get corrupted
-        replacements = {
-            'Ã­': 'í',  # í
-            'Ã¡': 'á',  # á 
-            'Ã©': 'é',  # é
-            'Ã³': 'ó',  # ó
-            'Ãº': 'ú',  # ú
-            'Å¯': 'ů',  # ů
-            'Äâ€š': 'ě', # ě
-            'Ä›': 'ě',  # ě
-            'Å™': 'ř',  # ř
-            'Å¡': 'š',  # š
-            'Äâ€¡': 'č', # č
-            'Å¾': 'ž',  # ž
-            'Ä': 'ý',   # ý
-            'Åˆ': 'ň',  # ň
-            'Ä¯': 'ď',  # ď
-            'Å¥': 'ť',  # ť
-            'Ã': 'Í',   # Í
-            'Ã': 'Á',   # Á
-            'Ã‰': 'É',  # É
-            'VÃÂ­': 'Ví',
-            'VÃ­': 'Ví',
-            'tÃÂ¡me': 'táme',
-            'vÃÂ¡s': 'vás',
-            'novÃÂ©m': 'novém',
-            'JezernÃÂ­': 'Jezerní',
-            'MotolodnÃÂ­': 'Motolodní',
-            'ZahÃÂ¡jili': 'Zahájili',
-            'zimnÃÂ­': 'zimní',
-            'sezÃÂ³nu': 'sezónu',
-            'mÃÂ¯ÃÂ¾ete': 'můžete',
-            'jednotlivÃÂ©': 'jednotlivé',
-            'zÃÂ¡vody': 'závody',
-            'zÃÂ¡vodem': 'závodem',
-            'sekci': 'sekci',
-            'TermÃÂ­novka': 'Termínovka',
-            'NezapomeÃËte': 'Nezapomeňte',
-            'stÃÂ¡hnout': 'stáhnout',
-            'propozice': 'propozice',
-            'pÃâ¢ed': 'před',
-            # Common name fixes
-            'DvoÃ¡kovÃ¡': 'Dvořáková',
-            'DvoÃÂ¡kovÃÂ¡': 'Dvořáková', 
-            'NovÃ¡k': 'Novák',
-            'NovÃÂ¡k': 'Novák',
-            'HorÃ¡k': 'Horák',
-            'HorÃÂ¡k': 'Horák',
-            'FreedomÃ¡': 'Freedomá',
-            'SvobodÃ¡': 'Svobodá',
-            'SvobodÃÂ¡': 'Svobodá',
-            'KrejÃ­': 'Krejčí',
-            'KrejÃÂ­': 'Krejčí',
-            'MalÃ½': 'Malý',
-            'MalÃÂ½': 'Malý',
-            'StarÃ½': 'Starý',
-            'StarÃÂ½': 'Starý',
-            'KrÃ¡l': 'Král',
-            'KrÃÂ¡l': 'Král',
-            'ProcházkovÃ¡': 'Procházková',
-            'ProcházkÃÂ¡': 'Procházková'
-        }
-        
-        result = text
-        for old, new in replacements.items():
-            result = result.replace(old, new)
-            
-        return result
-        
-    except Exception:
-        # If all fixing fails, return original text
-        return text
+
+    # Check for signs of double-encoded UTF-8 (UTF-8 bytes misread as Latin-1)
+    # Common markers: Ã, Â, Å, Ä followed by other garbled bytes
+    if any(marker in text for marker in ['Ã', 'Â', 'Å', 'Ä']):
+        try:
+            return text.encode('latin1').decode('utf-8')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass
+
+    return text
 
 
 def get_current_season_id(reference_date: Optional[date] = None) -> int:
-    """
-    Dynamicky určí season_id podle data.
-    Nová sezóna začíná 1. srpna každého roku.
-    
-    Args:
-        reference_date: Datum pro určení sezóny (pokud None, použije se aktuální datum)
-    
-    Returns:
-        int: season_id (rok kdy sezóna končí)
-    
-    Příklad:
-        - 15.7.2025 -> sezóna 2025 (ještě stará sezóna)
-        - 1.8.2025 -> sezóna 2026 (nová sezóna)
-        - 15.3.2026 -> sezóna 2026 (pokračuje sezóna)
-    """
     if reference_date is None:
         reference_date = date.today()
     
@@ -138,19 +35,6 @@ def get_current_season_id(reference_date: Optional[date] = None) -> int:
 
 
 def get_current_season(reference_date: Optional[date] = None) -> dict:
-    """
-    Vrátí aktuální sezónu jako dictionary s year_start a year_end.
-    
-    Args:
-        reference_date: Datum pro určení sezóny (pokud None, použije se aktuální datum)
-    
-    Returns:
-        dict: {'year_start': int, 'year_end': int}
-    
-    Příklad:
-        - 15.7.2025 -> {'year_start': 2024, 'year_end': 2025}
-        - 1.8.2025 -> {'year_start': 2025, 'year_end': 2026}
-    """
     season_id = get_current_season_id(reference_date)
     return {
         'year_start': season_id - 1,
@@ -159,18 +43,6 @@ def get_current_season(reference_date: Optional[date] = None) -> dict:
 
 
 def parse_date_string(date_string: str) -> date:
-    """
-    Parse date string in various formats to date object.
-    
-    Args:
-        date_string: Date string in format YYYY-MM-DD
-        
-    Returns:
-        date: Parsed date object
-        
-    Raises:
-        ValueError: If date string cannot be parsed
-    """
     try:
         return datetime.strptime(date_string, "%Y-%m-%d").date()
     except ValueError as e:
@@ -178,33 +50,11 @@ def parse_date_string(date_string: str) -> date:
 
 
 def calculate_season_for_date(date_string: str) -> int:
-    """
-    Calculate season ID for given date string.
-    
-    Args:
-        date_string: Date in YYYY-MM-DD format
-        
-    Returns:
-        int: Season ID
-        
-    Raises:
-        ValueError: If date string is invalid
-    """
     race_date = parse_date_string(date_string)
     return get_current_season_id(race_date)
 
 
 def convert_utf8_field(field_name: str) -> str:
-    """
-    Generate SQL for converting text field to proper UTF-8 encoding.
-    Used for fixing legacy encoding issues with Czech characters.
-    
-    Args:
-        field_name: Name of the database field to convert
-        
-    Returns:
-        str: SQL expression for UTF-8 conversion
-    """
     return f"CONVERT(CONVERT({field_name} USING binary) USING utf8mb4)"
 
 
@@ -271,17 +121,6 @@ class StandardExceptions:
 
 
 def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
-    """
-    Přiřadí kategorii podle roku narození a pohlaví závodníka.
-    
-    Args:
-        birth_year: Rok narození závodníka
-        racer_sex: Pohlaví závodníka (1 = muž, 2 = žena)
-        db: Database session
-        
-    Returns:
-        Optional[int]: ID kategorie nebo None pokud nenalezena
-    """
     from sqlalchemy import and_, or_
     from .models import Category
     
