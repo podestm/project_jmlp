@@ -23,6 +23,16 @@ import RaceRegistrations from './components/admin/RaceRegistrations.jsx';
 import CategoryManagement from './components/admin/CategoryManagement.jsx';
 import SeasonResultsManagement from './components/admin/SeasonResultsManagement.jsx';
 
+// Timekeeper components
+import { TimekeeperAuthProvider, useTimekeeperAuth } from './config/timekeeperAuth.jsx';
+import TimekeeperLogin from './components/timekeeper/TimekeeperLogin.jsx';
+import TimekeeperLayout from './components/timekeeper/TimekeeperLayout.jsx';
+import TimekeeperDashboard from './components/timekeeper/TimekeeperDashboard.jsx';
+import StartListManager from './components/timekeeper/StartListManager.jsx';
+import TimingEntry from './components/timekeeper/TimingEntry.jsx';
+import ResultsView from './components/timekeeper/ResultsView.jsx';
+import RaceNumbersManager from './components/timekeeper/RaceNumbersManager.jsx';
+
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -42,6 +52,27 @@ const ProtectedRoute = ({ children }) => {
   }
   
   return <AdminLayout>{children}</AdminLayout>;
+};
+
+// Protected timekeeper route component
+const ProtectedTimekeeperRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useTimekeeperAuth();
+  
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border" style={{ color: '#e94560' }} role="status">
+          <span className="visually-hidden">Načítám...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <TimekeeperLogin />;
+  }
+  
+  return <TimekeeperLayout>{children}</TimekeeperLayout>;
 };
 
 // Wrapper pro tracking, který musí být uvnitř BrowserRouter
@@ -110,6 +141,37 @@ const RouterContent = () => {
             </Routes>
           } />
           
+          {/* Timekeeper routes */}
+          <Route path="/timekeeper/*" element={
+            <Routes>
+              <Route path="/" element={
+                <ProtectedTimekeeperRoute>
+                  <TimekeeperDashboard />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/start-list" element={
+                <ProtectedTimekeeperRoute>
+                  <StartListManager />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/timing" element={
+                <ProtectedTimekeeperRoute>
+                  <TimingEntry />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/results" element={
+                <ProtectedTimekeeperRoute>
+                  <ResultsView />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/race-numbers" element={
+                <ProtectedTimekeeperRoute>
+                  <RaceNumbersManager />
+                </ProtectedTimekeeperRoute>
+              } />
+            </Routes>
+          } />
+          
           {/* 404 - neznámá cesta */}
           <Route path="*" element={
             <Layout>
@@ -127,9 +189,11 @@ const RouterContent = () => {
 function AppRouter() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <RouterContent />
-      </BrowserRouter>
+      <TimekeeperAuthProvider>
+        <BrowserRouter>
+          <RouterContent />
+        </BrowserRouter>
+      </TimekeeperAuthProvider>
     </AuthProvider>
   );
 }

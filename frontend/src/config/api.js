@@ -140,6 +140,16 @@ const handleAuthError = (status) => {
   // 403 môže byť aj iný problém než neplatný token, takže nemazať token automaticky
 };
 
+// Timekeeper auth error handler
+const handleTimekeeperAuthError = (status) => {
+  if (status === 401) {
+    localStorage.removeItem('timekeeper_token');
+    if (window.location.pathname.startsWith('/timekeeper') && window.location.pathname !== '/timekeeper/login') {
+      window.location.href = '/timekeeper';
+    }
+  }
+};
+
 // Admin API with authentication
 export const AdminAPI = {
   get: async (endpoint, params = {}) => {
@@ -240,6 +250,92 @@ export const AdminAPI = {
 
     if (!response.ok) {
       handleAuthError(response.status);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+};
+
+// Timekeeper API with authentication (separate token)
+export const TimekeeperAPI = {
+  get: async (endpoint, params = {}) => {
+    const token = localStorage.getItem('timekeeper_token');
+    const url = buildUrl(endpoint, params);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...API_CONFIG.DEFAULT_HEADERS,
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      redirect: 'follow'
+    });
+
+    if (!response.ok) {
+      handleTimekeeperAuthError(response.status);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  post: async (endpoint, data = {}) => {
+    const token = localStorage.getItem('timekeeper_token');
+    const url = buildUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...API_CONFIG.DEFAULT_HEADERS,
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      body: JSON.stringify(data),
+      redirect: 'follow'
+    });
+
+    if (!response.ok) {
+      handleTimekeeperAuthError(response.status);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  put: async (endpoint, data = {}) => {
+    const token = localStorage.getItem('timekeeper_token');
+    const url = buildUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...API_CONFIG.DEFAULT_HEADERS,
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      body: JSON.stringify(data),
+      redirect: 'follow'
+    });
+
+    if (!response.ok) {
+      handleTimekeeperAuthError(response.status);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  delete: async (endpoint) => {
+    const token = localStorage.getItem('timekeeper_token');
+    const url = buildUrl(endpoint);
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        ...API_CONFIG.DEFAULT_HEADERS,
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      redirect: 'follow'
+    });
+
+    if (!response.ok) {
+      handleTimekeeperAuthError(response.status);
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 

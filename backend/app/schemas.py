@@ -322,3 +322,69 @@ class SeasonResult(SeasonResultBase):
     document_file_path: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
+
+
+# ===== Timekeeper schemas =====
+
+class StartListEntryBase(BaseModel):
+    race_id: int
+    racer_id: int
+    category_id: Optional[int] = None
+    start_number: Optional[int] = None
+    race_number_id: Optional[int] = None
+
+class StartListEntryCreate(StartListEntryBase):
+    pass
+
+class StartListEntryUpdate(BaseModel):
+    start_number: Optional[int] = None
+    race_number_id: Optional[int] = None
+    time1: Optional[float] = None
+    time2: Optional[float] = None
+    dnf: Optional[bool] = None
+    dns: Optional[bool] = None
+    dsq: Optional[bool] = None
+    points: Optional[int] = None
+
+class StartListEntry(StartListEntryBase):
+    id: int
+    time1: Optional[float] = None
+    time2: Optional[float] = None
+    time_sum: Optional[float] = None
+    dnf: bool = False
+    dns: bool = False
+    dsq: bool = False
+    points: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    # Populated by joins
+    racer_name: Optional[str] = None
+    racer_surname: Optional[str] = None
+    racer_year: Optional[int] = None
+    racer_sex: Optional[int] = None
+    club_name: Optional[str] = None
+    category_name: Optional[str] = None
+    display_number: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class TimeEntry(BaseModel):
+    """For batch time entry"""
+    entry_id: int
+    time1: Optional[float] = None
+    time2: Optional[float] = None
+    dnf: bool = False
+    dns: bool = False
+    dsq: bool = False
+
+class BatchTimeEntry(BaseModel):
+    """Batch update times for multiple racers"""
+    entries: list[TimeEntry]
+
+class RaceNumberInfo(BaseModel):
+    id: int
+    set_number: int
+    actual_number: int
+    display_number: int
+    
+    model_config = ConfigDict(from_attributes=True)

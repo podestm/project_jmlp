@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, BigInteger, SmallInteger, String, ForeignKey, Date, Boolean, DateTime, UniqueConstraint, Enum
+from sqlalchemy import Integer, BigInteger, SmallInteger, String, ForeignKey, Date, Boolean, DateTime, UniqueConstraint, Enum, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import TypeDecorator
 from .database import Base
@@ -176,3 +176,32 @@ class SeasonResult(Base):
     __table_args__ = (
         UniqueConstraint('season_year_start', 'season_year_end', name='unique_season'),
     )
+
+
+class RaceNumber(Base):
+    __tablename__ = "fuj_jmlp_race_numbers"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    set_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    actual_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    display_number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class StartListEntry(Base):
+    __tablename__ = "fuj_jmlp_race_start_list"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    race_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race.id"), nullable=False, index=True)
+    racer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_racer.id"), nullable=False, index=True)
+    category_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_category.id"), nullable=True, index=True)
+    start_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    race_number_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race_numbers.id"), nullable=True, index=True)
+    time1: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    time2: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    time_sum: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    dnf: Mapped[bool] = mapped_column(Boolean, default=False)  # Did Not Finish
+    dns: Mapped[bool] = mapped_column(Boolean, default=False)  # Did Not Start
+    dsq: Mapped[bool] = mapped_column(Boolean, default=False)  # Disqualified
+    points: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

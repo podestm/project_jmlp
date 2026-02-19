@@ -208,3 +208,124 @@
 .admin-section .cursor-pointer {
   cursor: pointer !important;
 }
+
+/* ========== Dashboard Styles ========== */
+
+/* Icon boxes for stat cards */
+.dashboard-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.dashboard-icon-primary {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.dashboard-icon-primary i { color: #0d6efd !important; }
+
+.dashboard-icon-success {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.dashboard-icon-success i { color: #198754 !important; }
+
+.dashboard-icon-warning {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.dashboard-icon-warning i { color: #ffc107 !important; }
+
+.dashboard-icon-info {
+  background: rgba(13, 202, 240, 0.1);
+  color: #0dcaf0;
+}
+
+.dashboard-icon-info i { color: #0dcaf0 !important; }
+
+/* Upcoming race card */
+.dashboard-upcoming-race {
+  background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+}
+
+.dashboard-upcoming-race .card-body {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.dashboard-upcoming-race h5,
+.dashboard-upcoming-race span,
+.dashboard-upcoming-race small,
+.dashboard-upcoming-race div,
+.dashboard-upcoming-race .fs-2 {
+  color: white !important;
+}
+
+.dashboard-upcoming-race .badge {
+  color: white !important;
+}
+
+.dashboard-upcoming-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-upcoming-icon i {
+  color: white !important;
+}
+
+/* Dashboard list groups - ensure light mode */
+.admin-section .list-group-item {
+  background: white !important;
+  border-color: #f0f0f0 !important;
+}
+
+.admin-section .list-group-item:hover {
+  background: #f8f9fa !important;
+}
+
+/* Period toggle buttons */
+.admin-section .btn-group .btn-outline-secondary {
+  color: #6c757d !important;
+  border-color: #dee2e6 !important;
+}
+
+.admin-section .btn-group .btn-outline-secondary:hover {
+  background: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.admin-section .btn-group .btn-primary {
+  background: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: white !important;
+}
+
+.admin-section .btn-group .btn-primary i {
+  color: white !important;
+}
+
+/* Stat card responsive */
+@media (max-width: 576px) {
+  .dashboard-icon-box {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .admin-section .fs-3 {
+    font-size: 1.25rem !important;
+  }
+}

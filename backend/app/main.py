@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse
 from .routers import races, racers, clubs, registration, posts, analytics, season_results
 from .routers.admin import router as admin_router
+from .routers.timekeeper import router as timekeeper_router
 from .middleware import VisitorLogMiddleware
 
 app = FastAPI(title="JMLP API", redirect_slashes=False)
@@ -55,6 +56,7 @@ app.include_router(posts.router)
 app.include_router(analytics.router)  # Public analytics router
 app.include_router(season_results.router)  # Season results public router
 app.include_router(admin_router)  # New modular admin router
+app.include_router(timekeeper_router)  # Timekeeper section
 
 # Serve uploaded documents
 @app.get("/uploads/documents/{filename}")
