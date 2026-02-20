@@ -203,5 +203,8 @@ class StartListEntry(Base):
     dns: Mapped[bool] = mapped_column(Boolean, default=False)  # Did Not Start
     dsq: Mapped[bool] = mapped_column(Boolean, default=False)  # Disqualified
     points: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    name_override: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    surname_override: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    year_override: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -1,4 +1,4 @@
-"""Race number sets management - create, list, delete number sets."""
+"""Race number sets management - create, list, delete number sets and individual numbers."""
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -47,16 +47,84 @@ def get_race_numbers(
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
     """Get all race numbers for a given set."""
-    numbers = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number
-    ).order_by(models.RaceNumber.actual_number).all()
+    query = text("""
+        SELECT id, set_number, actual_number, display_number
+        FROM fuj_jmlp_race_numbers
+        WHERE set_number = :set_number
+        ORDER BY actual_number ASC
+    """)
+    rows = db.execute(query, {"set_number": set_number}).fetchall()
     
     return [{
-        "id": n.id,
-        "set_number": n.set_number,
-        "actual_number": n.actual_number,
-        "display_number": n.display_number,
-    } for n in numbers]
+        "id": row.id,
+        "set_number": row.set_number,
+        "actual_number": row.actual_number,
+        "display_number": row.display_number,
+    } for row in rows]
+
+
+@router.post("/race-numbers")
+def add_single_race_number(
+    data: Dict[str, Any],
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Add a single race number to a set.
+    
+    Body: { "set_number": 1, "actual_number": 201, "display_number": 201 }
+    """
+    set_number = data.get("set_number")
+    actual_number = data.get("actual_number")
+    display_number = data.get("display_number")
+    
+    if not all([set_number, actual_number, display_number]):
+        raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_number, display_number")
+    
+    # Check display_number uniqueness
+    existing = db.query(models.RaceNumber).filter(
+        models.RaceNumber.display_number == display_number
+    ).first()
+    if existing:
+        raise StandardExceptions.bad_request(
+            f"Zobrazovací číslo {display_number} již existuje (sada {existing.set_number})"
+        )
+    
+    entry = models.RaceNumber(
+        set_number=set_number,
+        actual_number=actual_number,
+        display_number=display_number,
+    )
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    
+    return {
+        "message": f"Přidáno číslo {actual_number} (zobrazení: {display_number}) do sady {set_number}",
+        "id": entry.id,
+        "actual_number": actual_number,
+        "display_number": display_number,
+    }
+
+
+@router.delete("/race-numbers/{number_id}")
+def delete_single_race_number(
+    number_id: int,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, str]:
+    """Delete a single race number. Start lists are independent snapshots, no FK constraint."""
+    number = db.query(models.RaceNumber).filter(models.RaceNumber.id == number_id).first()
+    if not number:
+        raise StandardExceptions.not_found("Závodní číslo nenalezeno")
+    
+    # Nullify any start list references (start lists are snapshots, not live bindings)
+    db.query(models.StartListEntry).filter(
+        models.StartListEntry.race_number_id == number_id
+    ).update({"race_number_id": None})
+    
+    db.delete(number)
+    db.commit()
+    return {"message": f"Smazáno číslo {number.actual_number} (zobrazení: {number.display_number})"}
 
 
 @router.post("/race-number-sets")
@@ -73,9 +141,6 @@ def create_race_number_set(
         "actual_to": 200,
         "display_from": 401
     }
-    
-    actual_from/actual_to = the real physical numbers on the bibs
-    display_from = the starting display number in the system (must not overlap existing)
     """
     set_number = data.get("set_number")
     actual_from = data.get("actual_from", 1)
@@ -137,19 +202,15 @@ def delete_race_number_set(
 ) -> Dict[str, str]:
     """Delete all race numbers in a set.
     
-    Will fail if any numbers from this set are currently assigned in a start list.
+    Start lists are independent snapshots — references are nullified, not blocked.
     """
-    # Check if any numbers from this set are in use
-    in_use = db.execute(text("""
-        SELECT COUNT(*) as cnt FROM fuj_jmlp_race_start_list sl
+    # Nullify start list references to numbers from this set
+    db.execute(text("""
+        UPDATE fuj_jmlp_race_start_list sl
         JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
+        SET sl.race_number_id = NULL
         WHERE rn.set_number = :set_number
-    """), {"set_number": set_number}).scalar()
-    
-    if in_use > 0:
-        raise StandardExceptions.bad_request(
-            f"Nelze smazat: {in_use} čísel z této sady je přiřazeno na startovních listinách"
-        )
+    """), {"set_number": set_number})
     
     deleted = db.query(models.RaceNumber).filter(
         models.RaceNumber.set_number == set_number

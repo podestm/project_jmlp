@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TimekeeperAPI } from '../../config/api.js';
 
 export default function TimingEntry() {
@@ -13,11 +13,10 @@ export default function TimingEntry() {
   const [editedTimes, setEditedTimes] = useState({});
   const [filter, setFilter] = useState('all'); // all, pending, completed
   const [activeRound, setActiveRound] = useState('both'); // 'both', '1', '2'
+  const [selectedCategory, setSelectedCategory] = useState('all'); // 'all' or category_name
   const inputRefs = useRef({});
 
-  useEffect(() => {
-    loadRaces();
-  }, []);
+  useEffect(() => { loadRaces(); }, []);
 
   useEffect(() => {
     if (selectedRaceId) {
@@ -41,7 +40,6 @@ export default function TimingEntry() {
       setLoading(true);
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/start-list`);
       setStartList(data);
-      // Init edited times from existing data
       const times = {};
       data.forEach(entry => {
         times[entry.id] = {
@@ -53,6 +51,7 @@ export default function TimingEntry() {
         };
       });
       setEditedTimes(times);
+      setSelectedCategory('all');
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst startovní listinu' });
     } finally {
@@ -63,21 +62,34 @@ export default function TimingEntry() {
   const updateTime = (entryId, field, value) => {
     setEditedTimes(prev => ({
       ...prev,
-      [entryId]: {
-        ...prev[entryId],
-        [field]: value
-      }
+      [entryId]: { ...prev[entryId], [field]: value }
     }));
   };
 
   const toggleFlag = (entryId, flag) => {
-    setEditedTimes(prev => ({
-      ...prev,
-      [entryId]: {
-        ...prev[entryId],
-        [flag]: !prev[entryId]?.[flag]
-      }
-    }));
+    setEditedTimes(prev => {
+      const updated = { ...prev[entryId], [flag]: !prev[entryId]?.[flag] };
+      // Save immediately with the new values (avoid stale state race condition)
+      saveFlagUpdate(entryId, updated);
+      return { ...prev, [entryId]: updated };
+    });
+  };
+
+  const saveFlagUpdate = async (entryId, data) => {
+    if (!data) return;
+    try {
+      const update = {
+        time1: data.time1 !== '' ? parseFloat(data.time1) : null,
+        time2: data.time2 !== '' ? parseFloat(data.time2) : null,
+        dnf: data.dnf || false,
+        dns: data.dns || false,
+        dsq: data.dsq || false,
+      };
+      await TimekeeperAPI.put(`/api/timekeeper/start-list/${entryId}/time`, update);
+      loadStartList();
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nepodařilo se uložit stav' });
+    }
   };
 
   const saveAllTimes = async () => {
@@ -92,12 +104,9 @@ export default function TimingEntry() {
         dns: data.dns || false,
         dsq: data.dsq || false,
       }));
-
-      const result = await TimekeeperAPI.post(`/api/timekeeper/races/${selectedRaceId}/times`, {
-        entries
-      });
+      const result = await TimekeeperAPI.post(`/api/timekeeper/races/${selectedRaceId}/times`, { entries });
       setMessage({ type: 'success', text: result.message });
-      loadStartList(); // Reload to get updated time_sum
+      loadStartList();
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se uložit časy' });
     } finally {
@@ -109,49 +118,38 @@ export default function TimingEntry() {
     const data = editedTimes[entryId];
     if (!data) return;
     try {
-      const update = {};
-      if (data.time1 !== '') update.time1 = parseFloat(data.time1);
-      else update.time1 = null;
-      if (data.time2 !== '') update.time2 = parseFloat(data.time2);
-      else update.time2 = null;
-      update.dnf = data.dnf || false;
-      update.dns = data.dns || false;
-      update.dsq = data.dsq || false;
-
+      const update = {
+        time1: data.time1 !== '' ? parseFloat(data.time1) : null,
+        time2: data.time2 !== '' ? parseFloat(data.time2) : null,
+        dnf: data.dnf || false,
+        dns: data.dns || false,
+        dsq: data.dsq || false,
+      };
       await TimekeeperAPI.put(`/api/timekeeper/start-list/${entryId}/time`, update);
-      
-      // Reload to update time_sum
       loadStartList();
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se uložit čas' });
     }
   };
 
-  // Handle Enter key to move to next input
   const handleKeyDown = (e, entryId, field) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Save this entry
       saveSingleTime(entryId);
-      
-      // Move to next entry's same field (or active field)
       const currentIndex = filteredList.findIndex(entry => entry.id === entryId);
       if (currentIndex < filteredList.length - 1) {
         const nextId = filteredList[currentIndex + 1].id;
-        // When round is locked, jump to same field; otherwise next available
         const nextField = activeRound === '1' ? 'time1' : activeRound === '2' ? 'time2' : field;
         const nextRef = inputRefs.current[`${nextId}-${nextField}`];
         if (nextRef) nextRef.focus();
       }
     }
-    // Tab to move to time2 of same entry (only when both rounds active)
     if (e.key === 'Tab' && !e.shiftKey && field === 'time1') {
       if (activeRound === 'both') {
         e.preventDefault();
         const ref = inputRefs.current[`${entryId}-time2`];
         if (ref) ref.focus();
       } else if (activeRound === '1') {
-        // Skip to next entry's time1
         e.preventDefault();
         const currentIndex = filteredList.findIndex(entry => entry.id === entryId);
         if (currentIndex < filteredList.length - 1) {
@@ -165,12 +163,28 @@ export default function TimingEntry() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  // Filter logic
-  const filteredList = startList.filter(entry => {
+  // Get unique categories from start list
+  const categoryList = useMemo(() => {
+    const cats = new Map();
+    startList.forEach(entry => {
+      const catName = entry.category_name || 'Bez kategorie';
+      if (!cats.has(catName)) {
+        cats.set(catName, { name: catName, count: 0 });
+      }
+      cats.get(catName).count++;
+    });
+    return [...cats.values()];
+  }, [startList]);
+
+  // Filter by category first, then by status filter
+  const categoryFiltered = selectedCategory === 'all'
+    ? startList
+    : startList.filter(e => (e.category_name || 'Bez kategorie') === selectedCategory);
+
+  const filteredList = categoryFiltered.filter(entry => {
     if (filter === 'pending') {
       return entry.time1 == null && entry.time2 == null && !entry.dnf && !entry.dns && !entry.dsq;
     }
@@ -180,159 +194,165 @@ export default function TimingEntry() {
     return true;
   });
 
-  const completedCount = startList.filter(e => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length;
+  const completedCount = categoryFiltered.filter(e => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length;
+  const selectedRace = races.find(r => String(r.id) === String(selectedRaceId));
 
   return (
     <div>
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      {/* Header with save button */}
+      <div className="d-flex justify-content-between align-items-center mb-2">
         <div>
-          <h3 className="fw-bold mb-1">
+          <h5 className="fw-bold mb-0">
             <i className="bi bi-clock me-2" style={{ color: '#e94560' }}></i>
             Zadávání časů
-          </h3>
-          <p className="text-muted mb-0">Zapište časy jednotlivých jízd pro každého závodníka</p>
+          </h5>
+          <small className="text-muted">Zapište časy jízd pro závodníky</small>
         </div>
         {startList.length > 0 && (
-          <button 
-            className="btn btn-lg text-white"
-            style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '10px' }}
+          <button
+            className="btn btn-sm text-white"
+            style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
             onClick={saveAllTimes}
             disabled={saving}
           >
             {saving ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Ukládám...
-              </>
+              <><span className="spinner-border spinner-border-sm me-1"></span>Ukládám...</>
             ) : (
-              <>
-                <i className="bi bi-save me-2"></i>
-                Uložit všechny časy
-              </>
+              <><i className="bi bi-save me-1"></i>Uložit vše</>
             )}
           </button>
         )}
       </div>
 
-      {/* Race selector */}
-      <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px' }}>
-        <div className="card-body">
-          <div className="row align-items-end">
-            <div className="col-md-5">
-              <label className="form-label fw-semibold">
-                <i className="bi bi-trophy me-1"></i> Závod
-              </label>
-              <select 
-                className="form-select" 
-                value={selectedRaceId}
-                onChange={(e) => setSelectedRaceId(e.target.value)}
-                style={{ borderRadius: '10px' }}
-              >
+      {/* Race info bar (static - no dropdown) */}
+      {selectedRace ? (
+        <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
+          <div className="card-body py-2 px-3">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+                <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>
+                  {selectedRace.raceNr || `#${selectedRace.id}`} — {selectedRace.areal_name || '?'}
+                </span>
+                <small className="text-muted">({formatDate(selectedRace.datum)})</small>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                {/* Status filter */}
+                {startList.length > 0 && (
+                  <div className="btn-group btn-group-sm">
+                    <button className={`btn py-0 px-2 ${filter === 'all' ? 'btn-dark' : 'btn-outline-dark'}`}
+                      style={{ fontSize: '0.75rem' }} onClick={() => setFilter('all')}>
+                      Vše ({categoryFiltered.length})
+                    </button>
+                    <button className={`btn py-0 px-2 ${filter === 'pending' ? 'btn-warning' : 'btn-outline-warning'}`}
+                      style={{ fontSize: '0.75rem' }} onClick={() => setFilter('pending')}>
+                      Čeká ({categoryFiltered.length - completedCount})
+                    </button>
+                    <button className={`btn py-0 px-2 ${filter === 'completed' ? 'btn-success' : 'btn-outline-success'}`}
+                      style={{ fontSize: '0.75rem' }} onClick={() => setFilter('completed')}>
+                      Hotovo ({completedCount})
+                    </button>
+                  </div>
+                )}
+                {/* Progress */}
+                {startList.length > 0 && (
+                  <div style={{ width: '80px' }}>
+                    <div className="progress" style={{ height: '16px', borderRadius: '8px' }}>
+                      <div className="progress-bar" style={{
+                        width: `${categoryFiltered.length > 0 ? (completedCount / categoryFiltered.length * 100) : 0}%`,
+                        background: 'linear-gradient(135deg, #e94560, #c23152)', borderRadius: '8px', fontSize: '0.65rem'
+                      }}>
+                        {categoryFiltered.length > 0 ? Math.round(completedCount / categoryFiltered.length * 100) : 0}%
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Race selector only when no race selected */
+        <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
+          <div className="card-body py-2 px-3">
+            <div className="d-flex align-items-center gap-2">
+              <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+              <select className="form-select form-select-sm" value={selectedRaceId}
+                onChange={(e) => setSelectedRaceId(e.target.value)} style={{ borderRadius: '8px' }}>
                 <option value="">-- Vyberte závod --</option>
                 {races.map(race => (
                   <option key={race.id} value={race.id}>
-                    {race.raceNr || `#${race.id}`} — {race.areal_name || 'Neznámé místo'} ({formatDate(race.datum)})
+                    {race.raceNr || `#${race.id}`} — {race.areal_name || '?'} ({formatDate(race.datum)})
                   </option>
                 ))}
               </select>
             </div>
-            {startList.length > 0 && (
-              <>
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold">
-                    <i className="bi bi-funnel me-1"></i> Filtr
-                  </label>
-                  <div className="btn-group w-100">
-                    <button 
-                      className={`btn ${filter === 'all' ? 'btn-dark' : 'btn-outline-dark'}`}
-                      onClick={() => setFilter('all')}
-                    >
-                      Vše ({startList.length})
-                    </button>
-                    <button 
-                      className={`btn ${filter === 'pending' ? 'btn-warning' : 'btn-outline-warning'}`}
-                      onClick={() => setFilter('pending')}
-                    >
-                      Čekající ({startList.length - completedCount})
-                    </button>
-                    <button 
-                      className={`btn ${filter === 'completed' ? 'btn-success' : 'btn-outline-success'}`}
-                      onClick={() => setFilter('completed')}
-                    >
-                      Hotovo ({completedCount})
-                    </button>
-                  </div>
-                </div>
-                <div className="col-md-3 text-end">
-                  <div className="mt-2">
-                    <div className="progress" style={{ height: '24px', borderRadius: '12px' }}>
-                      <div 
-                        className="progress-bar" 
-                        style={{ 
-                          width: `${startList.length > 0 ? (completedCount / startList.length * 100) : 0}%`,
-                          background: 'linear-gradient(135deg, #e94560, #c23152)',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        {startList.length > 0 ? Math.round(completedCount / startList.length * 100) : 0}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Round toggle */}
+      {/* Category tabs + Round toggle row */}
       {!loading && selectedRaceId && startList.length > 0 && (
-        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px' }}>
-          <div className="card-body py-3">
-            <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <span className="fw-semibold me-3">
-                  <i className="bi bi-toggles me-1" style={{ color: '#e94560' }}></i>
-                  Aktivní kolo:
-                </span>
-                <div className="btn-group">
-                  <button
-                    className={`btn ${activeRound === '1' ? '' : 'btn-outline-dark'}`}
-                    style={activeRound === '1' ? {
-                      background: 'linear-gradient(135deg, #e94560, #c23152)',
-                      color: 'white',
-                      border: 'none',
-                    } : {}}
-                    onClick={() => setActiveRound('1')}
+        <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
+          <div className="card-body py-2 px-3">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              {/* Category pills */}
+              <div className="d-flex align-items-center gap-1 flex-wrap">
+                <small className="fw-semibold me-1" style={{ color: '#e94560' }}>
+                  <i className="bi bi-tag me-1"></i>Kat:
+                </small>
+                <button
+                  className={`btn py-0 px-2 ${selectedCategory === 'all' ? '' : 'btn-outline-dark'}`}
+                  style={{
+                    fontSize: '0.75rem', borderRadius: '12px',
+                    ...(selectedCategory === 'all' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                  }}
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  Vše ({startList.length})
+                </button>
+                {categoryList.map(cat => (
+                  <button key={cat.name}
+                    className={`btn py-0 px-2 ${selectedCategory === cat.name ? '' : 'btn-outline-dark'}`}
+                    style={{
+                      fontSize: '0.75rem', borderRadius: '12px',
+                      ...(selectedCategory === cat.name ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    }}
+                    onClick={() => setSelectedCategory(cat.name)}
                   >
-                    <i className="bi bi-1-circle me-1"></i> Kolo 1
+                    {cat.name} ({cat.count})
                   </button>
-                  <button
-                    className={`btn ${activeRound === '2' ? '' : 'btn-outline-dark'}`}
-                    style={activeRound === '2' ? {
-                      background: 'linear-gradient(135deg, #e94560, #c23152)',
-                      color: 'white',
-                      border: 'none',
-                    } : {}}
-                    onClick={() => setActiveRound('2')}
-                  >
-                    <i className="bi bi-2-circle me-1"></i> Kolo 2
-                  </button>
-                  <button
-                    className={`btn ${activeRound === 'both' ? 'btn-dark' : 'btn-outline-dark'}`}
-                    onClick={() => setActiveRound('both')}
-                  >
-                    <i className="bi bi-circle-half me-1"></i> Obě kola
-                  </button>
-                </div>
+                ))}
               </div>
-              {activeRound !== 'both' && (
-                <span className="badge bg-warning text-dark">
-                  <i className="bi bi-lock me-1"></i>
-                  {activeRound === '1' ? 'Kolo 2 zamčeno' : 'Kolo 1 zamčeno'}
-                </span>
-              )}
+
+              {/* Round toggle */}
+              <div className="d-flex align-items-center gap-2">
+                <small className="fw-semibold" style={{ color: '#e94560' }}>
+                  <i className="bi bi-toggles me-1"></i>Kolo:
+                </small>
+                <div className="btn-group btn-group-sm">
+                  <button className={`btn py-0 px-2 ${activeRound === '1' ? '' : 'btn-outline-dark'}`}
+                    style={{
+                      fontSize: '0.75rem',
+                      ...(activeRound === '1' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    }}
+                    onClick={() => setActiveRound('1')}>1</button>
+                  <button className={`btn py-0 px-2 ${activeRound === '2' ? '' : 'btn-outline-dark'}`}
+                    style={{
+                      fontSize: '0.75rem',
+                      ...(activeRound === '2' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    }}
+                    onClick={() => setActiveRound('2')}>2</button>
+                  <button className={`btn py-0 px-2 ${activeRound === 'both' ? 'btn-dark' : 'btn-outline-dark'}`}
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={() => setActiveRound('both')}>Obě</button>
+                </div>
+                {activeRound !== 'both' && (
+                  <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>
+                    <i className="bi bi-lock me-1"></i>{activeRound === '1' ? 'K2 zamčeno' : 'K1 zamčeno'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -340,75 +360,68 @@ export default function TimingEntry() {
 
       {/* Messages */}
       {message && (
-        <div className={`alert alert-${message.type} d-flex align-items-center`} role="alert">
+        <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
           <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
           {message.text}
-          <button type="button" className="btn-close ms-auto" onClick={() => setMessage(null)}></button>
+          <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={() => setMessage(null)}></button>
         </div>
       )}
 
       {/* Loading */}
       {loading && (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: '#e94560' }} role="status">
-            <span className="visually-hidden">Načítám...</span>
-          </div>
+        <div className="text-center py-4">
+          <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
         </div>
       )}
 
       {/* Timing table */}
       {!loading && selectedRaceId && filteredList.length > 0 && (
-        <div className="card border-0 shadow-sm" style={{ borderRadius: '12px' }}>
+        <div className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
           <div className="card-body p-0">
             <div className="table-responsive">
-              <table className="table table-hover mb-0 align-middle">
+              <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.82rem' }}>
                 <thead style={{ background: '#1a1a2e', color: '#fff' }}>
                   <tr>
-                    <th style={{ width: '50px', borderRadius: '12px 0 0 0' }}>St.č.</th>
-                    <th style={{ width: '60px' }}>Č.</th>
-                    <th>Závodník</th>
-                    <th>Klub</th>
-                    <th style={{ width: '130px', ...(activeRound === '2' ? { opacity: 0.5 } : {}) }}>
-                      <i className="bi bi-1-circle me-1"></i> Jízda 1
-                      {activeRound === '2' && <i className="bi bi-lock-fill ms-1" style={{ fontSize: '0.7rem' }}></i>}
+                    <th style={{ width: '40px', padding: '5px 8px', borderRadius: '10px 0 0 0' }}>St.č.</th>
+                    <th style={{ width: '50px', padding: '5px 8px' }}>Č.</th>
+                    <th style={{ padding: '5px 8px' }}>Závodník</th>
+                    <th style={{ padding: '5px 8px' }}>Klub</th>
+                    <th style={{ width: '110px', padding: '5px 8px', ...(activeRound === '2' ? { opacity: 0.5 } : {}) }}>
+                      Jízda 1 {activeRound === '2' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
                     </th>
-                    <th style={{ width: '130px', ...(activeRound === '1' ? { opacity: 0.5 } : {}) }}>
-                      <i className="bi bi-2-circle me-1"></i> Jízda 2
-                      {activeRound === '1' && <i className="bi bi-lock-fill ms-1" style={{ fontSize: '0.7rem' }}></i>}
+                    <th style={{ width: '110px', padding: '5px 8px', ...(activeRound === '1' ? { opacity: 0.5 } : {}) }}>
+                      Jízda 2 {activeRound === '1' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
                     </th>
-                    <th style={{ width: '100px' }}>Součet</th>
-                    <th style={{ width: '160px', borderRadius: '0 12px 0 0' }}>Stav</th>
+                    <th style={{ width: '75px', padding: '5px 8px' }}>Součet</th>
+                    <th style={{ width: '130px', padding: '5px 8px', borderRadius: '0 10px 0 0' }}>Stav</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredList.map((entry, index) => {
+                  {filteredList.map((entry) => {
                     const times = editedTimes[entry.id] || {};
                     const hasFlag = times.dnf || times.dns || times.dsq;
-                    
+
                     return (
                       <tr key={entry.id} className={hasFlag ? 'table-light' : ''}>
-                        <td className="fw-bold text-center">{entry.start_number || '—'}</td>
-                        <td>
-                          {entry.display_number ? (
-                            <span className="badge bg-dark">{entry.display_number}</span>
-                          ) : '—'}
+                        <td className="fw-bold text-center" style={{ padding: '3px 8px' }}>{entry.start_number || '—'}</td>
+                        <td style={{ padding: '3px 8px' }}>
+                          {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
                         </td>
-                        <td>
-                          <div className="fw-semibold">{entry.racer_surname} {entry.racer_name}</div>
-                          <small className="text-muted">
-                            {entry.racer_year} | {entry.category_name || 'Bez kat.'}
-                          </small>
+                        <td style={{ padding: '3px 8px' }}>
+                          <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
+                          {selectedCategory === 'all' && (
+                            <small className="text-muted ms-1">| {entry.category_name || '?'}</small>
+                          )}
+                          <small className="text-muted ms-1">({entry.racer_year})</small>
                         </td>
-                        <td className="text-muted small">{entry.club_name || '—'}</td>
-                        <td>
-                          <input 
+                        <td className="text-muted" style={{ padding: '3px 8px', fontSize: '0.8rem' }}>{entry.club_name || '—'}</td>
+                        <td style={{ padding: '3px 6px' }}>
+                          <input
                             ref={el => inputRefs.current[`${entry.id}-time1`] = el}
-                            type="number"
-                            step="0.01"
-                            min="0"
+                            type="number" step="0.01" min="0"
                             className="form-control form-control-sm"
-                            style={{ 
-                              borderRadius: '8px', fontFamily: 'monospace', fontSize: '1rem',
+                            style={{
+                              borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.85rem', padding: '2px 6px',
                               ...(activeRound === '2' ? { background: '#f0f0f0', opacity: 0.6 } : {})
                             }}
                             value={times.time1 || ''}
@@ -419,15 +432,13 @@ export default function TimingEntry() {
                             disabled={hasFlag || activeRound === '2'}
                           />
                         </td>
-                        <td>
-                          <input 
+                        <td style={{ padding: '3px 6px' }}>
+                          <input
                             ref={el => inputRefs.current[`${entry.id}-time2`] = el}
-                            type="number"
-                            step="0.01"
-                            min="0"
+                            type="number" step="0.01" min="0"
                             className="form-control form-control-sm"
-                            style={{ 
-                              borderRadius: '8px', fontFamily: 'monospace', fontSize: '1rem',
+                            style={{
+                              borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.85rem', padding: '2px 6px',
                               ...(activeRound === '1' ? { background: '#f0f0f0', opacity: 0.6 } : {})
                             }}
                             value={times.time2 || ''}
@@ -438,35 +449,27 @@ export default function TimingEntry() {
                             disabled={hasFlag || activeRound === '1'}
                           />
                         </td>
-                        <td className="fw-bold text-center" style={{ fontFamily: 'monospace', fontSize: '1.1rem' }}>
-                          {entry.time_sum != null ? entry.time_sum.toFixed(2) : '—'}
+                        <td className="fw-bold text-center" style={{ padding: '3px 8px', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                          {hasFlag
+                            ? (times.dnf ? <span className="badge bg-warning text-dark" style={{ fontSize: '0.7rem' }}>DNF</span>
+                              : times.dns ? <span className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>DNS</span>
+                              : <span className="badge bg-danger" style={{ fontSize: '0.7rem' }}>DSQ</span>)
+                            : (entry.time_sum != null ? entry.time_sum.toFixed(2) : '—')}
                         </td>
-                        <td>
+                        <td style={{ padding: '3px 6px' }}>
                           <div className="btn-group btn-group-sm">
-                            <button
-                              className={`btn ${times.dnf ? 'btn-warning' : 'btn-outline-warning'}`}
-                              onClick={() => { toggleFlag(entry.id, 'dnf'); setTimeout(() => saveSingleTime(entry.id), 100); }}
-                              title="Did Not Finish"
-                              style={{ borderRadius: '8px 0 0 8px', fontSize: '0.75rem' }}
-                            >
-                              DNF
-                            </button>
-                            <button
-                              className={`btn ${times.dns ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                              onClick={() => { toggleFlag(entry.id, 'dns'); setTimeout(() => saveSingleTime(entry.id), 100); }}
-                              title="Did Not Start"
-                              style={{ fontSize: '0.75rem' }}
-                            >
-                              DNS
-                            </button>
-                            <button
-                              className={`btn ${times.dsq ? 'btn-danger' : 'btn-outline-danger'}`}
-                              onClick={() => { toggleFlag(entry.id, 'dsq'); setTimeout(() => saveSingleTime(entry.id), 100); }}
-                              title="Disqualified"
-                              style={{ borderRadius: '0 8px 8px 0', fontSize: '0.75rem' }}
-                            >
-                              DSQ
-                            </button>
+                            <button className={`btn py-0 px-1 ${times.dnf ? 'btn-warning' : 'btn-outline-warning'}`}
+                              style={{ fontSize: '0.7rem', borderRadius: '6px 0 0 6px' }}
+                              onClick={() => toggleFlag(entry.id, 'dnf')}
+                              title="Did Not Finish">DNF</button>
+                            <button className={`btn py-0 px-1 ${times.dns ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                              style={{ fontSize: '0.7rem' }}
+                              onClick={() => toggleFlag(entry.id, 'dns')}
+                              title="Did Not Start">DNS</button>
+                            <button className={`btn py-0 px-1 ${times.dsq ? 'btn-danger' : 'btn-outline-danger'}`}
+                              style={{ fontSize: '0.7rem', borderRadius: '0 6px 6px 0' }}
+                              onClick={() => toggleFlag(entry.id, 'dsq')}
+                              title="Disqualified">DSQ</button>
                           </div>
                         </td>
                       </tr>
@@ -481,27 +484,26 @@ export default function TimingEntry() {
 
       {/* Empty states */}
       {!loading && selectedRaceId && startList.length === 0 && (
-        <div className="text-center py-5">
-          <i className="bi bi-list-ul text-muted" style={{ fontSize: '3rem' }}></i>
-          <p className="text-muted mt-3 mb-1">Startovní listina je prázdná</p>
-          <p className="text-muted small">Nejprve vygenerujte startovní listinu</p>
-          <a href="/timekeeper/start-list" className="btn btn-outline-primary mt-2">
-            <i className="bi bi-list-ol me-1"></i> Přejít na startovní listinu
+        <div className="text-center py-4">
+          <i className="bi bi-list-ul text-muted" style={{ fontSize: '2rem' }}></i>
+          <p className="text-muted mt-2 mb-0 small">Startovní listina je prázdná</p>
+          <a href="/timekeeper/start-list" className="btn btn-sm btn-outline-primary mt-2">
+            <i className="bi bi-list-ol me-1"></i>Přejít na startovní listinu
           </a>
         </div>
       )}
 
       {!loading && selectedRaceId && filteredList.length === 0 && startList.length > 0 && (
-        <div className="text-center py-5">
-          <i className="bi bi-check-circle text-success" style={{ fontSize: '3rem' }}></i>
-          <p className="text-muted mt-3">Žádné záznamy pro vybraný filtr</p>
+        <div className="text-center py-4">
+          <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
+          <p className="text-muted mt-2 small">Žádné záznamy pro vybraný filtr</p>
         </div>
       )}
 
       {!selectedRaceId && (
-        <div className="text-center py-5">
-          <i className="bi bi-hand-index text-muted" style={{ fontSize: '3rem' }}></i>
-          <p className="text-muted mt-3">Vyberte závod pro zadávání časů</p>
+        <div className="text-center py-4">
+          <i className="bi bi-hand-index text-muted" style={{ fontSize: '2rem' }}></i>
+          <p className="text-muted mt-2 small">Vyberte závod pro zadávání časů</p>
         </div>
       )}
     </div>

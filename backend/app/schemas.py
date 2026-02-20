@@ -339,6 +339,10 @@ class StartListEntryCreate(StartListEntryBase):
 class StartListEntryUpdate(BaseModel):
     start_number: Optional[int] = None
     race_number_id: Optional[int] = None
+    category_id: Optional[int] = None
+    name_override: Optional[str] = None
+    surname_override: Optional[str] = None
+    year_override: Optional[int] = None
     time1: Optional[float] = None
     time2: Optional[float] = None
     dnf: Optional[bool] = None

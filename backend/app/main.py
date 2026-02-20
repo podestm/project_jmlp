@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import traceback
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -38,6 +39,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch-all handler to ensure 500 errors include CORS headers (not masked as CORS errors in browser)."""
+    print(f"Unhandled exception on {request.method} {request.url.path}: {exc}")
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Interní chyba serveru"},
+    )
 
 # Přidáme middleware pro logování návštěv (zatím vypnuto, použijeme endpoint)
 # app.add_middleware(VisitorLogMiddleware)

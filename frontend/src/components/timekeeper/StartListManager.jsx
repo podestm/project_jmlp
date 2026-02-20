@@ -16,18 +16,25 @@ export default function StartListManager() {
   // Generation setup state
   const [showGenerateSetup, setShowGenerateSetup] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [numberSets, setNumberSets] = useState([]);
-  const [selectedSet, setSelectedSet] = useState('');
   const [categoryOrder, setCategoryOrder] = useState([]);
   const [loadingSetup, setLoadingSetup] = useState(false);
+
+  // Inline editing state
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  // Manual add state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ racer_id: '', category_id: '', start_number: '', name_override: '', surname_override: '', year_override: '' });
+  const [racerSearch, setRacerSearch] = useState('');
+  const [racerResults, setRacerResults] = useState([]);
+  const [searchingRacers, setSearchingRacers] = useState(false);
 
   // Drag & drop refs
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
-  useEffect(() => {
-    loadRaces();
-  }, []);
+  useEffect(() => { loadRaces(); }, []);
 
   useEffect(() => {
     if (selectedRaceId) {
@@ -52,10 +59,18 @@ export default function StartListManager() {
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/start-list`);
       setStartList(data);
     } catch (err) {
-      console.error('Failed to load start list:', err);
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst startovní listinu' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCategoriesIfNeeded = async () => {
+    if (categories.length === 0) {
+      try {
+        const cats = await TimekeeperAPI.get('/api/timekeeper/categories');
+        setCategories(cats);
+      } catch (err) { /* silent */ }
     }
   };
 
@@ -63,16 +78,9 @@ export default function StartListManager() {
     try {
       setLoadingSetup(true);
       setShowGenerateSetup(true);
-      const [cats, sets] = await Promise.all([
-        TimekeeperAPI.get('/api/timekeeper/categories'),
-        TimekeeperAPI.get('/api/timekeeper/race-number-sets'),
-      ]);
+      const cats = await TimekeeperAPI.get('/api/timekeeper/categories');
       setCategories(cats);
       setCategoryOrder(cats.map(c => c.id));
-      setNumberSets(sets);
-      if (sets.length > 0) {
-        setSelectedSet(String(sets[0].set_number));
-      }
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst nastavení' });
       setShowGenerateSetup(false);
@@ -86,11 +94,9 @@ export default function StartListManager() {
     try {
       setGenerating(true);
       const body = {};
-      if (selectedSet) body.set_number = parseInt(selectedSet);
       if (categoryOrder.length > 0) body.category_order = categoryOrder;
       const result = await TimekeeperAPI.post(
-        `/api/timekeeper/races/${selectedRaceId}/start-list/generate`,
-        body
+        `/api/timekeeper/races/${selectedRaceId}/start-list/generate`, body
       );
       setMessage({ type: 'success', text: result.message });
       setShowGenerateSetup(false);
@@ -114,15 +120,110 @@ export default function StartListManager() {
     }
   };
 
-  // Drag & drop handlers
-  const handleDragStart = (index) => {
-    dragItem.current = index;
+  // --- Inline editing ---
+  const startEditing = (entry) => {
+    setEditingId(entry.id);
+    setEditForm({
+      start_number: entry.start_number || '',
+      name_override: entry.has_override && entry.racer_name ? entry.racer_name : '',
+      surname_override: entry.has_override && entry.racer_surname ? entry.racer_surname : '',
+      year_override: entry.has_override && entry.racer_year ? entry.racer_year : '',
+      category_id: entry.category_id || '',
+    });
+    loadCategoriesIfNeeded();
   };
 
-  const handleDragEnter = (index) => {
-    dragOverItem.current = index;
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditForm({});
   };
 
+  const saveEditing = async () => {
+    if (!editingId) return;
+    try {
+      const body = {};
+      if (editForm.start_number !== '') body.start_number = parseInt(editForm.start_number);
+      if (editForm.category_id !== '') body.category_id = parseInt(editForm.category_id);
+      if (editForm.name_override && editForm.name_override.trim()) body.name_override = editForm.name_override.trim();
+      else body.name_override = null;
+      if (editForm.surname_override && editForm.surname_override.trim()) body.surname_override = editForm.surname_override.trim();
+      else body.surname_override = null;
+      if (editForm.year_override !== '' && editForm.year_override !== null && editForm.year_override !== undefined) body.year_override = parseInt(editForm.year_override);
+      else body.year_override = null;
+
+      await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
+      setEditingId(null);
+      setEditForm({});
+      loadStartList();
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nepodařilo se uložit změny' });
+    }
+  };
+
+  const deleteEntry = async (entryId, name) => {
+    if (!window.confirm(`Odebrat ${name} ze startovní listiny?`)) return;
+    try {
+      await TimekeeperAPI.delete(`/api/timekeeper/start-list/${entryId}`);
+      setStartList(prev => prev.filter(e => e.id !== entryId));
+      setMessage({ type: 'info', text: `${name} odebrán/a ze startovní listiny` });
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nepodařilo se odebrat závodníka' });
+    }
+  };
+
+  // --- Manual add ---
+  const searchRacers = async (query) => {
+    setRacerSearch(query);
+    if (query.length < 2) { setRacerResults([]); return; }
+    try {
+      setSearchingRacers(true);
+      const data = await TimekeeperAPI.get(`/api/timekeeper/racers/search?q=${encodeURIComponent(query)}`);
+      setRacerResults(data);
+    } catch (err) {
+      setRacerResults([]);
+    } finally {
+      setSearchingRacers(false);
+    }
+  };
+
+  const selectRacer = (racer) => {
+    setAddForm(prev => ({
+      ...prev,
+      racer_id: racer.id,
+      name_override: '',
+      surname_override: '',
+      year_override: '',
+    }));
+    setRacerSearch(`${racer.surname} ${racer.name} (${racer.year})`);
+    setRacerResults([]);
+  };
+
+  const addManualEntry = async () => {
+    if (!addForm.racer_id || !selectedRaceId) return;
+    try {
+      const body = { racer_id: parseInt(addForm.racer_id) };
+      if (addForm.category_id) body.category_id = parseInt(addForm.category_id);
+      if (addForm.start_number) body.start_number = parseInt(addForm.start_number);
+      if (addForm.name_override && addForm.name_override.trim()) body.name_override = addForm.name_override.trim();
+      if (addForm.surname_override && addForm.surname_override.trim()) body.surname_override = addForm.surname_override.trim();
+      if (addForm.year_override) body.year_override = parseInt(addForm.year_override);
+
+      const result = await TimekeeperAPI.post(
+        `/api/timekeeper/races/${selectedRaceId}/start-list/entry`, body
+      );
+      setMessage({ type: 'success', text: result.message });
+      setShowAddForm(false);
+      setAddForm({ racer_id: '', category_id: '', start_number: '', name_override: '', surname_override: '', year_override: '' });
+      setRacerSearch('');
+      loadStartList();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se přidat závodníka' });
+    }
+  };
+
+  // --- Drag & drop ---
+  const handleDragStart = (index) => { dragItem.current = index; };
+  const handleDragEnter = (index) => { dragOverItem.current = index; };
   const handleDragEnd = () => {
     if (dragItem.current === null || dragOverItem.current === null) return;
     const newOrder = [...categoryOrder];
@@ -133,95 +234,110 @@ export default function StartListManager() {
     dragItem.current = null;
     dragOverItem.current = null;
   };
-
   const moveCategoryUp = (index) => {
     if (index === 0) return;
-    const newOrder = [...categoryOrder];
-    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-    setCategoryOrder(newOrder);
+    const n = [...categoryOrder];
+    [n[index - 1], n[index]] = [n[index], n[index - 1]];
+    setCategoryOrder(n);
   };
-
   const moveCategoryDown = (index) => {
     if (index === categoryOrder.length - 1) return;
-    const newOrder = [...categoryOrder];
-    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
-    setCategoryOrder(newOrder);
+    const n = [...categoryOrder];
+    [n[index], n[index + 1]] = [n[index + 1], n[index]];
+    setCategoryOrder(n);
   };
 
   const getCategoryById = (id) => categories.find(c => c.id === id);
-
   const selectedRace = races.find(r => String(r.id) === String(selectedRaceId));
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  // Group by category
-  const groupedByCategory = startList.reduce((acc, entry) => {
-    const catName = entry.category_name || 'Bez kategorie';
-    if (!acc[catName]) acc[catName] = [];
-    acc[catName].push(entry);
-    return acc;
-  }, {});
+  // Group by category — use array to preserve start_number order
+  const groupedByCategory = (() => {
+    const groups = [];
+    const indexMap = new Map();
+    for (const entry of startList) {
+      const catKey = entry.category_id || 'none';
+      if (!indexMap.has(catKey)) {
+        indexMap.set(catKey, groups.length);
+        groups.push({ key: catKey, name: entry.category_name || 'Bez kategorie', entries: [] });
+      }
+      groups[indexMap.get(catKey)].entries.push(entry);
+    }
+    return groups;
+  })();
+
+  // All active categories for category selects
+  const allCategories = categories.length > 0 ? categories :
+    [...new Map(startList.filter(e => e.category_id).map(e => [e.category_id, { id: e.category_id, name: e.category_name }])).values()];
 
   return (
     <div>
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h3 className="fw-bold mb-1">
+          <h5 className="fw-bold mb-0">
             <i className="bi bi-list-ol me-2" style={{ color: '#e94560' }}></i>
             Startovní listina
-          </h3>
-          <p className="text-muted mb-0">Generování a správa startovní listiny ze zaregistrovaných závodníků</p>
+          </h5>
+          <small className="text-muted">Generování a správa startovní listiny</small>
         </div>
       </div>
 
       {/* Race selector */}
-      <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px' }}>
-        <div className="card-body">
-          <div className="row align-items-end">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">
-                <i className="bi bi-trophy me-1"></i> Závod
-              </label>
-              <select 
-                className="form-select form-select-lg" 
-                value={selectedRaceId}
-                onChange={(e) => { setSelectedRaceId(e.target.value); setShowGenerateSetup(false); }}
-                style={{ borderRadius: '10px' }}
-              >
-                <option value="">-- Vyberte závod --</option>
-                {races.map(race => (
-                  <option key={race.id} value={race.id}>
-                    {race.raceNr || `#${race.id}`} — {race.areal_name || 'Neznámé místo'} ({formatDate(race.datum)})
-                  </option>
-                ))}
-              </select>
+      <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
+        <div className="card-body py-2 px-3">
+          <div className="row align-items-center g-2">
+            <div className="col-md-5">
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+                <select
+                  className="form-select form-select-sm"
+                  value={selectedRaceId}
+                  onChange={(e) => { setSelectedRaceId(e.target.value); setShowGenerateSetup(false); setEditingId(null); }}
+                  style={{ borderRadius: '8px' }}
+                >
+                  <option value="">-- Vyberte závod --</option>
+                  {races.map(race => (
+                    <option key={race.id} value={race.id}>
+                      {race.raceNr || `#${race.id}`} — {race.areal_name || '?'} ({formatDate(race.datum)})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             {selectedRace && (
-              <div className="col-md-6">
-                <div className="d-flex gap-2 justify-content-end">
-                  <button 
-                    className="btn btn-lg text-white"
-                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '10px' }}
+              <div className="col-md-7">
+                <div className="d-flex gap-2 justify-content-end flex-wrap">
+                  <button
+                    className="btn btn-sm text-white"
+                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
                     onClick={showGenerateSetup ? () => setShowGenerateSetup(false) : openGenerateSetup}
                     disabled={generating}
                   >
-                    <i className={`bi ${showGenerateSetup ? 'bi-x-lg' : 'bi-plus-circle'} me-2`}></i>
-                    {showGenerateSetup ? 'Zrušit' : 'Generovat z registrací'}
+                    <i className={`bi ${showGenerateSetup ? 'bi-x-lg' : 'bi-plus-circle'} me-1`}></i>
+                    {showGenerateSetup ? 'Zrušit' : 'Generovat'}
                   </button>
                   {startList.length > 0 && (
-                    <button 
-                      className="btn btn-outline-danger btn-lg"
-                      style={{ borderRadius: '10px' }}
-                      onClick={clearStartList}
-                    >
-                      <i className="bi bi-trash me-1"></i>
-                      Smazat
-                    </button>
+                    <>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        style={{ borderRadius: '8px' }}
+                        onClick={() => { setShowAddForm(!showAddForm); loadCategoriesIfNeeded(); }}
+                      >
+                        <i className="bi bi-person-plus me-1"></i>Přidat ručně
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        style={{ borderRadius: '8px' }}
+                        onClick={clearStartList}
+                      >
+                        <i className="bi bi-trash me-1"></i>Smazat vše
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -232,180 +348,72 @@ export default function StartListManager() {
 
       {/* Generation setup panel */}
       {showGenerateSetup && (
-        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px', borderTop: '3px solid #e94560' }}>
-          <div className="card-body">
+        <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px', borderTop: '3px solid #e94560' }}>
+          <div className="card-body py-3 px-3">
             {loadingSetup ? (
-              <div className="text-center py-4">
-                <div className="spinner-border" style={{ color: '#e94560' }} role="status">
-                  <span className="visually-hidden">Načítám...</span>
-                </div>
-                <p className="text-muted mt-2">Načítám nastavení...</p>
+              <div className="text-center py-3">
+                <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
+                <small className="text-muted ms-2">Načítám nastavení...</small>
               </div>
             ) : (
               <>
-                <h5 className="fw-bold mb-3">
-                  <i className="bi bi-gear me-2"></i>
-                  Nastavení generování
-                </h5>
-
-                <div className="row g-4">
-                  {/* Set selector */}
-                  <div className="col-md-4">
-                    <div className="card border-0 h-100" style={{ background: '#f8f9fa', borderRadius: '10px' }}>
-                      <div className="card-body">
-                        <h6 className="fw-bold mb-3">
-                          <i className="bi bi-123 me-2" style={{ color: '#e94560' }}></i>
-                          Sada startovních čísel
-                        </h6>
-                        {numberSets.length > 0 ? (
-                          <div className="d-flex flex-column gap-2">
-                            {numberSets.map(set => (
-                              <label
-                                key={set.set_number}
-                                className={`d-flex align-items-center p-3 rounded-3 cursor-pointer ${
-                                  String(set.set_number) === selectedSet ? 'border border-2' : 'border'
-                                }`}
-                                style={{
-                                  background: String(set.set_number) === selectedSet ? '#fff0f3' : 'white',
-                                  borderColor: String(set.set_number) === selectedSet ? '#e94560' : '#dee2e6',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
-                                }}
-                              >
-                                <input
-                                  type="radio"
-                                  name="numberSet"
-                                  value={set.set_number}
-                                  checked={String(set.set_number) === selectedSet}
-                                  onChange={(e) => setSelectedSet(e.target.value)}
-                                  className="form-check-input me-3"
-                                  style={{ accentColor: '#e94560' }}
-                                />
-                                <div>
-                                  <div className="fw-semibold">Sada {set.set_number}</div>
-                                  <small className="text-muted">
-                                    Čísla {set.min_display}–{set.max_display} ({set.count} ks)
-                                  </small>
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-3">
-                            <p className="text-muted small mb-2">Žádné sady čísel</p>
-                            <a href="/timekeeper/race-numbers" className="btn btn-sm btn-outline-secondary">
-                              <i className="bi bi-plus me-1"></i>Vytvořit sadu
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
+                <h6 className="fw-bold mb-2">
+                  <i className="bi bi-gear me-2"></i>Nastavení generování
+                </h6>
+                <div className="row g-3">
                   {/* Category ordering */}
-                  <div className="col-md-8">
-                    <div className="card border-0 h-100" style={{ background: '#f8f9fa', borderRadius: '10px' }}>
-                      <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h6 className="fw-bold mb-0">
-                            <i className="bi bi-arrow-down-up me-2" style={{ color: '#e94560' }}></i>
-                            Pořadí kategorií na startu
-                          </h6>
-                          <small className="text-muted">
-                            <i className="bi bi-grip-vertical me-1"></i>
-                            Přetáhněte pro změnu pořadí
-                          </small>
-                        </div>
-
-                        <div className="d-flex flex-column gap-1">
-                          {categoryOrder.map((catId, index) => {
-                            const cat = getCategoryById(catId);
-                            if (!cat) return null;
-                            return (
-                              <div
-                                key={catId}
-                                draggable
-                                onDragStart={() => handleDragStart(index)}
-                                onDragEnter={() => handleDragEnter(index)}
-                                onDragEnd={handleDragEnd}
-                                onDragOver={(e) => e.preventDefault()}
-                                className="d-flex align-items-center p-2 px-3 rounded-2"
-                                style={{
-                                  background: 'white',
-                                  border: '1px solid #dee2e6',
-                                  cursor: 'grab',
-                                  transition: 'box-shadow 0.15s ease',
-                                  userSelect: 'none',
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
-                              >
-                                <span className="text-muted me-3" style={{ minWidth: '28px', textAlign: 'center' }}>
-                                  <i className="bi bi-grip-vertical"></i>
-                                </span>
-                                <span
-                                  className="badge me-3"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #e94560, #c23152)',
-                                    minWidth: '30px',
-                                    fontSize: '0.75rem',
-                                  }}
-                                >
-                                  {index + 1}
-                                </span>
-                                <span className="fw-semibold flex-grow-1">
-                                  {cat.name}
-                                </span>
-                                <span className="text-muted small me-3">
-                                  {cat.sex === 2 ? '♀ ženy' : '♂ muži'}
-                                </span>
-                                <div className="btn-group btn-group-sm">
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm py-0 px-1"
-                                    onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }}
-                                    disabled={index === 0}
-                                    title="Posunout nahoru"
-                                    style={{ borderRadius: '6px 0 0 6px' }}
-                                  >
-                                    <i className="bi bi-chevron-up"></i>
-                                  </button>
-                                  <button
-                                    className="btn btn-outline-secondary btn-sm py-0 px-1"
-                                    onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }}
-                                    disabled={index === categoryOrder.length - 1}
-                                    title="Posunout dolů"
-                                    style={{ borderRadius: '0 6px 6px 0' }}
-                                  >
-                                    <i className="bi bi-chevron-down"></i>
-                                  </button>
-                                </div>
+                  <div className="col-12">
+                    <div className="p-2 rounded-2" style={{ background: '#f8f9fa' }}>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <small className="fw-bold">
+                          <i className="bi bi-arrow-down-up me-1" style={{ color: '#e94560' }}></i>Pořadí kategorií
+                        </small>
+                        <small className="text-muted"><i className="bi bi-grip-vertical me-1"></i>Přetáhněte</small>
+                      </div>
+                      <div className="d-flex flex-column gap-1">
+                        {categoryOrder.map((catId, index) => {
+                          const cat = getCategoryById(catId);
+                          if (!cat) return null;
+                          return (
+                            <div key={catId} draggable
+                              onDragStart={() => handleDragStart(index)}
+                              onDragEnter={() => handleDragEnter(index)}
+                              onDragEnd={handleDragEnd}
+                              onDragOver={(e) => e.preventDefault()}
+                              className="d-flex align-items-center py-1 px-2 rounded-2"
+                              style={{ background: 'white', border: '1px solid #dee2e6', cursor: 'grab', userSelect: 'none', fontSize: '0.85rem' }}
+                            >
+                              <i className="bi bi-grip-vertical text-muted me-2"></i>
+                              <span className="badge me-2" style={{ background: '#e94560', minWidth: '22px', fontSize: '0.7rem' }}>{index + 1}</span>
+                              <span className="fw-semibold flex-grow-1">{cat.name}</span>
+                              <small className="text-muted me-2">{cat.sex === 2 ? '♀' : '♂'}</small>
+                              <div className="btn-group btn-group-sm">
+                                <button className="btn btn-outline-secondary py-0 px-1" style={{ fontSize: '0.7rem' }}
+                                  onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }} disabled={index === 0}>
+                                  <i className="bi bi-chevron-up"></i>
+                                </button>
+                                <button className="btn btn-outline-secondary py-0 px-1" style={{ fontSize: '0.7rem' }}
+                                  onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }} disabled={index === categoryOrder.length - 1}>
+                                  <i className="bi bi-chevron-down"></i>
+                                </button>
                               </div>
-                            );
-                          })}
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Generate button */}
-                <div className="mt-4 d-flex justify-content-end">
-                  <button
-                    className="btn btn-lg text-white px-4"
-                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '10px' }}
+                <div className="mt-3 d-flex justify-content-end">
+                  <button className="btn btn-sm text-white px-3"
+                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
                     onClick={generateStartList}
-                    disabled={generating || (!selectedSet && numberSets.length > 0)}
-                  >
+                    disabled={generating}>
                     {generating ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2"></span>
-                        Generuji startovní listinu...
-                      </>
+                      <><span className="spinner-border spinner-border-sm me-1"></span>Generuji...</>
                     ) : (
-                      <>
-                        <i className="bi bi-lightning me-2"></i>
-                        Vygenerovat startovní listinu
-                      </>
+                      <><i className="bi bi-lightning me-1"></i>Vygenerovat</>
                     )}
                   </button>
                 </div>
@@ -415,91 +423,242 @@ export default function StartListManager() {
         </div>
       )}
 
+      {/* Manual add form */}
+      {showAddForm && selectedRaceId && (
+        <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px', borderTop: '3px solid #0d6efd' }}>
+          <div className="card-body py-3 px-3">
+            <h6 className="fw-bold mb-2">
+              <i className="bi bi-person-plus me-2" style={{ color: '#0d6efd' }}></i>Přidat závodníka ručně
+            </h6>
+            <div className="row g-2">
+              <div className="col-md-4">
+                <label className="form-label small mb-1">Vyhledat závodníka *</label>
+                <div className="position-relative">
+                  <input type="text" className="form-control form-control-sm"
+                    placeholder="Jméno / příjmení..." value={racerSearch}
+                    onChange={(e) => searchRacers(e.target.value)}
+                    style={{ borderRadius: '8px' }}
+                  />
+                  {searchingRacers && (
+                    <div className="position-absolute end-0 top-50 translate-middle-y me-2">
+                      <span className="spinner-border spinner-border-sm"></span>
+                    </div>
+                  )}
+                  {racerResults.length > 0 && (
+                    <div className="position-absolute w-100 mt-1 border rounded-2 bg-white shadow-sm" style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
+                      {racerResults.map(r => (
+                        <button key={r.id} className="btn btn-sm w-100 text-start border-0 py-1 px-2"
+                          style={{ fontSize: '0.85rem' }}
+                          onClick={() => selectRacer(r)}>
+                          <strong>{r.surname} {r.name}</strong>
+                          <small className="text-muted ms-1">({r.year}) {r.club_name || ''}</small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small mb-1">Kategorie</label>
+                <select className="form-select form-select-sm" style={{ borderRadius: '8px' }}
+                  value={addForm.category_id} onChange={(e) => setAddForm(p => ({ ...p, category_id: e.target.value }))}>
+                  <option value="">—</option>
+                  {allCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-1">
+                <label className="form-label small mb-1">St.č.</label>
+                <input type="number" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
+                  placeholder="Auto" value={addForm.start_number}
+                  onChange={(e) => setAddForm(p => ({ ...p, start_number: e.target.value }))}
+                />
+              </div>
+              <div className="col-md-3">
+                <label className="form-label small mb-1">Přepis jména <small className="text-muted">(volitelné)</small></label>
+                <div className="d-flex gap-1">
+                  <input type="text" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
+                    placeholder="Jméno" value={addForm.name_override}
+                    onChange={(e) => setAddForm(p => ({ ...p, name_override: e.target.value }))}
+                  />
+                  <input type="text" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
+                    placeholder="Příjmení" value={addForm.surname_override}
+                    onChange={(e) => setAddForm(p => ({ ...p, surname_override: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="col-md-2 d-flex align-items-end gap-1">
+                <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
+                  onClick={addManualEntry} disabled={!addForm.racer_id}>
+                  <i className="bi bi-plus me-1"></i>Přidat
+                </button>
+                <button className="btn btn-sm btn-outline-secondary" style={{ borderRadius: '8px' }}
+                  onClick={() => setShowAddForm(false)}>
+                  Zrušit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       {message && (
-        <div className={`alert alert-${message.type} d-flex align-items-center`} role="alert">
+        <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
           <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : message.type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
           {message.text}
-          <button type="button" className="btn-close ms-auto" onClick={() => setMessage(null)}></button>
+          <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={() => setMessage(null)}></button>
         </div>
       )}
 
       {/* Loading */}
       {loading && (
-        <div className="text-center py-5">
-          <div className="spinner-border" style={{ color: '#e94560' }} role="status">
-            <span className="visually-hidden">Načítám...</span>
-          </div>
+        <div className="text-center py-4">
+          <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
         </div>
       )}
 
       {/* Start list */}
       {!loading && selectedRaceId && startList.length > 0 && (
         <div>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">
-              Závodníků na listině: <span style={{ color: '#e94560' }}>{startList.length}</span>
-            </h5>
-            <button 
-              className="btn btn-primary"
-              onClick={() => navigate('/timekeeper/timing')}
-            >
-              <i className="bi bi-clock me-1"></i>
-              Přejít na zadávání časů
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <small className="fw-semibold">
+              Závodníků: <span style={{ color: '#e94560' }}>{startList.length}</span>
+            </small>
+            <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
+              onClick={() => navigate('/timekeeper/timing')}>
+              <i className="bi bi-clock me-1"></i>Zadávání časů
             </button>
           </div>
 
-          {Object.entries(groupedByCategory).map(([catName, entries]) => (
-            <div key={catName} className="card border-0 shadow-sm mb-3" style={{ borderRadius: '12px' }}>
-              <div className="card-header bg-white border-bottom" style={{ borderRadius: '12px 12px 0 0' }}>
-                <h6 className="mb-0 fw-bold">
-                  <i className="bi bi-tag-fill me-2" style={{ color: '#e94560' }}></i>
-                  {catName}
-                  <span className="badge bg-secondary ms-2">{entries.length}</span>
-                </h6>
+          {groupedByCategory.map(group => (
+            <div key={group.key} className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
+              <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
+                <small className="fw-bold">
+                  <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
+                  {group.name}
+                  <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.entries.length}</span>
+                </small>
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
-                  <table className="table table-hover mb-0">
+                  <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.82rem' }}>
                     <thead className="table-light">
                       <tr>
-                        <th style={{ width: '60px' }}>St. č.</th>
-                        <th style={{ width: '80px' }}>Záv. č.</th>
-                        <th>Závodník</th>
-                        <th style={{ width: '80px' }}>Ročník</th>
-                        <th>Klub</th>
-                        <th style={{ width: '100px' }}>Čas 1</th>
-                        <th style={{ width: '100px' }}>Čas 2</th>
-                        <th style={{ width: '100px' }}>Součet</th>
-                        <th style={{ width: '80px' }}>Stav</th>
+                        <th style={{ width: '45px', padding: '4px 8px' }}>St.č.</th>
+                        <th style={{ width: '55px', padding: '4px 8px' }}>Záv.č.</th>
+                        <th style={{ padding: '4px 8px' }}>Závodník</th>
+                        <th style={{ width: '55px', padding: '4px 8px' }}>Roč.</th>
+                        <th style={{ padding: '4px 8px' }}>Klub</th>
+                        <th style={{ width: '70px', padding: '4px 8px' }}>Čas 1</th>
+                        <th style={{ width: '70px', padding: '4px 8px' }}>Čas 2</th>
+                        <th style={{ width: '70px', padding: '4px 8px' }}>Součet</th>
+                        <th style={{ width: '85px', padding: '4px 8px' }}>Akce</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {entries.map(entry => (
-                        <tr key={entry.id}>
-                          <td className="fw-bold">{entry.start_number || '—'}</td>
-                          <td>
-                            {entry.display_number ? (
-                              <span className="badge bg-dark">{entry.display_number}</span>
-                            ) : '—'}
-                          </td>
-                          <td className="fw-semibold">{entry.racer_surname} {entry.racer_name}</td>
-                          <td>{entry.racer_year}</td>
-                          <td className="text-muted">{entry.club_name || '—'}</td>
-                          <td>{entry.time1 != null ? entry.time1.toFixed(2) : '—'}</td>
-                          <td>{entry.time2 != null ? entry.time2.toFixed(2) : '—'}</td>
-                          <td className="fw-bold">
-                            {entry.time_sum != null ? entry.time_sum.toFixed(2) : '—'}
-                          </td>
-                          <td>
-                            {entry.dnf && <span className="badge bg-warning">DNF</span>}
-                            {entry.dns && <span className="badge bg-secondary">DNS</span>}
-                            {entry.dsq && <span className="badge bg-danger">DSQ</span>}
-                            {!entry.dnf && !entry.dns && !entry.dsq && (
-                              <span className="badge bg-success">OK</span>
-                            )}
-                          </td>
-                        </tr>
+                      {group.entries.map(entry => (
+                        editingId === entry.id ? (
+                          <tr key={entry.id} style={{ background: '#fffbea' }}>
+                            <td style={{ padding: '4px 8px' }}>
+                              <input type="number" className="form-control form-control-sm"
+                                style={{ width: '45px', fontSize: '0.8rem', padding: '2px 4px' }}
+                                value={editForm.start_number}
+                                onChange={(e) => setEditForm(p => ({ ...p, start_number: e.target.value }))}
+                              />
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <div className="d-flex gap-1">
+                                <input type="text" className="form-control form-control-sm"
+                                  style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                  placeholder="Jméno (přepis)" value={editForm.name_override}
+                                  onChange={(e) => setEditForm(p => ({ ...p, name_override: e.target.value }))}
+                                />
+                                <input type="text" className="form-control form-control-sm"
+                                  style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                  placeholder="Příjmení (přepis)" value={editForm.surname_override}
+                                  onChange={(e) => setEditForm(p => ({ ...p, surname_override: e.target.value }))}
+                                />
+                              </div>
+                              <small className="text-muted" style={{ fontSize: '0.7rem' }}>
+                                Původní: {entry.racer_name} {entry.racer_surname}
+                                {entry.has_override && <i className="bi bi-pencil-fill ms-1 text-warning" style={{ fontSize: '0.65rem' }}></i>}
+                              </small>
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <input type="number" className="form-control form-control-sm"
+                                style={{ width: '55px', fontSize: '0.8rem', padding: '2px 4px' }}
+                                value={editForm.year_override}
+                                onChange={(e) => setEditForm(p => ({ ...p, year_override: e.target.value }))}
+                              />
+                            </td>
+                            <td style={{ padding: '4px 8px' }} className="text-muted">{entry.club_name || '—'}</td>
+                            <td colSpan="3" style={{ padding: '4px 8px' }}>
+                              <select className="form-select form-select-sm" style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                value={editForm.category_id} onChange={(e) => setEditForm(p => ({ ...p, category_id: e.target.value }))}>
+                                <option value="">Bez kat.</option>
+                                {allCategories.map(c => (
+                                  <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <div className="d-flex gap-1">
+                                <button className="btn btn-sm btn-success py-0 px-1" style={{ fontSize: '0.75rem' }}
+                                  onClick={saveEditing} title="Uložit">
+                                  <i className="bi bi-check-lg"></i>
+                                </button>
+                                <button className="btn btn-sm btn-outline-secondary py-0 px-1" style={{ fontSize: '0.75rem' }}
+                                  onClick={cancelEditing} title="Zrušit">
+                                  <i className="bi bi-x-lg"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr key={entry.id}>
+                            <td className="fw-bold" style={{ padding: '4px 8px' }}>{entry.start_number || '—'}</td>
+                            <td style={{ padding: '4px 8px' }}>
+                              {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
+                              {entry.has_override && (
+                                <i className="bi bi-pencil-fill ms-1 text-warning" style={{ fontSize: '0.65rem' }} title="Přepsané údaje"></i>
+                              )}
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>{entry.racer_year}</td>
+                            <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || '—'}</td>
+                            <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              {(entry.dnf || entry.dns || entry.dsq) ? '—' : (entry.time1 != null ? entry.time1.toFixed(2) : '—')}
+                            </td>
+                            <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              {(entry.dnf || entry.dns || entry.dsq) ? '—' : (entry.time2 != null ? entry.time2.toFixed(2) : '—')}
+                            </td>
+                            <td className="fw-bold" style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                              {entry.dnf ? <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>DNF</span>
+                                : entry.dns ? <span className="badge bg-secondary" style={{ fontSize: '0.65rem' }}>DNS</span>
+                                : entry.dsq ? <span className="badge bg-danger" style={{ fontSize: '0.65rem' }}>DSQ</span>
+                                : (entry.time_sum != null ? entry.time_sum.toFixed(2) : '—')}
+                            </td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <div className="d-flex gap-1">
+                                <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
+                                  onClick={() => startEditing(entry)} title="Upravit">
+                                  <i className="bi bi-pencil"></i>
+                                </button>
+                                <button className="btn btn-sm btn-outline-danger py-0 px-1" style={{ fontSize: '0.7rem' }}
+                                  onClick={() => deleteEntry(entry.id, `${entry.racer_surname} ${entry.racer_name}`)} title="Odebrat">
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
                       ))}
                     </tbody>
                   </table>
@@ -512,17 +671,17 @@ export default function StartListManager() {
 
       {/* Empty state */}
       {!loading && selectedRaceId && startList.length === 0 && !showGenerateSetup && (
-        <div className="text-center py-5">
-          <i className="bi bi-list-ul text-muted" style={{ fontSize: '3rem' }}></i>
-          <p className="text-muted mt-3 mb-1">Startovní listina je prázdná</p>
-          <p className="text-muted small">Klikněte na "Generovat z registrací" pro vytvoření listiny ze zaregistrovaných závodníků</p>
+        <div className="text-center py-4">
+          <i className="bi bi-list-ul text-muted" style={{ fontSize: '2rem' }}></i>
+          <p className="text-muted mt-2 mb-0 small">Startovní listina je prázdná</p>
+          <small className="text-muted">Klikněte na "Generovat" pro vytvoření listiny</small>
         </div>
       )}
 
       {!selectedRaceId && (
-        <div className="text-center py-5">
-          <i className="bi bi-hand-index text-muted" style={{ fontSize: '3rem' }}></i>
-          <p className="text-muted mt-3">Vyberte závod pro zobrazení startovní listiny</p>
+        <div className="text-center py-4">
+          <i className="bi bi-hand-index text-muted" style={{ fontSize: '2rem' }}></i>
+          <p className="text-muted mt-2 small">Vyberte závod</p>
         </div>
       )}
     </div>

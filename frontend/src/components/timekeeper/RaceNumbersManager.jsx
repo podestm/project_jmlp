@@ -5,39 +5,36 @@ export default function RaceNumbersManager() {
   const [sets, setSets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    set_number: '',
-    actual_from: '1',
-    actual_to: '200',
-    display_from: '',
+  const [showSetForm, setShowSetForm] = useState(false);
+  const [setFormData, setSetFormData] = useState({
+    set_number: '', actual_from: '1', actual_to: '200', display_from: '',
   });
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    loadSets();
-  }, []);
+  // Detail view
+  const [expandedSet, setExpandedSet] = useState(null);
+  const [numbers, setNumbers] = useState([]);
+  const [loadingNumbers, setLoadingNumbers] = useState(false);
+
+  // Add single number form
+  const [showAddNumber, setShowAddNumber] = useState(false);
+  const [addNumberData, setAddNumberData] = useState({
+    actual_number: '', display_number: '',
+  });
+
+  useEffect(() => { loadSets(); }, []);
 
   const loadSets = async () => {
     try {
       setLoading(true);
       const data = await TimekeeperAPI.get('/api/timekeeper/race-number-sets');
       setSets(data);
-      // Auto-calculate next set_number and display_from
       if (data.length > 0) {
         const maxSet = Math.max(...data.map(s => s.set_number));
         const maxDisplay = Math.max(...data.map(s => s.max_display));
-        setFormData(prev => ({
-          ...prev,
-          set_number: String(maxSet + 1),
-          display_from: String(maxDisplay + 1),
-        }));
+        setSetFormData(prev => ({ ...prev, set_number: String(maxSet + 1), display_from: String(maxDisplay + 1) }));
       } else {
-        setFormData(prev => ({
-          ...prev,
-          set_number: '1',
-          display_from: '1',
-        }));
+        setSetFormData(prev => ({ ...prev, set_number: '1', display_from: '1' }));
       }
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst sady čísel' });
@@ -46,18 +43,49 @@ export default function RaceNumbersManager() {
     }
   };
 
+  const loadNumbers = async (setNumber) => {
+    try {
+      setLoadingNumbers(true);
+      const data = await TimekeeperAPI.get(`/api/timekeeper/race-numbers?set_number=${setNumber}`);
+      setNumbers(data);
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nepodařilo se načíst čísla' });
+    } finally {
+      setLoadingNumbers(false);
+    }
+  };
+
+  const toggleExpand = (setNumber) => {
+    if (expandedSet === setNumber) {
+      setExpandedSet(null);
+      setNumbers([]);
+      setShowAddNumber(false);
+    } else {
+      setExpandedSet(setNumber);
+      loadNumbers(setNumber);
+      setShowAddNumber(false);
+      const set = sets.find(s => s.set_number === setNumber);
+      if (set) {
+        setAddNumberData({
+          actual_number: String(set.max_actual + 1),
+          display_number: String(set.max_display + 1),
+        });
+      }
+    }
+  };
+
   const createSet = async (e) => {
     e.preventDefault();
     try {
       setCreating(true);
       const result = await TimekeeperAPI.post('/api/timekeeper/race-number-sets', {
-        set_number: parseInt(formData.set_number),
-        actual_from: parseInt(formData.actual_from),
-        actual_to: parseInt(formData.actual_to),
-        display_from: parseInt(formData.display_from),
+        set_number: parseInt(setFormData.set_number),
+        actual_from: parseInt(setFormData.actual_from),
+        actual_to: parseInt(setFormData.actual_to),
+        display_from: parseInt(setFormData.display_from),
       });
       setMessage({ type: 'success', text: result.message });
-      setShowForm(false);
+      setShowSetForm(false);
       loadSets();
     } catch (err) {
       setMessage({ type: 'danger', text: err.message || 'Nepodařilo se vytvořit sadu' });
@@ -67,13 +95,46 @@ export default function RaceNumbersManager() {
   };
 
   const deleteSet = async (setNumber) => {
-    if (!window.confirm(`Opravdu smazat celou sadu č. ${setNumber}? Tato akce je nevratná.`)) return;
+    if (!window.confirm(`Opravdu smazat celou sadu č. ${setNumber}?`)) return;
     try {
       const result = await TimekeeperAPI.delete(`/api/timekeeper/race-number-sets/${setNumber}`);
       setMessage({ type: 'success', text: result.message });
+      if (expandedSet === setNumber) { setExpandedSet(null); setNumbers([]); }
       loadSets();
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se smazat sadu' });
+      setMessage({ type: 'danger', text: err.message || 'Nelze smazat sadu' });
+    }
+  };
+
+  const addNumber = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await TimekeeperAPI.post('/api/timekeeper/race-numbers', {
+        set_number: expandedSet,
+        actual_number: parseInt(addNumberData.actual_number),
+        display_number: parseInt(addNumberData.display_number),
+      });
+      setMessage({ type: 'success', text: result.message });
+      loadNumbers(expandedSet);
+      loadSets();
+      setAddNumberData({
+        actual_number: String(parseInt(addNumberData.actual_number) + 1),
+        display_number: String(parseInt(addNumberData.display_number) + 1),
+      });
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message || 'Nelze přidat číslo' });
+    }
+  };
+
+  const deleteNumber = async (numberId, displayNum) => {
+    if (!window.confirm(`Smazat číslo ${displayNum}?`)) return;
+    try {
+      const result = await TimekeeperAPI.delete(`/api/timekeeper/race-numbers/${numberId}`);
+      setMessage({ type: 'success', text: result.message });
+      loadNumbers(expandedSet);
+      loadSets();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message || 'Nelze smazat číslo' });
     }
   };
 
@@ -90,129 +151,69 @@ export default function RaceNumbersManager() {
   return (
     <div>
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h3 className="fw-bold mb-1">
+          <h3 className="fw-bold mb-1" style={{ fontSize: '1.3rem' }}>
             <i className="bi bi-123 me-2" style={{ color: '#e94560' }}></i>
             Startovní čísla
           </h3>
-          <p className="text-muted mb-0">Správa sad startovních čísel pro přidělování závodníkům</p>
+          <p className="text-muted mb-0 small">Správa sad startovních čísel</p>
         </div>
-        <button
-          className="btn btn-lg text-white"
-          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '10px' }}
-          onClick={() => setShowForm(!showForm)}
-        >
-          <i className={`bi ${showForm ? 'bi-x-lg' : 'bi-plus-circle'} me-2`}></i>
-          {showForm ? 'Zrušit' : 'Nová sada'}
+        <button className="btn text-white btn-sm"
+          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+          onClick={() => setShowSetForm(!showSetForm)}>
+          <i className={`bi ${showSetForm ? 'bi-x-lg' : 'bi-plus-circle'} me-1`}></i>
+          {showSetForm ? 'Zrušit' : 'Nová sada'}
         </button>
       </div>
 
-      {/* Messages */}
       {message && (
-        <div className={`alert alert-${message.type} d-flex align-items-center`} role="alert">
+        <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
           <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
           {message.text}
-          <button type="button" className="btn-close ms-auto" onClick={() => setMessage(null)}></button>
+          <button type="button" className="btn-close btn-close-sm ms-auto" onClick={() => setMessage(null)}></button>
         </div>
       )}
 
-      {/* Create form */}
-      {showForm && (
-        <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px', borderTop: '3px solid #e94560' }}>
-          <div className="card-body">
-            <h5 className="fw-bold mb-3">
-              <i className="bi bi-plus-circle me-2"></i>
-              Vytvořit novou sadu startovních čísel
-            </h5>
+      {showSetForm && (
+        <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px', borderTop: '3px solid #e94560' }}>
+          <div className="card-body py-3">
+            <h6 className="fw-bold mb-2"><i className="bi bi-plus-circle me-2"></i>Nová sada</h6>
             <form onSubmit={createSet}>
-              <div className="row g-3">
+              <div className="row g-2">
                 <div className="col-md-3">
-                  <label className="form-label fw-semibold">Číslo sady</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.set_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, set_number: e.target.value }))}
-                    min="1"
-                    required
-                    style={{ borderRadius: '10px' }}
-                  />
-                  <small className="text-muted">Identifikátor sady (1, 2, 3...)</small>
+                  <label className="form-label small fw-semibold mb-1">Číslo sady</label>
+                  <input type="number" className="form-control form-control-sm" value={setFormData.set_number}
+                    onChange={(e) => setSetFormData(prev => ({ ...prev, set_number: e.target.value }))} min="1" required />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label fw-semibold">Reálná čísla od</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.actual_from}
-                    onChange={(e) => setFormData(prev => ({ ...prev, actual_from: e.target.value }))}
-                    min="1"
-                    required
-                    style={{ borderRadius: '10px' }}
-                  />
-                  <small className="text-muted">Číslo prvního dresu</small>
+                  <label className="form-label small fw-semibold mb-1">Reálná od</label>
+                  <input type="number" className="form-control form-control-sm" value={setFormData.actual_from}
+                    onChange={(e) => setSetFormData(prev => ({ ...prev, actual_from: e.target.value }))} min="1" required />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label fw-semibold">Reálná čísla do</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.actual_to}
-                    onChange={(e) => setFormData(prev => ({ ...prev, actual_to: e.target.value }))}
-                    min="1"
-                    required
-                    style={{ borderRadius: '10px' }}
-                  />
-                  <small className="text-muted">Číslo posledního dresu</small>
+                  <label className="form-label small fw-semibold mb-1">Reálná do</label>
+                  <input type="number" className="form-control form-control-sm" value={setFormData.actual_to}
+                    onChange={(e) => setSetFormData(prev => ({ ...prev, actual_to: e.target.value }))} min="1" required />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label fw-semibold">Zobrazení od</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.display_from}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_from: e.target.value }))}
-                    min="1"
-                    required
-                    style={{ borderRadius: '10px' }}
-                  />
-                  <small className="text-muted">Startovní číslo v systému</small>
+                  <label className="form-label small fw-semibold mb-1">Zobrazení od</label>
+                  <input type="number" className="form-control form-control-sm" value={setFormData.display_from}
+                    onChange={(e) => setSetFormData(prev => ({ ...prev, display_from: e.target.value }))} min="1" required />
                 </div>
               </div>
-              
-              {/* Preview */}
-              {formData.actual_from && formData.actual_to && formData.display_from && (
-                <div className="mt-3 p-3 rounded" style={{ background: '#f8f9fa' }}>
-                  <small className="fw-semibold text-muted">
-                    <i className="bi bi-eye me-1"></i> Náhled:
-                  </small>
-                  <span className="ms-2">
-                    Dresy {formData.actual_from}–{formData.actual_to} budou v systému jako{' '}
-                    <strong>{formData.display_from}–{parseInt(formData.display_from) + (parseInt(formData.actual_to) - parseInt(formData.actual_from))}</strong>
-                    {' '}({parseInt(formData.actual_to) - parseInt(formData.actual_from) + 1} čísel)
-                  </span>
+              {setFormData.actual_from && setFormData.actual_to && setFormData.display_from && (
+                <div className="mt-2 px-2 py-1 rounded small" style={{ background: '#f8f9fa' }}>
+                  Dresy {setFormData.actual_from}–{setFormData.actual_to} → systém{' '}
+                  <strong>{setFormData.display_from}–{parseInt(setFormData.display_from) + (parseInt(setFormData.actual_to) - parseInt(setFormData.actual_from))}</strong>
+                  {' '}({parseInt(setFormData.actual_to) - parseInt(setFormData.actual_from) + 1} ks)
                 </div>
               )}
-
-              <div className="mt-3">
-                <button
-                  type="submit"
-                  className="btn text-white"
-                  style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '10px' }}
-                  disabled={creating}
-                >
-                  {creating ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      Vytvářím...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-check-lg me-2"></i>
-                      Vytvořit sadu
-                    </>
-                  )}
+              <div className="mt-2">
+                <button type="submit" className="btn btn-sm text-white"
+                  style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                  disabled={creating}>
+                  {creating ? <><span className="spinner-border spinner-border-sm me-1"></span>Vytvářím...</> : <><i className="bi bi-check-lg me-1"></i>Vytvořit</>}
                 </button>
               </div>
             </form>
@@ -220,52 +221,92 @@ export default function RaceNumbersManager() {
         </div>
       )}
 
-      {/* Sets list */}
       {sets.length > 0 ? (
-        <div className="row g-3">
+        <div className="d-flex flex-column gap-2">
           {sets.map(set => (
-            <div key={set.set_number} className="col-md-6 col-lg-4">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '12px' }}>
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                      <span className="badge fs-6" style={{ background: 'linear-gradient(135deg, #e94560, #c23152)' }}>
-                        Sada {set.set_number}
-                      </span>
-                    </div>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => deleteSet(set.set_number)}
-                      title="Smazat sadu"
-                      style={{ borderRadius: '8px' }}
-                    >
-                      <i className="bi bi-trash"></i>
+            <div key={set.set_number} className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
+              <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between"
+                style={{ cursor: 'pointer' }} onClick={() => toggleExpand(set.set_number)}>
+                <div className="d-flex align-items-center gap-3">
+                  <i className={`bi ${expandedSet === set.set_number ? 'bi-chevron-down' : 'bi-chevron-right'} text-muted`}></i>
+                  <span className="badge" style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', fontSize: '0.8rem' }}>
+                    Sada {set.set_number}
+                  </span>
+                  <span className="small">
+                    <strong>{set.count}</strong> čísel
+                    <span className="text-muted ms-2">
+                      Dresy {set.min_actual}–{set.max_actual} → Systém {set.min_display}–{set.max_display}
+                    </span>
+                  </span>
+                </div>
+                <button className="btn btn-outline-danger btn-sm py-0 px-2"
+                  onClick={(e) => { e.stopPropagation(); deleteSet(set.set_number); }} title="Smazat celou sadu">
+                  <i className="bi bi-trash" style={{ fontSize: '0.75rem' }}></i>
+                </button>
+              </div>
+
+              {expandedSet === set.set_number && (
+                <div className="border-top">
+                  <div className="d-flex align-items-center justify-content-between px-3 py-2" style={{ background: '#f8f9fa' }}>
+                    <small className="text-muted">{numbers.length} čísel v sadě</small>
+                    <button className="btn btn-sm btn-outline-dark py-0 px-2"
+                      onClick={() => setShowAddNumber(!showAddNumber)}>
+                      <i className={`bi ${showAddNumber ? 'bi-x' : 'bi-plus'} me-1`} style={{ fontSize: '0.75rem' }}></i>
+                      {showAddNumber ? 'Zrušit' : 'Přidat číslo'}
                     </button>
                   </div>
-                  
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between mb-1">
-                      <span className="text-muted small">Reálná čísla (dresy):</span>
-                      <span className="fw-bold">{set.min_actual} – {set.max_actual}</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-1">
-                      <span className="text-muted small">Zobrazení v systému:</span>
-                      <span className="fw-bold">{set.min_display} – {set.max_display}</span>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <span className="text-muted small">Počet čísel:</span>
-                      <span className="fw-bold">{set.count}</span>
-                    </div>
-                  </div>
 
-                  <div className="progress" style={{ height: '6px', borderRadius: '3px' }}>
-                    <div
-                      className="progress-bar"
-                      style={{ width: '100%', background: 'linear-gradient(135deg, #e94560, #c23152)' }}
-                    ></div>
-                  </div>
+                  {showAddNumber && (
+                    <div className="px-3 py-2 border-top" style={{ background: '#fff8f9' }}>
+                      <form onSubmit={addNumber} className="d-flex align-items-end gap-2">
+                        <div>
+                          <label className="form-label small mb-0 fw-semibold">Reálné č.</label>
+                          <input type="number" className="form-control form-control-sm" style={{ width: '100px' }}
+                            value={addNumberData.actual_number}
+                            onChange={(e) => setAddNumberData(prev => ({ ...prev, actual_number: e.target.value }))} min="1" required />
+                        </div>
+                        <div>
+                          <label className="form-label small mb-0 fw-semibold">Zobrazení</label>
+                          <input type="number" className="form-control form-control-sm" style={{ width: '100px' }}
+                            value={addNumberData.display_number}
+                            onChange={(e) => setAddNumberData(prev => ({ ...prev, display_number: e.target.value }))} min="1" required />
+                        </div>
+                        <button type="submit" className="btn btn-sm text-white"
+                          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '6px' }}>
+                          <i className="bi bi-plus-lg"></i>
+                        </button>
+                      </form>
+                    </div>
+                  )}
+
+                  {loadingNumbers ? (
+                    <div className="text-center py-3">
+                      <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2" style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                      <div className="d-flex flex-wrap gap-1">
+                        {numbers.map(n => (
+                          <div key={n.id}
+                            className="d-inline-flex align-items-center border rounded px-2 py-0"
+                            style={{ fontSize: '0.78rem', background: 'white' }}
+                            title={`Dres ${n.actual_number} → ${n.display_number}`}>
+                            <span className="fw-semibold me-1" style={{ minWidth: '28px' }}>{n.display_number}</span>
+                            {n.actual_number !== n.display_number && (
+                              <span className="text-muted me-1" style={{ fontSize: '0.65rem' }}>({n.actual_number})</span>
+                            )}
+                            <button className="btn btn-link p-0 text-danger"
+                              onClick={() => deleteNumber(n.id, n.display_number)}
+                              style={{ fontSize: '0.65rem', lineHeight: 1 }} title="Smazat">
+                              <i className="bi bi-x-lg"></i>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
@@ -276,23 +317,6 @@ export default function RaceNumbersManager() {
           <p className="text-muted small">Vytvořte první sadu kliknutím na "Nová sada"</p>
         </div>
       )}
-
-      {/* Info */}
-      <div className="card border-0 bg-light mt-4" style={{ borderRadius: '12px' }}>
-        <div className="card-body">
-          <h6 className="fw-bold mb-2">
-            <i className="bi bi-info-circle me-2 text-primary"></i>
-            Jak fungují sady čísel?
-          </h6>
-          <ul className="text-muted small mb-0">
-            <li>Každá sada odpovídá fyzickým dresům/číslům, které máte k dispozici</li>
-            <li><strong>Sada 1:</strong> Dresy 1-200 → systém zobrazuje 1-200</li>
-            <li><strong>Sada 2:</strong> Stejné dresy 1-200 → systém zobrazuje 201-400 (pro odlišení)</li>
-            <li>Při generování startovní listiny zvolíte, kterou sadu použít</li>
-            <li>Sadu nelze smazat, pokud jsou její čísla přiřazena na startovní listině</li>
-          </ul>
-        </div>
-      </div>
     </div>
   );
 }

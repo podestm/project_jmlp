@@ -132,8 +132,8 @@ function Homepage() {
                 Jihomoravský Lyžařský Pohár
               </h1>
               <p 
-                className="text-muted mb-0" 
-                style={{ fontSize: '1rem' }}
+                className="mb-0" 
+                style={{ fontSize: '1rem', color: '#495057' }}
               >
                 Seriál závodů pro všechny kategorie
               </p>

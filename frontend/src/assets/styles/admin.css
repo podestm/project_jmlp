@@ -93,7 +93,6 @@
 .admin-section h5,
 .admin-section h6,
 .admin-section p,
-.admin-section span,
 .admin-section label,
 .admin-section td,
 .admin-section th {
@@ -328,4 +327,324 @@
   .admin-section .fs-3 {
     font-size: 1.25rem !important;
   }
+}
+
+/* ========================================
+   ADMIN SECTION: Text Color Overrides
+   Ensure Bootstrap text utilities show dark text on light admin bg
+   ======================================== */
+.admin-section .text-secondary {
+  color: #464555 !important;
+}
+
+.admin-section .text-primary {
+  color: #2664EB !important;
+}
+
+.admin-section .text-success {
+  color: #198754 !important;
+}
+
+.admin-section .text-info {
+  color: #0dcaf0 !important;
+}
+
+.admin-section .text-warning {
+  color: #ffc107 !important;
+}
+
+.admin-section .text-danger {
+  color: #dc3545 !important;
+}
+
+/* Admin alerts - dark text on light alert backgrounds */
+.admin-section .alert-danger {
+  color: #842029 !important;
+  background-color: #f8d7da !important;
+  border-color: #f5c2c7 !important;
+}
+
+.admin-section .alert-success {
+  color: #0f5132 !important;
+  background-color: #d1e7dd !important;
+  border-color: #badbcc !important;
+}
+
+.admin-section .alert-warning {
+  color: #664d03 !important;
+  background-color: #fff3cd !important;
+  border-color: #ffecb5 !important;
+}
+
+.admin-section .alert-info {
+  color: #055160 !important;
+  background-color: #cff4fc !important;
+  border-color: #b6effb !important;
+}
+
+/* Admin btn-outline-secondary - keep dark for light bg */
+.admin-section .btn-outline-secondary {
+  --bs-btn-color: #6c757d !important;
+  --bs-btn-border-color: #6c757d !important;
+}
+
+/* Admin table-light - standard light mode */
+.admin-section .table-light,
+.admin-section .table-light th,
+.admin-section .table-light td {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  --bs-table-color: #212529 !important;
+  --bs-table-bg: #f8f9fa !important;
+}
+
+/* ========================================
+   TIMEKEEPER SECTION: Light Mode Overrides
+   Reset dark glassmorphism styles for timekeeper content area
+   ======================================== */
+
+.timekeeper-section {
+  background: #f0f2f5 !important;
+  color: #212529 !important;
+}
+
+/* Reset dark mode card styles */
+.timekeeper-section .card,
+.timekeeper-section .card-body,
+.timekeeper-section .card-header {
+  background: white !important;
+  border: 1px solid #dee2e6 !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .card-header {
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Tables */
+.timekeeper-section .table {
+  background: white !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .table thead,
+.timekeeper-section .table-dark {
+  background: #343a40 !important;
+  color: white !important;
+}
+
+.timekeeper-section .table thead th,
+.timekeeper-section .table-dark th {
+  color: white !important;
+  background: #343a40 !important;
+}
+
+.timekeeper-section .table-light,
+.timekeeper-section .table-light th {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .table tbody {
+  background: white !important;
+}
+
+.timekeeper-section .table tbody tr {
+  background: white !important;
+}
+
+.timekeeper-section .table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+
+.timekeeper-section .table tbody td {
+  color: #212529 !important;
+  background: transparent !important;
+}
+
+/* Forms */
+.timekeeper-section .form-control,
+.timekeeper-section .form-select {
+  background: white !important;
+  border: 1px solid #ced4da !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .form-control:focus,
+.timekeeper-section .form-select:focus {
+  background: white !important;
+  border-color: #86b7fe !important;
+  color: #212529 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.timekeeper-section .form-control:disabled,
+.timekeeper-section .form-control[readonly] {
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+}
+
+.timekeeper-section .form-label {
+  color: #212529 !important;
+}
+
+/* Modals */
+.timekeeper-section .modal-content {
+  background: white !important;
+  color: #212529 !important;
+}
+
+/* All text elements - dark on light */
+.timekeeper-section h1,
+.timekeeper-section h2,
+.timekeeper-section h3,
+.timekeeper-section h4,
+.timekeeper-section h5,
+.timekeeper-section h6,
+.timekeeper-section p,
+.timekeeper-section label,
+.timekeeper-section small,
+.timekeeper-section td,
+.timekeeper-section th {
+  color: #212529 !important;
+}
+
+/* Bootstrap text utilities - scoped to light bg */
+.timekeeper-section .text-muted {
+  color: #6c757d !important;
+}
+
+.timekeeper-section .text-secondary {
+  color: #6c757d !important;
+}
+
+.timekeeper-section .text-primary {
+  color: #0d6efd !important;
+}
+
+.timekeeper-section .text-success {
+  color: #198754 !important;
+}
+
+.timekeeper-section .text-danger {
+  color: #dc3545 !important;
+}
+
+.timekeeper-section .text-warning {
+  color: #ffc107 !important;
+}
+
+.timekeeper-section .text-info {
+  color: #0dcaf0 !important;
+}
+
+.timekeeper-section .text-white {
+  color: #fff !important;
+}
+
+.timekeeper-section .text-white-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Badge text stays white */
+.timekeeper-section .badge {
+  color: white !important;
+}
+
+.timekeeper-section .badge.bg-light {
+  color: #212529 !important;
+}
+
+.timekeeper-section .badge.bg-warning {
+  color: #000 !important;
+}
+
+/* Solid buttons - ensure white text */
+.timekeeper-section .btn-primary,
+.timekeeper-section .btn-success,
+.timekeeper-section .btn-danger,
+.timekeeper-section .btn-secondary {
+  color: white !important;
+}
+
+.timekeeper-section .btn-warning,
+.timekeeper-section .btn-info,
+.timekeeper-section .btn-light {
+  color: #000 !important;
+}
+
+/* Outline buttons */
+.timekeeper-section .btn-outline-primary,
+.timekeeper-section .btn-outline-secondary,
+.timekeeper-section .btn-outline-danger,
+.timekeeper-section .btn-outline-success,
+.timekeeper-section .btn-outline-info,
+.timekeeper-section .btn-outline-warning,
+.timekeeper-section .btn-outline-dark {
+  background: transparent !important;
+}
+
+/* Alerts - dark text on light alert backgrounds */
+.timekeeper-section .alert-danger {
+  color: #842029 !important;
+  background-color: #f8d7da !important;
+  border-color: #f5c2c7 !important;
+}
+
+.timekeeper-section .alert-success {
+  color: #0f5132 !important;
+  background-color: #d1e7dd !important;
+  border-color: #badbcc !important;
+}
+
+.timekeeper-section .alert-warning {
+  color: #664d03 !important;
+  background-color: #fff3cd !important;
+  border-color: #ffecb5 !important;
+}
+
+.timekeeper-section .alert-info {
+  color: #055160 !important;
+  background-color: #cff4fc !important;
+  border-color: #b6effb !important;
+}
+
+/* List groups */
+.timekeeper-section .list-group-item {
+  background: white !important;
+  border-color: #dee2e6 !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .list-group-item:hover {
+  background: #f8f9fa !important;
+}
+
+/* bg-light and bg-white resets */
+.timekeeper-section .bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.timekeeper-section .bg-white {
+  background-color: #fff !important;
+}
+
+/* Timekeeper btn-outline-secondary - keep dark for light bg */
+.timekeeper-section .btn-outline-secondary {
+  --bs-btn-color: #6c757d !important;
+  --bs-btn-border-color: #6c757d !important;
+}
+
+/* Timekeeper table-light - standard light mode */
+.timekeeper-section .table-light,
+.timekeeper-section .table-light th,
+.timekeeper-section .table-light td {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  --bs-table-color: #212529 !important;
+  --bs-table-bg: #f8f9fa !important;
 }

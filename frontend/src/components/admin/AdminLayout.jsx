@@ -125,7 +125,7 @@ export default function AdminLayout({ children }) {
       {/* Main content */}
       <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
         {/* Page content */}
-        <main className="flex-grow-1 p-4 bg-light" style={{ overflowY: 'auto' }}>
+        <main className="flex-grow-1 p-4 admin-layout-content" style={{ overflowY: 'auto', background: '#f8f9fa' }}>
           <div className="container-fluid">
             {children}
           </div>

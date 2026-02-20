@@ -146,7 +146,7 @@ export default function TimekeeperLayout({ children }) {
 
       {/* Main content */}
       <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
-        <main className="flex-grow-1 p-4" style={{ background: '#f0f2f5', overflowY: 'auto' }}>
+        <main className="flex-grow-1 p-4 timekeeper-section" style={{ background: '#f0f2f5', overflowY: 'auto' }}>
           <div className="container-fluid">
             {children}
           </div>

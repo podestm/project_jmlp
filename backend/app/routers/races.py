@@ -223,7 +223,8 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             c.id as club_id,
             rr.registered_at,
             CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name,
-            cat.id as category_id
+            cat.id as category_id,
+            cat.sex as category_sex
         FROM race_registration rr
         JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
@@ -245,7 +246,9 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
         
         # Přidáme kategorii do setu
         if row.category_name:
-            categories.add((row.category_id, row.category_name))
+            sex_suffix = ' - Ženy' if row.category_sex == 2 else (' - Muži' if row.category_sex == 1 else '')
+            cat_display = f"{row.category_name}{sex_suffix}"
+            categories.add((row.category_id, cat_display))
         
         clubs[club_name]["racers"].append({
             "firstName": row.firstName,
@@ -254,7 +257,7 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             "birthYear": row.birthYear,
             "idSlcr": row.idSlcr,
             "registered_at": row.registered_at,
-            "category_name": row.category_name,
+            "category_name": (f"{row.category_name} - Ženy" if row.category_sex == 2 else (f"{row.category_name} - Muži" if row.category_sex == 1 else row.category_name)) if row.category_name else None,
             "category_id": row.category_id
         })
     
