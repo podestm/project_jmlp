@@ -128,13 +128,12 @@ def export_race_registrations_csv(
     race_number = race.raceNr or f"zavod_{race_id}"
     filename = f"registrace_{race_number}.csv"
     
-    # Add BOM for better Excel compatibility with Czech characters
-    csv_content_with_bom = '\ufeff' + csv_content
+    # Encode as Windows-1250 for Excel compatibility with Czech characters
     
     # Return CSV as download
     return Response(
-        content=csv_content_with_bom.encode('utf-8'),
-        media_type='text/csv; charset=utf-8',
+        content=csv_content.encode('cp1250'),
+        media_type='text/csv; charset=windows-1250',
         headers={
             'Content-Disposition': f'attachment; filename="{filename}"'
         }
