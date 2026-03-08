@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mysql-jmlp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-mysql",
+        "mysql://app:default-dev-app-password@127.0.0.1:3307/jmlpcz"
+      ]
+    }
+  }
+}
