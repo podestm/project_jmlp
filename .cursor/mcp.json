@@ -1,12 +1,15 @@
 {
   "mcpServers": {
     "mysql-jmlp": {
-      "command": "npx",
+      "command": "bash",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-mysql",
-        "mysql://app:default-dev-app-password@127.0.0.1:3307/jmlpcz"
-      ]
+        "-lc",
+        "npx -y @modelcontextprotocol/server-mysql \"mysql://${MCP_MYSQL_USER}:${MCP_MYSQL_PASSWORD}@127.0.0.1:3307/jmlpcz\""
+      ],
+      "env": {
+        "MCP_MYSQL_USER": "mcp_readonly",
+        "MCP_MYSQL_PASSWORD": "default-dev-mcp-readonly-password"
+      }
     }
   }
 }
