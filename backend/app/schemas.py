@@ -339,7 +339,12 @@ class StartListEntryCreate(StartListEntryBase):
 class StartListEntryUpdate(BaseModel):
     start_number: Optional[int] = None
     race_number_id: Optional[int] = None
+    race_number_display: Optional[int] = None
     category_id: Optional[int] = None
+    racer_name: Optional[str] = None
+    racer_surname: Optional[str] = None
+    racer_year: Optional[int] = None
+    club_name: Optional[str] = None
     name_override: Optional[str] = None
     surname_override: Optional[str] = None
     year_override: Optional[int] = None
@@ -352,6 +357,7 @@ class StartListEntryUpdate(BaseModel):
 
 class StartListEntry(StartListEntryBase):
     id: int
+    category_rank: Optional[int] = None
     time1: Optional[float] = None
     time2: Optional[float] = None
     time_sum: Optional[float] = None
@@ -361,13 +367,15 @@ class StartListEntry(StartListEntryBase):
     points: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    # Populated by joins
     racer_name: Optional[str] = None
     racer_surname: Optional[str] = None
     racer_year: Optional[int] = None
     racer_sex: Optional[int] = None
     club_name: Optional[str] = None
     category_name: Optional[str] = None
+    category_sex: Optional[int] = None
+    race_number_actual: Optional[int] = None
+    race_number_display: Optional[int] = None
     display_number: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -390,5 +398,6 @@ class RaceNumberInfo(BaseModel):
     set_number: int
     actual_number: int
     display_number: int
+    is_active: bool = True
     
     model_config = ConfigDict(from_attributes=True)

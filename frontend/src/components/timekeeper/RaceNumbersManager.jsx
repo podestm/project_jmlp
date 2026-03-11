@@ -15,6 +15,7 @@ export default function RaceNumbersManager() {
   const [expandedSet, setExpandedSet] = useState(null);
   const [numbers, setNumbers] = useState([]);
   const [loadingNumbers, setLoadingNumbers] = useState(false);
+  const [updatingNumberId, setUpdatingNumberId] = useState(null);
 
   // Add single number form
   const [showAddNumber, setShowAddNumber] = useState(false);
@@ -126,17 +127,56 @@ export default function RaceNumbersManager() {
     }
   };
 
-  const deleteNumber = async (numberId, displayNum) => {
-    if (!window.confirm(`Smazat číslo ${displayNum}?`)) return;
+  const updateSetSummaryCounts = (setNumber, nextIsActive, previousIsActive) => {
+    if (nextIsActive === previousIsActive) return;
+
+    setSets(prev => prev.map(set => {
+      if (set.set_number !== setNumber) return set;
+
+      const activeCount = typeof set.active_count === 'number' ? set.active_count : set.count;
+      const inactiveCount = typeof set.inactive_count === 'number' ? set.inactive_count : Math.max(0, set.count - activeCount);
+
+      return {
+        ...set,
+        active_count: activeCount + (nextIsActive ? 1 : -1),
+        inactive_count: inactiveCount + (nextIsActive ? -1 : 1),
+      };
+    }));
+  };
+
+  const toggleNumberActive = async (numberId, isActive) => {
+    const currentNumber = numbers.find(number => number.id === numberId);
+    if (!currentNumber || currentNumber.is_active === isActive) return;
+
     try {
-      const result = await TimekeeperAPI.delete(`/api/timekeeper/race-numbers/${numberId}`);
-      setMessage({ type: 'success', text: result.message });
-      loadNumbers(expandedSet);
-      loadSets();
+      setUpdatingNumberId(numberId);
+      setNumbers(prev => prev.map(number => (
+        number.id === numberId
+          ? { ...number, is_active: isActive }
+          : number
+      )));
+      updateSetSummaryCounts(currentNumber.set_number, isActive, currentNumber.is_active);
+
+      await TimekeeperAPI.put(`/api/timekeeper/race-numbers/${numberId}`, {
+        is_active: isActive,
+      });
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message || 'Nelze smazat číslo' });
+      setNumbers(prev => prev.map(number => (
+        number.id === numberId
+          ? { ...number, is_active: currentNumber.is_active }
+          : number
+      )));
+      updateSetSummaryCounts(currentNumber.set_number, currentNumber.is_active, isActive);
+      setMessage({ type: 'danger', text: err.message || 'Nelze změnit stav čísla' });
+    } finally {
+      setUpdatingNumberId(null);
     }
   };
+
+  const numberColumns = [];
+  for (let i = 0; i < numbers.length; i += 10) {
+    numberColumns.push(numbers.slice(i, i + 10));
+  }
 
   if (loading) {
     return (
@@ -233,7 +273,8 @@ export default function RaceNumbersManager() {
                     Sada {set.set_number}
                   </span>
                   <span className="small">
-                    <strong>{set.count}</strong> čísel
+                    <strong>{set.active_count ?? set.count}</strong> aktivních
+                    <span className="text-muted ms-1">/ {set.count} celkem</span>
                     <span className="text-muted ms-2">
                       Dresy {set.min_actual}–{set.max_actual} → Systém {set.min_display}–{set.max_display}
                     </span>
@@ -248,7 +289,9 @@ export default function RaceNumbersManager() {
               {expandedSet === set.set_number && (
                 <div className="border-top">
                   <div className="d-flex align-items-center justify-content-between px-3 py-2" style={{ background: '#f8f9fa' }}>
-                    <small className="text-muted">{numbers.length} čísel v sadě</small>
+                    <small className="text-muted">
+                      {numbers.filter(n => n.is_active).length} aktivních, {numbers.filter(n => !n.is_active).length} neaktivních
+                    </small>
                     <button className="btn btn-sm btn-outline-dark py-0 px-2"
                       onClick={() => setShowAddNumber(!showAddNumber)}>
                       <i className={`bi ${showAddNumber ? 'bi-x' : 'bi-plus'} me-1`} style={{ fontSize: '0.75rem' }}></i>
@@ -285,21 +328,30 @@ export default function RaceNumbersManager() {
                     </div>
                   ) : (
                     <div className="px-3 py-2" style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                      <div className="d-flex flex-wrap gap-1">
-                        {numbers.map(n => (
-                          <div key={n.id}
-                            className="d-inline-flex align-items-center border rounded px-2 py-0"
-                            style={{ fontSize: '0.78rem', background: 'white' }}
-                            title={`Dres ${n.actual_number} → ${n.display_number}`}>
-                            <span className="fw-semibold me-1" style={{ minWidth: '28px' }}>{n.display_number}</span>
-                            {n.actual_number !== n.display_number && (
-                              <span className="text-muted me-1" style={{ fontSize: '0.65rem' }}>({n.actual_number})</span>
+                      <div className="timekeeper-race-number-grid">
+                        {numberColumns.map((column, columnIndex) => (
+                          <div key={columnIndex} className="timekeeper-race-number-column">
+                            {column.length > 0 && (
+                              <div className="timekeeper-race-number-column-header">
+                                {column[0].display_number}-{column[column.length - 1].display_number}
+                              </div>
                             )}
-                            <button className="btn btn-link p-0 text-danger"
-                              onClick={() => deleteNumber(n.id, n.display_number)}
-                              style={{ fontSize: '0.65rem', lineHeight: 1 }} title="Smazat">
-                              <i className="bi bi-x-lg"></i>
-                            </button>
+                            {column.map((n) => (
+                              <button
+                                key={n.id}
+                                type="button"
+                                className={`timekeeper-race-number-item ${n.is_active ? 'is-active' : 'is-inactive'}`}
+                                title={`Dres ${n.actual_number} → ${n.display_number}`}
+                                disabled={updatingNumberId === n.id}
+                                onClick={() => toggleNumberActive(n.id, !n.is_active)}
+                              >
+                                <span className="timekeeper-race-number-state" aria-hidden="true"></span>
+                                <span className="fw-semibold timekeeper-race-number-display">{n.display_number}</span>
+                                {n.actual_number !== n.display_number && (
+                                  <span className="text-muted timekeeper-race-number-actual">({n.actual_number})</span>
+                                )}
+                              </button>
+                            ))}
                           </div>
                         ))}
                       </div>

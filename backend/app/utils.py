@@ -13,7 +13,40 @@ def fix_encoding(text: str) -> str:
         try:
             return text.encode('latin1').decode('utf-8')
         except (UnicodeEncodeError, UnicodeDecodeError):
-            pass
+            replacements = {
+                'Å½': 'Ž',
+                'Å¾': 'ž',
+                'Å ': 'Š',
+                'Å¡': 'š',
+                'Å': 'Ř',
+                'Å': 'ř',
+                'Ä': 'Č',
+                'Ä': 'č',
+                'Ä': 'Ě',
+                'Ä': 'ě',
+                'Å': 'Ň',
+                'Å': 'ň',
+                'Å¤': 'Ť',
+                'Å¥': 'ť',
+                'Å®': 'Ů',
+                'Å¯': 'ů',
+                'Ã': 'Á',
+                'Ã¡': 'á',
+                'Ã': 'É',
+                'Ã©': 'é',
+                'Ã': 'Í',
+                'Ã­': 'í',
+                'Ã': 'Ó',
+                'Ã³': 'ó',
+                'Ã': 'Ú',
+                'Ãº': 'ú',
+                'Ã': 'Ý',
+                'Ã½': 'ý',
+            }
+            fixed = text
+            for broken, correct in replacements.items():
+                fixed = fixed.replace(broken, correct)
+            return fixed
 
     return text
 
@@ -139,3 +172,32 @@ def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional
     ).order_by(Category.sex.desc()).first()  # Preferuj specifické kategorie před mix
     
     return category.id if category else None
+
+
+def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) -> tuple[Optional[int], Optional[str], Optional[int]]:
+    from sqlalchemy import and_, or_
+    from .models import Category
+
+    category = db.query(Category).filter(
+        and_(
+            Category.active == True,
+            Category.min_birth_year <= birth_year,
+            Category.max_birth_year >= birth_year,
+            or_(
+                Category.sex == 0,
+                Category.sex == racer_sex
+            )
+        )
+    ).order_by(Category.sex.desc()).first()
+
+    if not category:
+        return None, None, None
+
+    category_name = fix_encoding(category.name) if category.name else None
+    if category_name:
+        if category.sex == 2:
+            category_name = f"{category_name} - Ženy"
+        elif category.sex == 1:
+            category_name = f"{category_name} - Muži"
+
+    return category.id, category_name, category.sex

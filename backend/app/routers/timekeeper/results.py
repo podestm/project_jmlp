@@ -11,18 +11,6 @@ from ...utils import fix_encoding, convert_utf8_field, StandardExceptions
 router = APIRouter(tags=["timekeeper-results"])
 
 
-def _category_display_name(name, sex):
-    """Build display name with sex suffix: 'U8 Myšáci - Ženy'."""
-    if not name:
-        return None
-    display = fix_encoding(name)
-    if sex == 2:
-        return f"{display} - Ženy"
-    elif sex == 1:
-        return f"{display} - Muži"
-    return display
-
-
 # Points table: 1st=25, 2nd=20, 3rd=16, 4th=13, 5th=11, 6th=10, 7th=9, ...
 POINTS_TABLE = [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
@@ -62,19 +50,16 @@ def get_race_results(
     query = text(f"""
         SELECT sl.id, sl.racer_id, sl.category_id, sl.start_number,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
-               {convert_utf8_field('rac.name')} as racer_name,
-               {convert_utf8_field('rac.surname')} as racer_surname,
-               rac.year as racer_year, rac.sex as racer_sex,
-               {convert_utf8_field('c.name')} as club_name,
-               {convert_utf8_field('cat.name')} as category_name,
+               sl.racer_name, sl.racer_surname,
+               sl.racer_year, sl.racer_sex,
+               sl.club_name,
+               sl.category_name,
                cat.id as cat_id,
-               cat.sex as category_sex,
-               rn.display_number
+               sl.category_sex,
+               sl.race_number_actual,
+               sl.race_number_display
         FROM fuj_jmlp_race_start_list sl
-        JOIN fuj_jmlp_racer rac ON sl.racer_id = rac.id
-        LEFT JOIN fuj_jmlp_club c ON rac.club_id = c.id
         LEFT JOIN fuj_jmlp_category cat ON sl.category_id = cat.id
-        LEFT JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
         WHERE sl.race_id = :race_id
         ORDER BY cat.min_birth_year DESC, cat.sex DESC,
                  CASE WHEN sl.dnf = 1 OR sl.dns = 1 OR sl.dsq = 1 THEN 1 ELSE 0 END ASC,
@@ -96,13 +81,15 @@ def get_race_results(
             "id": row.id,
             "position": position,
             "start_number": row.start_number,
-            "display_number": row.display_number,
+            "display_number": row.race_number_display,
+            "race_number_display": row.race_number_display,
+            "race_number_actual": row.race_number_actual,
             "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
             "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
             "racer_year": row.racer_year,
             "racer_sex": row.racer_sex,
             "club_name": fix_encoding(row.club_name) if row.club_name else None,
-            "category_name": _category_display_name(row.category_name, row.category_sex),
+            "category_name": fix_encoding(row.category_name) if row.category_name else None,
             "time1": float(row.time1) if row.time1 is not None else None,
             "time2": float(row.time2) if row.time2 is not None else None,
             "time_sum": float(row.time_sum) if row.time_sum is not None else None,
@@ -113,7 +100,7 @@ def get_race_results(
     if group_by_category:
         categories = {}
         for row in rows:
-            cat_name = _category_display_name(row.category_name, row.category_sex) or "Bez kategorie"
+            cat_name = fix_encoding(row.category_name) if row.category_name else "Bez kategorie"
             cat_id = row.cat_id or 0
             key = str(cat_id)
             

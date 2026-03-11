@@ -2,7 +2,7 @@
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func
+from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, auth
@@ -20,6 +20,8 @@ def get_race_number_sets(
     query = text("""
         SELECT set_number,
                COUNT(*) as count,
+               SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
+               SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_count,
                MIN(actual_number) as min_actual,
                MAX(actual_number) as max_actual,
                MIN(display_number) as min_display,
@@ -33,6 +35,8 @@ def get_race_number_sets(
     return [{
         "set_number": row.set_number,
         "count": row.count,
+        "active_count": int(row.active_count or 0),
+        "inactive_count": int(row.inactive_count or 0),
         "min_actual": row.min_actual,
         "max_actual": row.max_actual,
         "min_display": row.min_display,
@@ -48,7 +52,7 @@ def get_race_numbers(
 ) -> List[Dict[str, Any]]:
     """Get all race numbers for a given set."""
     query = text("""
-        SELECT id, set_number, actual_number, display_number
+        SELECT id, set_number, actual_number, display_number, is_active
         FROM fuj_jmlp_race_numbers
         WHERE set_number = :set_number
         ORDER BY actual_number ASC
@@ -60,6 +64,30 @@ def get_race_numbers(
         "set_number": row.set_number,
         "actual_number": row.actual_number,
         "display_number": row.display_number,
+        "is_active": bool(row.is_active),
+    } for row in rows]
+
+
+@router.get("/race-number-options")
+def get_active_race_number_options(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """Get all active race numbers across sets for assignment by system number."""
+    query = text("""
+        SELECT id, set_number, actual_number, display_number, is_active
+        FROM fuj_jmlp_race_numbers
+        WHERE is_active = 1
+        ORDER BY display_number ASC
+    """)
+    rows = db.execute(query).fetchall()
+
+    return [{
+        "id": row.id,
+        "set_number": row.set_number,
+        "actual_number": row.actual_number,
+        "display_number": row.display_number,
+        "is_active": bool(row.is_active),
     } for row in rows]
 
 
@@ -79,6 +107,15 @@ def add_single_race_number(
     
     if not all([set_number, actual_number, display_number]):
         raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_number, display_number")
+
+    duplicate_actual = db.query(models.RaceNumber).filter(
+        models.RaceNumber.set_number == set_number,
+        models.RaceNumber.actual_number == actual_number,
+    ).first()
+    if duplicate_actual:
+        raise StandardExceptions.bad_request(
+            f"Dresové číslo {actual_number} již v sadě {set_number} existuje"
+        )
     
     # Check display_number uniqueness
     existing = db.query(models.RaceNumber).filter(
@@ -93,6 +130,7 @@ def add_single_race_number(
         set_number=set_number,
         actual_number=actual_number,
         display_number=display_number,
+        is_active=True,
     )
     db.add(entry)
     db.commit()
@@ -103,6 +141,33 @@ def add_single_race_number(
         "id": entry.id,
         "actual_number": actual_number,
         "display_number": display_number,
+        "is_active": True,
+    }
+
+
+@router.put("/race-numbers/{number_id}")
+def update_single_race_number(
+    number_id: int,
+    data: Dict[str, Any],
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Update a single race number state."""
+    number = db.query(models.RaceNumber).filter(models.RaceNumber.id == number_id).first()
+    if not number:
+        raise StandardExceptions.not_found("Závodní číslo nenalezeno")
+
+    if "is_active" not in data:
+        raise StandardExceptions.bad_request("Chybí parametr is_active")
+
+    number.is_active = bool(data.get("is_active"))
+    db.commit()
+
+    state_label = "aktivní" if number.is_active else "deaktivní"
+    return {
+        "message": f"Číslo {number.display_number} je nyní {state_label}",
+        "id": number.id,
+        "is_active": number.is_active,
     }
 
 

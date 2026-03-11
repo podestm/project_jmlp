@@ -15,6 +15,7 @@ export default function TimekeeperDashboard() {
       setLoading(true);
       const data = await TimekeeperAPI.get('/api/timekeeper/races');
       setRaces(data);
+      setError('');
     } catch (err) {
       setError('Nepodařilo se načíst závody');
       console.error(err);
@@ -49,6 +50,71 @@ export default function TimekeeperDashboard() {
 
   const upcomingRaces = races.filter(r => isUpcoming(r.datum));
   const pastRaces = races.filter(r => isPast(r.datum));
+  const lastSelectedRaceId = localStorage.getItem('timekeeper_selected_race') || '';
+  const lastSelectedRace = races.find(race => String(race.id) === String(lastSelectedRaceId));
+  const totalRegistrations = races.reduce((sum, race) => sum + (race.reg_count || 0), 0);
+  const totalStartListEntries = races.reduce((sum, race) => sum + (race.start_list_count || 0), 0);
+
+  const renderRaceCard = (race, status) => {
+    const isPastRace = status === 'past';
+
+    return (
+      <div key={race.id} className="col-xl-6">
+        <div className={`card border-0 shadow-sm h-100 timekeeper-race-card ${isPastRace ? 'is-past' : 'is-upcoming'}`} style={{ borderRadius: '10px' }}>
+          <div className="card-body p-3">
+            <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+              <div className="min-w-0">
+                <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
+                  <span className={`badge ${isPastRace ? 'bg-secondary' : ''}`} style={!isPastRace ? { background: 'linear-gradient(135deg, #e94560, #c23152)' } : undefined}>
+                    {race.raceNr || `#${race.id}`}
+                  </span>
+                  <span className={`badge ${isPastRace ? 'bg-light text-secondary' : 'bg-success'}`}>
+                    {isPastRace ? 'Proběhlý' : 'Nadcházející'}
+                  </span>
+                </div>
+
+                <h6 className="fw-bold mb-1">{race.areal_name || 'Neznámé místo'}</h6>
+                <small className="text-muted d-block">
+                  <i className="bi bi-calendar3 me-1"></i>{formatDate(race.datum)}
+                </small>
+              </div>
+
+              <button
+                className={`btn btn-sm ${isPastRace ? 'btn-outline-secondary' : 'text-white'}`}
+                style={{
+                  borderRadius: '8px',
+                  border: isPastRace ? undefined : 'none',
+                  background: isPastRace ? undefined : 'linear-gradient(135deg, #e94560, #c23152)'
+                }}
+                onClick={() => selectRace(race.id)}
+              >
+                Otevřít
+              </button>
+            </div>
+
+            <div className="row g-2">
+              <div className="col-sm-6">
+                <div className="timekeeper-race-metric">
+                  <small className="text-muted d-block mb-1">Registrací</small>
+                  <div className="fw-bold timekeeper-race-metric-value text-danger">
+                    {race.reg_count || 0}
+                  </div>
+                </div>
+              </div>
+              <div className="col-sm-6">
+                <div className="timekeeper-race-metric">
+                  <small className="text-muted d-block mb-1">Na listině</small>
+                  <div className="fw-bold timekeeper-race-metric-value text-primary">
+                    {race.start_list_count || 0}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -61,9 +127,6 @@ export default function TimekeeperDashboard() {
           </h5>
           <small className="text-muted">Vyberte závod pro správu startovní listiny a zadávání časů</small>
         </div>
-        <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: '8px' }} onClick={loadRaces}>
-          <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
-        </button>
       </div>
 
       {error && (
@@ -72,52 +135,90 @@ export default function TimekeeperDashboard() {
         </div>
       )}
 
-      {/* Upcoming races */}
-      {upcomingRaces.length > 0 && (
-        <div className="mb-3">
-          <small className="fw-semibold text-success d-block mb-2">
-            <i className="bi bi-calendar-event me-1"></i>Nadcházející závody
-          </small>
-          <div className="row g-2">
-            {upcomingRaces.map(race => (
-              <div key={race.id} className="col-md-6 col-lg-4">
-                <div
-                  className="card h-100 border-0 shadow-sm"
-                  style={{ borderRadius: '10px', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s' }}
-                  onClick={() => selectRace(race.id)}
-                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = ''; }}
-                >
-                  <div className="card-body py-3 px-3">
-                    <div className="d-flex justify-content-between align-items-start mb-1">
-                      <span className="badge" style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', fontSize: '0.75rem' }}>
-                        {race.raceNr || `#${race.id}`}
-                      </span>
-                      <span className="badge bg-success" style={{ fontSize: '0.65rem' }}>Nadcházející</span>
-                    </div>
-                    <div className="fw-bold mb-1" style={{ fontSize: '0.9rem' }}>{race.areal_name || 'Neznámé místo'}</div>
-                    <small className="text-muted d-block mb-2">
-                      <i className="bi bi-calendar3 me-1"></i>{formatDate(race.datum)}
-                    </small>
-                    <div className="d-flex gap-3">
-                      <div className="text-center">
-                        <div className="fw-bold" style={{ color: '#e94560', fontSize: '1.2rem' }}>{race.reg_count || 0}</div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Registrací</small>
-                      </div>
-                      <div className="text-center">
-                        <div className="fw-bold text-primary" style={{ fontSize: '1.2rem' }}>{race.start_list_count || 0}</div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Na listině</small>
-                      </div>
-                    </div>
+      <div className="card border-0 shadow-sm mb-3 timekeeper-overview-panel" style={{ borderRadius: '10px' }}>
+        <div className="card-body py-3 px-3">
+          <div className="row g-3 align-items-center">
+            <div className="col-lg-5">
+              <div className="d-flex align-items-start gap-3">
+                <div className="timekeeper-overview-icon">
+                  <i className="bi bi-flag"></i>
+                </div>
+                <div>
+                  <h6 className="fw-bold mb-1">Vyberte aktivní závod</h6>
+                  <small className="text-muted d-block">
+                    Přehled slouží jako vstup do dalších nástrojů timekeeper sekce. Po výběru závodu přejdete rovnou na startovní listinu.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-7">
+              <div className="row g-2">
+                <div className="col-6 col-xl-3">
+                  <div className="timekeeper-overview-stat">
+                    <small className="text-muted d-block">Celkem závodů</small>
+                    <div className="fw-bold">{races.length}</div>
                   </div>
-                  <div className="card-footer bg-transparent border-0 py-1 text-end pe-3">
-                    <small style={{ color: '#e94560', fontSize: '0.75rem' }}>
-                      Vybrat <i className="bi bi-arrow-right"></i>
-                    </small>
+                </div>
+                <div className="col-6 col-xl-3">
+                  <div className="timekeeper-overview-stat">
+                    <small className="text-muted d-block">Nadcházející</small>
+                    <div className="fw-bold text-success">{upcomingRaces.length}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-xl-3">
+                  <div className="timekeeper-overview-stat">
+                    <small className="text-muted d-block">Registrací</small>
+                    <div className="fw-bold text-danger">{totalRegistrations}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-xl-3">
+                  <div className="timekeeper-overview-stat">
+                    <small className="text-muted d-block">Na listině</small>
+                    <div className="fw-bold text-primary">{totalStartListEntries}</div>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="col-12">
+              <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1">
+                <small className="text-muted">
+                  {lastSelectedRace
+                    ? `Naposledy vybraný závod: ${lastSelectedRace.raceNr || `#${lastSelectedRace.id}`} — ${lastSelectedRace.areal_name || 'Neznámé místo'}`
+                    : 'Závod můžete vybrat z nadcházejících i proběhlých položek níže.'}
+                </small>
+                <div className="d-flex gap-2">
+                  {lastSelectedRace && (
+                    <button
+                      className="btn btn-sm text-white"
+                      style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                      onClick={() => selectRace(lastSelectedRace.id)}
+                    >
+                      <i className="bi bi-arrow-return-right me-1"></i>Pokračovat
+                    </button>
+                  )}
+                  <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: '8px' }} onClick={loadRaces}>
+                    <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upcoming races */}
+      {upcomingRaces.length > 0 && (
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <small className="fw-semibold text-success">
+              <i className="bi bi-calendar-event me-1"></i>Nadcházející závody
+            </small>
+            <small className="text-muted">{upcomingRaces.length} položek</small>
+          </div>
+          <div className="row g-3">
+            {upcomingRaces.map(race => renderRaceCard(race, 'upcoming'))}
           </div>
         </div>
       )}
@@ -125,57 +226,24 @@ export default function TimekeeperDashboard() {
       {/* Past races */}
       {pastRaces.length > 0 && (
         <div>
-          <small className="fw-semibold text-secondary d-block mb-2">
-            <i className="bi bi-clock-history me-1"></i>Proběhlé závody
-          </small>
-          <div className="row g-2">
-            {pastRaces.map(race => (
-              <div key={race.id} className="col-md-6 col-lg-4">
-                <div
-                  className="card h-100 border-0 shadow-sm"
-                  style={{ borderRadius: '10px', cursor: 'pointer', transition: 'transform 0.15s', opacity: 0.85 }}
-                  onClick={() => selectRace(race.id)}
-                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.opacity = '1'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.opacity = '0.85'; }}
-                >
-                  <div className="card-body py-3 px-3">
-                    <div className="d-flex justify-content-between align-items-start mb-1">
-                      <span className="badge bg-secondary" style={{ fontSize: '0.75rem' }}>
-                        {race.raceNr || `#${race.id}`}
-                      </span>
-                      <span className="badge bg-light text-secondary" style={{ fontSize: '0.65rem' }}>Proběhlý</span>
-                    </div>
-                    <div className="fw-bold mb-1" style={{ fontSize: '0.9rem' }}>{race.areal_name || 'Neznámé místo'}</div>
-                    <small className="text-muted d-block mb-2">
-                      <i className="bi bi-calendar3 me-1"></i>{formatDate(race.datum)}
-                    </small>
-                    <div className="d-flex gap-3">
-                      <div className="text-center">
-                        <div className="fw-bold text-secondary" style={{ fontSize: '1.2rem' }}>{race.reg_count || 0}</div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Registrací</small>
-                      </div>
-                      <div className="text-center">
-                        <div className="fw-bold text-secondary" style={{ fontSize: '1.2rem' }}>{race.start_list_count || 0}</div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Na listině</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="card-footer bg-transparent border-0 py-1 text-end pe-3">
-                    <small className="text-muted" style={{ fontSize: '0.75rem' }}>
-                      Zobrazit <i className="bi bi-arrow-right"></i>
-                    </small>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <small className="fw-semibold text-secondary">
+              <i className="bi bi-clock-history me-1"></i>Proběhlé závody
+            </small>
+            <small className="text-muted">{pastRaces.length} položek</small>
+          </div>
+          <div className="row g-3">
+            {pastRaces.map(race => renderRaceCard(race, 'past'))}
           </div>
         </div>
       )}
 
       {races.length === 0 && !error && (
-        <div className="text-center py-4">
-          <i className="bi bi-calendar-x text-muted" style={{ fontSize: '2rem' }}></i>
-          <p className="text-muted mt-2 small">Žádné závody v aktuální sezóně</p>
+        <div className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
+          <div className="card-body text-center py-4">
+            <i className="bi bi-calendar-x text-muted" style={{ fontSize: '2rem' }}></i>
+            <p className="text-muted mt-2 mb-0 small">Žádné závody v aktuální sezóně</p>
+          </div>
         </div>
       )}
     </div>

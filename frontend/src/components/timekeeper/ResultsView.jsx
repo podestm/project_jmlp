@@ -76,6 +76,7 @@ export default function ResultsView() {
           <tr>
             <th style={{ width: '45px', padding: '4px 8px' }}>Poř.</th>
             <th style={{ width: '40px', padding: '4px 8px' }}>St.č.</th>
+            <th style={{ width: '95px', padding: '4px 8px' }}>Čísla</th>
             <th style={{ padding: '4px 8px' }}>Závodník</th>
             {showCategory && <th style={{ padding: '4px 8px' }}>Kategorie</th>}
             <th style={{ padding: '4px 8px' }}>Klub</th>
@@ -91,6 +92,14 @@ export default function ResultsView() {
             <tr key={entry.id} className={entry.status ? 'table-light text-muted' : ''}>
               <td className="text-center" style={{ padding: '3px 8px' }}>{renderPositionBadge(entry.position)}</td>
               <td className="text-center" style={{ padding: '3px 8px' }}>{entry.start_number || '—'}</td>
+              <td style={{ padding: '3px 8px' }}>
+                {entry.race_number_display ? (
+                  <>
+                    <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
+                    <small className="text-muted d-block mt-1">Dres {entry.race_number_actual || '—'}</small>
+                  </>
+                ) : '—'}
+              </td>
               <td style={{ padding: '3px 8px' }}>
                 <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
                 <small className="text-muted ms-1">({entry.racer_year})</small>

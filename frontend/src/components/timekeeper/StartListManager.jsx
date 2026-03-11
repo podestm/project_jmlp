@@ -1,8 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/api.js';
 
 export default function StartListManager() {
+  const emptyAddForm = {
+    racer_id: '',
+    start_number: '',
+    racer_name: '',
+    racer_surname: '',
+    racer_year: '',
+    racer_sex: '',
+    racer_slcr_id: '',
+    club_name: '',
+    race_number_display: '',
+  };
+
   const [races, setRaces] = useState([]);
   const [selectedRaceId, setSelectedRaceId] = useState(
     localStorage.getItem('timekeeper_selected_race') || ''
@@ -22,13 +34,17 @@ export default function StartListManager() {
   // Inline editing state
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [editValidationError, setEditValidationError] = useState('');
 
   // Manual add state
   const [showAddForm, setShowAddForm] = useState(false);
-  const [addForm, setAddForm] = useState({ racer_id: '', category_id: '', start_number: '', name_override: '', surname_override: '', year_override: '' });
+  const [addForm, setAddForm] = useState(emptyAddForm);
+  const [addMode, setAddMode] = useState('existing');
   const [racerSearch, setRacerSearch] = useState('');
   const [racerResults, setRacerResults] = useState([]);
   const [searchingRacers, setSearchingRacers] = useState(false);
+  const [addValidationError, setAddValidationError] = useState('');
+  const [raceNumberOptions, setRaceNumberOptions] = useState([]);
 
   // Drag & drop refs
   const dragItem = useRef(null);
@@ -39,6 +55,7 @@ export default function StartListManager() {
   useEffect(() => {
     if (selectedRaceId) {
       loadStartList();
+      loadRaceNumberOptions();
       localStorage.setItem('timekeeper_selected_race', selectedRaceId);
     }
   }, [selectedRaceId]);
@@ -62,6 +79,15 @@ export default function StartListManager() {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst startovní listinu' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRaceNumberOptions = async () => {
+    try {
+      const data = await TimekeeperAPI.get('/api/timekeeper/race-number-options');
+      setRaceNumberOptions(data);
+    } catch (err) {
+      setMessage({ type: 'danger', text: 'Nepodařilo se načíst seznam závodních čísel' });
     }
   };
 
@@ -125,36 +151,106 @@ export default function StartListManager() {
     setEditingId(entry.id);
     setEditForm({
       start_number: entry.start_number || '',
-      name_override: entry.has_override && entry.racer_name ? entry.racer_name : '',
-      surname_override: entry.has_override && entry.racer_surname ? entry.racer_surname : '',
-      year_override: entry.has_override && entry.racer_year ? entry.racer_year : '',
-      category_id: entry.category_id || '',
+      racer_name: entry.racer_name || '',
+      racer_surname: entry.racer_surname || '',
+      racer_year: entry.racer_year || '',
+      racer_sex: entry.racer_sex || '',
+      club_name: entry.club_name || '',
+      race_number_display: entry.race_number_display || '',
     });
-    loadCategoriesIfNeeded();
+    setEditValidationError('');
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditForm({});
+    setEditValidationError('');
+  };
+
+  const sortStartListEntries = (entries) => [...entries].sort((a, b) => {
+    const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
+    const bRank = b.category_rank ?? Number.MAX_SAFE_INTEGER;
+    if (aRank !== bRank) return aRank - bRank;
+    const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
+    const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
+    if (aStart !== bStart) return aStart - bStart;
+    return a.id - b.id;
+  });
+
+  const findRaceNumberOption = (displayNumber) => {
+    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return null;
+    return raceNumberOptions.find(option => String(option.display_number) === String(displayNumber)) || null;
+  };
+
+  const getRaceNumberValidationError = (displayNumber, excludeEntryId = null, currentEntry = null) => {
+    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return '';
+
+    const option = findRaceNumberOption(displayNumber);
+    const isCurrentEntryNumber = currentEntry && currentEntry.race_number_display != null &&
+      String(currentEntry.race_number_display) === String(displayNumber);
+
+    if (!option && !isCurrentEntryNumber) {
+      return `Systémové číslo ${displayNumber} neexistuje nebo je neaktivní`;
+    }
+
+    const conflict = startList.find(entry =>
+      entry.id !== excludeEntryId &&
+      entry.race_number_display != null &&
+      String(entry.race_number_display) === String(displayNumber)
+    );
+
+    if (conflict) {
+      return `Systémové číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
+    }
+
+    return '';
+  };
+
+  const resolveCategoryPreview = (year, sex) => {
+    if (!year || !sex || categories.length === 0) return 'Kategorie se dopočítá při uložení';
+
+    const parsedYear = parseInt(year);
+    const parsedSex = parseInt(sex);
+    if (Number.isNaN(parsedYear) || Number.isNaN(parsedSex)) return 'Kategorie se dopočítá při uložení';
+
+    const match = categories.find(category =>
+      category.min_birth_year <= parsedYear &&
+      category.max_birth_year >= parsedYear &&
+      (category.sex === 0 || category.sex === parsedSex)
+    );
+
+    if (!match) return 'Bez kategorie';
+    return match.sex_label === 'Mix' ? match.name : `${match.name} - ${match.sex_label}`;
   };
 
   const saveEditing = async () => {
     if (!editingId) return;
+    const currentEntry = startList.find(entry => entry.id === editingId) || null;
+
+    const raceNumberError = getRaceNumberValidationError(editForm.race_number_display, editingId, currentEntry);
+    if (raceNumberError) {
+      setEditValidationError(raceNumberError);
+      return;
+    }
+
     try {
       const body = {};
       if (editForm.start_number !== '') body.start_number = parseInt(editForm.start_number);
-      if (editForm.category_id !== '') body.category_id = parseInt(editForm.category_id);
-      if (editForm.name_override && editForm.name_override.trim()) body.name_override = editForm.name_override.trim();
-      else body.name_override = null;
-      if (editForm.surname_override && editForm.surname_override.trim()) body.surname_override = editForm.surname_override.trim();
-      else body.surname_override = null;
-      if (editForm.year_override !== '' && editForm.year_override !== null && editForm.year_override !== undefined) body.year_override = parseInt(editForm.year_override);
-      else body.year_override = null;
+      body.racer_name = editForm.racer_name?.trim() || null;
+      body.racer_surname = editForm.racer_surname?.trim() || null;
+      body.club_name = editForm.club_name?.trim() || null;
+      body.racer_year = editForm.racer_year !== '' && editForm.racer_year !== null && editForm.racer_year !== undefined
+        ? parseInt(editForm.racer_year)
+        : null;
+      body.race_number_display = editForm.race_number_display !== '' ? parseInt(editForm.race_number_display) : null;
 
-      await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
+      const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
+      setStartList(prev => sortStartListEntries(prev.map(entry => (
+        entry.id === editingId ? result.entry : entry
+      ))));
       setEditingId(null);
       setEditForm({});
-      loadStartList();
+      setEditValidationError('');
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se uložit změny' });
     }
@@ -188,36 +284,68 @@ export default function StartListManager() {
 
   const selectRacer = (racer) => {
     setAddForm(prev => ({
-      ...prev,
       racer_id: racer.id,
-      name_override: '',
-      surname_override: '',
-      year_override: '',
+      start_number: prev.start_number,
+      racer_name: racer.name || '',
+      racer_surname: racer.surname || '',
+      racer_year: racer.year || '',
+      racer_sex: racer.sex || '',
+      racer_slcr_id: racer.slcr_id || '',
+      club_name: racer.club_name || '',
+      race_number_display: prev.race_number_display,
     }));
     setRacerSearch(`${racer.surname} ${racer.name} (${racer.year})`);
     setRacerResults([]);
+    setAddValidationError('');
+  };
+
+  const resetAddForm = () => {
+    setAddForm(emptyAddForm);
+    setRacerSearch('');
+    setRacerResults([]);
+    setAddValidationError('');
   };
 
   const addManualEntry = async () => {
-    if (!addForm.racer_id || !selectedRaceId) return;
+    if (!selectedRaceId) return;
+
+    if (addMode === 'existing' && !addForm.racer_id) {
+      setAddValidationError('Nejprve vyberte existujícího závodníka');
+      return;
+    }
+
+    if (addMode === 'new' && (!addForm.racer_name.trim() || !addForm.racer_surname.trim() || !addForm.racer_year || !addForm.racer_sex || !addForm.club_name.trim())) {
+      setAddValidationError('Pro nového závodníka vyplňte jméno, příjmení, rok narození, pohlaví a oddíl');
+      return;
+    }
+
+    const raceNumberError = getRaceNumberValidationError(addForm.race_number_display);
+    if (raceNumberError) {
+      setAddValidationError(raceNumberError);
+      return;
+    }
+
     try {
-      const body = { racer_id: parseInt(addForm.racer_id) };
-      if (addForm.category_id) body.category_id = parseInt(addForm.category_id);
+      const body = {};
+      if (addMode === 'existing' && addForm.racer_id) body.racer_id = parseInt(addForm.racer_id);
       if (addForm.start_number) body.start_number = parseInt(addForm.start_number);
-      if (addForm.name_override && addForm.name_override.trim()) body.name_override = addForm.name_override.trim();
-      if (addForm.surname_override && addForm.surname_override.trim()) body.surname_override = addForm.surname_override.trim();
-      if (addForm.year_override) body.year_override = parseInt(addForm.year_override);
+      if (addForm.racer_name && addForm.racer_name.trim()) body.racer_name = addForm.racer_name.trim();
+      if (addForm.racer_surname && addForm.racer_surname.trim()) body.racer_surname = addForm.racer_surname.trim();
+      if (addForm.racer_year) body.racer_year = parseInt(addForm.racer_year);
+      if (addForm.racer_sex) body.racer_sex = parseInt(addForm.racer_sex);
+      if (addForm.racer_slcr_id && addForm.racer_slcr_id.trim()) body.racer_slcr_id = addForm.racer_slcr_id.trim();
+      if (addForm.club_name && addForm.club_name.trim()) body.club_name = addForm.club_name.trim();
+      if (addForm.race_number_display) body.race_number_display = parseInt(addForm.race_number_display);
 
       const result = await TimekeeperAPI.post(
         `/api/timekeeper/races/${selectedRaceId}/start-list/entry`, body
       );
       setMessage({ type: 'success', text: result.message });
       setShowAddForm(false);
-      setAddForm({ racer_id: '', category_id: '', start_number: '', name_override: '', surname_override: '', year_override: '' });
-      setRacerSearch('');
-      loadStartList();
+      setStartList(prev => sortStartListEntries([...prev, result.entry]));
+      resetAddForm();
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se přidat závodníka' });
+      setAddValidationError(err.message || 'Nepodařilo se přidat závodníka');
     }
   };
 
@@ -259,20 +387,21 @@ export default function StartListManager() {
   const groupedByCategory = (() => {
     const groups = [];
     const indexMap = new Map();
-    for (const entry of startList) {
+    for (const entry of sortStartListEntries(startList)) {
       const catKey = entry.category_id || 'none';
       if (!indexMap.has(catKey)) {
         indexMap.set(catKey, groups.length);
-        groups.push({ key: catKey, name: entry.category_name || 'Bez kategorie', entries: [] });
+        groups.push({
+          key: catKey,
+          name: entry.category_name || 'Bez kategorie',
+          rank: entry.category_rank ?? Number.MAX_SAFE_INTEGER,
+          entries: [],
+        });
       }
       groups[indexMap.get(catKey)].entries.push(entry);
     }
-    return groups;
+    return groups.sort((a, b) => a.rank - b.rank);
   })();
-
-  // All active categories for category selects
-  const allCategories = categories.length > 0 ? categories :
-    [...new Map(startList.filter(e => e.category_id).map(e => [e.category_id, { id: e.category_id, name: e.category_name }])).values()];
 
   return (
     <div>
@@ -326,7 +455,15 @@ export default function StartListManager() {
                       <button
                         className="btn btn-sm btn-outline-primary"
                         style={{ borderRadius: '8px' }}
-                        onClick={() => { setShowAddForm(!showAddForm); loadCategoriesIfNeeded(); }}
+                        onClick={() => {
+                          const next = !showAddForm;
+                          setShowAddForm(next);
+                          if (next) {
+                            resetAddForm();
+                            setAddMode('existing');
+                            loadCategoriesIfNeeded();
+                          }
+                        }}
                       >
                         <i className="bi bi-person-plus me-1"></i>Přidat ručně
                       </button>
@@ -430,43 +567,62 @@ export default function StartListManager() {
             <h6 className="fw-bold mb-2">
               <i className="bi bi-person-plus me-2" style={{ color: '#0d6efd' }}></i>Přidat závodníka ručně
             </h6>
+            <div className="btn-group btn-group-sm mb-3">
+              <button
+                className={`btn ${addMode === 'existing' ? 'btn-primary' : 'btn-outline-primary'}`}
+                style={{ borderRadius: addMode === 'existing' ? '8px 0 0 8px' : '8px 0 0 8px' }}
+                onClick={() => { setAddMode('existing'); resetAddForm(); }}
+              >
+                Existující závodník
+              </button>
+              <button
+                className={`btn ${addMode === 'new' ? 'btn-primary' : 'btn-outline-primary'}`}
+                style={{ borderRadius: addMode === 'new' ? '0 8px 8px 0' : '0 8px 8px 0' }}
+                onClick={() => { setAddMode('new'); resetAddForm(); }}
+              >
+                Nový závodník
+              </button>
+            </div>
             <div className="row g-2">
-              <div className="col-md-4">
-                <label className="form-label small mb-1">Vyhledat závodníka *</label>
-                <div className="position-relative">
-                  <input type="text" className="form-control form-control-sm"
-                    placeholder="Jméno / příjmení..." value={racerSearch}
-                    onChange={(e) => searchRacers(e.target.value)}
-                    style={{ borderRadius: '8px' }}
-                  />
-                  {searchingRacers && (
-                    <div className="position-absolute end-0 top-50 translate-middle-y me-2">
-                      <span className="spinner-border spinner-border-sm"></span>
-                    </div>
-                  )}
-                  {racerResults.length > 0 && (
-                    <div className="position-absolute w-100 mt-1 border rounded-2 bg-white shadow-sm" style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
-                      {racerResults.map(r => (
-                        <button key={r.id} className="btn btn-sm w-100 text-start border-0 py-1 px-2"
-                          style={{ fontSize: '0.85rem' }}
-                          onClick={() => selectRacer(r)}>
-                          <strong>{r.surname} {r.name}</strong>
-                          <small className="text-muted ms-1">({r.year}) {r.club_name || ''}</small>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+              {addMode === 'existing' && (
+                <div className="col-md-3">
+                  <label className="form-label small mb-1">Vyhledat závodníka *</label>
+                  <div className="position-relative">
+                    <input type="text" className="form-control form-control-sm"
+                      placeholder="Jméno / příjmení / SLČR..." value={racerSearch}
+                      onChange={(e) => searchRacers(e.target.value)}
+                      style={{ borderRadius: '8px' }}
+                    />
+                    {searchingRacers && (
+                      <div className="position-absolute end-0 top-50 translate-middle-y me-2">
+                        <span className="spinner-border spinner-border-sm"></span>
+                      </div>
+                    )}
+                    {racerResults.length > 0 && (
+                      <div className="position-absolute w-100 mt-1 border rounded-2 bg-white shadow-sm" style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto' }}>
+                        {racerResults.map(r => (
+                          <button key={r.id} className="btn btn-sm w-100 text-start border-0 py-1 px-2"
+                            style={{ fontSize: '0.85rem' }}
+                            onClick={() => selectRacer(r)}>
+                            <strong>{r.surname} {r.name}</strong>
+                            <small className="text-muted d-block">({r.year}) {r.club_name || 'Bez oddílu'}{r.slcr_id ? ` • SLČR ${r.slcr_id}` : ''}</small>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="col-md-2">
-                <label className="form-label small mb-1">Kategorie</label>
-                <select className="form-select form-select-sm" style={{ borderRadius: '8px' }}
-                  value={addForm.category_id} onChange={(e) => setAddForm(p => ({ ...p, category_id: e.target.value }))}>
-                  <option value="">—</option>
-                  {allCategories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <label className="form-label small mb-1">Systémové č.</label>
+                <input type="number" className={`form-control form-control-sm ${addValidationError ? 'is-invalid' : ''}`} style={{ borderRadius: '8px' }}
+                  value={addForm.race_number_display}
+                  onChange={(e) => { setAddForm(p => ({ ...p, race_number_display: e.target.value })); setAddValidationError(''); }}
+                  placeholder="Např. 201"
+                />
+                {addValidationError && (
+                  <div className="invalid-feedback d-block">{addValidationError}</div>
+                )}
               </div>
               <div className="col-md-1">
                 <label className="form-label small mb-1">St.č.</label>
@@ -475,29 +631,82 @@ export default function StartListManager() {
                   onChange={(e) => setAddForm(p => ({ ...p, start_number: e.target.value }))}
                 />
               </div>
-              <div className="col-md-3">
-                <label className="form-label small mb-1">Přepis jména <small className="text-muted">(volitelné)</small></label>
+              <div className={`${addMode === 'existing' ? 'col-md-3' : 'col-md-3'}`}>
+                <label className="form-label small mb-1">Snapshot jména</label>
                 <div className="d-flex gap-1">
                   <input type="text" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
-                    placeholder="Jméno" value={addForm.name_override}
-                    onChange={(e) => setAddForm(p => ({ ...p, name_override: e.target.value }))}
+                    placeholder="Jméno" value={addForm.racer_name}
+                    onChange={(e) => { setAddForm(p => ({ ...p, racer_name: e.target.value })); setAddValidationError(''); }}
                   />
                   <input type="text" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
-                    placeholder="Příjmení" value={addForm.surname_override}
-                    onChange={(e) => setAddForm(p => ({ ...p, surname_override: e.target.value }))}
+                    placeholder="Příjmení" value={addForm.racer_surname}
+                    onChange={(e) => { setAddForm(p => ({ ...p, racer_surname: e.target.value })); setAddValidationError(''); }}
                   />
                 </div>
               </div>
+              <div className="col-md-1">
+                <label className="form-label small mb-1">Roč.</label>
+                <input type="number" className="form-control form-control-sm" style={{ borderRadius: '8px' }}
+                  value={addForm.racer_year}
+                  onChange={(e) => { setAddForm(p => ({ ...p, racer_year: e.target.value })); setAddValidationError(''); }}
+                />
+              </div>
+              <div className="col-md-1">
+                <label className="form-label small mb-1">Pohlaví</label>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ borderRadius: '8px' }}
+                  value={addForm.racer_sex}
+                  onChange={(e) => { setAddForm(p => ({ ...p, racer_sex: e.target.value })); setAddValidationError(''); }}
+                >
+                  <option value="">-</option>
+                  <option value="1">M</option>
+                  <option value="2">Ž</option>
+                </select>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small mb-1">Oddíl</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  style={{ borderRadius: '8px' }}
+                  value={addForm.club_name}
+                  onChange={(e) => { setAddForm(p => ({ ...p, club_name: e.target.value })); setAddValidationError(''); }}
+                  placeholder="Např. SKI klub"
+                />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small mb-1">SLČR ID</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  style={{ borderRadius: '8px' }}
+                  value={addForm.racer_slcr_id}
+                  onChange={(e) => setAddForm(p => ({ ...p, racer_slcr_id: e.target.value }))}
+                  placeholder="Volitelné"
+                />
+              </div>
               <div className="col-md-2 d-flex align-items-end gap-1">
                 <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
-                  onClick={addManualEntry} disabled={!addForm.racer_id}>
+                  onClick={addManualEntry} disabled={addMode === 'existing' ? !addForm.racer_id : false}>
                   <i className="bi bi-plus me-1"></i>Přidat
                 </button>
                 <button className="btn btn-sm btn-outline-secondary" style={{ borderRadius: '8px' }}
-                  onClick={() => setShowAddForm(false)}>
+                  onClick={() => { setShowAddForm(false); resetAddForm(); }}>
                   Zrušit
                 </button>
               </div>
+            </div>
+            {addValidationError && (
+              <div className="alert alert-danger py-2 small mt-3 mb-0">
+                {addValidationError}
+              </div>
+            )}
+            <div className="mt-2 d-flex flex-wrap gap-3 small text-muted">
+              <span>Kategorie: <strong>{resolveCategoryPreview(addForm.racer_year, addForm.racer_sex)}</strong></span>
+              <span>
+                Dresové č.: <strong>{findRaceNumberOption(addForm.race_number_display)?.actual_number ?? '—'}</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -547,7 +756,7 @@ export default function StartListManager() {
                     <thead className="table-light">
                       <tr>
                         <th style={{ width: '45px', padding: '4px 8px' }}>St.č.</th>
-                        <th style={{ width: '55px', padding: '4px 8px' }}>Záv.č.</th>
+                        <th style={{ width: '95px', padding: '4px 8px' }}>Čísla</th>
                         <th style={{ padding: '4px 8px' }}>Závodník</th>
                         <th style={{ width: '55px', padding: '4px 8px' }}>Roč.</th>
                         <th style={{ padding: '4px 8px' }}>Klub</th>
@@ -569,42 +778,52 @@ export default function StartListManager() {
                               />
                             </td>
                             <td style={{ padding: '4px 8px' }}>
-                              {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
+                              <input type="number" className={`form-control form-control-sm ${editValidationError ? 'is-invalid' : ''}`}
+                                style={{ width: '78px', fontSize: '0.8rem', padding: '2px 4px' }}
+                                value={editForm.race_number_display}
+                                onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value })); setEditValidationError(''); }}
+                                placeholder="Syst."
+                              />
+                              <small className="text-muted d-block mt-1">
+                                Dres: {findRaceNumberOption(editForm.race_number_display)?.actual_number ?? entry.race_number_actual ?? '—'}
+                              </small>
+                              {editValidationError && (
+                                <div className="invalid-feedback d-block">{editValidationError}</div>
+                              )}
                             </td>
                             <td style={{ padding: '4px 8px' }}>
                               <div className="d-flex gap-1">
                                 <input type="text" className="form-control form-control-sm"
                                   style={{ fontSize: '0.8rem', padding: '2px 4px' }}
-                                  placeholder="Jméno (přepis)" value={editForm.name_override}
-                                  onChange={(e) => setEditForm(p => ({ ...p, name_override: e.target.value }))}
+                                  placeholder="Jméno" value={editForm.racer_name}
+                                  onChange={(e) => setEditForm(p => ({ ...p, racer_name: e.target.value }))}
                                 />
                                 <input type="text" className="form-control form-control-sm"
                                   style={{ fontSize: '0.8rem', padding: '2px 4px' }}
-                                  placeholder="Příjmení (přepis)" value={editForm.surname_override}
-                                  onChange={(e) => setEditForm(p => ({ ...p, surname_override: e.target.value }))}
+                                  placeholder="Příjmení" value={editForm.racer_surname}
+                                  onChange={(e) => setEditForm(p => ({ ...p, racer_surname: e.target.value }))}
                                 />
                               </div>
-                              <small className="text-muted" style={{ fontSize: '0.7rem' }}>
-                                Původní: {entry.racer_name} {entry.racer_surname}
-                                {entry.has_override && <i className="bi bi-pencil-fill ms-1 text-warning" style={{ fontSize: '0.65rem' }}></i>}
-                              </small>
                             </td>
                             <td style={{ padding: '4px 8px' }}>
                               <input type="number" className="form-control form-control-sm"
                                 style={{ width: '55px', fontSize: '0.8rem', padding: '2px 4px' }}
-                                value={editForm.year_override}
-                                onChange={(e) => setEditForm(p => ({ ...p, year_override: e.target.value }))}
+                                value={editForm.racer_year}
+                                onChange={(e) => setEditForm(p => ({ ...p, racer_year: e.target.value }))}
                               />
                             </td>
-                            <td style={{ padding: '4px 8px' }} className="text-muted">{entry.club_name || '—'}</td>
+                            <td style={{ padding: '4px 8px' }}>
+                              <input type="text" className="form-control form-control-sm"
+                                style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                value={editForm.club_name}
+                                onChange={(e) => setEditForm(p => ({ ...p, club_name: e.target.value }))}
+                                placeholder="Klub"
+                              />
+                            </td>
                             <td colSpan="3" style={{ padding: '4px 8px' }}>
-                              <select className="form-select form-select-sm" style={{ fontSize: '0.8rem', padding: '2px 4px' }}
-                                value={editForm.category_id} onChange={(e) => setEditForm(p => ({ ...p, category_id: e.target.value }))}>
-                                <option value="">Bez kat.</option>
-                                {allCategories.map(c => (
-                                  <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                              </select>
+                              <div className="small text-muted">
+                                Kategorie po uložení: <strong>{resolveCategoryPreview(editForm.racer_year, editForm.racer_sex)}</strong>
+                              </div>
                             </td>
                             <td style={{ padding: '4px 8px' }}>
                               <div className="d-flex gap-1">
@@ -623,13 +842,16 @@ export default function StartListManager() {
                           <tr key={entry.id}>
                             <td className="fw-bold" style={{ padding: '4px 8px' }}>{entry.start_number || '—'}</td>
                             <td style={{ padding: '4px 8px' }}>
-                              {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
+                              {entry.race_number_display ? (
+                                <>
+                                  <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
+                                  <small className="text-muted d-block mt-1">Dres {entry.race_number_actual || '—'}</small>
+                                </>
+                              ) : '—'}
                             </td>
                             <td style={{ padding: '4px 8px' }}>
                               <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
-                              {entry.has_override && (
-                                <i className="bi bi-pencil-fill ms-1 text-warning" style={{ fontSize: '0.65rem' }} title="Přepsané údaje"></i>
-                              )}
+                              <small className="text-muted ms-1">| {entry.category_name || 'Bez kategorie'}</small>
                             </td>
                             <td style={{ padding: '4px 8px' }}>{entry.racer_year}</td>
                             <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || '—'}</td>

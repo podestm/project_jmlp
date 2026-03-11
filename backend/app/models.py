@@ -83,6 +83,7 @@ class Race(Base):
     datum: Mapped[date | None] = mapped_column(Date, nullable=True)
     raceNr: Mapped[str | None] = mapped_column(String(255), nullable=True)
     registration: Mapped[bool] = mapped_column(BitBoolean)
+    timekeeper_category_order: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     proposition_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     results_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     areal_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_areal.id"), nullable=True)
@@ -184,8 +185,13 @@ class RaceNumber(Base):
     set_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     actual_number: Mapped[int] = mapped_column(Integer, nullable=False)
     display_number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("set_number", "actual_number", name="uq_race_numbers_set_actual"),
+    )
 
 
 class StartListEntry(Base):
@@ -196,6 +202,15 @@ class StartListEntry(Base):
     category_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_category.id"), nullable=True, index=True)
     start_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     race_number_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race_numbers.id"), nullable=True, index=True)
+    racer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    racer_surname: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    racer_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    racer_sex: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    club_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    category_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    category_sex: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    race_number_actual: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    race_number_display: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time1: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time2: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time_sum: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
@@ -208,3 +223,7 @@ class StartListEntry(Base):
     year_override: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("race_id", "race_number_id", name="uq_start_list_race_number"),
+    )

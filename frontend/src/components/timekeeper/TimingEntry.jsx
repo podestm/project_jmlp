@@ -15,6 +15,9 @@ export default function TimingEntry() {
   const [activeRound, setActiveRound] = useState('both'); // 'both', '1', '2'
   const [selectedCategory, setSelectedCategory] = useState('all'); // 'all' or category_name
   const inputRefs = useRef({});
+  const editedTimesRef = useRef({});
+  const savingEntriesRef = useRef(new Set());
+  const skipBlurRef = useRef(null);
 
   useEffect(() => { loadRaces(); }, []);
 
@@ -24,6 +27,10 @@ export default function TimingEntry() {
       localStorage.setItem('timekeeper_selected_race', selectedRaceId);
     }
   }, [selectedRaceId]);
+
+  useEffect(() => {
+    editedTimesRef.current = editedTimes;
+  }, [editedTimes]);
 
   const loadRaces = async () => {
     try {
@@ -66,6 +73,95 @@ export default function TimingEntry() {
     }));
   };
 
+  const parseStoredTime = (value) => {
+    if (value === '' || value === null || value === undefined) return null;
+    const parsed = parseFloat(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const calculateTimeSum = (data) => {
+    if (data.dnf || data.dns || data.dsq) return null;
+    const time1 = parseStoredTime(data.time1);
+    const time2 = parseStoredTime(data.time2);
+    if (time1 != null && time2 != null) return time1 + time2;
+    if (time1 != null) return time1;
+    if (time2 != null) return time2;
+    return null;
+  };
+
+  const applySavedEntryToStartList = (entryId, data) => {
+    const time1 = parseStoredTime(data.time1);
+    const time2 = parseStoredTime(data.time2);
+    const timeSum = calculateTimeSum(data);
+
+    setStartList(prev => prev.map(entry => (
+      entry.id === entryId
+        ? {
+            ...entry,
+            time1,
+            time2,
+            dnf: Boolean(data.dnf),
+            dns: Boolean(data.dns),
+            dsq: Boolean(data.dsq),
+            time_sum: timeSum,
+          }
+        : entry
+    )));
+  };
+
+  const buildTimeUpdate = (data) => ({
+    time1: data.time1 !== '' ? parseFloat(data.time1) : null,
+    time2: data.time2 !== '' ? parseFloat(data.time2) : null,
+    dnf: data.dnf || false,
+    dns: data.dns || false,
+    dsq: data.dsq || false,
+  });
+
+  const focusInput = (entryId, field) => {
+    const ref = inputRefs.current[`${entryId}-${field}`];
+    if (ref) {
+      ref.focus();
+      ref.select();
+    }
+  };
+
+  const focusNextInput = (entryId, field) => {
+    const currentIndex = filteredList.findIndex(entry => entry.id === entryId);
+    if (currentIndex === -1) return;
+
+    if (field === 'time1') {
+      if (activeRound === 'both') {
+        focusInput(entryId, 'time2');
+        return;
+      }
+      if (currentIndex < filteredList.length - 1) {
+        focusInput(filteredList[currentIndex + 1].id, 'time1');
+      }
+      return;
+    }
+
+    if (currentIndex < filteredList.length - 1) {
+      const nextField = activeRound === '2' ? 'time2' : 'time1';
+      focusInput(filteredList[currentIndex + 1].id, nextField);
+    }
+  };
+
+  const saveEntry = async (entryId, data, errorText) => {
+    if (!data || savingEntriesRef.current.has(entryId)) return false;
+
+    try {
+      savingEntriesRef.current.add(entryId);
+      await TimekeeperAPI.put(`/api/timekeeper/start-list/${entryId}/time`, buildTimeUpdate(data));
+      applySavedEntryToStartList(entryId, data);
+      return true;
+    } catch (err) {
+      setMessage({ type: 'danger', text: errorText });
+      return false;
+    } finally {
+      savingEntriesRef.current.delete(entryId);
+    }
+  };
+
   const toggleFlag = (entryId, flag) => {
     setEditedTimes(prev => {
       const updated = { ...prev[entryId], [flag]: !prev[entryId]?.[flag] };
@@ -77,26 +173,14 @@ export default function TimingEntry() {
 
   const saveFlagUpdate = async (entryId, data) => {
     if (!data) return;
-    try {
-      const update = {
-        time1: data.time1 !== '' ? parseFloat(data.time1) : null,
-        time2: data.time2 !== '' ? parseFloat(data.time2) : null,
-        dnf: data.dnf || false,
-        dns: data.dns || false,
-        dsq: data.dsq || false,
-      };
-      await TimekeeperAPI.put(`/api/timekeeper/start-list/${entryId}/time`, update);
-      loadStartList();
-    } catch (err) {
-      setMessage({ type: 'danger', text: 'Nepodařilo se uložit stav' });
-    }
+    await saveEntry(entryId, data, 'Nepodařilo se uložit stav');
   };
 
   const saveAllTimes = async () => {
     if (!selectedRaceId) return;
     try {
       setSaving(true);
-      const entries = Object.entries(editedTimes).map(([id, data]) => ({
+      const entries = Object.entries(editedTimesRef.current).map(([id, data]) => ({
         entry_id: parseInt(id),
         time1: data.time1 !== '' ? parseFloat(data.time1) : null,
         time2: data.time2 !== '' ? parseFloat(data.time2) : null,
@@ -105,8 +189,10 @@ export default function TimingEntry() {
         dsq: data.dsq || false,
       }));
       const result = await TimekeeperAPI.post(`/api/timekeeper/races/${selectedRaceId}/times`, { entries });
+      Object.entries(editedTimesRef.current).forEach(([id, data]) => {
+        applySavedEntryToStartList(parseInt(id), data);
+      });
       setMessage({ type: 'success', text: result.message });
-      loadStartList();
     } catch (err) {
       setMessage({ type: 'danger', text: 'Nepodařilo se uložit časy' });
     } finally {
@@ -115,49 +201,44 @@ export default function TimingEntry() {
   };
 
   const saveSingleTime = async (entryId) => {
-    const data = editedTimes[entryId];
-    if (!data) return;
-    try {
-      const update = {
-        time1: data.time1 !== '' ? parseFloat(data.time1) : null,
-        time2: data.time2 !== '' ? parseFloat(data.time2) : null,
-        dnf: data.dnf || false,
-        dns: data.dns || false,
-        dsq: data.dsq || false,
-      };
-      await TimekeeperAPI.put(`/api/timekeeper/start-list/${entryId}/time`, update);
-      loadStartList();
-    } catch (err) {
-      setMessage({ type: 'danger', text: 'Nepodařilo se uložit čas' });
-    }
+    const data = editedTimesRef.current[entryId];
+    if (!data) return false;
+    return saveEntry(entryId, data, 'Nepodařilo se uložit čas');
   };
 
-  const handleKeyDown = (e, entryId, field) => {
+  const handleBlur = (entryId, field) => {
+    const blurKey = `${entryId}-${field}`;
+    if (skipBlurRef.current === blurKey) {
+      skipBlurRef.current = null;
+      return;
+    }
+    saveSingleTime(entryId);
+  };
+
+  const handleKeyDown = async (e, entryId, field) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      saveSingleTime(entryId);
-      const currentIndex = filteredList.findIndex(entry => entry.id === entryId);
-      if (currentIndex < filteredList.length - 1) {
-        const nextId = filteredList[currentIndex + 1].id;
-        const nextField = activeRound === '1' ? 'time1' : activeRound === '2' ? 'time2' : field;
-        const nextRef = inputRefs.current[`${nextId}-${nextField}`];
-        if (nextRef) nextRef.focus();
+      skipBlurRef.current = `${entryId}-${field}`;
+      await saveSingleTime(entryId);
+      if (field === 'time1' && activeRound === 'both') {
+        focusInput(entryId, 'time2');
+      } else {
+        focusNextInput(entryId, field);
       }
     }
+
     if (e.key === 'Tab' && !e.shiftKey && field === 'time1') {
-      if (activeRound === 'both') {
-        e.preventDefault();
-        const ref = inputRefs.current[`${entryId}-time2`];
-        if (ref) ref.focus();
-      } else if (activeRound === '1') {
-        e.preventDefault();
-        const currentIndex = filteredList.findIndex(entry => entry.id === entryId);
-        if (currentIndex < filteredList.length - 1) {
-          const nextId = filteredList[currentIndex + 1].id;
-          const nextRef = inputRefs.current[`${nextId}-time1`];
-          if (nextRef) nextRef.focus();
-        }
-      }
+      e.preventDefault();
+      skipBlurRef.current = `${entryId}-${field}`;
+      await saveSingleTime(entryId);
+      focusNextInput(entryId, field);
+    }
+
+    if (e.key === 'Tab' && !e.shiftKey && field === 'time2') {
+      e.preventDefault();
+      skipBlurRef.current = `${entryId}-${field}`;
+      await saveSingleTime(entryId);
+      focusNextInput(entryId, field);
     }
   };
 
@@ -383,7 +464,7 @@ export default function TimingEntry() {
                 <thead style={{ background: '#1a1a2e', color: '#fff' }}>
                   <tr>
                     <th style={{ width: '40px', padding: '5px 8px', borderRadius: '10px 0 0 0' }}>St.č.</th>
-                    <th style={{ width: '50px', padding: '5px 8px' }}>Č.</th>
+                    <th style={{ width: '95px', padding: '5px 8px' }}>Čísla</th>
                     <th style={{ padding: '5px 8px' }}>Závodník</th>
                     <th style={{ padding: '5px 8px' }}>Klub</th>
                     <th style={{ width: '110px', padding: '5px 8px', ...(activeRound === '2' ? { opacity: 0.5 } : {}) }}>
@@ -405,7 +486,12 @@ export default function TimingEntry() {
                       <tr key={entry.id} className={hasFlag ? 'table-light' : ''}>
                         <td className="fw-bold text-center" style={{ padding: '3px 8px' }}>{entry.start_number || '—'}</td>
                         <td style={{ padding: '3px 8px' }}>
-                          {entry.display_number ? <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.display_number}</span> : '—'}
+                          {entry.race_number_display ? (
+                            <>
+                              <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
+                              <small className="text-muted d-block mt-1">Dres {entry.race_number_actual || '—'}</small>
+                            </>
+                          ) : '—'}
                         </td>
                         <td style={{ padding: '3px 8px' }}>
                           <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
@@ -427,7 +513,7 @@ export default function TimingEntry() {
                             value={times.time1 || ''}
                             onChange={(e) => updateTime(entry.id, 'time1', e.target.value)}
                             onKeyDown={(e) => handleKeyDown(e, entry.id, 'time1')}
-                            onBlur={() => saveSingleTime(entry.id)}
+                            onBlur={() => handleBlur(entry.id, 'time1')}
                             placeholder="0.00"
                             disabled={hasFlag || activeRound === '2'}
                           />
@@ -444,7 +530,7 @@ export default function TimingEntry() {
                             value={times.time2 || ''}
                             onChange={(e) => updateTime(entry.id, 'time2', e.target.value)}
                             onKeyDown={(e) => handleKeyDown(e, entry.id, 'time2')}
-                            onBlur={() => saveSingleTime(entry.id)}
+                            onBlur={() => handleBlur(entry.id, 'time2')}
                             placeholder="0.00"
                             disabled={hasFlag || activeRound === '1'}
                           />

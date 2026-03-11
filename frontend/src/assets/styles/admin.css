@@ -648,3 +648,128 @@
   --bs-table-color: #212529 !important;
   --bs-table-bg: #f8f9fa !important;
 }
+
+/* Timekeeper overview dashboard */
+.timekeeper-section .timekeeper-overview-panel {
+  border-top: 3px solid #e94560 !important;
+}
+
+.timekeeper-section .timekeeper-overview-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff !important;
+  background: linear-gradient(135deg, #e94560, #c23152);
+  box-shadow: 0 0.25rem 0.75rem rgba(233, 69, 96, 0.2);
+}
+
+.timekeeper-section .timekeeper-overview-stat,
+.timekeeper-section .timekeeper-race-metric {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+
+.timekeeper-section .timekeeper-overview-stat .fw-bold,
+.timekeeper-section .timekeeper-race-metric-value {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.timekeeper-section .timekeeper-race-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.timekeeper-section .timekeeper-race-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.timekeeper-section .timekeeper-race-card.is-upcoming {
+  border-top: 3px solid #e94560 !important;
+}
+
+.timekeeper-section .timekeeper-race-card.is-past {
+  border-top: 3px solid #adb5bd !important;
+}
+
+.timekeeper-section .timekeeper-race-number-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  min-width: max-content;
+}
+
+.timekeeper-section .timekeeper-race-number-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 82px;
+}
+
+.timekeeper-section .timekeeper-race-number-column-header {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #6c757d !important;
+  text-align: center;
+  padding-bottom: 0.1rem;
+}
+
+.timekeeper-section .timekeeper-race-number-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.22rem 0.38rem;
+  border: 1px solid #dee2e6;
+  border-radius: 7px;
+  background: #fff !important;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.timekeeper-section .timekeeper-race-number-item:hover {
+  background: #f8f9fa !important;
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-active {
+  border-color: rgba(233, 69, 96, 0.35);
+  background: rgba(233, 69, 96, 0.06) !important;
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-inactive {
+  opacity: 0.55;
+  border-color: #e9ecef;
+  background: #f8f9fa !important;
+}
+
+.timekeeper-section .timekeeper-race-number-item:disabled {
+  cursor: wait;
+}
+
+.timekeeper-section .timekeeper-race-number-state {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #e94560;
+  flex-shrink: 0;
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-inactive .timekeeper-race-number-state {
+  background: #adb5bd;
+}
+
+.timekeeper-section .timekeeper-race-number-display {
+  min-width: 18px;
+}
+
+.timekeeper-section .timekeeper-race-number-actual {
+  font-size: 0.6rem;
+}
