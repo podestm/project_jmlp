@@ -12,6 +12,7 @@ build/
 
 # VSCode
 .vscode/
+.cursor/
 
 # Docker
 *.log
