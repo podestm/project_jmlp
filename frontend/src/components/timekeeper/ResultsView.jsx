@@ -60,6 +60,7 @@ export default function ResultsView() {
   };
 
   const formatTime = (time) => time != null ? time.toFixed(2) : '—';
+  const selectedRace = races.find(race => String(race.id) === String(selectedRaceId));
 
   const renderPositionBadge = (pos) => {
     if (!pos) return <span className="text-muted">—</span>;
@@ -75,8 +76,8 @@ export default function ResultsView() {
         <thead className="table-light">
           <tr>
             <th style={{ width: '45px', padding: '4px 8px' }}>Poř.</th>
-            <th style={{ width: '40px', padding: '4px 8px' }}>St.č.</th>
-            <th style={{ width: '95px', padding: '4px 8px' }}>Čísla</th>
+            <th style={{ width: '85px', padding: '4px 8px' }}>Pořadí</th>
+            <th style={{ width: '125px', padding: '4px 8px' }}>St. číslo</th>
             <th style={{ padding: '4px 8px' }}>Závodník</th>
             {showCategory && <th style={{ padding: '4px 8px' }}>Kategorie</th>}
             <th style={{ padding: '4px 8px' }}>Klub</th>
@@ -96,7 +97,7 @@ export default function ResultsView() {
                 {entry.race_number_display ? (
                   <>
                     <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
-                    <small className="text-muted d-block mt-1">Dres {entry.race_number_actual || '—'}</small>
+                    <small className="text-muted d-block mt-1">Číslo dresu: {entry.race_number_actual || '—'}</small>
                   </>
                 ) : '—'}
               </td>
@@ -165,15 +166,11 @@ export default function ResultsView() {
             <div className="col-md-5">
               <div className="d-flex align-items-center gap-2">
                 <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
-                <select className="form-select form-select-sm" value={selectedRaceId}
-                  onChange={(e) => setSelectedRaceId(e.target.value)} style={{ borderRadius: '8px' }}>
-                  <option value="">-- Vyberte závod --</option>
-                  {races.map(race => (
-                    <option key={race.id} value={race.id}>
-                      {race.raceNr || `#${race.id}`} — {race.areal_name || '?'} ({formatDate(race.datum)})
-                    </option>
-                  ))}
-                </select>
+                <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
+                  {selectedRace
+                    ? `${selectedRace.raceNr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
+                    : 'Závod vyberte v Přehledu závodů'}
+                </div>
               </div>
             </div>
             <div className="col-md-4">

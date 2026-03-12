@@ -10,6 +10,16 @@ from ...utils import StandardExceptions
 
 router = APIRouter(tags=["timekeeper-race-numbers"])
 
+SET_COLOR_OPTIONS = {"rose", "blue", "emerald", "amber", "violet"}
+
+
+def _normalize_set_color(value: Any) -> str:
+    color = str(value or "rose").strip().lower()
+    if color not in SET_COLOR_OPTIONS:
+        allowed = ", ".join(sorted(SET_COLOR_OPTIONS))
+        raise StandardExceptions.bad_request(f"Neplatná barva sady. Povolené hodnoty: {allowed}")
+    return color
+
 
 @router.get("/race-number-sets")
 def get_race_number_sets(
@@ -19,6 +29,7 @@ def get_race_number_sets(
     """Get summary of all race number sets."""
     query = text("""
         SELECT set_number,
+               MIN(set_color) as set_color,
                COUNT(*) as count,
                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
                SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_count,
@@ -34,6 +45,7 @@ def get_race_number_sets(
     
     return [{
         "set_number": row.set_number,
+        "set_color": row.set_color or "rose",
         "count": row.count,
         "active_count": int(row.active_count or 0),
         "inactive_count": int(row.inactive_count or 0),
@@ -52,7 +64,7 @@ def get_race_numbers(
 ) -> List[Dict[str, Any]]:
     """Get all race numbers for a given set."""
     query = text("""
-        SELECT id, set_number, actual_number, display_number, is_active
+        SELECT id, set_number, set_color, actual_number, display_number, is_active
         FROM fuj_jmlp_race_numbers
         WHERE set_number = :set_number
         ORDER BY actual_number ASC
@@ -62,6 +74,7 @@ def get_race_numbers(
     return [{
         "id": row.id,
         "set_number": row.set_number,
+        "set_color": row.set_color or "rose",
         "actual_number": row.actual_number,
         "display_number": row.display_number,
         "is_active": bool(row.is_active),
@@ -75,7 +88,7 @@ def get_active_race_number_options(
 ) -> List[Dict[str, Any]]:
     """Get all active race numbers across sets for assignment by system number."""
     query = text("""
-        SELECT id, set_number, actual_number, display_number, is_active
+        SELECT id, set_number, set_color, actual_number, display_number, is_active
         FROM fuj_jmlp_race_numbers
         WHERE is_active = 1
         ORDER BY display_number ASC
@@ -85,6 +98,7 @@ def get_active_race_number_options(
     return [{
         "id": row.id,
         "set_number": row.set_number,
+        "set_color": row.set_color or "rose",
         "actual_number": row.actual_number,
         "display_number": row.display_number,
         "is_active": bool(row.is_active),
@@ -125,9 +139,15 @@ def add_single_race_number(
         raise StandardExceptions.bad_request(
             f"Zobrazovací číslo {display_number} již existuje (sada {existing.set_number})"
         )
+
+    existing_set_number = db.query(models.RaceNumber).filter(
+        models.RaceNumber.set_number == set_number
+    ).first()
+    set_color = existing_set_number.set_color if existing_set_number and existing_set_number.set_color else "rose"
     
     entry = models.RaceNumber(
         set_number=set_number,
+        set_color=set_color,
         actual_number=actual_number,
         display_number=display_number,
         is_active=True,
@@ -139,6 +159,7 @@ def add_single_race_number(
     return {
         "message": f"Přidáno číslo {actual_number} (zobrazení: {display_number}) do sady {set_number}",
         "id": entry.id,
+        "set_color": entry.set_color,
         "actual_number": actual_number,
         "display_number": display_number,
         "is_active": True,
@@ -192,6 +213,33 @@ def delete_single_race_number(
     return {"message": f"Smazáno číslo {number.actual_number} (zobrazení: {number.display_number})"}
 
 
+@router.put("/race-number-sets/{set_number}")
+def update_race_number_set(
+    set_number: int,
+    data: Dict[str, Any],
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Update set metadata such as color."""
+    if "set_color" not in data:
+        raise StandardExceptions.bad_request("Chybí parametr set_color")
+
+    set_color = _normalize_set_color(data.get("set_color"))
+    updated = db.query(models.RaceNumber).filter(
+        models.RaceNumber.set_number == set_number
+    ).update({"set_color": set_color})
+
+    if updated == 0:
+        raise StandardExceptions.not_found(f"Sada č. {set_number} nenalezena")
+
+    db.commit()
+    return {
+        "message": f"Barva sady {set_number} byla změněna",
+        "set_number": set_number,
+        "set_color": set_color,
+    }
+
+
 @router.post("/race-number-sets")
 def create_race_number_set(
     data: Dict[str, Any],
@@ -211,6 +259,7 @@ def create_race_number_set(
     actual_from = data.get("actual_from", 1)
     actual_to = data.get("actual_to")
     display_from = data.get("display_from")
+    set_color = _normalize_set_color(data.get("set_color"))
     
     if not all([set_number, actual_to, display_from]):
         raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_to, display_from")
@@ -243,6 +292,7 @@ def create_race_number_set(
     for i, actual in enumerate(range(actual_from, actual_to + 1)):
         entry = models.RaceNumber(
             set_number=set_number,
+            set_color=set_color,
             actual_number=actual,
             display_number=display_from + i,
         )
@@ -255,6 +305,7 @@ def create_race_number_set(
         "message": f"Vytvořeno {created} závodních čísel v sadě {set_number} (zobrazení: {display_from}-{display_to})",
         "created": created,
         "set_number": set_number,
+        "set_color": set_color,
         "display_range": f"{display_from}-{display_to}"
     }
 

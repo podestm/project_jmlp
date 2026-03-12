@@ -727,21 +727,21 @@
   gap: 0.3rem;
   width: 100%;
   padding: 0.22rem 0.38rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--set-border, #dee2e6);
   border-radius: 7px;
-  background: #fff !important;
+  background: var(--set-bg, #fff) !important;
   font-size: 0.74rem;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
 .timekeeper-section .timekeeper-race-number-item:hover {
-  background: #f8f9fa !important;
+  filter: brightness(0.98);
 }
 
 .timekeeper-section .timekeeper-race-number-item.is-active {
-  border-color: rgba(233, 69, 96, 0.35);
-  background: rgba(233, 69, 96, 0.06) !important;
+  border-color: var(--set-border, rgba(233, 69, 96, 0.35));
+  background: var(--set-bg, rgba(233, 69, 96, 0.06)) !important;
 }
 
 .timekeeper-section .timekeeper-race-number-item.is-inactive {
@@ -758,7 +758,7 @@
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: #e94560;
+  background: var(--set-solid, #e94560);
   flex-shrink: 0;
 }
 

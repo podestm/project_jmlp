@@ -183,6 +183,7 @@ class RaceNumber(Base):
     __tablename__ = "fuj_jmlp_race_numbers"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     set_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    set_color: Mapped[str] = mapped_column(String(20), nullable=False, default="rose")
     actual_number: Mapped[int] = mapped_column(Integer, nullable=False)
     display_number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

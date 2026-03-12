@@ -396,6 +396,7 @@ class BatchTimeEntry(BaseModel):
 class RaceNumberInfo(BaseModel):
     id: int
     set_number: int
+    set_color: str = "rose"
     actual_number: int
     display_number: int
     is_active: bool = True

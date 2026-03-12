@@ -98,10 +98,22 @@ def _find_or_create_club(club_name: str, db: Session) -> models.Club:
 
 def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[models.Racer, dict[str, Any], bool]:
     racer_id = data.get("racer_id")
+    racer_slcr_id = _clean_string(data.get("racer_slcr_id"))
+    racer_telefon = _clean_string(data.get("racer_telefon"))
+    racer_email = _clean_string(data.get("racer_email"))
+    if racer_slcr_id and len(racer_slcr_id) > 10:
+        raise StandardExceptions.bad_request("SLČR ID může mít maximálně 10 znaků")
+
     if racer_id not in (None, "", 0, "0"):
         racer = db.query(models.Racer).filter(models.Racer.id == int(racer_id)).first()
         if not racer:
             raise StandardExceptions.not_found("Závodník nenalezen")
+        if racer_slcr_id:
+            racer.slcr_id = racer_slcr_id
+        if racer_telefon:
+            racer.telefon = racer_telefon
+        if racer_email:
+            racer.email = racer_email
         return racer, _get_racer_source_snapshot(racer.id, db), False
 
     racer_name = _clean_string(data.get("racer_name", data.get("name_override")))
@@ -109,9 +121,6 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
     year_value = data.get("racer_year", data.get("year_override"))
     racer_sex = data.get("racer_sex")
     club_name = _clean_string(data.get("club_name"))
-    racer_slcr_id = _clean_string(data.get("racer_slcr_id"))
-    if racer_slcr_id and len(racer_slcr_id) > 10:
-        raise StandardExceptions.bad_request("SLČR ID může mít maximálně 10 znaků")
 
     if not racer_name or not racer_surname or year_value in ("", None) or racer_sex in ("", None) or not club_name:
         raise StandardExceptions.bad_request(
@@ -132,6 +141,10 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
         racer = existing_racer
         if racer_slcr_id:
             racer.slcr_id = racer_slcr_id
+        if racer_telefon:
+            racer.telefon = racer_telefon
+        if racer_email:
+            racer.email = racer_email
         source_snapshot = _get_racer_source_snapshot(racer.id, db)
         return racer, source_snapshot, False
 
@@ -143,6 +156,8 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
         surname=racer_surname,
         sex=racer_sex,
         year=racer_year,
+        telefon=racer_telefon,
+        email=racer_email,
         slcr_id=racer_slcr_id,
         club_id=club.id,
         category_id=category_id,
@@ -190,6 +205,51 @@ def _resolve_race_number_for_assignment(data: Dict[str, Any], db: Session) -> tu
         return True, _get_race_number_by_id(int(race_number_id), db, require_active=True)
 
     return False, None
+
+
+def _get_next_available_race_number_for_race(race_id: int, db: Session) -> models.RaceNumber | None:
+    max_display = db.query(func.max(models.StartListEntry.race_number_display)).filter(
+        models.StartListEntry.race_id == race_id,
+        models.StartListEntry.race_number_display.isnot(None)
+    ).scalar()
+
+    if max_display is None:
+        return db.query(models.RaceNumber).filter(
+            models.RaceNumber.is_active.is_(True)
+        ).order_by(models.RaceNumber.display_number).first()
+
+    return db.query(models.RaceNumber).filter(
+        models.RaceNumber.is_active.is_(True),
+        models.RaceNumber.display_number == int(max_display) + 1
+    ).first()
+
+
+def _get_next_available_start_number_for_race(race_id: int, db: Session) -> int:
+    max_start_number = db.query(func.max(models.StartListEntry.start_number)).filter(
+        models.StartListEntry.race_id == race_id,
+        models.StartListEntry.start_number.isnot(None)
+    ).scalar()
+    return (int(max_start_number) + 1) if max_start_number is not None else 1
+
+
+def _compact_start_numbers_for_race(race_id: int, db: Session) -> None:
+    race = db.query(models.Race).filter(models.Race.id == race_id).first()
+    if not race:
+        return
+
+    category_rank_map = _get_category_rank_map(race, db)
+    entries = db.query(models.StartListEntry).filter(
+        models.StartListEntry.race_id == race_id
+    ).all()
+
+    entries.sort(key=lambda item: (
+        category_rank_map.get(item.category_id, 10**9),
+        item.start_number if item.start_number is not None else 10**9,
+        item.id,
+    ))
+
+    for index, item in enumerate(entries, start=1):
+        item.start_number = index
 
 
 def _validate_race_number_assignment(
@@ -646,8 +706,11 @@ def delete_start_list_entry(
     entry = db.query(models.StartListEntry).filter(models.StartListEntry.id == entry_id).first()
     if not entry:
         raise StandardExceptions.not_found("Záznam na startovní listině nenalezen")
-    
+    race_id = entry.race_id
+
     db.delete(entry)
+    db.flush()
+    _compact_start_numbers_for_race(race_id, db)
     db.commit()
     return {"message": "Závodník odebrán ze startovní listiny"}
 
@@ -729,10 +792,7 @@ def add_manual_start_list_entry(
     # Auto-assign start_number if not provided
     start_number = data.get("start_number")
     if not start_number:
-        max_sn = db.query(func.max(models.StartListEntry.start_number)).filter(
-            models.StartListEntry.race_id == race_id
-        ).scalar() or 0
-        start_number = max_sn + 1
+        start_number = _get_next_available_start_number_for_race(race_id, db)
 
     racer_name = _clean_string(data.get("racer_name", data.get("name_override"))) or source_snapshot["racer_name"]
     racer_surname = _clean_string(data.get("racer_surname", data.get("surname_override"))) or source_snapshot["racer_surname"]
@@ -746,6 +806,8 @@ def add_manual_start_list_entry(
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)
     if race_number_provided:
         _validate_race_number_assignment(db, race_id, race_number.id if race_number else None)
+    else:
+        race_number = _get_next_available_race_number_for_race(race_id, db)
 
     entry = models.StartListEntry(
         race_id=race_id,

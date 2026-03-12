@@ -29,6 +29,7 @@ import TimekeeperLogin from './components/timekeeper/TimekeeperLogin.jsx';
 import TimekeeperLayout from './components/timekeeper/TimekeeperLayout.jsx';
 import TimekeeperDashboard from './components/timekeeper/TimekeeperDashboard.jsx';
 import StartListManager from './components/timekeeper/StartListManager.jsx';
+import TimekeeperRacers from './components/timekeeper/TimekeeperRacers.jsx';
 import TimingEntry from './components/timekeeper/TimingEntry.jsx';
 import ResultsView from './components/timekeeper/ResultsView.jsx';
 import RaceNumbersManager from './components/timekeeper/RaceNumbersManager.jsx';
@@ -152,6 +153,11 @@ const RouterContent = () => {
               <Route path="/start-list" element={
                 <ProtectedTimekeeperRoute>
                   <StartListManager />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/racers" element={
+                <ProtectedTimekeeperRoute>
+                  <TimekeeperRacers />
                 </ProtectedTimekeeperRoute>
               } />
               <Route path="/timing" element={

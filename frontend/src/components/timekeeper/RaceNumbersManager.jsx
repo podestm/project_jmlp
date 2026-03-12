@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/api.js';
 
+const SET_COLOR_OPTIONS = [
+  { value: 'rose', label: 'Růžová', solid: '#e94560', soft: 'rgba(233, 69, 96, 0.10)', border: 'rgba(233, 69, 96, 0.35)' },
+  { value: 'blue', label: 'Modrá', solid: '#2563eb', soft: 'rgba(37, 99, 235, 0.10)', border: 'rgba(37, 99, 235, 0.35)' },
+  { value: 'emerald', label: 'Zelená', solid: '#059669', soft: 'rgba(5, 150, 105, 0.10)', border: 'rgba(5, 150, 105, 0.35)' },
+  { value: 'amber', label: 'Oranžová', solid: '#d97706', soft: 'rgba(217, 119, 6, 0.10)', border: 'rgba(217, 119, 6, 0.35)' },
+  { value: 'violet', label: 'Fialová', solid: '#7c3aed', soft: 'rgba(124, 58, 237, 0.10)', border: 'rgba(124, 58, 237, 0.35)' },
+];
+
+const getSetColorTheme = (setColor) => (
+  SET_COLOR_OPTIONS.find(option => option.value === setColor) || SET_COLOR_OPTIONS[0]
+);
+
 export default function RaceNumbersManager() {
   const [sets, setSets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [showSetForm, setShowSetForm] = useState(false);
   const [setFormData, setSetFormData] = useState({
-    set_number: '', actual_from: '1', actual_to: '200', display_from: '',
+    set_number: '', actual_from: '1', actual_to: '200', display_from: '', set_color: 'rose',
   });
   const [creating, setCreating] = useState(false);
 
@@ -84,6 +96,7 @@ export default function RaceNumbersManager() {
         actual_from: parseInt(setFormData.actual_from),
         actual_to: parseInt(setFormData.actual_to),
         display_from: parseInt(setFormData.display_from),
+        set_color: setFormData.set_color,
       });
       setMessage({ type: 'success', text: result.message });
       setShowSetForm(false);
@@ -92,6 +105,31 @@ export default function RaceNumbersManager() {
       setMessage({ type: 'danger', text: err.message || 'Nepodařilo se vytvořit sadu' });
     } finally {
       setCreating(false);
+    }
+  };
+
+  const updateSetColor = async (setNumber, setColor) => {
+    const previousSet = sets.find(set => set.set_number === setNumber);
+    const previousColor = previousSet?.set_color || 'rose';
+    if (previousColor === setColor) return;
+
+    setSets(prev => prev.map(set => (
+      set.set_number === setNumber ? { ...set, set_color: setColor } : set
+    )));
+    if (expandedSet === setNumber) {
+      setNumbers(prev => prev.map(number => ({ ...number, set_color: setColor })));
+    }
+
+    try {
+      await TimekeeperAPI.put(`/api/timekeeper/race-number-sets/${setNumber}`, { set_color: setColor });
+    } catch (err) {
+      setSets(prev => prev.map(set => (
+        set.set_number === setNumber ? { ...set, set_color: previousColor } : set
+      )));
+      if (expandedSet === setNumber) {
+        setNumbers(prev => prev.map(number => ({ ...number, set_color: previousColor })));
+      }
+      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se změnit barvu sady' });
     }
   };
 
@@ -241,6 +279,29 @@ export default function RaceNumbersManager() {
                   <input type="number" className="form-control form-control-sm" value={setFormData.display_from}
                     onChange={(e) => setSetFormData(prev => ({ ...prev, display_from: e.target.value }))} min="1" required />
                 </div>
+                <div className="col-12">
+                  <label className="form-label small fw-semibold mb-1">Barva sady</label>
+                  <div className="d-flex flex-wrap gap-2">
+                    {SET_COLOR_OPTIONS.map(option => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`btn btn-sm ${setFormData.set_color === option.value ? 'text-white' : 'btn-outline-secondary'}`}
+                        onClick={() => setSetFormData(prev => ({ ...prev, set_color: option.value }))}
+                        style={setFormData.set_color === option.value ? {
+                          background: option.solid,
+                          borderColor: option.solid,
+                          borderRadius: '999px',
+                        } : {
+                          borderRadius: '999px',
+                        }}
+                      >
+                        <span className="me-1 d-inline-block rounded-circle" style={{ width: '10px', height: '10px', background: option.solid }}></span>
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               {setFormData.actual_from && setFormData.actual_to && setFormData.display_from && (
                 <div className="mt-2 px-2 py-1 rounded small" style={{ background: '#f8f9fa' }}>
@@ -264,12 +325,12 @@ export default function RaceNumbersManager() {
       {sets.length > 0 ? (
         <div className="d-flex flex-column gap-2">
           {sets.map(set => (
-            <div key={set.set_number} className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
+            <div key={set.set_number} className="card border-0 shadow-sm" style={{ borderRadius: '10px', borderTop: `3px solid ${getSetColorTheme(set.set_color).solid}` }}>
               <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between"
                 style={{ cursor: 'pointer' }} onClick={() => toggleExpand(set.set_number)}>
                 <div className="d-flex align-items-center gap-3">
                   <i className={`bi ${expandedSet === set.set_number ? 'bi-chevron-down' : 'bi-chevron-right'} text-muted`}></i>
-                  <span className="badge" style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', fontSize: '0.8rem' }}>
+                  <span className="badge" style={{ background: getSetColorTheme(set.set_color).solid, fontSize: '0.8rem' }}>
                     Sada {set.set_number}
                   </span>
                   <span className="small">
@@ -289,9 +350,31 @@ export default function RaceNumbersManager() {
               {expandedSet === set.set_number && (
                 <div className="border-top">
                   <div className="d-flex align-items-center justify-content-between px-3 py-2" style={{ background: '#f8f9fa' }}>
-                    <small className="text-muted">
-                      {numbers.filter(n => n.is_active).length} aktivních, {numbers.filter(n => !n.is_active).length} neaktivních
-                    </small>
+                    <div className="d-flex align-items-center gap-3 flex-wrap">
+                      <small className="text-muted">
+                        {numbers.filter(n => n.is_active).length} aktivních, {numbers.filter(n => !n.is_active).length} neaktivních
+                      </small>
+                      <div className="d-flex align-items-center gap-1 flex-wrap">
+                        <small className="text-muted">Barva:</small>
+                        {SET_COLOR_OPTIONS.map(option => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            title={option.label}
+                            onClick={(e) => { e.stopPropagation(); updateSetColor(set.set_number, option.value); }}
+                            className="btn btn-sm p-0 border"
+                            style={{
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '999px',
+                              background: option.solid,
+                              borderColor: set.set_color === option.value ? '#212529' : 'rgba(0, 0, 0, 0.1)',
+                              boxShadow: set.set_color === option.value ? '0 0 0 2px rgba(0,0,0,0.08)' : 'none',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
                     <button className="btn btn-sm btn-outline-dark py-0 px-2"
                       onClick={() => setShowAddNumber(!showAddNumber)}>
                       <i className={`bi ${showAddNumber ? 'bi-x' : 'bi-plus'} me-1`} style={{ fontSize: '0.75rem' }}></i>
@@ -341,11 +424,18 @@ export default function RaceNumbersManager() {
                                 key={n.id}
                                 type="button"
                                 className={`timekeeper-race-number-item ${n.is_active ? 'is-active' : 'is-inactive'}`}
-                                title={`Dres ${n.actual_number} → ${n.display_number}`}
+                                title={`Číslo dresu ${n.actual_number} → St. číslo ${n.display_number}`}
                                 disabled={updatingNumberId === n.id}
                                 onClick={() => toggleNumberActive(n.id, !n.is_active)}
+                                style={{
+                                  '--set-border': n.is_active ? getSetColorTheme(n.set_color).border : '#e9ecef',
+                                  '--set-bg': n.is_active ? getSetColorTheme(n.set_color).soft : '#f8f9fa',
+                                  '--set-solid': getSetColorTheme(n.set_color).solid,
+                                }}
                               >
-                                <span className="timekeeper-race-number-state" aria-hidden="true"></span>
+                                <span className="timekeeper-race-number-state" aria-hidden="true" style={{
+                                  background: n.is_active ? getSetColorTheme(n.set_color).solid : '#adb5bd',
+                                }}></span>
                                 <span className="fw-semibold timekeeper-race-number-display">{n.display_number}</span>
                                 {n.actual_number !== n.display_number && (
                                   <span className="text-muted timekeeper-race-number-actual">({n.actual_number})</span>

@@ -463,8 +463,8 @@ export default function TimingEntry() {
               <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.82rem' }}>
                 <thead style={{ background: '#1a1a2e', color: '#fff' }}>
                   <tr>
-                    <th style={{ width: '40px', padding: '5px 8px', borderRadius: '10px 0 0 0' }}>St.č.</th>
-                    <th style={{ width: '95px', padding: '5px 8px' }}>Čísla</th>
+                    <th style={{ width: '85px', padding: '5px 8px', borderRadius: '10px 0 0 0' }}>Pořadí</th>
+                    <th style={{ width: '125px', padding: '5px 8px' }}>St. číslo</th>
                     <th style={{ padding: '5px 8px' }}>Závodník</th>
                     <th style={{ padding: '5px 8px' }}>Klub</th>
                     <th style={{ width: '110px', padding: '5px 8px', ...(activeRound === '2' ? { opacity: 0.5 } : {}) }}>
@@ -489,7 +489,7 @@ export default function TimingEntry() {
                           {entry.race_number_display ? (
                             <>
                               <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
-                              <small className="text-muted d-block mt-1">Dres {entry.race_number_actual || '—'}</small>
+                              <small className="text-muted d-block mt-1">Číslo dresu: {entry.race_number_actual || '—'}</small>
                             </>
                           ) : '—'}
                         </td>

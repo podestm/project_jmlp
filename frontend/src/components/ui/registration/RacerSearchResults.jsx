@@ -48,6 +48,9 @@ const RacerSearchResults = ({
                                         {racer.club_name && (
                                             <span> • {racer.club_name}</span>
                                         )}
+                                        {racer.slcr_id && (
+                                            <span> • SLČR {racer.slcr_id}</span>
+                                        )}
                                     </div>
                                 </div>
                                 <span className="bi bi-chevron-right text-muted"></span>

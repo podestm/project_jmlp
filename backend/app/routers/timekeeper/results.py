@@ -11,8 +11,12 @@ from ...utils import fix_encoding, convert_utf8_field, StandardExceptions
 router = APIRouter(tags=["timekeeper-results"])
 
 
-# Points table: 1st=25, 2nd=20, 3rd=16, 4th=13, 5th=11, 6th=10, 7th=9, ...
-POINTS_TABLE = [25, 20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+# Points table for classified racers with valid times (1st-30th).
+POINTS_TABLE = [
+    100, 80, 60, 50, 45, 40, 36, 32, 29, 26,
+    24, 22, 20, 18, 16, 15, 14, 13, 12, 11,
+    10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+]
 
 
 def get_points_for_position(position: int) -> int:
@@ -21,7 +25,7 @@ def get_points_for_position(position: int) -> int:
         return 0
     if position <= len(POINTS_TABLE):
         return POINTS_TABLE[position - 1]
-    return 1  # Everyone who finishes gets at least 1 point
+    return 0
 
 
 @router.get("/races/{race_id}/results")
@@ -62,9 +66,15 @@ def get_race_results(
         LEFT JOIN fuj_jmlp_category cat ON sl.category_id = cat.id
         WHERE sl.race_id = :race_id
         ORDER BY cat.min_birth_year DESC, cat.sex DESC,
-                 CASE WHEN sl.dnf = 1 OR sl.dns = 1 OR sl.dsq = 1 THEN 1 ELSE 0 END ASC,
-                 CASE WHEN sl.time_sum IS NULL THEN 1 ELSE 0 END ASC,
-                 sl.time_sum ASC
+                 CASE
+                     WHEN sl.time_sum IS NOT NULL AND sl.dnf = 0 AND sl.dns = 0 AND sl.dsq = 0 THEN 0
+                     WHEN sl.dnf = 1 OR sl.dns = 1 OR sl.dsq = 1 THEN 1
+                     ELSE 2
+                 END ASC,
+                 sl.time_sum ASC,
+                 CASE WHEN sl.start_number IS NULL THEN 1 ELSE 0 END ASC,
+                 sl.start_number ASC,
+                 sl.id ASC
     """)
     rows = db.execute(query, {"race_id": race_id}).fetchall()
     
@@ -179,9 +189,15 @@ def calculate_points(
         LEFT JOIN fuj_jmlp_category cat ON sl.category_id = cat.id
         WHERE sl.race_id = :race_id
         ORDER BY cat.min_birth_year DESC, cat.sex DESC,
-                 CASE WHEN sl.dnf = 1 OR sl.dns = 1 OR sl.dsq = 1 THEN 1 ELSE 0 END ASC,
-                 CASE WHEN sl.time_sum IS NULL THEN 1 ELSE 0 END ASC,
-                 sl.time_sum ASC
+                 CASE
+                     WHEN sl.time_sum IS NOT NULL AND sl.dnf = 0 AND sl.dns = 0 AND sl.dsq = 0 THEN 0
+                     WHEN sl.dnf = 1 OR sl.dns = 1 OR sl.dsq = 1 THEN 1
+                     ELSE 2
+                 END ASC,
+                 sl.time_sum ASC,
+                 CASE WHEN sl.start_number IS NULL THEN 1 ELSE 0 END ASC,
+                 sl.start_number ASC,
+                 sl.id ASC
     """)
     rows = db.execute(query, {"race_id": race_id}).fetchall()
     
