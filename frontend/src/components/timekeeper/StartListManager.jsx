@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/api.js';
+import RaceNumberBadge from './RaceNumberBadge.jsx';
 
 export default function StartListManager() {
   const [races, setRaces] = useState([]);
@@ -570,12 +571,11 @@ export default function StartListManager() {
                           <tr key={entry.id}>
                             <td className="fw-bold" style={{ padding: '4px 8px' }}>{entry.start_number || '—'}</td>
                             <td style={{ padding: '4px 8px' }}>
-                              {entry.race_number_display ? (
-                                <>
-                                  <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
-                                  <small className="text-muted d-block mt-1">Číslo dresu: {entry.race_number_actual || '—'}</small>
-                                </>
-                              ) : '—'}
+                              <RaceNumberBadge
+                                actualNumber={entry.race_number_actual}
+                                displayNumber={entry.race_number_display}
+                                setColor={entry.set_color}
+                              />
                             </td>
                             <td style={{ padding: '4px 8px' }}>
                               <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>

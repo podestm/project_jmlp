@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/api.js';
+import { getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
 
 export default function ResultsView() {
   const [races, setRaces] = useState([]);
@@ -10,7 +11,7 @@ export default function ResultsView() {
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [message, setMessage] = useState(null);
-  const [groupByCategory, setGroupByCategory] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
   useEffect(() => { loadRaces(); }, []);
 
@@ -19,7 +20,20 @@ export default function ResultsView() {
       loadResults();
       localStorage.setItem('timekeeper_selected_race', selectedRaceId);
     }
-  }, [selectedRaceId, groupByCategory]);
+  }, [selectedRaceId]);
+
+  useEffect(() => {
+    const categories = results?.categories || [];
+    if (!categories.length) {
+      setSelectedCategoryId('');
+      return;
+    }
+
+    const selectedExists = categories.some((cat) => String(cat.category_id) === String(selectedCategoryId));
+    if (!selectedExists) {
+      setSelectedCategoryId(String(categories[0].category_id));
+    }
+  }, [results, selectedCategoryId]);
 
   const loadRaces = async () => {
     try {
@@ -34,7 +48,7 @@ export default function ResultsView() {
       setLoading(true);
       const data = await TimekeeperAPI.get(
         `/api/timekeeper/races/${selectedRaceId}/results`,
-        { group_by_category: groupByCategory }
+        { group_by_category: true }
       );
       setResults(data);
     } catch (err) {
@@ -70,16 +84,52 @@ export default function ResultsView() {
     return <span className="fw-bold">{pos}.</span>;
   };
 
-  const renderEntryTable = (entries, showCategory = false) => (
+  const rankEntriesByTime = (entries) => {
+    const sortable = [...entries].sort((a, b) => {
+      const aHasTime = a.status == null && a.time_sum != null;
+      const bHasTime = b.status == null && b.time_sum != null;
+      if (aHasTime && !bHasTime) return -1;
+      if (!aHasTime && bHasTime) return 1;
+
+      if (aHasTime && bHasTime) {
+        if (a.time_sum !== b.time_sum) return a.time_sum - b.time_sum;
+      }
+
+      const statusOrder = { DSQ: 1, DNF: 2, DNS: 3 };
+      const aStatus = statusOrder[a.status] ?? 99;
+      const bStatus = statusOrder[b.status] ?? 99;
+      if (aStatus !== bStatus) return aStatus - bStatus;
+
+      const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
+      const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
+      if (aStart !== bStart) return aStart - bStart;
+      return a.id - b.id;
+    });
+
+    let lastTime = null;
+    let lastRank = 0;
+    return sortable.map((entry, index) => {
+      const hasTime = entry.status == null && entry.time_sum != null;
+      let rank = null;
+      if (hasTime) {
+        rank = entry.time_sum === lastTime ? lastRank : index + 1;
+        lastTime = entry.time_sum;
+        lastRank = rank;
+      }
+      return { ...entry, display_rank: rank };
+    });
+  };
+
+  const renderEntryTable = (entries) => {
+    const rankedEntries = rankEntriesByTime(entries);
+    return (
     <div className="table-responsive">
       <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.82rem' }}>
         <thead className="table-light">
           <tr>
-            <th style={{ width: '45px', padding: '4px 8px' }}>Poř.</th>
-            <th style={{ width: '85px', padding: '4px 8px' }}>Pořadí</th>
-            <th style={{ width: '125px', padding: '4px 8px' }}>St. číslo</th>
+            <th style={{ width: '70px', padding: '4px 8px' }}>Pořadí</th>
+            <th style={{ width: '72px', padding: '4px 8px' }}>Dres</th>
             <th style={{ padding: '4px 8px' }}>Závodník</th>
-            {showCategory && <th style={{ padding: '4px 8px' }}>Kategorie</th>}
             <th style={{ padding: '4px 8px' }}>Klub</th>
             <th style={{ width: '75px', padding: '4px 8px' }} className="text-end">Jízda 1</th>
             <th style={{ width: '75px', padding: '4px 8px' }} className="text-end">Jízda 2</th>
@@ -89,25 +139,18 @@ export default function ResultsView() {
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry) => (
+          {rankedEntries.map((entry) => (
             <tr key={entry.id} className={entry.status ? 'table-light text-muted' : ''}>
-              <td className="text-center" style={{ padding: '3px 8px' }}>{renderPositionBadge(entry.position)}</td>
-              <td className="text-center" style={{ padding: '3px 8px' }}>{entry.start_number || '—'}</td>
+              <td className="text-center" style={{ padding: '3px 8px' }}>{renderPositionBadge(entry.display_rank)}</td>
               <td style={{ padding: '3px 8px' }}>
-                {entry.race_number_display ? (
-                  <>
-                    <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
-                    <small className="text-muted d-block mt-1">Číslo dresu: {entry.race_number_actual || '—'}</small>
-                  </>
-                ) : '—'}
+                <span className="badge" style={{ ...getRaceNumberBadgeStyle(entry.set_color), fontSize: '0.8rem' }}>
+                  {entry.race_number_actual ?? '—'}
+                </span>
               </td>
               <td style={{ padding: '3px 8px' }}>
                 <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
                 <small className="text-muted ms-1">({entry.racer_year})</small>
               </td>
-              {showCategory && (
-                <td style={{ padding: '3px 8px' }}><span className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>{entry.category_name || '—'}</span></td>
-              )}
               <td className="text-muted" style={{ padding: '3px 8px' }}>{entry.club_name || '—'}</td>
               <td className="text-end" style={{ padding: '3px 8px', fontFamily: 'monospace' }}>{entry.status ? '—' : formatTime(entry.time1)}</td>
               <td className="text-end" style={{ padding: '3px 8px', fontFamily: 'monospace' }}>{entry.status ? '—' : formatTime(entry.time2)}</td>
@@ -131,6 +174,10 @@ export default function ResultsView() {
       </table>
     </div>
   );
+  };
+
+  const categoryList = results?.categories || [];
+  const selectedCategory = categoryList.find((cat) => String(cat.category_id) === String(selectedCategoryId)) || null;
 
   return (
     <div>
@@ -159,11 +206,11 @@ export default function ResultsView() {
         )}
       </div>
 
-      {/* Race selector + options */}
+      {/* Race selector */}
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
         <div className="card-body py-2 px-3">
           <div className="row align-items-center g-2">
-            <div className="col-md-5">
+            <div className="col-md-9">
               <div className="d-flex align-items-center gap-2">
                 <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
                 <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
@@ -171,18 +218,6 @@ export default function ResultsView() {
                     ? `${selectedRace.raceNr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
                     : 'Závod vyberte v Přehledu závodů'}
                 </div>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="btn-group btn-group-sm w-100">
-                <button className={`btn ${groupByCategory ? 'btn-dark' : 'btn-outline-dark'}`}
-                  onClick={() => setGroupByCategory(true)}>
-                  <i className="bi bi-collection me-1"></i>Dle kategorií
-                </button>
-                <button className={`btn ${!groupByCategory ? 'btn-dark' : 'btn-outline-dark'}`}
-                  onClick={() => setGroupByCategory(false)}>
-                  <i className="bi bi-list me-1"></i>Celkově
-                </button>
               </div>
             </div>
             {results && (
@@ -211,38 +246,53 @@ export default function ResultsView() {
         </div>
       )}
 
-      {/* Results grouped by category */}
-      {!loading && results && results.grouped && results.categories && (
-        <div>
-          {results.categories.map((cat) => (
-            <div key={cat.category_id} className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
-              <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
-                <small className="fw-bold">
-                  <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
-                  {cat.category_name}
-                  <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{cat.entries.length}</span>
-                </small>
-              </div>
-              <div className="card-body p-0">
-                {renderEntryTable(cat.entries, false)}
-              </div>
+      {/* Category pills row */}
+      {!loading && results && categoryList.length > 0 && (
+        <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
+          <div className="card-body py-2 px-3">
+            <div className="d-flex align-items-center gap-1 flex-wrap">
+              <small className="fw-semibold me-1" style={{ color: '#e94560' }}>
+                <i className="bi bi-tag me-1"></i>Kat:
+              </small>
+              {categoryList.map((cat) => {
+                const isActive = String(selectedCategoryId) === String(cat.category_id);
+                return (
+                  <button
+                    key={cat.category_id}
+                    className={`btn py-0 px-2 ${isActive ? '' : 'btn-outline-dark'}`}
+                    style={{
+                      fontSize: '0.75rem',
+                      borderRadius: '12px',
+                      ...(isActive ? { background: '#e94560', color: 'white', border: 'none' } : {}),
+                    }}
+                    onClick={() => setSelectedCategoryId(String(cat.category_id))}
+                  >
+                    {cat.category_name} ({cat.entries.length})
+                  </button>
+                );
+              })}
             </div>
-          ))}
+          </div>
         </div>
       )}
 
-      {/* Results flat */}
-      {!loading && results && !results.grouped && results.entries && (
-        <div className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
-          <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
-            <small className="fw-bold">
-              <i className="bi bi-trophy-fill me-1" style={{ color: '#e94560' }}></i>
-              Celkové pořadí
-            </small>
-          </div>
-          <div className="card-body p-0">
-            {renderEntryTable(results.entries, true)}
-          </div>
+      {/* Results by selected category */}
+      {!loading && results && results.categories && (
+        <div>
+          {selectedCategory && (
+            <div key={selectedCategory.category_id} className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
+              <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
+                <small className="fw-bold">
+                  <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
+                  {selectedCategory.category_name}
+                  <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{selectedCategory.entries.length}</span>
+                </small>
+              </div>
+              <div className="card-body p-0">
+                {renderEntryTable(selectedCategory.entries)}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

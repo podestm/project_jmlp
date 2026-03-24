@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/api.js';
-
-const SET_COLOR_OPTIONS = [
-  { value: 'rose', label: 'Růžová', solid: '#e94560', soft: 'rgba(233, 69, 96, 0.10)', border: 'rgba(233, 69, 96, 0.35)' },
-  { value: 'blue', label: 'Modrá', solid: '#2563eb', soft: 'rgba(37, 99, 235, 0.10)', border: 'rgba(37, 99, 235, 0.35)' },
-  { value: 'emerald', label: 'Zelená', solid: '#059669', soft: 'rgba(5, 150, 105, 0.10)', border: 'rgba(5, 150, 105, 0.35)' },
-  { value: 'amber', label: 'Oranžová', solid: '#d97706', soft: 'rgba(217, 119, 6, 0.10)', border: 'rgba(217, 119, 6, 0.35)' },
-  { value: 'violet', label: 'Fialová', solid: '#7c3aed', soft: 'rgba(124, 58, 237, 0.10)', border: 'rgba(124, 58, 237, 0.35)' },
-];
-
-const getSetColorTheme = (setColor) => (
-  SET_COLOR_OPTIONS.find(option => option.value === setColor) || SET_COLOR_OPTIONS[0]
-);
+import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
 
 export default function RaceNumbersManager() {
   const [sets, setSets] = useState([]);
@@ -424,7 +413,7 @@ export default function RaceNumbersManager() {
                                 key={n.id}
                                 type="button"
                                 className={`timekeeper-race-number-item ${n.is_active ? 'is-active' : 'is-inactive'}`}
-                                title={`Číslo dresu ${n.actual_number} → St. číslo ${n.display_number}`}
+                                title={`Číslo dresu ${n.actual_number} | Sys. ${n.display_number}`}
                                 disabled={updatingNumberId === n.id}
                                 onClick={() => toggleNumberActive(n.id, !n.is_active)}
                                 style={{
@@ -436,9 +425,9 @@ export default function RaceNumbersManager() {
                                 <span className="timekeeper-race-number-state" aria-hidden="true" style={{
                                   background: n.is_active ? getSetColorTheme(n.set_color).solid : '#adb5bd',
                                 }}></span>
-                                <span className="fw-semibold timekeeper-race-number-display">{n.display_number}</span>
+                                <span className="fw-semibold timekeeper-race-number-display">{n.actual_number}</span>
                                 {n.actual_number !== n.display_number && (
-                                  <span className="text-muted timekeeper-race-number-actual">({n.actual_number})</span>
+                                  <span className="text-muted timekeeper-race-number-actual">({n.display_number})</span>
                                 )}
                               </button>
                             ))}
