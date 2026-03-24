@@ -337,6 +337,8 @@ class StartListEntryCreate(StartListEntryBase):
     pass
 
 class StartListEntryUpdate(BaseModel):
+    base_revision: Optional[str] = None
+    force_apply: Optional[bool] = False
     start_number: Optional[int] = None
     race_number_id: Optional[int] = None
     race_number_display: Optional[int] = None
@@ -383,6 +385,8 @@ class StartListEntry(StartListEntryBase):
 class TimeEntry(BaseModel):
     """For batch time entry"""
     entry_id: int
+    base_revision: Optional[str] = None
+    force_apply: Optional[bool] = False
     time1: Optional[float] = None
     time2: Optional[float] = None
     dnf: bool = False

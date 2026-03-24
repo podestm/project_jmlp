@@ -339,7 +339,9 @@ def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None
         "category_sex": row.category_sex,
         "race_number_actual": row.race_number_actual,
         "race_number_display": row.race_number_display,
+        "set_color": row.set_color or "rose",
         "display_number": row.race_number_display,
+        "updated_at": row.updated_at.isoformat() if row.updated_at else None,
         "has_override": False,
     }
 
@@ -363,8 +365,11 @@ def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
                sl.race_number_actual, sl.race_number_display,
-               sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points
+               rn.set_color,
+               sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
+               sl.updated_at
         FROM fuj_jmlp_race_start_list sl
+        LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
         WHERE sl.race_id = :race_id
     """)
     return db.execute(query, {"race_id": race_id}).fetchall()
@@ -377,8 +382,11 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
                sl.race_number_actual, sl.race_number_display,
-               sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points
+               rn.set_color,
+               sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
+               sl.updated_at
         FROM fuj_jmlp_race_start_list sl
+        LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
         WHERE sl.id = :entry_id
     """)
     row = db.execute(query, {"entry_id": entry_id}).first()
@@ -387,6 +395,16 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
     race = db.query(models.Race).filter(models.Race.id == row.race_id).first()
     category_rank_map = _get_category_rank_map(race, db) if race else {}
     return _serialize_start_list_row(row, category_rank_map)
+
+
+@router.get("/start-list/{entry_id}")
+def get_single_start_list_entry(
+    entry_id: int,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get a single start list entry snapshot for conflict comparison."""
+    return _get_start_list_entry_payload(entry_id, db)
 
 
 @router.get("/categories")
@@ -660,11 +678,15 @@ def update_start_list_entry(
     if "club_name" in data:
         entry.club_name = _clean_string(data.get("club_name"))
 
+    if "racer_sex" in data:
+        sex_value = data.get("racer_sex")
+        entry.racer_sex = int(sex_value) if sex_value not in ("", None) else None
+
     if entry.racer_sex is None:
         source_snapshot = _get_racer_source_snapshot(entry.racer_id, db)
         entry.racer_sex = source_snapshot["racer_sex"]
 
-    if any(key in data for key in ("racer_year", "year_override", "racer_name", "name_override", "racer_surname", "surname_override", "club_name")):
+    if any(key in data for key in ("racer_year", "year_override", "racer_name", "name_override", "racer_surname", "surname_override", "club_name", "racer_sex")):
         _apply_category_snapshot(entry, db)
 
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)

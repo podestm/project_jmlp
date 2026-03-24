@@ -61,9 +61,11 @@ def get_race_results(
                cat.id as cat_id,
                sl.category_sex,
                sl.race_number_actual,
-               sl.race_number_display
+             sl.race_number_display,
+             rn.set_color
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_category cat ON sl.category_id = cat.id
+         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
         WHERE sl.race_id = :race_id
         ORDER BY cat.min_birth_year DESC, cat.sex DESC,
                  CASE
@@ -94,6 +96,7 @@ def get_race_results(
             "display_number": row.race_number_display,
             "race_number_display": row.race_number_display,
             "race_number_actual": row.race_number_actual,
+            "set_color": row.set_color or "rose",
             "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
             "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
             "racer_year": row.racer_year,
