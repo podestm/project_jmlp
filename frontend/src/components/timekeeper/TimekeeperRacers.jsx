@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import API, { TimekeeperAPI } from '../../config/api.js';
 import RegistrationFormFields from '../ui/registration/RegistrationFormFields.jsx';
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
+import RaceNumberBadge from './RaceNumberBadge.jsx';
+import { getRaceNumberBadgeStyle, getSetColorTheme } from '../../utils/raceNumbers.js';
 
 const createEmptyForm = (raceNumberDisplay = '') => ({
   name: '',
@@ -39,6 +41,11 @@ export default function TimekeeperRacers() {
     sex: 'all',
     text: '',
   });
+
+  // Inline editing state
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editValidationError, setEditValidationError] = useState('');
 
   const sortEntries = (entries) => [...entries].sort((a, b) => {
     const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
@@ -247,6 +254,83 @@ export default function TimekeeperRacers() {
     return 'Kategorie se dopočítá při přidání';
   };
 
+  // --- Inline editing ---
+  const startEditing = (entry) => {
+    setEditingId(entry.id);
+    setEditForm({
+      racer_name: entry.racer_name || '',
+      racer_surname: entry.racer_surname || '',
+      racer_year: entry.racer_year || '',
+      racer_sex: entry.racer_sex || '',
+      club_name: entry.club_name || '',
+      race_number_display: entry.race_number_display || '',
+    });
+    setEditValidationError('');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditForm({});
+    setEditValidationError('');
+  };
+
+  const getEditRaceNumberError = (displayNumber, excludeEntryId) => {
+    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return '';
+
+    const currentEntry = startList.find(e => e.id === excludeEntryId);
+    const isCurrentNumber = currentEntry && currentEntry.race_number_display != null &&
+      String(currentEntry.race_number_display) === String(displayNumber);
+
+    const option = findRaceNumberOption(displayNumber);
+    if (!option && !isCurrentNumber) {
+      return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
+    }
+
+    const conflict = startList.find(entry =>
+      entry.id !== excludeEntryId &&
+      entry.race_number_display != null &&
+      String(entry.race_number_display) === String(displayNumber)
+    );
+    if (conflict) {
+      return `St. číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
+    }
+    return '';
+  };
+
+  const saveEditing = async () => {
+    if (!editingId) return;
+
+    const raceNumberError = getEditRaceNumberError(editForm.race_number_display, editingId);
+    if (raceNumberError) {
+      setEditValidationError(raceNumberError);
+      return;
+    }
+
+    try {
+      const body = {};
+      body.racer_name = editForm.racer_name?.trim() || null;
+      body.racer_surname = editForm.racer_surname?.trim() || null;
+      body.club_name = editForm.club_name?.trim() || null;
+      body.racer_year = editForm.racer_year !== '' && editForm.racer_year != null
+        ? parseInt(editForm.racer_year) : null;
+      body.racer_sex = editForm.racer_sex !== '' && editForm.racer_sex != null
+        ? parseInt(editForm.racer_sex) : null;
+      body.race_number_display = editForm.race_number_display !== '' && editForm.race_number_display != null
+        ? parseInt(editForm.race_number_display) : null;
+
+      const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
+      setStartList(prev => sortEntries(prev.map(entry => (
+        entry.id === editingId ? result.entry : entry
+      ))));
+      setEditingId(null);
+      setEditForm({});
+      setEditValidationError('');
+      setMessage({ type: 'success', text: 'Závodník upraven' });
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se uložit změny' });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedRaceId) return;
@@ -325,6 +409,11 @@ export default function TimekeeperRacers() {
 
   const selectedRace = races.find(race => String(race.id) === String(selectedRaceId));
   const liveRaceNumberError = getRaceNumberValidationError(formData.race_number_display);
+  const selectedRaceNumberOption = findRaceNumberOption(formData.race_number_display);
+  const selectedRaceNumberTheme = getSetColorTheme(selectedRaceNumberOption?.set_color);
+  const liveEditRaceNumberError = editingId
+    ? getEditRaceNumberError(editForm.race_number_display, editingId)
+    : '';
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -433,13 +522,14 @@ export default function TimekeeperRacers() {
                     formData={formData}
                     updateField={updateField}
                     clubs={clubs}
+                    showContactFields={false}
                   />
 
                   <div className="row g-2 mt-0">
                     <div className="col-md-4">
                       <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                         <span className="bi bi-123"></span>
-                        St. číslo
+                        Systémové číslo
                       </label>
                       <input
                         type="number"
@@ -458,39 +548,50 @@ export default function TimekeeperRacers() {
                       {liveRaceNumberError && (
                         <div className="invalid-feedback d-block">{liveRaceNumberError}</div>
                       )}
+                      {!liveRaceNumberError && (
+                        <div className="form-text mt-1" style={{ color: '#6c757d', fontSize: '0.75rem' }}>
+                          Návrh dalšího volného čísla: <strong>{getNextAvailableRaceNumberDisplay() || '—'}</strong>
+                        </div>
+                      )}
                     </div>
-                    <div className="col-md-4">
+                    <div className="col-md-8">
                       <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                         <span className="bi bi-person-badge"></span>
                         Číslo dresu
                       </label>
-                      <div className="form-control form-control-sm d-flex align-items-center fw-semibold" style={{
-                        background: '#f8f9fa',
-                        border: '1px solid #dee2e6',
+                      <div className="d-flex align-items-center justify-content-between gap-3 px-3 py-2 rounded-3" style={{
+                        background: selectedRaceNumberTheme.soft,
+                        border: `1px solid ${selectedRaceNumberTheme.border}`,
                         color: '#1a1a2e',
+                        minHeight: '44px',
                       }}>
-                        {findRaceNumberOption(formData.race_number_display)?.actual_number ?? '—'}
-                      </div>
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-arrow-right-circle"></span>
-                        Návrh dalšího St. čísla
-                      </label>
-                      <div className="form-control form-control-sm d-flex align-items-center fw-semibold" style={{
-                        background: '#f8f9fa',
-                        border: '1px solid #dee2e6',
-                        color: '#1a1a2e',
-                      }}>
-                        {getNextAvailableRaceNumberDisplay()}
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="text-muted small fw-semibold">Přiřazeno:</span>
+                          <span className="badge" style={{ ...getRaceNumberBadgeStyle(selectedRaceNumberOption?.set_color), fontSize: '1rem', padding: '0.45rem 0.95rem' }}>
+                            {selectedRaceNumberOption?.actual_number ?? '—'}
+                          </span>
+                        </div>
+                        <small className="fw-semibold" style={{ color: selectedRaceNumberTheme.solid }}>
+                          {selectedRaceNumberOption ? `Sada ${selectedRaceNumberOption.set_number}` : 'Bez sady'}
+                        </small>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-2 d-flex flex-wrap gap-2 small" style={{ color: 'var(--text-secondary)' }}>
-                    <span className="badge text-bg-light border">Kategorie: {resolveCategoryPreview(formData.year, formData.sex)}</span>
-                    <span className="badge text-bg-light border">St. číslo: {formData.race_number_display || '—'}</span>
-                    <span className="badge text-bg-light border">Číslo dresu: {findRaceNumberOption(formData.race_number_display)?.actual_number ?? '—'}</span>
+                  <div className="mt-3 d-flex flex-wrap align-items-center gap-2 small">
+                    <span
+                      className="badge border"
+                      style={{
+                        background: '#ffe7b3',
+                        borderColor: '#f59e0b',
+                        color: '#6b3f00',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        padding: '0.45rem 0.7rem',
+                      }}
+                    >
+                      Kategorie: {resolveCategoryPreview(formData.year, formData.sex)}
+                    </span>
                   </div>
 
                   <div className="d-flex gap-2 justify-content-end mt-2">
@@ -622,31 +723,111 @@ export default function TimekeeperRacers() {
                       <th>Pořadí</th>
                       <th>St. číslo</th>
                       <th>Závodník</th>
+                      <th>Roč.</th>
                       <th>Pohlaví</th>
                       <th>Kategorie</th>
                       <th>Oddíl</th>
+                      <th style={{ width: '85px' }}>Akce</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredEntries.map(entry => (
-                      <tr key={entry.id}>
-                        <td className="fw-bold">{entry.start_number || '—'}</td>
-                        <td>
-                          {entry.race_number_display ? (
-                            <>
-                              <span className="badge bg-dark" style={{ fontSize: '0.7rem' }}>{entry.race_number_display}</span>
-                              <small className="text-muted d-block mt-0">Číslo dresu: {entry.race_number_actual || '—'}</small>
-                            </>
-                          ) : '—'}
-                        </td>
-                        <td>
-                          <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
-                          <small className="text-muted ms-1">({entry.racer_year})</small>
-                        </td>
-                        <td>{getSexLabel(entry.racer_sex)}</td>
-                        <td>{entry.category_name || 'Bez kategorie'}</td>
-                        <td className="text-muted">{entry.club_name || 'Bez oddílu'}</td>
-                      </tr>
+                      editingId === entry.id ? (
+                        <tr key={entry.id} style={{ background: '#fffbea' }}>
+                          <td className="fw-bold">{entry.start_number || '—'}</td>
+                          <td>
+                            <input type="number" className={`form-control form-control-sm ${(liveEditRaceNumberError || editValidationError) ? 'is-invalid' : ''}`}
+                              style={{ width: '78px', fontSize: '0.8rem', padding: '2px 4px' }}
+                              value={editForm.race_number_display}
+                              onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value })); setEditValidationError(''); }}
+                            />
+                            {(liveEditRaceNumberError || editValidationError) && (
+                              <div className="invalid-feedback d-block" style={{ fontSize: '0.7rem' }}>{liveEditRaceNumberError || editValidationError}</div>
+                            )}
+                          </td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <input type="text" className="form-control form-control-sm"
+                                style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                placeholder="Jméno" value={editForm.racer_name}
+                                onChange={(e) => setEditForm(p => ({ ...p, racer_name: e.target.value }))}
+                              />
+                              <input type="text" className="form-control form-control-sm"
+                                style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                                placeholder="Příjmení" value={editForm.racer_surname}
+                                onChange={(e) => setEditForm(p => ({ ...p, racer_surname: e.target.value }))}
+                              />
+                            </div>
+                          </td>
+                          <td>
+                            <input type="number" className="form-control form-control-sm"
+                              style={{ width: '60px', fontSize: '0.8rem', padding: '2px 4px' }}
+                              value={editForm.racer_year}
+                              onChange={(e) => setEditForm(p => ({ ...p, racer_year: e.target.value }))}
+                            />
+                          </td>
+                          <td>
+                            <select className="form-select form-select-sm"
+                              style={{ width: '75px', fontSize: '0.8rem', padding: '2px 4px' }}
+                              value={editForm.racer_sex}
+                              onChange={(e) => setEditForm(p => ({ ...p, racer_sex: e.target.value }))}
+                            >
+                              <option value="">—</option>
+                              <option value="1">Muž</option>
+                              <option value="2">Žena</option>
+                            </select>
+                          </td>
+                          <td>
+                            <small className="text-muted">{resolveCategoryPreview(editForm.racer_year, editForm.racer_sex)}</small>
+                          </td>
+                          <td>
+                            <input type="text" className="form-control form-control-sm"
+                              style={{ fontSize: '0.8rem', padding: '2px 4px' }}
+                              value={editForm.club_name}
+                              onChange={(e) => setEditForm(p => ({ ...p, club_name: e.target.value }))}
+                              placeholder="Klub"
+                              list="clubs"
+                            />
+                          </td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <button className="btn btn-sm btn-success py-0 px-1" style={{ fontSize: '0.75rem' }}
+                                onClick={saveEditing} title="Uložit">
+                                <i className="bi bi-check-lg"></i>
+                              </button>
+                              <button className="btn btn-sm btn-outline-secondary py-0 px-1" style={{ fontSize: '0.75rem' }}
+                                onClick={cancelEditing} title="Zrušit">
+                                <i className="bi bi-x-lg"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        <tr key={entry.id}>
+                          <td className="fw-bold">{entry.start_number || '—'}</td>
+                          <td>
+                            <RaceNumberBadge
+                              actualNumber={entry.race_number_actual}
+                              displayNumber={entry.race_number_display}
+                              setColor={entry.set_color}
+                              smallTopMargin={false}
+                            />
+                          </td>
+                          <td>
+                            <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
+                          </td>
+                          <td>{entry.racer_year}</td>
+                          <td>{getSexLabel(entry.racer_sex)}</td>
+                          <td>{entry.category_name || 'Bez kategorie'}</td>
+                          <td className="text-muted">{entry.club_name || 'Bez oddílu'}</td>
+                          <td>
+                            <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
+                              onClick={() => startEditing(entry)} title="Upravit">
+                              <i className="bi bi-pencil"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      )
                     ))}
                   </tbody>
                 </table>

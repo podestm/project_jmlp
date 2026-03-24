@@ -1,10 +1,55 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
+import { useSyncStatus } from '../../offline/useSyncStatus.js';
 
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
   const location = useLocation();
+  const { syncState, queueStats } = useSyncStatus();
+
+  const syncMeta = (() => {
+    if (syncState === 'offline') {
+      return {
+        label: 'Offline',
+        icon: 'bi-wifi-off',
+        style: { background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.35)' }
+      };
+    }
+    if (syncState === 'syncing') {
+      return {
+        label: 'Synchronizuji',
+        icon: 'bi-arrow-repeat',
+        style: { background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', border: '1px solid rgba(147, 197, 253, 0.35)' }
+      };
+    }
+    if (syncState === 'error') {
+      return {
+        label: 'Chyba sync',
+        icon: 'bi-exclamation-triangle',
+        style: { background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(252, 165, 165, 0.35)' }
+      };
+    }
+    if (syncState === 'conflict') {
+      return {
+        label: 'Konflikt',
+        icon: 'bi-bug',
+        style: { background: 'rgba(220, 38, 38, 0.25)', color: '#fecaca', border: '1px solid rgba(254, 202, 202, 0.4)' }
+      };
+    }
+    if (syncState === 'queued') {
+      return {
+        label: 'Ve frontě',
+        icon: 'bi-hourglass-split',
+        style: { background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', border: '1px solid rgba(110, 231, 183, 0.35)' }
+      };
+    }
+    return {
+      label: 'Online',
+      icon: 'bi-wifi',
+      style: { background: 'rgba(34, 197, 94, 0.2)', color: '#86efac', border: '1px solid rgba(134, 239, 172, 0.35)' }
+    };
+  })();
 
   const isActive = (path) => {
     if (path === '/timekeeper' && location.pathname === '/timekeeper') return true;
@@ -122,6 +167,18 @@ export default function TimekeeperLayout({ children }) {
               <small className="text-white-50">JMLP Timekeeper</small>
             </div>
           </div>
+          <div className="d-flex align-items-center justify-content-between gap-2 mt-2">
+            <span
+              className="badge rounded-pill"
+              style={{ fontWeight: 600, ...syncMeta.style }}
+            >
+              <i className={`bi ${syncMeta.icon} me-1`}></i>
+              {syncMeta.label}
+            </span>
+            <small className="text-white-50">
+              Fronta: {queueStats.total}
+            </small>
+          </div>
         </div>
         
         {/* Navigation */}
@@ -181,6 +238,14 @@ export default function TimekeeperLayout({ children }) {
               </small>
             </div>
 
+            <Link
+              to="/timekeeper/device"
+              className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/device') ? 'active' : ''}`}
+              style={isActive('/timekeeper/device') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
+            >
+              <i className="bi bi-plug timekeeper-sidebar-link-icon"></i>
+              <span>Časomíra</span>
+            </Link>
             <Link 
               to="/timekeeper/race-numbers" 
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/race-numbers') ? 'active' : ''}`}
@@ -188,6 +253,14 @@ export default function TimekeeperLayout({ children }) {
             >
               <i className="bi bi-123 timekeeper-sidebar-link-icon"></i>
               <span>Čísla</span>
+            </Link>
+            <Link
+              to="/timekeeper/sync"
+              className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/sync') ? 'active' : ''}`}
+              style={isActive('/timekeeper/sync') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
+            >
+              <i className="bi bi-arrow-repeat timekeeper-sidebar-link-icon"></i>
+              <span>Sync centrum</span>
             </Link>
           </div>
         </nav>
