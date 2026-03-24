@@ -33,6 +33,8 @@ import TimekeeperRacers from './components/timekeeper/TimekeeperRacers.jsx';
 import TimingEntry from './components/timekeeper/TimingEntry.jsx';
 import ResultsView from './components/timekeeper/ResultsView.jsx';
 import RaceNumbersManager from './components/timekeeper/RaceNumbersManager.jsx';
+import SyncCenter from './components/timekeeper/SyncCenter.jsx';
+import TimingDeviceSettings from './components/timekeeper/TimingDeviceSettings.jsx';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -173,6 +175,16 @@ const RouterContent = () => {
               <Route path="/race-numbers" element={
                 <ProtectedTimekeeperRoute>
                   <RaceNumbersManager />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/sync" element={
+                <ProtectedTimekeeperRoute>
+                  <SyncCenter />
+                </ProtectedTimekeeperRoute>
+              } />
+              <Route path="/device" element={
+                <ProtectedTimekeeperRoute>
+                  <TimingDeviceSettings />
                 </ProtectedTimekeeperRoute>
               } />
             </Routes>

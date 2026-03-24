@@ -3,7 +3,8 @@ import React from 'react';
 const RegistrationFormFields = ({
     formData,
     updateField,
-    clubs
+    clubs,
+    showContactFields = true,
 }) => {
     // Funkce pro určení stylu input pole podle toho, jestli je vyplněno
     const getInputStyle = (value) => {
@@ -119,35 +120,39 @@ const RegistrationFormFields = ({
 
             {/* Kontaktní údaje (nepovinné) */}
             <div className="row g-2 mb-3">
-                <div className="col-md-4">
-                    <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-telephone"></span>
-                        Telefon
-                    </label>
-                    <input 
-                        type="tel"
-                        className="form-control registration-input" 
-                        placeholder="+420 123 456 789" 
-                        value={formData.telefon} 
-                        onChange={e => updateField('telefon', e.target.value)}
-                        style={getInputStyle(formData.telefon)}
-                    />
-                </div>
-                <div className="col-md-4">
-                    <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-envelope"></span>
-                        Email
-                    </label>
-                    <input 
-                        type="email"
-                        className="form-control registration-input" 
-                        placeholder="vas@email.cz" 
-                        value={formData.email} 
-                        onChange={e => updateField('email', e.target.value)}
-                        style={getInputStyle(formData.email)}
-                    />
-                </div>
-                <div className="col-md-4">
+                {showContactFields && (
+                    <>
+                        <div className="col-md-4">
+                            <label className="form-label" style={{ color: 'var(--text-primary)' }}>
+                                <span className="bi bi-telephone"></span>
+                                Telefon
+                            </label>
+                            <input 
+                                type="tel"
+                                className="form-control registration-input" 
+                                placeholder="+420 123 456 789" 
+                                value={formData.telefon} 
+                                onChange={e => updateField('telefon', e.target.value)}
+                                style={getInputStyle(formData.telefon)}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <label className="form-label" style={{ color: 'var(--text-primary)' }}>
+                                <span className="bi bi-envelope"></span>
+                                Email
+                            </label>
+                            <input 
+                                type="email"
+                                className="form-control registration-input" 
+                                placeholder="vas@email.cz" 
+                                value={formData.email} 
+                                onChange={e => updateField('email', e.target.value)}
+                                style={getInputStyle(formData.email)}
+                            />
+                        </div>
+                    </>
+                )}
+                <div className={showContactFields ? "col-md-4" : "col-md-4"}>
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                         <span className="bi bi-card-text"></span>
                         ID závodníka
