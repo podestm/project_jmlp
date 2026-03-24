@@ -29,6 +29,12 @@ log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
 
+# Zajisti symlink .env
+if [[ ! -L "${SCRIPT_DIR}/.env" ]]; then
+    ln -sf "${SCRIPT_DIR}/secret/.env" "${SCRIPT_DIR}/.env"
+    log_info "Vytvořen symlink .env -> secret/.env"
+fi
+
 # Rebuild jedné služby
 rebuild_service() {
     local service=$1
@@ -70,9 +76,8 @@ rebuild_all() {
 
     echo ""
     log_success "Rebuild dokončen!"
-    echo -e "  Frontend:  ${GREEN}http://${IP}:3000${NC}"
-    echo -e "  Backend:   ${GREEN}http://${IP}:8000${NC}"
-    echo -e "  Admin:     ${GREEN}http://${IP}:3000/admin${NC}"
+    echo -e "  Frontend:  ${GREEN}https://${IP}:8443${NC}  (nebo http://${IP}:8080)"
+    echo -e "  Admin:     ${GREEN}https://${IP}:8443/admin${NC}"
 }
 
 # Nápověda
