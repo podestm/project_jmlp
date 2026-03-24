@@ -13,6 +13,15 @@ export const API_CONFIG = {
   }
 };
 
+import {
+  applyLocalMutation,
+  cacheGetResponse,
+  enqueueMutation,
+  processSyncQueue,
+  readCachedResponse,
+  startSyncLoop
+} from '../offline/timekeeperOffline.js';
+
 // Helper to build URL with query params
 const buildUrl = (endpoint, params = {}) => {
   // Normalize endpoint to ensure it starts with /
@@ -258,88 +267,188 @@ export const AdminAPI = {
 };
 
 // Timekeeper API with authentication (separate token)
-export const TimekeeperAPI = {
-  get: async (endpoint, params = {}) => {
-    const token = localStorage.getItem('timekeeper_token');
-    const url = buildUrl(endpoint, params);
+const extractStatusFromError = (error) => {
+  if (typeof error?.status === 'number') return error.status;
+  if (!error?.message) return null;
+  const match = error.message.match(/API Error: (\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+};
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        ...API_CONFIG.DEFAULT_HEADERS,
-        Authorization: token ? `Bearer ${token}` : ''
-      },
-      redirect: 'follow'
-    });
+const isNetworkError = (error) => {
+  const message = error?.message || '';
+  return (
+    message.includes('Failed to fetch') ||
+    message.includes('NetworkError') ||
+    message.includes('Load failed')
+  );
+};
 
-    if (!response.ok) {
-      handleTimekeeperAuthError(response.status);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+const isAuthError = (status) => status === 401 || status === 403;
+
+const timekeeperFetch = async (method, endpoint, data = null, params = null, extraHeaders = {}) => {
+  const token = localStorage.getItem('timekeeper_token');
+  const url = buildUrl(endpoint, params || {});
+
+  const response = await fetch(url, {
+    method,
+    headers: {
+      ...API_CONFIG.DEFAULT_HEADERS,
+      Authorization: token ? `Bearer ${token}` : '',
+      ...extraHeaders
+    },
+    ...(data != null ? { body: JSON.stringify(data) } : {}),
+    redirect: 'follow'
+  });
+
+  if (!response.ok) {
+    handleTimekeeperAuthError(response.status);
+    let parsedDetail = null;
+    try {
+      parsedDetail = await response.json();
+    } catch {
+      parsedDetail = null;
     }
 
-    return response.json();
+    const error = new Error(`API Error: ${response.status} ${response.statusText}`);
+    error.status = response.status;
+    error.detail = parsedDetail?.detail || parsedDetail || null;
+    throw error;
+  }
+
+  return response.json();
+};
+
+const TimekeeperAPIOnline = {
+  get: async (endpoint, params = {}) => timekeeperFetch('GET', endpoint, null, params),
+  post: async (endpoint, data = {}, meta = {}) => timekeeperFetch('POST', endpoint, data, null, meta.headers || {}),
+  put: async (endpoint, data = {}, meta = {}) => timekeeperFetch('PUT', endpoint, data, null, meta.headers || {}),
+  delete: async (endpoint, meta = {}) => timekeeperFetch('DELETE', endpoint, null, null, meta.headers || {})
+};
+
+const queueMutationWithLocalApply = async (method, endpoint, data = null) => {
+  await applyLocalMutation(method, endpoint, data);
+  await enqueueMutation(method, endpoint, data);
+  return {
+    queued: true,
+    offline: true,
+    message: 'Změna byla uložena lokálně a čeká na synchronizaci.'
+  };
+};
+
+const syncExecutor = async (item) => {
+  const method = (item.method || '').toUpperCase();
+  const headers = item.op_id ? { 'X-Idempotency-Key': item.op_id } : {};
+  if (method === 'POST') {
+    await TimekeeperAPIOnline.post(item.endpoint, item.payload || {}, { headers });
+    return;
+  }
+  if (method === 'PUT') {
+    await TimekeeperAPIOnline.put(item.endpoint, item.payload || {}, { headers });
+    return;
+  }
+  if (method === 'DELETE') {
+    await TimekeeperAPIOnline.delete(item.endpoint, { headers });
+  }
+};
+
+startSyncLoop(syncExecutor);
+
+export const TimekeeperAPI = {
+  get: async (endpoint, params = {}) => {
+    const canUseNetwork = typeof navigator === 'undefined' ? true : navigator.onLine;
+
+    if (canUseNetwork) {
+      try {
+        const data = await TimekeeperAPIOnline.get(endpoint, params);
+        await cacheGetResponse(endpoint, params, data);
+        return data;
+      } catch (error) {
+        const status = extractStatusFromError(error);
+        if (status && isAuthError(status)) {
+          throw error;
+        }
+
+        const cached = await readCachedResponse(endpoint, params);
+        if (cached != null) {
+          return cached;
+        }
+
+        throw error;
+      }
+    }
+
+    const cached = await readCachedResponse(endpoint, params);
+    if (cached != null) {
+      return cached;
+    }
+
+    throw new Error('Offline režim: data nejsou dostupná v lokální cache.');
   },
 
   post: async (endpoint, data = {}) => {
-    const token = localStorage.getItem('timekeeper_token');
-    const url = buildUrl(endpoint);
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        ...API_CONFIG.DEFAULT_HEADERS,
-        Authorization: token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify(data),
-      redirect: 'follow'
-    });
-
-    if (!response.ok) {
-      handleTimekeeperAuthError(response.status);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+    if (!isOnline) {
+      return queueMutationWithLocalApply('POST', endpoint, data);
     }
 
-    return response.json();
+    try {
+      return await TimekeeperAPIOnline.post(endpoint, data);
+    } catch (error) {
+      const status = extractStatusFromError(error);
+      if (status && isAuthError(status)) {
+        throw error;
+      }
+      if (isNetworkError(error)) {
+        return queueMutationWithLocalApply('POST', endpoint, data);
+      }
+      throw error;
+    }
   },
 
   put: async (endpoint, data = {}) => {
-    const token = localStorage.getItem('timekeeper_token');
-    const url = buildUrl(endpoint);
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        ...API_CONFIG.DEFAULT_HEADERS,
-        Authorization: token ? `Bearer ${token}` : ''
-      },
-      body: JSON.stringify(data),
-      redirect: 'follow'
-    });
-
-    if (!response.ok) {
-      handleTimekeeperAuthError(response.status);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+    if (!isOnline) {
+      return queueMutationWithLocalApply('PUT', endpoint, data);
     }
 
-    return response.json();
+    try {
+      const result = await TimekeeperAPIOnline.put(endpoint, data);
+      await applyLocalMutation('PUT', endpoint, data);
+      return result;
+    } catch (error) {
+      const status = extractStatusFromError(error);
+      if (status && isAuthError(status)) {
+        throw error;
+      }
+      if (isNetworkError(error)) {
+        return queueMutationWithLocalApply('PUT', endpoint, data);
+      }
+      throw error;
+    }
   },
 
   delete: async (endpoint) => {
-    const token = localStorage.getItem('timekeeper_token');
-    const url = buildUrl(endpoint);
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        ...API_CONFIG.DEFAULT_HEADERS,
-        Authorization: token ? `Bearer ${token}` : ''
-      },
-      redirect: 'follow'
-    });
-
-    if (!response.ok) {
-      handleTimekeeperAuthError(response.status);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+    if (!isOnline) {
+      return queueMutationWithLocalApply('DELETE', endpoint, null);
     }
 
-    return response.json();
+    try {
+      return await TimekeeperAPIOnline.delete(endpoint);
+    } catch (error) {
+      const status = extractStatusFromError(error);
+      if (status && isAuthError(status)) {
+        throw error;
+      }
+      if (isNetworkError(error)) {
+        return queueMutationWithLocalApply('DELETE', endpoint, null);
+      }
+      throw error;
+    }
+  },
+
+  flushQueue: async () => {
+    await processSyncQueue(syncExecutor);
   }
 };
 

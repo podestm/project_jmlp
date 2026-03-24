@@ -26,14 +26,36 @@ export const TimekeeperAuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
+    // When offline, trust the stored token — don't log the user out
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const stored = localStorage.getItem('timekeeper_user');
+      if (stored) {
+        try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
+      } else {
+        setUser({ email: 'offline', role: 'timekeeper' });
+      }
+      setLoading(false);
+      return;
+    }
     try {
       const userData = await API.get('/api/timekeeper/auth/me', {}, {
         'Authorization': `Bearer ${token}`
       });
       setUser(userData);
+      try { localStorage.setItem('timekeeper_user', JSON.stringify(userData)); } catch { /* ignore */ }
     } catch (error) {
-      console.error('Timekeeper auth check failed:', error);
-      logout();
+      // Network error while online — still trust cached user
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || error?.message?.includes('Load failed')) {
+        const stored = localStorage.getItem('timekeeper_user');
+        if (stored) {
+          try { setUser(JSON.parse(stored)); } catch { logout(); }
+        } else {
+          logout();
+        }
+      } else {
+        console.error('Timekeeper auth check failed:', error);
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -51,6 +73,7 @@ export const TimekeeperAuthProvider = ({ children }) => {
         'Authorization': `Bearer ${access_token}`
       });
       setUser(userData);
+      try { localStorage.setItem('timekeeper_user', JSON.stringify(userData)); } catch { /* ignore */ }
       
       return { success: true };
     } catch (error) {
@@ -61,6 +84,7 @@ export const TimekeeperAuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('timekeeper_token');
+    localStorage.removeItem('timekeeper_user');
     setToken(null);
     setUser(null);
   };
