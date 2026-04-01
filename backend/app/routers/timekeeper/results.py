@@ -145,7 +145,7 @@ def get_race_results(
         
         return {
             "race_id": race_id,
-            "race_nr": race.raceNr,
+            "race_nr": race.race_nr,
             "race_date": str(race.datum) if race.datum else None,
             "areal_name": areal_name,
             "grouped": True,
@@ -165,7 +165,7 @@ def get_race_results(
         
         return {
             "race_id": race_id,
-            "race_nr": race.raceNr,
+            "race_nr": race.race_nr,
             "race_date": str(race.datum) if race.datum else None,
             "areal_name": areal_name,
             "grouped": False,

@@ -14,14 +14,14 @@ export const useRaceManagement = () => {
     const [editingRace, setEditingRace] = useState(null);
     const [formData, setFormData] = useState({
         datum: '',
-        raceNr: '',
+        race_nr: '',
         season_id: '',
         areal_id: '',
         organizer_id: '',
         registration: true,
         proposition_file_id: null,
         results_file_id: null,
-        raceMethod_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
+        race_method_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -138,7 +138,7 @@ export const useRaceManagement = () => {
         setSeasonPreview(seasonDisplay);
         
         return {
-            raceNr: raceNumber,
+            race_nr: raceNumber,
             seasonId: seasonId,
             seasonDisplay: seasonDisplay
         };
@@ -332,7 +332,7 @@ export const useRaceManagement = () => {
             if (!editingRace) {
                 const result = generateRaceNumberLocal();
                 if (result) {
-                    submitData.raceNr = result.raceNr;
+                    submitData.race_nr = result.race_nr;
                     submitData.season_id = result.seasonId;
                 }
             }
@@ -359,14 +359,14 @@ export const useRaceManagement = () => {
     const resetForm = () => {
         setFormData({
             datum: '',
-            raceNr: '',
+            race_nr: '',
             season_id: '',
             areal_id: '',
             organizer_id: '',
             registration: true,
             proposition_file_id: null,
             results_file_id: null,
-            raceMethod_id: 1
+            race_method_id: 1
         });
         setEditingRace(null);
         setArealSearch('');
@@ -385,14 +385,14 @@ export const useRaceManagement = () => {
         setEditingRace(race);
         setFormData({
             datum: race.datum,
-            raceNr: race.raceNr,
+            race_nr: race.race_nr,
             season_id: race.season_id,
             areal_id: race.areal_id,
             organizer_id: race.organizer_id,
             registration: race.registration,
             proposition_file_id: race.proposition_file_id,
             results_file_id: race.results_file_id,
-            raceMethod_id: race.raceMethod_id || 1
+            race_method_id: race.race_method_id || 1
         });
         
         // Set areál and organizer names for autocomplete display
@@ -414,8 +414,8 @@ export const useRaceManagement = () => {
         }
         
         // Set preview values for editing
-        if (race.raceNr) {
-            setRaceNumberPreview(race.raceNr);
+        if (race.race_nr) {
+            setRaceNumberPreview(race.race_nr);
         }
         if (race.season_id) {
             setSeasonPreview(formatSeason(race.season_id));
@@ -448,7 +448,7 @@ export const useRaceManagement = () => {
         }
     };
 
-    const downloadRegistrationsCsv = async (raceId, raceNr) => {
+    const downloadRegistrationsCsv = async (raceId, race_nr) => {
         try {
             const token = localStorage.getItem('admin_token');
             const endpoint = `/api/admin/races/${raceId}/export-csv`;
@@ -467,7 +467,7 @@ export const useRaceManagement = () => {
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = downloadUrl;
-            link.download = `registrace_${raceNr}.csv`;
+            link.download = `registrace_${race_nr}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -515,11 +515,11 @@ export const useRaceManagement = () => {
                 if (result) {
                     setFormData(prev => ({
                         ...prev,
-                        raceNr: result.raceNr,
+                        race_nr: result.race_nr,
                         season_id: result.seasonId
                     }));
                     // Update preview too
-                    setRaceNumberPreview(result.raceNr);
+                    setRaceNumberPreview(result.race_nr);
                     setSeasonPreview(result.seasonDisplay);
                 }
             }

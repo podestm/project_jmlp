@@ -73,9 +73,9 @@ def get_dashboard_stats(
     
     # --- Nadcházející závod ---
     upcoming_race_query = text(f"""
-        SELECT r.id, r.raceNr, r.datum, r.registration, r.closed,
+        SELECT r.id, r.race_nr, r.datum, r.registration, r.closed,
                {convert_utf8_field('a.name')} as areal_name,
-               (SELECT COUNT(*) FROM race_registration rr WHERE rr.race_id = r.id) as registration_count
+               (SELECT COUNT(*) FROM fuj_jmlp_race_registration rr WHERE rr.race_id = r.id) as registration_count
         FROM fuj_jmlp_race r
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         WHERE r.datum >= :today AND r.closed = 0
@@ -89,7 +89,7 @@ def get_dashboard_stats(
         days_until = (upcoming_row.datum - today.date()).days if upcoming_row.datum else None
         upcoming_race = {
             "id": upcoming_row.id,
-            "raceNr": upcoming_row.raceNr,
+            "race_nr": upcoming_row.race_nr,
             "datum": upcoming_row.datum.isoformat() if upcoming_row.datum else None,
             "areal_name": fix_encoding(upcoming_row.areal_name) if upcoming_row.areal_name else None,
             "registration": bool(upcoming_row.registration),
@@ -102,10 +102,10 @@ def get_dashboard_stats(
         SELECT rr.registered_at, 
                {convert_utf8_field('rac.name')} as racer_name,
                {convert_utf8_field('rac.surname')} as racer_surname,
-               r.raceNr,
+               r.race_nr,
                {convert_utf8_field('a.name')} as areal_name,
                {convert_utf8_field('c.name')} as club_name
-        FROM race_registration rr
+        FROM fuj_jmlp_race_registration rr
         JOIN fuj_jmlp_racer rac ON rr.racer_id = rac.id
         JOIN fuj_jmlp_race r ON rr.race_id = r.id
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
@@ -121,7 +121,7 @@ def get_dashboard_stats(
             "registered_at": row.registered_at.isoformat() if row.registered_at else None,
             "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
             "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
-            "raceNr": row.raceNr,
+            "race_nr": row.race_nr,
             "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
             "club_name": fix_encoding(row.club_name) if row.club_name else None,
         })

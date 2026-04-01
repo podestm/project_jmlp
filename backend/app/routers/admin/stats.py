@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from datetime import datetime, timedelta
-from app.database import get_db
-from app.auth import get_current_admin
-from app.models import VisitorLog
+from ...database import get_db
+from ...auth import get_current_admin
+from ...models import VisitorLog
 from typing import List, Dict
 
 router = APIRouter(prefix="/stats", tags=["admin-stats"])

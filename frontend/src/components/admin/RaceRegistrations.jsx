@@ -82,7 +82,7 @@ export default function RaceRegistrations() {
             <div>
               <h2>Registrace závodu</h2>
               <div className="text-muted">
-                <strong>{race?.raceNr || `#${raceId}`}</strong>
+                <strong>{race?.race_nr || `#${raceId}`}</strong>
                 {race && (
                   <>
                     {' • '}

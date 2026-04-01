@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 from fastapi import HTTPException, status
+from sqlalchemy import and_, or_
 
 
 def fix_encoding(text: str) -> str:
@@ -153,29 +154,7 @@ class StandardExceptions:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
 
 
-def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
-    from sqlalchemy import and_, or_
-    from .models import Category
-    
-    # Najdi aktivní kategorii, kde birth_year spadá do rozmezí a pohlaví se shoduje
-    # Kategorie s sex=0 (mix) jsou univerzální pro všechna pohlaví
-    category = db.query(Category).filter(
-        and_(
-            Category.active == True,
-            Category.min_birth_year <= birth_year,
-            Category.max_birth_year >= birth_year,
-            or_(
-                Category.sex == 0,  # Mix kategorie
-                Category.sex == racer_sex  # Kategorie pro konkrétní pohlaví
-            )
-        )
-    ).order_by(Category.sex.desc()).first()  # Preferuj specifické kategorie před mix
-    
-    return category.id if category else None
-
-
 def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) -> tuple[Optional[int], Optional[str], Optional[int]]:
-    from sqlalchemy import and_, or_
     from .models import Category
 
     category = db.query(Category).filter(
@@ -185,7 +164,7 @@ def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) ->
             Category.max_birth_year >= birth_year,
             or_(
                 Category.sex == 0,
-                Category.sex == racer_sex
+                Category.sex == racer_sex,
             )
         )
     ).order_by(Category.sex.desc()).first()
@@ -201,3 +180,8 @@ def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) ->
             category_name = f"{category_name} - Muži"
 
     return category.id, category_name, category.sex
+
+
+def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
+    category_id, _, _ = get_category_snapshot_for_birth_year(birth_year, racer_sex, db)
+    return category_id

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -55,20 +55,20 @@ def list_races(
 ):
     # Sestavíme SQL dotaz s filtry
     base_query = """
-        SELECT r.id, r.closed+0 as closed, r.datum, r.raceNr, 
-               r.registration+0 as registration, r.areal_id, 
-               r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
+        SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
+               r.registration+0 as registration, r.areal_id,
+               r.organizer_id, r.race_method_id, r.season_id,
                r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
                fp.file_path as proposition_file_path,
                fr.file_path as results_file_path
-        FROM fuj_jmlp_race r 
-        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
+        FROM fuj_jmlp_race r
+        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
         LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
         LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
-        WHERE r.raceNr IS NOT NULL
+        WHERE r.race_nr IS NOT NULL
     """
     
     # Přidáme filtry
@@ -101,7 +101,7 @@ def list_races(
             "id": row.id,
             "closed": bool(row.closed),
             "datum": row.datum,
-            "raceNr": row.raceNr,
+            "race_nr": row.race_nr,
             "registration": bool(row.registration),
             "proposition_file_id": row.proposition_file_id,
             "results_file_id": row.results_file_id,
@@ -111,14 +111,83 @@ def list_races(
             "areal_name": row.areal_name or "Bez areálu",
             "organizer_id": row.organizer_id,
             "organizer_name": row.organizer_name or "Neznámý organizátor",
-            "raceCategory_id": row.raceCategory_id,
-            "raceMethod_id": row.raceMethod_id,
-            "raceType_id": row.raceType_id,
+            "race_method_id": row.race_method_id,
             "season_id": row.season_id
         }
         races.append(race_data)
     
     return races
+
+
+# Live race public endpoint (must be before /{race_id} to avoid routing conflicts)
+@router.get("/live")
+def get_live_race(response: Response, db: Session = Depends(get_db)):
+    """Returns currently live race with live results. 404 if no race is live."""
+    # NOTE: nginx is configured to pass through Cache-Control headers (see nginx.conf:84).
+    # This endpoint intentionally sets "no-store" here to ensure live data is never cached
+    # by clients or intermediate proxies. If nginx cache policy changes, keep this behavior.
+    response.headers["Cache-Control"] = "no-store"
+    live = db.execute(text("""
+        SELECT r.id, r.race_nr, r.datum, r.race_method_id,
+               CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name
+        FROM fuj_jmlp_race r
+        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
+        WHERE r.is_live = 1
+        LIMIT 1
+    """)).fetchone()
+
+    if not live:
+        raise HTTPException(status_code=404, detail="No live race")
+
+    entries = db.execute(text("""
+        SELECT sl.id, sl.start_number, sl.race_number_actual, sl.race_number_display,
+               sl.racer_name, sl.racer_surname, sl.racer_year,
+               sl.club_name, sl.category_name, sl.category_id,
+               sl.time1, sl.time2, sl.time_sum,
+               sl.dnf+0 as dnf, sl.dns+0 as dns, sl.dsq+0 as dsq,
+               COALESCE(rn.set_color, 'rose') as set_color
+        FROM fuj_jmlp_race_start_list sl
+        LEFT JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
+        WHERE sl.race_id = :race_id
+        ORDER BY sl.category_name, sl.start_number ASC
+    """), {"race_id": live.id}).fetchall()
+
+    categories: dict = {}
+    cat_order: list = []
+    for e in entries:
+        cat_id = e.category_id or 0
+        if cat_id not in categories:
+            categories[cat_id] = {"category_id": cat_id, "category_name": e.category_name or "Bez kategorie", "entries": []}
+            cat_order.append(cat_id)
+        status = "DNF" if e.dnf else ("DNS" if e.dns else ("DSQ" if e.dsq else None))
+        categories[cat_id]["entries"].append({
+            "id": e.id,
+            "start_number": e.start_number,
+            "race_number_actual": e.race_number_actual,
+            "race_number_display": e.race_number_display,
+            "racer_name": e.racer_name,
+            "racer_surname": e.racer_surname,
+            "racer_year": e.racer_year,
+            "club_name": e.club_name,
+            "set_color": e.set_color,
+            "time1": float(e.time1) if e.time1 is not None else None,
+            "time2": float(e.time2) if e.time2 is not None else None,
+            "time_sum": float(e.time_sum) if e.time_sum is not None else None,
+            "status": status,
+            "points": None,
+        })
+
+    result_categories = [categories[cid] for cid in cat_order]
+
+    return {
+        "race_id": live.id,
+        "race_nr": live.race_nr,
+        "race_date": live.datum.isoformat() if live.datum else None,
+        "areal_name": live.areal_name,
+        "race_method_id": live.race_method_id,
+        "categories": result_categories,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
 
 
 # Season-related endpoints (must be before /{race_id} to avoid routing conflicts)
@@ -167,16 +236,16 @@ def calculate_season_for_date_endpoint(race_date: str):
 def get_race(race_id: int, db: Session = Depends(get_db)):
     # Použijeme raw SQL pro správné čtení bit hodnot
     result = db.execute(text("""
-        SELECT r.id, r.closed+0 as closed, r.datum, r.raceNr, 
-               r.registration+0 as registration, r.areal_id, 
-               r.organizer_id, r.raceCategory_id, r.raceMethod_id, r.raceType_id, r.season_id,
+        SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
+               r.registration+0 as registration, r.areal_id,
+               r.organizer_id, r.race_method_id, r.season_id,
                r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
                fp.file_path as proposition_file_path,
                fr.file_path as results_file_path
-        FROM fuj_jmlp_race r 
-        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id 
+        FROM fuj_jmlp_race r
+        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
         LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
         LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
@@ -191,7 +260,7 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
         "id": result.id,
         "closed": bool(result.closed),
         "datum": result.datum,
-        "raceNr": result.raceNr,
+        "race_nr": result.race_nr,
         "registration": bool(result.registration),
         "proposition_file_id": result.proposition_file_id,
         "results_file_id": result.results_file_id,
@@ -201,9 +270,7 @@ def get_race(race_id: int, db: Session = Depends(get_db)):
         "areal_name": result.areal_name or "Bez areálu",
         "organizer_id": result.organizer_id,
         "organizer_name": result.organizer_name or "Neznámý organizátor",
-        "raceCategory_id": result.raceCategory_id,
-        "raceMethod_id": result.raceMethod_id,
-        "raceType_id": result.raceType_id,
+        "race_method_id": result.race_method_id,
         "season_id": result.season_id
     }
     
@@ -225,14 +292,14 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name,
             cat.id as category_id,
             cat.sex as category_sex
-        FROM race_registration rr
+        FROM fuj_jmlp_race_registration rr
         JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         LEFT JOIN fuj_jmlp_category cat ON rr.category_id = cat.id
         WHERE rr.race_id = :race_id
         ORDER BY c.name ASC, r.surname ASC, r.name ASC
     """), {"race_id": race_id}).fetchall()
-    
+
     # Group by clubs
     clubs = {}
     categories = set()  # Pro sběr unikátních kategorií
@@ -286,7 +353,7 @@ def get_club_stats(race_id: int, db: Session = Depends(get_db)):
     """Vrátí počet závodníků podle klubů pro daný závod"""
     result = db.execute(text("""
         SELECT c.name as club_name, COUNT(rr.id) as racer_count
-        FROM race_registration rr
+        FROM fuj_jmlp_race_registration rr
         JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
         JOIN fuj_jmlp_club c ON r.club_id = c.id
         WHERE rr.race_id = :race_id

@@ -8,24 +8,12 @@ from fastapi.responses import JSONResponse, FileResponse
 from .routers import races, racers, clubs, registration, posts, analytics, season_results
 from .routers.admin import router as admin_router
 from .routers.timekeeper import router as timekeeper_router
-from .middleware import VisitorLogMiddleware
 
 app = FastAPI(title="JMLP API", redirect_slashes=False)
 
 # Custom validation error handler for debugging
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    print(f"=== VALIDATION ERROR ===")
-    print(f"Path: {request.url.path}")
-    print(f"Method: {request.method}")
-    print(f"Errors: {exc.errors()}")
-    try:
-        body = await request.json()
-        print(f"Body: {body}")
-    except:
-        print("Could not parse body")
-    print(f"======================")
-    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.errors(), "body": exc.body},
@@ -50,9 +38,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Interní chyba serveru"},
     )
-
-# Přidáme middleware pro logování návštěv (zatím vypnuto, použijeme endpoint)
-# app.add_middleware(VisitorLogMiddleware)
 
 # Health check endpoint pro Docker
 @app.get("/health", tags=["health"])

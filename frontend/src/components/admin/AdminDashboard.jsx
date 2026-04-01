@@ -65,8 +65,7 @@ export default function AdminDashboard() {
   };
 
   const pathLabels = {
-    '/registrace': 'Registrace',
-    '/vysledky': 'Výsledky',
+    '/zavody': 'Závody',
     '/archiv-zprav': 'Archiv zpráv',
     '/dokumenty': 'Dokumenty',
     '/kontakty': 'Kontakty',
@@ -74,7 +73,6 @@ export default function AdminDashboard() {
 
   const getPathLabel = (path) => {
     if (pathLabels[path]) return pathLabels[path];
-    if (path.startsWith('/zavod/')) return `Závod ${path.split('/')[2]}`;
     return path;
   };
 
@@ -176,7 +174,7 @@ export default function AdminDashboard() {
               <div className="col">
                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                   <h5 className="mb-0 text-white" style={{color: 'white !important'}}>
-                    Nadcházející závod: {upcoming_race.raceNr || `#${upcoming_race.id}`}
+                    Nadcházející závod: {upcoming_race.race_nr || `#${upcoming_race.id}`}
                   </h5>
                   {upcoming_race.registration && (
                     <span className="badge bg-white bg-opacity-25 text-white">
@@ -241,7 +239,7 @@ export default function AdminDashboard() {
                           {reg.club_name && <span className="text-muted ms-2 small">({reg.club_name})</span>}
                         </div>
                         <div className="text-end">
-                          <span className="badge bg-primary me-1">Závod {reg.raceNr || '?'}</span>
+                          <span className="badge bg-primary me-1">Závod {reg.race_nr || '?'}</span>
                           {reg.areal_name && <small className="text-muted d-none d-md-inline">{reg.areal_name}</small>}
                         </div>
                       </div>

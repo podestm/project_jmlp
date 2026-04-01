@@ -1,22 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { APP_CONFIG } from '../../config/constants.js';
+import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
 
 export default function Navigation() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const liveRace = useLiveStatus();
   
   // Mapování URL na názvy stránek
   const getPageFromPath = (pathname) => {
     switch (pathname) {
       case '/': return 'uvod';
-      case '/registrace': return 'registrace';
+      case '/zavody': return 'zavody';
       case '/archiv-zprav': return 'aktuality';
-      case '/vysledky': return 'vysledky';
       case '/dokumenty': return 'dokumenty';
       case '/kontakty': return 'kontakty';
-      default: 
-        if (pathname.startsWith('/zavod/')) return 'detail';
+      default:
         return 'uvod';
     }
   };
@@ -25,9 +25,8 @@ export default function Navigation() {
   
   const navigationItems = [
     { key: 'uvod', label: 'Úvod', icon: 'bi-house', path: '/' },
-    { key: 'registrace', label: 'Registrace', icon: 'bi-calendar-event', path: '/registrace' },
+    { key: 'zavody', label: 'Závody', icon: 'bi-calendar3', path: '/zavody' },
     { key: 'aktuality', label: 'Aktuality', icon: 'bi-newspaper', path: '/archiv-zprav' },
-    { key: 'vysledky', label: 'Výsledky', icon: 'bi-trophy', path: '/vysledky' },
     { key: 'dokumenty', label: 'Dokumenty', icon: 'bi-file-earmark-text', path: '/dokumenty' },
     { key: 'kontakty', label: 'Kontakty', icon: 'bi-envelope', path: '/kontakty' }
   ];
@@ -66,8 +65,8 @@ export default function Navigation() {
                 key={item.key}
                 to={item.path}
                 className={`btn ${
-                  currentPage === item.key 
-                    ? 'btn-primary' 
+                  currentPage === item.key
+                    ? 'btn-primary'
                     : 'btn-outline-light'
                 } text-decoration-none`}
                 style={currentPage === item.key ? {
@@ -81,7 +80,32 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
+            {liveRace && (
+              <Link
+                to="/livetiming"
+                className="btn text-white text-decoration-none"
+                style={{
+                  background: 'linear-gradient(135deg, #c0392b, #e74c3c)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: '600'
+                }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span style={{
+                  display: 'inline-block',
+                  width: '8px', height: '8px',
+                  borderRadius: '50%',
+                  background: '#fff',
+                  marginRight: '6px',
+                  boxShadow: '0 0 6px #fff',
+                  animation: 'livePulse 1.2s ease-in-out infinite'
+                }} />
+                Live
+              </Link>
+            )}
           </div>
+
         </div>
       </div>
     </nav>

@@ -484,14 +484,14 @@ export default function TimekeeperRacers() {
                 <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
                 <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
                   {selectedRace
-                    ? `${selectedRace.raceNr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
+                    ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
                     : 'Závod vyberte v Přehledu závodů'}
                 </div>
               </div>
             </div>
             <div className="col-md-6 text-md-end">
               <small className="text-muted">
-                {selectedRace ? `${selectedRace.raceNr || `#${selectedRace.id}`} • ${selectedRace.areal_name || 'Neznámé místo'}` : 'Na této záložce nelze závod přepínat'}
+                {selectedRace ? `${selectedRace.race_nr || `#${selectedRace.id}`} • ${selectedRace.areal_name || 'Neznámé místo'}` : 'Na této záložce nelze závod přepínat'}
               </small>
             </div>
           </div>

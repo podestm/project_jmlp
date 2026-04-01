@@ -41,8 +41,8 @@ export const generateRaceNumber = (existingRaces, seasonId) => {
   
   // Najdeme nejvyšší pořadové číslo v této sezóně
   const maxNumber = seasonRaces.reduce((max, race) => {
-    if (race.raceNr && race.raceNr.startsWith(`JMLP${seasonId}-`)) {
-      const number = parseInt(race.raceNr.split('-')[1]);
+    if (race.race_nr && race.race_nr.startsWith(`JMLP${seasonId}-`)) {
+      const number = parseInt(race.race_nr.split('-')[1]);
       return isNaN(number) ? max : Math.max(max, number);
     }
     return max;

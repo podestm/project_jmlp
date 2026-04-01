@@ -81,21 +81,20 @@ class Race(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     closed: Mapped[bool] = mapped_column(BitBoolean)
     datum: Mapped[date | None] = mapped_column(Date, nullable=True)
-    raceNr: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    race_nr: Mapped[str | None] = mapped_column(String(255), nullable=True)
     registration: Mapped[bool] = mapped_column(BitBoolean)
     timekeeper_category_order: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     proposition_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     results_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     areal_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_areal.id"), nullable=True)
     organizer_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    raceCategory_id: Mapped[int] = mapped_column(BigInteger)
-    raceMethod_id: Mapped[int] = mapped_column(BigInteger)
-    raceType_id: Mapped[int] = mapped_column(BigInteger)
+    race_method_id: Mapped[int] = mapped_column(BigInteger)
     season_id: Mapped[int] = mapped_column(BigInteger)
+    is_live: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Registration(Base):
-    __tablename__ = "race_registration"
+    __tablename__ = "fuj_jmlp_race_registration"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     race_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_race.id"))
     racer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_racer.id"))
@@ -108,11 +107,10 @@ class Registration(Base):
 
 
 class Post(Base):
-    __tablename__ = "posts"
+    __tablename__ = "fuj_jmlp_posts"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String)
-    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     image_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     image_position: Mapped[str | None] = mapped_column(String(20), nullable=True, default="right")  # "left", "right", "top", "none"
     document_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files

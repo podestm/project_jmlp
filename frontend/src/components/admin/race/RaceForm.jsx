@@ -92,7 +92,7 @@ const RaceForm = ({
                                                         if (result) {
                                                             setFormData(prev => ({
                                                                 ...prev,
-                                                                raceNr: result.raceNr,
+                                                                race_nr: result.race_nr,
                                                                 season_id: result.seasonId
                                                             }));
                                                         }
@@ -406,10 +406,10 @@ const RaceForm = ({
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="suchySlalom"
-                                                checked={formData.raceMethod_id === 2}
+                                                checked={formData.race_method_id === 2}
                                                 onChange={(e) => setFormData(prev => ({
                                                     ...prev, 
-                                                    raceMethod_id: e.target.checked ? 2 : 1
+                                                    race_method_id: e.target.checked ? 2 : 1
                                                 }))}
                                             />
                                             <label className="form-check-label" htmlFor="suchySlalom">

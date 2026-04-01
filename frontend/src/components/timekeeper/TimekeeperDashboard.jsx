@@ -27,6 +27,17 @@ export default function TimekeeperDashboard() {
     navigate('/timekeeper/start-list');
   };
 
+  const toggleLive = async (raceId, e) => {
+    e.stopPropagation();
+    try {
+      await TimekeeperAPI.put(`/api/timekeeper/races/${raceId}/live`, {});
+      await loadRaces();
+    } catch (err) {
+      console.error('Nepodařilo se změnit live stav:', err);
+      setError(`Nepodařilo se změnit live stav: ${err.detail || err.message || 'Neznámá chyba'}`);
+    }
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -66,7 +77,7 @@ export default function TimekeeperDashboard() {
               <div className="min-w-0">
                 <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
                   <span className={`badge ${isPastRace ? 'bg-secondary' : ''}`} style={!isPastRace ? { background: 'linear-gradient(135deg, #e94560, #c23152)' } : undefined}>
-                    {race.raceNr || `#${race.id}`}
+                    {race.race_nr || `#${race.id}`}
                   </span>
                   <span className={`badge ${isPastRace ? 'bg-light text-secondary' : 'bg-success'}`}>
                     {isPastRace ? 'Proběhlý' : 'Nadcházející'}
@@ -79,17 +90,40 @@ export default function TimekeeperDashboard() {
                 </small>
               </div>
 
-              <button
-                className={`btn btn-sm ${isPastRace ? 'btn-outline-secondary' : 'text-white'}`}
-                style={{
-                  borderRadius: '8px',
-                  border: isPastRace ? undefined : 'none',
-                  background: isPastRace ? undefined : 'linear-gradient(135deg, #e94560, #c23152)'
-                }}
-                onClick={() => selectRace(race.id)}
-              >
-                Otevřít
-              </button>
+              <div className="d-flex gap-2 flex-shrink-0">
+                <button
+                  className={`btn btn-sm ${race.is_live ? 'text-white' : 'btn-outline-danger'}`}
+                  style={{
+                    borderRadius: '8px',
+                    border: race.is_live ? 'none' : undefined,
+                    background: race.is_live ? 'linear-gradient(135deg, #c0392b, #e74c3c)' : undefined,
+                    minWidth: '72px'
+                  }}
+                  onClick={(e) => toggleLive(race.id, e)}
+                  title={race.is_live ? 'Ukončit live přenos' : 'Spustit live přenos'}
+                >
+                  {race.is_live ? (
+                    <><span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: '#fff', marginRight: '5px', animation: 'livePulse 1.2s ease-in-out infinite' }} />Live</>
+                  ) : '🔴 Live'}
+                </button>
+                <button
+                  className={`btn btn-sm ${isPastRace ? 'btn-outline-secondary' : 'text-white'}`}
+                  style={{
+                    borderRadius: '8px',
+                    border: isPastRace ? undefined : 'none',
+                    background: isPastRace ? undefined : 'linear-gradient(135deg, #e94560, #c23152)'
+                  }}
+                  onClick={() => selectRace(race.id)}
+                >
+                  Otevřít
+                </button>
+              </div>
+              <style>{`
+                @keyframes livePulse {
+                  0%, 100% { opacity: 1; transform: scale(1); }
+                  50% { opacity: 0.4; transform: scale(0.8); }
+                }
+              `}</style>
             </div>
 
             <div className="row g-2">
@@ -185,7 +219,7 @@ export default function TimekeeperDashboard() {
               <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-1">
                 <small className="text-muted">
                   {lastSelectedRace
-                    ? `Naposledy vybraný závod: ${lastSelectedRace.raceNr || `#${lastSelectedRace.id}`} — ${lastSelectedRace.areal_name || 'Neznámé místo'}`
+                    ? `Naposledy vybraný závod: ${lastSelectedRace.race_nr || `#${lastSelectedRace.id}`} — ${lastSelectedRace.areal_name || 'Neznámé místo'}`
                     : 'Závod můžete vybrat z nadcházejících i proběhlých položek níže.'}
                 </small>
                 <div className="d-flex gap-2">

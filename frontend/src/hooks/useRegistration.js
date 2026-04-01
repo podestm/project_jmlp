@@ -12,19 +12,20 @@ export const useRegistration = (raceId, onSuccess) => {
         email: '',
         slcr_id: ''
     });
-    
+
     // Seznam vyfiltrovaných závodníků
     const [filteredRacers, setFilteredRacers] = useState([]);
-    
+
     // Vybraný závodník ze seznamu (pokud nějaký)
     const [selectedRacer, setSelectedRacer] = useState(null);
-    
+
     // Klub seznam pro autocomplete
     const [clubs, setClubs] = useState([]);
-    
+
     // UI state
     const [msg, setMsg] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({ name: '', surname: '', year: '', club: '' });
 
     // Načtení klubů
     useEffect(() => {
@@ -70,6 +71,9 @@ export const useRegistration = (raceId, onSuccess) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setSelectedRacer(null);
         setMsg('');
+        if (['name', 'surname', 'year', 'club'].includes(field)) {
+            setFieldErrors(prev => ({ ...prev, [field]: '' }));
+        }
         
         // Trigger search při změně relevantních polí
         if (['name', 'surname', 'club', 'slcr_id'].includes(field)) {
@@ -97,6 +101,7 @@ export const useRegistration = (raceId, onSuccess) => {
         });
         setSelectedRacer(racer);
         setMsg(`Vybrán existující závodník: ${racer.name} ${racer.surname}`);
+        setFieldErrors({ name: '', surname: '', year: '', club: '' });
     };
 
     // Submit registration
@@ -105,8 +110,13 @@ export const useRegistration = (raceId, onSuccess) => {
         setMsg('');
 
         // Validace povinných polí
-        if (!formData.name.trim() || !formData.surname.trim() || !formData.year || !formData.club.trim()) {
-            setMsg('Vyplňte všechna povinná pole (jméno, příjmení, rok, klub)');
+        const errors = {};
+        if (!formData.name.trim()) errors.name = 'Jméno je povinné';
+        if (!formData.surname.trim()) errors.surname = 'Příjmení je povinné';
+        if (!formData.year) errors.year = 'Rok narození je povinný';
+        if (!formData.club.trim()) errors.club = 'Klub je povinný';
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
@@ -167,7 +177,7 @@ export const useRegistration = (raceId, onSuccess) => {
             if (response.ok) {
                 const result = await response.json();
                 setMsg(`✅ Registrace úspěšná! ${result.message || ''}`);
-                
+
                 // Reset formuláře
                 setFormData({
                     name: '',
@@ -181,6 +191,7 @@ export const useRegistration = (raceId, onSuccess) => {
                 });
                 setFilteredRacers([]);
                 setSelectedRacer(null);
+                setFieldErrors({ name: '', surname: '', year: '', club: '' });
                 
                 if (onSuccess) onSuccess(result);
             } else {
@@ -208,6 +219,7 @@ export const useRegistration = (raceId, onSuccess) => {
         setFilteredRacers([]);
         setSelectedRacer(null);
         setMsg('');
+        setFieldErrors({ name: '', surname: '', year: '', club: '' });
     };
 
     // Utility funkce
@@ -223,10 +235,11 @@ export const useRegistration = (raceId, onSuccess) => {
         clubs,
         msg,
         isSearching,
-        
+        fieldErrors,
+
         // Setters
         setMsg,
-        
+
         // Functions
         updateField,
         selectExistingRacer,

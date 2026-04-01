@@ -70,7 +70,7 @@ const RaceTable = ({
                             </td>
                             <td>
                                 <code className="bg-light px-2 py-1 rounded">
-                                    {race.raceNr}
+                                    {race.race_nr}
                                 </code>
                             </td>
                             <td>
@@ -107,7 +107,7 @@ const RaceTable = ({
                                     </button>
                                     <button 
                                         className="btn btn-outline-success" 
-                                        onClick={() => downloadRegistrationsCsv(race.id, race.raceNr)}
+                                        onClick={() => downloadRegistrationsCsv(race.id, race.race_nr)}
                                         title="Stáhnout registrace CSV"
                                     >
                                         <i className="bi bi-download"></i>

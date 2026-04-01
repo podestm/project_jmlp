@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { LiveStatusProvider } from './contexts/LiveStatusContext.jsx';
 import Layout from './components/layouts/Layout.jsx';
 import Homepage from './components/pages/Homepage.jsx';
-import RaceList from './components/pages/RaceList.jsx';
-import Archive from './components/pages/Archive.jsx';
-import RaceDetail from './components/pages/RaceDetail.jsx';
+import RaceCalendar from './components/pages/RaceCalendar.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
+import LiveTiming from './components/pages/LiveTiming.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 
 // Admin components
@@ -85,13 +85,12 @@ const RouterContent = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Layout><Homepage /></Layout>} />
-          <Route path="/registrace" element={<Layout><RaceList currentSeason={true} /></Layout>} />
-          <Route path="/vysledky" element={<Layout><Archive /></Layout>} />
+      <Route path="/" element={<Layout fluid><Homepage /></Layout>} />
+          <Route path="/zavody" element={<Layout><RaceCalendar /></Layout>} />
           <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
           <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
           <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
-          <Route path="/zavod/:id" element={<Layout><RaceDetail /></Layout>} />
+          <Route path="/livetiming" element={<Layout><LiveTiming /></Layout>} />
           
           {/* Admin routes */}
           <Route path="/admin/*" element={
@@ -208,9 +207,11 @@ function AppRouter() {
   return (
     <AuthProvider>
       <TimekeeperAuthProvider>
-        <BrowserRouter>
-          <RouterContent />
-        </BrowserRouter>
+        <LiveStatusProvider>
+          <BrowserRouter>
+            <RouterContent />
+          </BrowserRouter>
+        </LiveStatusProvider>
       </TimekeeperAuthProvider>
     </AuthProvider>
   );

@@ -499,7 +499,7 @@ def generate_start_list(
                rac.year as racer_year,
                rac.sex as racer_sex,
                {convert_utf8_field('c.name')} as club_name
-        FROM race_registration rr
+        FROM fuj_jmlp_race_registration rr
         JOIN fuj_jmlp_racer rac ON rr.racer_id = rac.id
         LEFT JOIN fuj_jmlp_club c ON rac.club_id = c.id
         WHERE rr.race_id = :race_id

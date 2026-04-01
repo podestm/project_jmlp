@@ -38,7 +38,7 @@ def get_race_registrations(
             r.year as birthYear,
             r.slcr_id as idSlcr,
             CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name
-        FROM race_registration reg
+        FROM fuj_jmlp_race_registration reg
         LEFT JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         WHERE reg.race_id = :race_id
@@ -86,7 +86,7 @@ def export_race_registrations_csv(
             r.year as birthYear,
             TRIM(CONVERT(CONVERT(c.name USING binary) USING utf8mb4)) as clubName,
             TRIM(r.slcr_id) as idSlcr
-        FROM race_registration reg
+        FROM fuj_jmlp_race_registration reg
         JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         WHERE reg.race_id = :race_id
@@ -125,7 +125,7 @@ def export_race_registrations_csv(
     output.close()
     
     # Create filename with race number
-    race_number = race.raceNr or f"zavod_{race_id}"
+    race_number = race.race_nr or f"zavod_{race_id}"
     filename = f"registrace_{race_number}.csv"
     
     # Add BOM for better Excel compatibility with Czech characters

@@ -322,7 +322,7 @@ export default function StartListManager() {
                 <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
                 <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
                   {selectedRace
-                    ? `${selectedRace.raceNr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
+                    ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
                     : 'Závod vyberte v Přehledu závodů'}
                 </div>
               </div>

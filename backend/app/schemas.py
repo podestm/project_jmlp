@@ -34,8 +34,7 @@ class Racer(RacerBase):
     club_name: Optional[str] = None
     category_name: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Club(BaseModel):
@@ -43,8 +42,7 @@ class Club(BaseModel):
     name: str
     valid: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ClubCreate(BaseModel):
@@ -76,16 +74,14 @@ class Category(CategoryBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Areal(BaseModel):
     id: int
     name: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ArealCreate(BaseModel):
@@ -96,7 +92,7 @@ class Race(BaseModel):
     id: int
     closed: bool
     datum: Optional[date] = None
-    raceNr: Optional[str] = None
+    race_nr: Optional[str] = None
     registration: bool
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
@@ -106,14 +102,12 @@ class Race(BaseModel):
     areal_name: Optional[str] = None
     organizer_id: Optional[int] = None
     organizer_name: Optional[str] = None
-    raceCategory_id: int
-    raceMethod_id: int
-    raceType_id: int
+    race_method_id: int
     season_id: int
     registrations_count: Optional[int] = None
+    is_live: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RegistrationCreate(BaseModel):
@@ -138,16 +132,14 @@ class Registration(BaseModel):
     racer_id: int
     registered_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Post (aktuality) schemas
 class PostBase(BaseModel):
     title: str
     content: str
-    image_path: Optional[str] = None  # Legacy
-    image_file_id: Optional[int] = None  # New approach
+    image_file_id: Optional[int] = None
     image_position: Optional[str] = "right"  # "left", "right", "top", "none"
     document_file_id: Optional[int] = None
     published: bool = True
@@ -160,8 +152,7 @@ class PostCreate(PostBase):
 class PostUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
-    image_path: Optional[str] = None  # Legacy
-    image_file_id: Optional[int] = None  # New approach
+    image_file_id: Optional[int] = None
     image_position: Optional[str] = None  # "left", "right", "top", "none"
     document_file_id: Optional[int] = None
     published: Optional[bool] = None
@@ -172,8 +163,7 @@ class Post(PostBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Admin schemas
@@ -193,8 +183,7 @@ class AdminUser(AdminUserBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminLogin(BaseModel):
@@ -232,67 +221,59 @@ class File(FileBase):
     uploaded_at: datetime
     uploaded_by: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+def _empty_to_none(v):
+    """Convert empty strings and 'null' to None for optional integer fields."""
+    if v == '' or v == 'null':
+        return None
+    return v
 
 
 # Race management schemas
 class RaceCreate(BaseModel):
-    model_config = ConfigDict(extra='ignore')  # Pydantic v2 syntax
-    
+    model_config = ConfigDict(extra='ignore')
+
     datum: Optional[str] = None  # Changed from date to str - will be converted in backend
-    raceNr: Optional[str] = None
+    race_nr: Optional[str] = None
     registration: bool = False
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
-    # Frontend sends names, not IDs - backend will resolve to IDs
-    areal_name: Optional[str] = None  # Areal name from form
-    organizer_name: Optional[str] = None  # Organizer name from form
-    # Legacy support for ID fields (from autocomplete)
+    areal_name: Optional[str] = None
+    organizer_name: Optional[str] = None
     areal_id: Optional[Union[int, str]] = None
     organizer_id: Optional[Union[int, str]] = None
-    raceCategory_id: Optional[int] = 1  # Default value
-    raceMethod_id: Optional[int] = 1    # Default value
-    raceType_id: Optional[int] = 1      # Default value
+    race_method_id: Optional[int] = 1
     season_id: Optional[int] = None     # Will be auto-generated
     closed: bool = False
-    
+
     @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
     @classmethod
     def empty_string_to_none(cls, v):
-        """Convert empty strings to None for optional integer fields"""
-        if v == '' or v == 'null':
-            return None
-        return v
+        return _empty_to_none(v)
 
 
 class RaceUpdate(BaseModel):
-    model_config = ConfigDict(extra='ignore')  # Pydantic v2 syntax
-    
+    model_config = ConfigDict(extra='ignore')
+
     datum: Optional[date] = None
-    raceNr: Optional[str] = None
+    race_nr: Optional[str] = None
     registration: Optional[bool] = None
     proposition_file_id: Optional[int] = None
     results_file_id: Optional[int] = None
-    # Frontend sends names, not IDs - backend will resolve to IDs
-    areal_name: Optional[str] = None  # Areal name from form
-    organizer_name: Optional[str] = None  # Organizer name from form
-    # Legacy support for ID fields
+    areal_name: Optional[str] = None
+    organizer_name: Optional[str] = None
     areal_id: Optional[Union[int, str]] = None
     organizer_id: Optional[Union[int, str]] = None
-    raceCategory_id: Optional[int] = None
-    raceMethod_id: Optional[int] = None
-    raceType_id: Optional[int] = None
+    race_method_id: Optional[int] = None
     season_id: Optional[int] = None
     closed: Optional[bool] = None
-    
+
     @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
     @classmethod
     def empty_string_to_none(cls, v):
-        """Convert empty strings to None for optional integer fields"""
-        if v == '' or v == 'null':
-            return None
-        return v
+        return _empty_to_none(v)
 
 
 # Season Results Schemas
@@ -320,7 +301,7 @@ class SeasonResult(SeasonResultBase):
     document_filename: Optional[str] = None
     document_original_filename: Optional[str] = None
     document_file_path: Optional[str] = None
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -404,5 +385,5 @@ class RaceNumberInfo(BaseModel):
     actual_number: int
     display_number: int
     is_active: bool = True
-    
+
     model_config = ConfigDict(from_attributes=True)

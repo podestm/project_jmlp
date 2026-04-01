@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jmlp-timekeeper-v2';
+const CACHE_NAME = 'jmlp-timekeeper-v3';
 const CORE_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -73,6 +73,11 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
   if (!isSameOrigin) return;
+
+  // Live race status changes frequently — never cache, go straight to network
+  if (requestUrl.pathname === '/races/live') {
+    return;
+  }
 
   // API requests — network first with cache fallback
   if (requestUrl.pathname.startsWith('/api/')) {

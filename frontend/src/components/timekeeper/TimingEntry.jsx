@@ -1021,7 +1021,7 @@ export default function TimingEntry() {
               <div className="d-flex align-items-center gap-2">
                 <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
                 <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>
-                  {selectedRace.raceNr || `#${selectedRace.id}`} — {selectedRace.areal_name || '?'}
+                  {selectedRace.race_nr || `#${selectedRace.id}`} — {selectedRace.areal_name || '?'}
                 </span>
                 <small className="text-muted">({formatDate(selectedRace.datum)})</small>
               </div>
@@ -1071,7 +1071,7 @@ export default function TimingEntry() {
                 <option value="">-- Vyberte závod --</option>
                 {races.map(race => (
                   <option key={race.id} value={race.id}>
-                    {race.raceNr || `#${race.id}`} — {race.areal_name || '?'} ({formatDate(race.datum)})
+                    {race.race_nr || `#${race.id}`} — {race.areal_name || '?'} ({formatDate(race.datum)})
                   </option>
                 ))}
               </select>

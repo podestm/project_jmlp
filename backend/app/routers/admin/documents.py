@@ -312,7 +312,7 @@ def get_files(
         for race in races_with_proposition:
             usage_info.append({
                 "type": "Propozice",
-                "title": f"Závod {race.raceNr or race.id} - {race.datum}"
+                "title": f"Závod {race.race_nr or race.id} - {race.datum}"
             })
         
         # Check if used as results
@@ -322,7 +322,7 @@ def get_files(
         for race in races_with_results:
             usage_info.append({
                 "type": "Výsledky",
-                "title": f"Závod {race.raceNr or race.id} - {race.datum}"
+                "title": f"Závod {race.race_nr or race.id} - {race.datum}"
             })
         
         # Check if used as post image
@@ -416,12 +416,7 @@ def download_file(
     db: Session = Depends(get_db)
 ):
     """Download a file."""
-    print(f"=== FILE DOWNLOAD DEBUG ===")
-    print(f"file_id: {file_id}")
-    print(f"current_admin: {current_admin}")
-    
     file_obj = db.query(models.File).filter(models.File.id == file_id).first()
-    print(f"file_obj: {file_obj}")
     if not file_obj:
         raise HTTPException(status_code=404, detail="Soubor nenalezen")
     
