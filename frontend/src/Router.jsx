@@ -7,6 +7,8 @@ import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
 import LiveTiming from './components/pages/LiveTiming.jsx';
+import Registration from './components/pages/Registration.jsx';
+import RaceDetail from './components/pages/RaceDetail.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 
 // Admin components
@@ -22,6 +24,7 @@ import PostManagement from './components/admin/PostManagement.jsx';
 import RaceRegistrations from './components/admin/RaceRegistrations.jsx';
 import CategoryManagement from './components/admin/CategoryManagement.jsx';
 import SeasonResultsManagement from './components/admin/SeasonResultsManagement.jsx';
+import ClubRequests from './components/admin/ClubRequests.jsx';
 
 // Timekeeper components
 import { TimekeeperAuthProvider, useTimekeeperAuth } from './config/timekeeperAuth.jsx';
@@ -91,6 +94,8 @@ const RouterContent = () => {
           <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
           <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
           <Route path="/livetiming" element={<Layout><LiveTiming /></Layout>} />
+          <Route path="/registrace" element={<Layout><Registration /></Layout>} />
+          <Route path="/zavod/:raceId" element={<Layout><RaceDetail /></Layout>} />
           
           {/* Admin routes */}
           <Route path="/admin/*" element={
@@ -133,6 +138,11 @@ const RouterContent = () => {
               <Route path="/season-results" element={
                 <ProtectedRoute>
                   <SeasonResultsManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/club-requests" element={
+                <ProtectedRoute>
+                  <ClubRequests />
                 </ProtectedRoute>
               } />
               <Route path="/register" element={

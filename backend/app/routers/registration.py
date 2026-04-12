@@ -89,22 +89,23 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             db.add(racer)
             db.flush()  # get racer.id
 
-    # find or create club
-    club = db.query(models.Club).filter(models.Club.name == payload.club_name).first()
-    if not club:
-        # create new club
-        club = models.Club(name=payload.club_name, valid=True)
-        db.add(club)
-        db.flush()  # get club.id
-
-    # update racer's club_id
-    racer.club_id = club.id
+    # přiřazení klubu nebo uložení poznámky pro admina
+    club_request_note = None
+    if payload.club_id:
+        club = db.query(models.Club).filter(models.Club.id == payload.club_id, models.Club.valid == True).first()
+        if not club:
+            raise HTTPException(status_code=404, detail="Klub nenalezen")
+        racer.club_id = club.id
+    else:
+        # závodník nezná svůj klub - uložíme poznámku, racer.club_id zůstane beze změny
+        club_request_note = payload.club_request_note.strip() if payload.club_request_note else None
 
     # create registration record with category_id snapshot
     reg = models.Registration(
-        race_id=payload.race_id, 
+        race_id=payload.race_id,
         racer_id=racer.id,
-        category_id=racer.category_id  # Uložíme aktuální kategorii do registrace
+        category_id=racer.category_id,
+        club_request_note=club_request_note
     )
     db.add(reg)
     

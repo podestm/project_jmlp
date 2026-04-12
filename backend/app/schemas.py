@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from typing import Optional, Union
 
 
@@ -122,8 +122,37 @@ class RegistrationCreate(BaseModel):
     racer_telefon: Optional[str] = None
     racer_email: Optional[str] = None
     racer_slcr_id: Optional[str] = None
-    # Klub
-    club_name: str
+    # Klub - buď ID existujícího nebo poznámka pro admina
+    club_id: Optional[int] = None
+    club_request_note: Optional[str] = None
+
+    @model_validator(mode='after')
+    def validate_club(self):
+        if not self.club_id and not (self.club_request_note and self.club_request_note.strip()):
+            raise ValueError('Musíte vybrat klub nebo uvést poznámku')
+        return self
+
+
+class ClubRequestItem(BaseModel):
+    registration_id: int
+    race_id: int
+    race_name: str
+    racer_id: int
+    racer_name: str
+    registered_at: datetime
+    club_request_note: str
+    current_club_name: Optional[str] = None
+
+
+class ResolveClubRequest(BaseModel):
+    club_id: Optional[int] = None
+    new_club_name: Optional[str] = None
+
+    @model_validator(mode='after')
+    def validate_resolution(self):
+        if not self.club_id and not (self.new_club_name and self.new_club_name.strip()):
+            raise ValueError('Musíte vybrat existující klub nebo zadat název nového')
+        return self
 
 
 class Registration(BaseModel):

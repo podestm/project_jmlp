@@ -4,6 +4,7 @@ import API, { API_CONFIG } from '../../config/api.js';
 import { fixEncoding, formatText } from '../../utils/text.js';
 import { formatDate } from '../../utils/date.js';
 import jmlpLogo from '../../assets/images/jmlp_logo.png';
+import slcrLogo from '../../assets/images/czech_ski_snowboard-logo.png';
 import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
@@ -23,7 +24,7 @@ function Homepage() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const data = await API.get(API_CONFIG.ENDPOINTS.POSTS, { limit: 6 });
+      const data = await API.get(API_CONFIG.ENDPOINTS.POSTS, { limit: 3 });
       setPosts(data);
     } catch (err) {
       setError(err.message);
@@ -79,6 +80,21 @@ function Homepage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Group races by month for timeline display
+  const groupedRaces = upcomingRaces.reduce((groups, race) => {
+    const date = new Date(race.datum);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+    if (!groups[monthKey]) {
+      const monthLabel = date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+      groups[monthKey] = {
+        label: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+        races: []
+      };
+    }
+    groups[monthKey].races.push(race);
+    return groups;
+  }, {});
+
   return (
     <div>
       <style>{`
@@ -86,63 +102,64 @@ function Homepage() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
         }
+        .race-timeline-item {
+          transition: background 0.15s ease;
+        }
+        .race-timeline-item:hover {
+          background: rgba(255,255,255,0.05) !important;
+        }
+        .post-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .post-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
+        }
       `}</style>
 
       {/* ===== HERO BANNER ===== */}
       <div style={{
         position: 'relative',
         width: '100%',
-        minHeight: '60vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
         background: 'linear-gradient(160deg, rgba(10,15,30,0.95) 0%, rgba(20,30,55,0.92) 100%)',
-        marginBottom: '2.5rem'
+        marginTop: 'calc(-1 * var(--spacing-xl))',
+        marginBottom: '2rem'
       }}>
-        {/* Dark overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'rgba(0,0,0,0.4)'
-        }} />
-
-        {/* Content */}
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          textAlign: 'center',
-          padding: '3.5rem 1.5rem'
+          position: 'relative', zIndex: 1,
+          display: 'flex', alignItems: 'center', gap: '1.5rem',
+          padding: '1rem 2rem', width: '100%', maxWidth: '900px'
         }}>
           <img
             src={jmlpLogo}
             alt="JMLP Logo"
-            style={{
-              maxHeight: '110px',
-              marginBottom: '1.75rem',
-              filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.6))'
-            }}
+            style={{ height: '90px', flexShrink: 0, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.6))' }}
           />
-          <h1
-            className="text-white fw-bold mb-2"
-            style={{
-              fontSize: 'clamp(1.6rem, 4vw, 2.75rem)',
-              textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-              letterSpacing: '-0.01em'
-            }}
-          >
-            Jihomoravský Lyžařský Pohár
-          </h1>
-          <p
-            style={{
-              fontSize: '1.1rem',
-              color: 'rgba(255,255,255,0.65)',
-              maxWidth: '480px',
-              margin: '0 auto'
-            }}
-          >
-            Seriál závodů alpského lyžování pro všechny kategorie
-          </p>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <h1
+              className="text-white fw-bold mb-1"
+              style={{
+                fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)',
+                textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Jihomoravský Lyžařský Pohár
+            </h1>
+            <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.65)', margin: 0 }}>
+              Seriál závodů alpského lyžování pro všechny kategorie
+            </p>
+          </div>
+          <img
+            src={slcrLogo}
+            alt="Czech Ski & Snowboard Logo"
+            style={{ height: '90px', flexShrink: 0, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.6))' }}
+          />
         </div>
       </div>
 
@@ -150,7 +167,7 @@ function Homepage() {
         <div className="row justify-content-center">
           <div className="col-lg-10">
 
-            {/* Live panel */}
+            {/* ===== LIVE ALERT ===== */}
             {liveRace && (
               <Link to="/livetiming" className="text-decoration-none d-block mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={{
@@ -182,216 +199,246 @@ function Homepage() {
               </Link>
             )}
 
-            {/* ===== UPCOMING RACES CAROUSEL ===== */}
-      {upcomingRaces.length > 0 && (
-        <div className="mb-5">
-          <div className="mb-3" style={{
-            borderBottom: '2px solid rgba(255, 107, 0, 0.3)',
-            paddingBottom: '0.75rem'
-          }}>
-            <h2 className="mb-0" style={{
-              fontSize: '1.5rem',
-              fontWeight: '500',
-              color: 'var(--text-primary)',
-              opacity: '0.9'
-            }}>
-              <span className="bi bi-calendar-event me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
-              Nadcházející závody
-            </h2>
-          </div>
+            {/* ===== TWO-COLUMN LAYOUT ===== */}
+            <div className="row g-4 g-lg-5">
 
-          <div
-            className="d-flex gap-3 py-2"
-            style={{
-              overflowX: 'auto',
-              overflowY: 'hidden',
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'var(--sunset-orange) rgba(255,255,255,0.1)',
-              paddingBottom: '0.75rem'
-            }}
-          >
-            {upcomingRaces.map(race => {
-              const isPast = new Date(race.datum) < today;
-              return (
-                <div
-                  key={race.id}
-                  className="card flex-shrink-0"
-                  style={{
-                    minWidth: '210px',
-                    maxWidth: '240px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    background: 'var(--glass-bg)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                >
-                  <div className="card-body p-3 d-flex flex-column">
-                    <div className="d-flex align-items-center gap-1 mb-2">
-                      <span style={{ fontSize: '1.1rem' }} title={race.race_method_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}>
-                        {race.race_method_id === 1 ? '❄️' : '🌲'}
-                      </span>
-                      <h6 className="fw-bold mb-0 text-truncate" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>
-                        {race.areal_name || 'Závod'}
-                      </h6>
-                    </div>
-                    <small className="text-muted d-block mb-3">
-                      <i className="bi bi-calendar3 me-1"></i>
-                      {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                    </small>
-                    <div className="mb-3">
-                      {isPast ? (
-                        <span className="badge bg-secondary">Ukončen</span>
-                      ) : (
-                        <span className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}>
-                          {race.registration ? 'Registrace otevřena' : 'Uzavřeno'}
-                        </span>
-                      )}
-                    </div>
-                    <Link
-                      to="/zavody"
-                      className={`btn btn-sm w-100 mt-auto ${isPast ? 'btn-outline-secondary' : 'btn-primary'}`}
-                      style={{ borderRadius: '6px', fontWeight: '500' }}
-                    >
-                      <i className={`bi ${isPast ? 'bi-trophy' : (race.registration ? 'bi-pencil-square' : 'bi-info-circle')} me-1`}></i>
-                      {isPast ? 'Výsledky' : (race.registration ? 'Registrace' : 'Detail')}
-                    </Link>
-                  </div>
+              {/* LEFT COLUMN: Aktuality */}
+              <div className="col-12 col-md-7 order-2 order-md-1">
+                <div className="mb-3" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
+                  <h2 className="mb-0" style={{ fontSize: '1.5rem', fontWeight: '500', color: 'var(--text-primary)', opacity: '0.9' }}>
+                    <span className="bi bi-newspaper me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
+                    Aktuality
+                  </h2>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
-      {/* ===== NEWS GRID ===== */}
-      <div>
-        <div className="mb-4" style={{
-          borderBottom: '2px solid rgba(255, 107, 0, 0.3)',
-          paddingBottom: '0.75rem'
-        }}>
-          <h2 className="mb-0" style={{
-            fontSize: '1.5rem',
-            fontWeight: '500',
-            color: 'var(--text-primary)',
-            opacity: '0.9'
-          }}>
-            <span className="bi bi-newspaper me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
-            Aktuality
-          </h2>
-        </div>
+                {posts.length === 0 ? (
+                  <div className="alert alert-info">
+                    <span className="bi bi-info-circle me-2"></span>
+                    Zatím nejsou k dispozici žádné aktuality.
+                  </div>
+                ) : (
+                  <>
+                    <div className="d-flex flex-column gap-3">
+                      {posts.map(post => {
+                        const imgPos = post.image_position || 'left';
+                        const showImage = post.image_file_id && imgPos !== 'none';
+                        const imageUrl = showImage ? API.getImageUrl(post.id, post.updated_at) : null;
+                        const isTop = imgPos === 'top';
+                        const isRight = imgPos === 'right';
+                        return (
+                          <div
+                            key={post.id}
+                            className={`post-card ${isTop ? 'd-flex flex-column' : 'd-flex'}`}
+                            style={{
+                              borderRadius: '12px',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              background: 'var(--glass-bg)',
+                              backdropFilter: 'blur(10px)',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {showImage && !isRight && (
+                              isTop
+                                ? <div style={{ width: '100%', height: '200px', flexShrink: 0, overflow: 'hidden' }}>
+                                    <img src={imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                  </div>
+                                : <div style={{ flexShrink: 0, padding: '10px 0 10px 10px', alignSelf: 'center' }}>
+                                    <div style={{ width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden' }}>
+                                      <img src={imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                    </div>
+                                  </div>
+                            )}
+                            <div className="d-flex flex-column p-3" style={{ flex: 1, minWidth: 0 }}>
+                              <div className="mb-1">
+                                <span className="badge bg-secondary" style={{ fontSize: '0.72rem' }}>
+                                  <i className="bi bi-calendar3 me-1"></i>
+                                  {formatDate(post.created_at)}
+                                </span>
+                              </div>
+                              <h5 className="fw-bold mb-1" style={{
+                                color: 'var(--text-primary)',
+                                fontSize: '0.975rem',
+                                lineHeight: '1.3'
+                              }}>
+                                {post.title}
+                              </h5>
+                              <div
+                                style={{
+                                  fontSize: '0.875rem',
+                                  color: 'var(--text-secondary)'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: `<p class="mb-0">${formatText(post.content)}</p>` }}
+                              />
+                              {post.document_file_id && (
+                                <div className="mt-2">
+                                  <a
+                                    href={API.getDocumentUrl(post.id)}
+                                    className="btn btn-sm btn-outline-primary"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ borderRadius: '6px', fontWeight: '500' }}
+                                  >
+                                    <span className="bi bi-file-text me-1"></span>
+                                    Stáhnout přílohu
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            {showImage && isRight && (
+                              <div style={{ flexShrink: 0, padding: '10px 10px 10px 0', alignSelf: 'center' }}>
+                                <div style={{ width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden' }}>
+                                  <img src={imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
 
-        {posts.length === 0 ? (
-          <div className="alert alert-info">
-            <span className="bi bi-info-circle me-2"></span>
-            Zatím nejsou k dispozici žádné aktuality.
-          </div>
-        ) : (
-          <>
-            <div className="row row-cols-1 row-cols-md-3 g-4">
-              {posts.map(post => {
-                const showImage = post.image_file_id && post.image_position !== 'none';
-                const imageUrl = showImage ? API.getImageUrl(post.id, post.updated_at) : null;
+                    <div className="text-center mt-4">
+                      <Link
+                        to="/archiv-zprav"
+                        className="btn btn-outline-secondary"
+                        style={{ borderRadius: '8px', padding: '0.75rem 2rem', fontWeight: '500' }}
+                      >
+                        <span className="bi bi-arrow-right me-2"></span>
+                        Zobrazit starší zprávy
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
 
-                return (
-                  <div key={post.id} className="col">
-                    <div
-                      className="card h-100"
-                      style={{
+              {/* RIGHT COLUMN: Závody (sticky timeline) */}
+              <div className="col-12 col-md-5 order-1 order-md-2">
+                <div style={{ position: 'sticky', top: '80px' }}>
+                  <div className="mb-3" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
+                    <h2 className="mb-0" style={{ fontSize: '1.5rem', fontWeight: '500', color: 'var(--text-primary)', opacity: '0.9' }}>
+                      <span className="bi bi-calendar-event me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
+                      Závody sezóny
+                    </h2>
+                  </div>
+
+                  {upcomingRaces.length === 0 ? (
+                    <div className="alert alert-info">
+                      <span className="bi bi-info-circle me-2"></span>
+                      Žádné závody v této sezóně.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{
                         borderRadius: '12px',
                         border: '1px solid rgba(255,255,255,0.1)',
                         background: 'var(--glass-bg)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                        cursor: 'default'
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                      }}
-                    >
-                      {showImage && (
-                        <img
-                          src={imageUrl}
-                          className="card-img-top"
-                          alt={post.title}
-                          style={{
-                            height: '180px',
-                            objectFit: 'cover',
-                            borderTopLeftRadius: '12px',
-                            borderTopRightRadius: '12px'
-                          }}
-                        />
-                      )}
-                      <div className="card-body d-flex flex-column" style={{ padding: '1.25rem' }}>
-                        {/* Date badge */}
-                        <div className="mb-2">
-                          <span className="badge bg-secondary">
-                            <i className="bi bi-calendar3 me-1"></i>
-                            {formatDate(post.created_at)}
-                          </span>
-                        </div>
+                        overflow: 'hidden'
+                      }}>
+                        {Object.entries(groupedRaces).map(([monthKey, { label, races }], groupIdx) => (
+                          <div key={monthKey}>
+                            {/* Month header */}
+                            <div style={{
+                              padding: '0.45rem 1rem',
+                              background: 'rgba(255,107,0,0.12)',
+                              borderTop: groupIdx > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none'
+                            }}>
+                              <span style={{
+                                fontSize: '0.68rem',
+                                fontWeight: '700',
+                                letterSpacing: '0.1em',
+                                textTransform: 'uppercase',
+                                color: 'var(--sunset-orange)'
+                              }}>
+                                {label}
+                              </span>
+                            </div>
 
-                        <h5 className="card-title fw-bold mb-2" style={{
-                          color: 'var(--text-primary)',
-                          fontSize: '1.05rem',
-                          lineHeight: '1.3'
-                        }}>
-                          {post.title}
-                        </h5>
+                            {/* Races in this month */}
+                            {races.map((race, idx) => {
+                              const isPast = new Date(race.datum) < today;
+                              const raceDate = new Date(race.datum);
+                              return (
+                                <div
+                                  key={race.id}
+                                  className="race-timeline-item d-flex align-items-center gap-3"
+                                  style={{
+                                    padding: '0.7rem 1rem',
+                                    borderTop: '1px solid rgba(255,255,255,0.06)'
+                                  }}
+                                >
+                                  {/* Day number */}
+                                  <div style={{ minWidth: '32px', textAlign: 'center', flexShrink: 0 }}>
+                                    <span style={{
+                                      fontSize: '1.35rem',
+                                      fontWeight: '700',
+                                      lineHeight: 1,
+                                      color: isPast ? 'var(--text-muted)' : 'var(--text-primary)'
+                                    }}>
+                                      {String(raceDate.getDate()).padStart(2, '0')}
+                                    </span>
+                                  </div>
 
-                        <div
-                          className="card-text flex-grow-1"
-                          style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}
-                          dangerouslySetInnerHTML={{ __html: `<p>${formatText(post.content)}</p>` }}
-                        />
+                                  {/* Race info */}
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                      <span style={{ fontSize: '0.9rem' }} title={race.race_method_id === 1 ? 'Závod na sněhu' : 'Suchý závod'}>
+                                        {race.race_method_id === 1 ? '❄️' : '🌲'}
+                                      </span>
+                                      <span className="text-truncate" style={{
+                                        fontSize: '0.875rem',
+                                        fontWeight: '600',
+                                        color: isPast ? 'var(--text-muted)' : 'var(--text-primary)'
+                                      }}>
+                                        {race.areal_name || 'Závod'}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      {isPast ? (
+                                        <span className="badge bg-secondary" style={{ fontSize: '0.68rem' }}>Ukončen</span>
+                                      ) : (
+                                        <span
+                                          className={`badge ${race.registration ? 'bg-success' : 'bg-danger'}`}
+                                          style={{ fontSize: '0.68rem' }}
+                                        >
+                                          {race.registration ? 'Registrace otevřena' : 'Uzavřeno'}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
 
-                        {post.document_file_id && (
-                          <div className="mt-auto pt-2">
-                            <a
-                              href={API.getDocumentUrl(post.id)}
-                              className="btn btn-sm btn-outline-primary"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ borderRadius: '6px', fontWeight: '500' }}
-                            >
-                              <span className="bi bi-file-text me-1"></span>
-                              Stáhnout přílohu
-                            </a>
+                                  {/* Action button */}
+                                  <Link
+                                    to={!isPast && race.registration ? `/zavod/${race.id}` : (isPast ? `/zavod/${race.id}` : '/zavody')}
+                                    className={`btn btn-sm flex-shrink-0 ${isPast ? 'btn-outline-secondary' : 'btn-primary'}`}
+                                    style={{ borderRadius: '6px' }}
+                                  >
+                                    <i className={`bi ${isPast ? 'bi-trophy' : (race.registration ? 'bi-pencil-square' : 'bi-info-circle')} me-1`} style={{ fontSize: '0.8rem' }}></i>
+                                    {isPast ? 'Výsledky' : (race.registration ? 'Registrace' : 'Detail')}
+                                  </Link>
+                                </div>
+                              );
+                            })}
                           </div>
-                        )}
+                        ))}
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
 
-            <div className="text-center mt-4">
-              <Link
-                to="/archiv-zprav"
-                className="btn btn-outline-secondary"
-                style={{
-                  borderRadius: '8px',
-                  padding: '0.75rem 2rem',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <span className="bi bi-arrow-right me-2"></span>
-                Zobrazit starší zprávy
-              </Link>
-            </div>
-          </>
-        )}
-      </div>
+                      <div className="text-center mt-3">
+                        <Link
+                          to="/zavody"
+                          className="btn btn-outline-secondary btn-sm"
+                          style={{ borderRadius: '8px', padding: '0.5rem 1.5rem', fontWeight: '500' }}
+                        >
+                          <span className="bi bi-arrow-right me-2"></span>
+                          Všechny závody
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
 
+            </div>
           </div>
         </div>
       </div>

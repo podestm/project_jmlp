@@ -161,6 +161,24 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Pending Club Requests Alert */}
+      {counts.pending_club_requests > 0 && (
+        <div className="card border-warning shadow-sm mb-4">
+          <div className="card-body d-flex align-items-center gap-3">
+            <div className="dashboard-icon-box" style={{ background: 'rgba(255,193,7,0.15)', color: '#856404' }}>
+              <i className="bi bi-building fs-4"></i>
+            </div>
+            <div className="flex-grow-1">
+              <div className="fw-semibold">Nevyřízené žádosti o přiřazení klubu</div>
+              <small className="text-muted">{counts.pending_club_requests} závodníků čeká na přiřazení klubu</small>
+            </div>
+            <a href="/admin/club-requests" className="btn btn-warning btn-sm">
+              Vyřídit žádosti <i className="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Upcoming Race Highlight */}
       {upcoming_race && (
         <div className="card border-0 shadow-sm mb-4 dashboard-upcoming-race">

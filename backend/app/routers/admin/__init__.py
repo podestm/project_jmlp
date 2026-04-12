@@ -11,6 +11,7 @@ from .analytics import router as analytics_router
 from .stats import router as stats_router
 from .season_results import router as season_results_router
 from .dashboard import router as dashboard_router
+from .clubs import router as clubs_router
 
 # Main admin router that includes all sub-routers
 router = APIRouter(prefix="/api/admin")
@@ -27,3 +28,4 @@ router.include_router(analytics_router)
 router.include_router(stats_router)
 router.include_router(season_results_router)
 router.include_router(dashboard_router)
+router.include_router(clubs_router)

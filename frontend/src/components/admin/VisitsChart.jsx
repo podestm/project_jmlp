@@ -33,6 +33,7 @@ const PERIOD_OPTIONS = [
 
 const VisitsChart = () => {
   const [chartData, setChartData] = useState(null);
+  const [isEmpty, setIsEmpty] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [days, setDays] = useState(7);
@@ -50,6 +51,7 @@ const VisitsChart = () => {
       const visits = data.map(item => item.visits);
       const unique = data.map(item => item.unique);
 
+      setIsEmpty(visits.every(v => v === 0) && unique.every(u => u === 0));
       setChartData({
         labels,
         datasets: [
@@ -180,6 +182,11 @@ const VisitsChart = () => {
         ) : error ? (
           <div className="alert alert-danger mb-0">
             <i className="bi bi-exclamation-triangle me-2"></i>{error}
+          </div>
+        ) : isEmpty ? (
+          <div className="text-center text-muted py-5">
+            <i className="bi bi-bar-chart-line" style={{ fontSize: '2.5rem', opacity: 0.25 }}></i>
+            <p className="mt-2 mb-0 small">Zatím žádná data o návštěvnosti</p>
           </div>
         ) : (
           <div style={{ height: '280px' }}>

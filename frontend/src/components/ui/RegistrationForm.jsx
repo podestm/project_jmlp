@@ -42,6 +42,8 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                                 updateField={registration.updateField}
                                 clubs={registration.clubs}
                                 fieldErrors={registration.fieldErrors}
+                                clubNoteMode={registration.clubNoteMode}
+                                setClubNoteMode={registration.setClubNoteMode}
                             />
 
                             {/* Submit tlačítko */}

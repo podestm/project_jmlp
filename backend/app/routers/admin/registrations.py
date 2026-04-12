@@ -37,7 +37,8 @@ def get_race_registrations(
             r.sex,
             r.year as birthYear,
             r.slcr_id as idSlcr,
-            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name
+            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
+            reg.club_request_note
         FROM fuj_jmlp_race_registration reg
         LEFT JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
@@ -59,7 +60,7 @@ def get_race_registrations(
             "sex": "M" if reg.sex == 1 else ("Z" if reg.sex == 2 else ""),
             "birthYear": reg.birthYear,
             "idSlcr": reg.idSlcr,
-            "club_name": reg.club_name or "Bez klubu"
+            "club_name": reg.club_name or ("Nový Klub" if reg.club_request_note else "Bez klubu")
         })
     
     return result

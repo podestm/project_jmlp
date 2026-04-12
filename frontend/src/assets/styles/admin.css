@@ -1,9 +1,43 @@
+/* ═══════════════════════════════════════════════════════════
+   ADMIN DESIGN TOKENS — single source of truth
+   Scope: both .admin-section and .admin-layout-content
+   ═══════════════════════════════════════════════════════════ */
+.admin-section,
+.admin-layout-content {
+  /* Backgrounds */
+  --adm-bg:             #f0f2f5;
+  --adm-card-bg:        #ffffff;
+  --adm-card-border:    #dee2e6;
+  --adm-card-header-bg: #f8f9fa;
+
+  /* Form inputs — borders darker than Bootstrap default #ced4da */
+  --adm-input-bg:           #ffffff;
+  --adm-input-text:         #212529;
+  --adm-input-border:       #9ca3af;
+  --adm-input-border-focus: #3b82f6;
+  --adm-input-placeholder:  #9ca3af;
+  --adm-input-disabled-bg:  #f3f4f6;
+  --adm-input-disabled-text:#6b7280;
+
+  /* Text */
+  --adm-text:       #212529;
+  --adm-text-muted: #6c757d;
+  --adm-text-label: #374151;
+
+  /* Semantic colors — all meet WCAG AA (≥4.5:1) on white */
+  --adm-primary: #2563eb;
+  --adm-success: #16a34a;
+  --adm-warning: #92400e;
+  --adm-danger:  #dc2626;
+  --adm-info:    #0e7490;
+}
+
 /* Admin Section Light Mode Styles */
 /* Keep admin interface separate from public dark mode theme */
 
 /* Override dark mode body styles for admin */
 .admin-section {
-  background: #f8f9fa !important;
+  background: var(--adm-bg) !important;
   min-height: 100vh;
   padding: 2rem 0;
 }
@@ -12,17 +46,17 @@
 .admin-section .card,
 .admin-section .card-body,
 .admin-section .card-header {
-  background: white !important;
-  border: 1px solid #dee2e6 !important;
+  background: var(--adm-card-bg) !important;
+  border: 1px solid var(--adm-card-border) !important;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  color: #212529 !important;
+  color: var(--adm-text) !important;
 }
 
 .admin-section .card-header {
-  background: #f8f9fa !important;
-  border-bottom: 1px solid #dee2e6 !important;
+  background: var(--adm-card-header-bg) !important;
+  border-bottom: 1px solid var(--adm-card-border) !important;
 }
 
 .admin-section .table {
@@ -67,23 +101,61 @@
 }
 
 .admin-section .form-control,
-.admin-section .form-select {
-  background: white;
-  border: 1px solid #ced4da;
-  color: #212529;
+.admin-section .form-select,
+.admin-layout-content .form-control,
+.admin-layout-content .form-select {
+  background-color: var(--adm-input-bg) !important;
+  border: 1px solid var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+.admin-section .form-control::placeholder,
+.admin-section .form-select::placeholder,
+.admin-layout-content .form-control::placeholder,
+.admin-layout-content .form-select::placeholder {
+  color: var(--adm-input-placeholder) !important;
+  opacity: 1 !important;
 }
 
 .admin-section .form-control:focus,
-.admin-section .form-select:focus {
-  background: white;
-  border-color: #86b7fe;
-  color: #212529;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.admin-section .form-select:focus,
+.admin-layout-content .form-control:focus,
+.admin-layout-content .form-select:focus {
+  background-color: var(--adm-input-bg) !important;
+  border-color: var(--adm-input-border-focus) !important;
+  color: var(--adm-input-text) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2) !important;
+}
+
+.admin-section .form-control:disabled,
+.admin-section .form-control[readonly],
+.admin-section .form-select:disabled,
+.admin-layout-content .form-control:disabled,
+.admin-layout-content .form-control[readonly],
+.admin-layout-content .form-select:disabled {
+  background-color: var(--adm-input-disabled-bg) !important;
+  color: var(--adm-input-disabled-text) !important;
+  border-color: var(--adm-card-border) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
 }
 
 .admin-section .modal-content {
-  background: white;
-  color: #212529;
+  background: var(--adm-card-bg) !important;
+  color: var(--adm-text) !important;
+}
+
+.admin-section .modal-content .form-control,
+.admin-section .modal-content .form-select {
+  background-color: var(--adm-input-bg) !important;
+  border-color: var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+.admin-section .modal-header,
+.admin-section .modal-footer {
+  background: var(--adm-card-header-bg) !important;
+  border-color: var(--adm-card-border) !important;
 }
 
 .admin-section h1, 
@@ -100,11 +172,19 @@
 }
 
 .admin-section .text-muted {
-  color: #6c757d !important;
+  color: var(--adm-text-muted) !important;
 }
 
 .admin-section .badge {
   color: white !important;
+}
+
+.admin-section .badge.bg-warning {
+  color: #000 !important;
+}
+
+.admin-section .badge.bg-light {
+  color: #212529 !important;
 }
 
 /* Remove forced background from outline buttons */
@@ -173,21 +253,35 @@
 }
 
 .admin-section .btn-outline-info {
-  color: #0dcaf0;
+  color: var(--adm-info);
+  --bs-btn-color: var(--adm-info);
+  --bs-btn-border-color: var(--adm-info);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--adm-info);
+  --bs-btn-hover-border-color: var(--adm-info);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--adm-info);
 }
 
 .admin-section .btn-outline-info .bi,
 .admin-section .btn-outline-info i {
-  color: #0dcaf0 !important;
+  color: inherit !important;
 }
 
 .admin-section .btn-outline-warning {
-  color: #ffc107;
+  color: var(--adm-warning);
+  --bs-btn-color: var(--adm-warning);
+  --bs-btn-border-color: var(--adm-warning);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--adm-warning);
+  --bs-btn-hover-border-color: var(--adm-warning);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--adm-warning);
 }
 
 .admin-section .btn-outline-warning .bi,
 .admin-section .btn-outline-warning i {
-  color: #ffc107 !important;
+  color: inherit !important;
 }
 
 .admin-section .btn-outline-secondary {
@@ -236,18 +330,18 @@
 .dashboard-icon-success i { color: #198754 !important; }
 
 .dashboard-icon-warning {
-  background: rgba(255, 193, 7, 0.1);
-  color: #ffc107;
+  background: rgba(146, 64, 14, 0.1);
+  color: var(--adm-warning);
 }
 
-.dashboard-icon-warning i { color: #ffc107 !important; }
+.dashboard-icon-warning i { color: var(--adm-warning) !important; }
 
 .dashboard-icon-info {
-  background: rgba(13, 202, 240, 0.1);
-  color: #0dcaf0;
+  background: rgba(14, 116, 144, 0.1);
+  color: var(--adm-info);
 }
 
-.dashboard-icon-info i { color: #0dcaf0 !important; }
+.dashboard-icon-info i { color: var(--adm-info) !important; }
 
 /* Upcoming race card */
 .dashboard-upcoming-race {
@@ -346,11 +440,11 @@
 }
 
 .admin-section .text-info {
-  color: #0dcaf0 !important;
+  color: var(--adm-info) !important;
 }
 
 .admin-section .text-warning {
-  color: #ffc107 !important;
+  color: var(--adm-warning) !important;
 }
 
 .admin-section .text-danger {

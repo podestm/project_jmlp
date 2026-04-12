@@ -100,6 +100,7 @@ class Registration(Base):
     racer_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_racer.id"))
     category_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_category.id"), nullable=True)
     registered_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    club_request_note: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("race_id", "racer_id", name="uq_race_racer"),

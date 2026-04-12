@@ -1,4 +1,5 @@
 import React from 'react';
+import SearchableSelect from '../SearchableSelect.jsx';
 
 const RegistrationFormFields = ({
     formData,
@@ -6,6 +7,8 @@ const RegistrationFormFields = ({
     clubs,
     showContactFields = true,
     fieldErrors = {},
+    clubNoteMode = false,
+    setClubNoteMode = null,
 }) => {
     // Funkce pro určení stylu input pole podle toho, jestli je vyplněno nebo v chybě
     const getInputStyle = (value, isInvalid = false) => {
@@ -83,7 +86,7 @@ const RegistrationFormFields = ({
                 </div>
             </div>
 
-            <div className="row g-2 mb-3">
+            <div className="row g-2 mb-1">
                 <div className="col-md-4">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                         <span className="bi bi-calendar3"></span>
@@ -121,28 +124,104 @@ const RegistrationFormFields = ({
                         <option value={2}>Žena</option>
                     </select>
                 </div>
-                <div className="col-md-4">
+            </div>
+
+            {/* Klub — vlastní řádek pro větší prostor */}
+            <div className="row g-2 mb-3">
+                <div className="col-12">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                         <span className="bi bi-buildings"></span>
                         Klub <span className="text-danger">*</span>
                     </label>
-                    <input
-                        list="clubs"
-                        className={`form-control registration-input${fieldErrors.club ? ' is-invalid' : ''}`}
-                        placeholder="Zadejte název klubu"
-                        value={formData.club}
-                        onChange={e => updateField('club', e.target.value)}
-                        style={getInputStyle(formData.club, !!fieldErrors.club)}
-                    />
-                    <datalist id="clubs">
-                        {clubs.map(club => (
-                            <option key={club.id} value={club.name} />
-                        ))}
-                    </datalist>
-                    {fieldErrors.club && (
-                        <div className="invalid-feedback d-block" style={{ color: '#f87171' }}>
-                            {fieldErrors.club}
-                        </div>
+                    {setClubNoteMode === null ? (
+                        // Timekeeper / legacy mode: free-text with datalist
+                        <>
+                            <input
+                                list="clubs"
+                                className={`form-control registration-input${fieldErrors.club ? ' is-invalid' : ''}`}
+                                placeholder="Zadejte název klubu"
+                                value={formData.club || ''}
+                                onChange={e => updateField('club', e.target.value)}
+                                style={getInputStyle(formData.club, !!fieldErrors.club)}
+                            />
+                            <datalist id="clubs">
+                                {clubs.map(club => (
+                                    <option key={club.id} value={club.name} />
+                                ))}
+                            </datalist>
+                            {fieldErrors.club && (
+                                <div className="invalid-feedback d-block" style={{ color: '#f87171' }}>
+                                    {fieldErrors.club}
+                                </div>
+                            )}
+                        </>
+                    ) : !clubNoteMode ? (
+                        <>
+                            <SearchableSelect
+                                options={clubs.map(c => ({ value: c.id, label: c.name }))}
+                                value={formData.clubId}
+                                onChange={id => updateField('clubId', id || null)}
+                                placeholder="Začněte psát název klubu..."
+                                allLabel="— Vyberte klub —"
+                                inline={true}
+                            />
+                            {fieldErrors.club && (
+                                <div className="invalid-feedback d-block" style={{ color: '#f87171' }}>
+                                    {fieldErrors.club}
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                className="btn btn-sm mt-2 w-100"
+                                style={{
+                                    background: 'rgba(255,255,255,0.07)',
+                                    border: '1px dashed rgba(255,255,255,0.3)',
+                                    color: 'rgba(255,255,255,0.8)',
+                                    fontSize: '0.85rem',
+                                }}
+                                onClick={() => { updateField('clubId', null); setClubNoteMode(true); }}
+                            >
+                                <i className="bi bi-question-circle me-1" />
+                                Nemůžu najít svůj klub
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <textarea
+                                className={`form-control registration-input${fieldErrors.club ? ' is-invalid' : ''}`}
+                                placeholder="Napište název klubu, za který závodíte..."
+                                value={formData.clubNote || ''}
+                                onChange={e => {
+                                    const filtered = e.target.value.replace(/[^a-zA-Z0-9\u00C0-\u017E\s\-\.]/g, '');
+                                    updateField('clubNote', filtered.slice(0, 100));
+                                }}
+                                rows={2}
+                                maxLength={100}
+                                style={getInputStyle(formData.clubNote, !!fieldErrors.club)}
+                            />
+                            <div className="text-end" style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
+                                {(formData.clubNote || '').length}/100
+                            </div>
+                            {fieldErrors.club && (
+                                <div className="invalid-feedback d-block" style={{ color: '#f87171' }}>
+                                    {fieldErrors.club}
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                className="btn btn-sm mt-2"
+                                style={{
+                                    background: 'rgba(255,255,255,0.07)',
+                                    border: '1px dashed rgba(255,255,255,0.3)',
+                                    color: 'rgba(255,255,255,0.8)',
+                                    fontSize: '0.85rem',
+                                }}
+                                onClick={() => { updateField('clubNote', ''); setClubNoteMode(false); }}
+                            >
+                                <i className="bi bi-arrow-left me-1" />
+                                Zpět na výběr ze seznamu
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

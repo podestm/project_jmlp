@@ -11,6 +11,26 @@ from .routers.timekeeper import router as timekeeper_router
 
 app = FastAPI(title="JMLP API", redirect_slashes=False)
 
+
+@app.on_event("startup")
+def run_migrations():
+    """Spustí nezbytné databázové migrace při startu."""
+    from sqlalchemy import text as _text
+    from .database import engine
+    with engine.connect() as conn:
+        result = conn.execute(_text(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() "
+            "AND TABLE_NAME = 'fuj_jmlp_race_registration' "
+            "AND COLUMN_NAME = 'club_request_note'"
+        ))
+        if result.scalar() == 0:
+            conn.execute(_text(
+                "ALTER TABLE fuj_jmlp_race_registration "
+                "ADD COLUMN club_request_note VARCHAR(500) NULL DEFAULT NULL"
+            ))
+            conn.commit()
+
 # Custom validation error handler for debugging
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

@@ -39,6 +39,10 @@ def get_dashboard_stats(
         models.Race.registration == True,
         models.Race.closed == False
     ).scalar() or 0
+
+    pending_club_requests = db.execute(text(
+        "SELECT COUNT(*) FROM fuj_jmlp_race_registration WHERE club_request_note IS NOT NULL"
+    )).scalar() or 0
     
     # --- Velikost souborů ---
     files = db.query(models.File).all()
@@ -140,9 +144,9 @@ def get_dashboard_stats(
     
     # --- Poslední příspěvky ---
     recent_posts_query = text("""
-        SELECT id, title, published, created_at 
-        FROM posts 
-        ORDER BY created_at DESC 
+        SELECT id, title, published, created_at
+        FROM fuj_jmlp_posts
+        ORDER BY created_at DESC
         LIMIT 3
     """)
     recent_posts_rows = db.execute(recent_posts_query).fetchall()
@@ -164,6 +168,7 @@ def get_dashboard_stats(
             "total_posts": total_posts,
             "season_races": season_races,
             "open_registrations": open_registrations,
+            "pending_club_requests": pending_club_requests,
             "storage_size": storage_size_formatted,
             "file_count": file_count,
         },
