@@ -75,6 +75,7 @@ services:
       - "127.0.0.1:8443:443"
     networks:
       - jmlp
+      - caddy_net
     depends_on:
       backend:
         condition: service_healthy
@@ -91,3 +92,5 @@ volumes:
 networks:
   jmlp:
     driver: bridge
+  caddy_net:
+    external: true
