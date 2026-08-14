@@ -55,6 +55,13 @@ def test_owner_stem_club_is_slugified():
     assert owner_stem("club", 5, FakeClub("FreeSki Academy Brno")) == "klub-freeski-academy-brno"
 
 
+def test_owner_stem_club_without_usable_name_falls_back_to_id():
+    # Klub bez řádku nebo bez názvu by jinak dal holé "klub-" pro všechny kluby.
+    assert owner_stem("club", 5, None) == "klub-5"
+    assert owner_stem("club", 5, FakeClub("")) == "klub-5"
+    assert owner_stem("club", 5, FakeClub("???")) == "klub-5"
+
+
 def test_owner_stem_post_uses_id():
     assert owner_stem("post", 6, None) == "clanek-6"
 

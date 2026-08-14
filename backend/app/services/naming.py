@@ -6,8 +6,12 @@ kdykoli přejmenovat a pak se už sám nepřepíše.
 """
 import re
 import unicodedata
+from pathlib import Path
 from typing import Any, Iterable, Optional
 
+from sqlalchemy.orm import Session
+
+from .. import models
 from ..models import AttachmentOwner, AttachmentRole
 from ..utils import fix_encoding
 
@@ -58,7 +62,9 @@ def owner_stem(owner_type: str, owner_id: Optional[int], owner: Any) -> Optional
         return f"sezona-{owner_id}-{int(owner_id) + 1}"
 
     if owner_type == AttachmentOwner.club.value:
-        return f"klub-{slugify(fix_encoding(getattr(owner, 'name', '')))}"
+        # Chybějící klub nebo prázdný název by dal holé "klub-" - stejný základ
+        # pro všechny kluby a hned kolize. Id je nudné, ale rozlišuje.
+        return f"klub-{slugify(fix_encoding(getattr(owner, 'name', ''))) or owner_id}"
 
     if owner_type == AttachmentOwner.post.value:
         return f"clanek-{owner_id}"
@@ -112,3 +118,30 @@ def sanitize_manual_name(name: str, extension: str) -> str:
         raise ValueError("Zadejte název souboru")
 
     return f"{cleaned}{extension}"
+
+
+def _load_owner(db: Session, owner_type: str, owner_id):
+    if owner_type == AttachmentOwner.race.value:
+        return db.query(models.Race).filter(models.Race.id == owner_id).first()
+    if owner_type == AttachmentOwner.club.value:
+        return db.query(models.Club).filter(models.Club.id == owner_id).first()
+    return None
+
+
+def systematic_filename(
+    db: Session, owner_type: str, owner_id, role, original_filename: str
+) -> Optional[str]:
+    """Systematický název pro soubor právě připojený k vlastníkovi.
+
+    None znamená "nech název, jak je" - to platí pro knihovnu, kde není
+    z čeho odvodit.
+    """
+    stem = owner_stem(owner_type, owner_id, _load_owner(db, owner_type, owner_id))
+    if not stem:
+        return None
+
+    extension = Path(original_filename or "").suffix.lower()
+    taken = {
+        row[0] for row in db.query(models.File.original_filename).all() if row[0]
+    }
+    return unique_name(f"{stem}_{role_suffix(role)}", extension, taken)
