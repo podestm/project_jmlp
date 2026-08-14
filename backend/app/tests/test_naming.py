@@ -87,3 +87,37 @@ def test_unique_name_skips_multiple_collisions():
 def test_unique_name_is_case_insensitive():
     taken = {"jmlp2025-05_propozice.pdf"}
     assert unique_name("JMLP2025-05_propozice", ".pdf", taken) == "JMLP2025-05_propozice-2.pdf"
+
+
+import pytest
+from app.services.naming import sanitize_manual_name
+
+
+def test_sanitize_keeps_diacritics():
+    assert sanitize_manual_name("Soutěžní řád XIX. ročník", ".pdf") == "Soutěžní řád XIX. ročník.pdf"
+
+
+def test_sanitize_keeps_numbered_czech_names():
+    # "1. kolo" konci na " kolo" - pet znaku za teckou, ale pripona to neni.
+    assert sanitize_manual_name("Výsledky 1. kolo", ".pdf") == "Výsledky 1. kolo.pdf"
+
+
+def test_sanitize_forces_real_extension():
+    assert sanitize_manual_name("propozice.jpg", ".pdf") == "propozice.pdf"
+    assert sanitize_manual_name("propozice", ".pdf") == "propozice.pdf"
+
+
+def test_sanitize_strips_path_separators():
+    assert sanitize_manual_name("../../etc/passwd", ".pdf") == "etc-passwd.pdf"
+    assert sanitize_manual_name("a/b\\c", ".pdf") == "a-b-c.pdf"
+
+
+def test_sanitize_strips_control_characters():
+    assert sanitize_manual_name("na\x00zev\ntest", ".pdf") == "nazevtest.pdf"
+
+
+def test_sanitize_rejects_empty():
+    with pytest.raises(ValueError):
+        sanitize_manual_name("   ", ".pdf")
+    with pytest.raises(ValueError):
+        sanitize_manual_name("///", ".pdf")

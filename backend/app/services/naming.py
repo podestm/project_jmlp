@@ -24,6 +24,9 @@ ROLE_SUFFIX = {
 
 _FALLBACK_SUFFIX = "soubor"
 
+_PATH_SEPARATORS = re.compile(r"[\\/]+")
+_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
+
 
 def slugify(value: str) -> str:
     """Bez diakritiky, malá písmena, cokoli jiného než písmeno a číslo na pomlčku."""
@@ -82,3 +85,30 @@ def unique_name(stem: str, extension: str, taken: Iterable[str]) -> str:
         if candidate.lower() not in used:
             return candidate
         counter += 1
+
+
+def sanitize_manual_name(name: str, extension: str) -> str:
+    """Ručně zadaný název na bezpečný název souboru.
+
+    Diakritika zůstává - na disku leží UUID, takže název na nic citlivého
+    nesahá. Příponu určuje skutečný soubor, ne uživatel: `.pdf` přejmenované
+    na `.jpg` by rozbilo stahování.
+    """
+    cleaned = _CONTROL_CHARS.sub("", name or "")
+    # Tečky na krajích padají spolu s pomlčkami - z "../../etc/passwd" zbyde
+    # po náhradě oddělovačů "..-..-etc-passwd" a ty zbytky cesty tam nemají co dělat.
+    cleaned = _PATH_SEPARATORS.sub("-", cleaned).strip().strip("-.").strip()
+
+    if extension and cleaned.lower().endswith(extension.lower()):
+        cleaned = cleaned[: -len(extension)].strip()
+    elif "." in cleaned:
+        # Uříznout se smí jen skutečná přípona, ne kus názvu. "Výsledky 1. kolo"
+        # končí na " kolo" - krátké, ale s mezerou, takže to přípona není.
+        stem, _, suffix = cleaned.rpartition(".")
+        if stem and len(suffix) <= 5 and suffix.isalnum():
+            cleaned = stem.strip()
+
+    if not cleaned:
+        raise ValueError("Zadejte název souboru")
+
+    return f"{cleaned}{extension}"
