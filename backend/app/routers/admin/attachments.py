@@ -102,8 +102,6 @@ async def upload_attachment(
     owner_type: str = Form(...),
     owner_id: Optional[int] = Form(None),
     role: str = Form(AttachmentRole.document.value),
-    title: Optional[str] = Form(None),
-    folder: Optional[str] = Form(None),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
@@ -115,7 +113,6 @@ async def upload_attachment(
         db,
         file,
         file_type=_FILE_TYPE_BY_ROLE.get(role_enum, FileTypeEnum.document),
-        folder=folder,
         uploaded_by=current_admin.id,
     )
 
@@ -133,7 +130,6 @@ async def upload_attachment(
         owner_type=owner_type,
         owner_id=normalized_owner_id,
         role=role_enum.value,
-        title=(title or "").strip() or None,
         created_by=current_admin.id,
     )
     return attachment_service.attachment_dict(attachment, file_record)
@@ -164,7 +160,6 @@ def link_attachment(
         owner_type=owner_type,
         owner_id=normalized_owner_id,
         role=role_enum.value,
-        title=(payload.get("title") or "").strip() or None,
         created_by=current_admin.id,
     )
     # Název souboru se určuje při prvním nahrání a další připojení ho nemění -
@@ -179,11 +174,13 @@ def update_attachment(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Změní název, roli, pořadí nebo zveřejnění přílohy."""
+    """Změní roli, pořadí nebo zveřejnění přílohy.
+
+    Název se tu měnit nedá - je to název souboru a mění se v knihovně
+    (PUT /api/admin/library/files/{id}), aby ho všechna místa viděla stejně.
+    """
     attachment = _get_attachment(db, attachment_id)
 
-    if "title" in payload:
-        attachment.title = (payload.get("title") or "").strip() or None
     if "role" in payload:
         attachment.role = _validate_role(payload["role"], attachment.owner_type).value
     if "sort_order" in payload:
