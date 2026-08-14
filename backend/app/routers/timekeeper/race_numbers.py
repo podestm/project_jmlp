@@ -1,12 +1,13 @@
 """Race number sets management - create, list, delete number sets and individual numbers."""
 from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, auth
 from ...utils import StandardExceptions
+from .idempotency import try_get_idempotent_response, store_idempotent_response
 
 router = APIRouter(tags=["timekeeper-race-numbers"])
 
@@ -108,13 +109,25 @@ def get_active_race_number_options(
 @router.post("/race-numbers")
 def add_single_race_number(
     data: Dict[str, Any],
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Add a single race number to a set.
-    
+
     Body: { "set_number": 1, "actual_number": 201, "display_number": 201 }
     """
+    endpoint = "/api/timekeeper/race-numbers"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     set_number = data.get("set_number")
     actual_number = data.get("actual_number")
     display_number = data.get("display_number")
@@ -155,25 +168,47 @@ def add_single_race_number(
     db.add(entry)
     db.commit()
     db.refresh(entry)
-    
-    return {
+
+    response_payload = {
         "message": f"Přidáno číslo {actual_number} (zobrazení: {display_number}) do sady {set_number}",
         "id": entry.id,
         "set_color": entry.set_color,
         "actual_number": actual_number,
         "display_number": display_number,
         "is_active": True,
+        "idempotency_replayed": False,
     }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.put("/race-numbers/{number_id}")
 def update_single_race_number(
     number_id: int,
     data: Dict[str, Any],
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Update a single race number state."""
+    endpoint = f"/api/timekeeper/race-numbers/{number_id}"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="PUT",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     number = db.query(models.RaceNumber).filter(models.RaceNumber.id == number_id).first()
     if not number:
         raise StandardExceptions.not_found("Závodní číslo nenalezeno")
@@ -185,11 +220,21 @@ def update_single_race_number(
     db.commit()
 
     state_label = "aktivní" if number.is_active else "deaktivní"
-    return {
+    response_payload = {
         "message": f"Číslo {number.display_number} je nyní {state_label}",
         "id": number.id,
         "is_active": number.is_active,
+        "idempotency_replayed": False,
     }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="PUT",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.delete("/race-numbers/{number_id}")
@@ -243,11 +288,12 @@ def update_race_number_set(
 @router.post("/race-number-sets")
 def create_race_number_set(
     data: Dict[str, Any],
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Create a new race number set.
-    
+
     Body: {
         "set_number": 3,
         "actual_from": 1,
@@ -255,6 +301,17 @@ def create_race_number_set(
         "display_from": 401
     }
     """
+    endpoint = "/api/timekeeper/race-number-sets"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     set_number = data.get("set_number")
     actual_from = data.get("actual_from", 1)
     actual_to = data.get("actual_to")
@@ -300,14 +357,24 @@ def create_race_number_set(
         created += 1
     
     db.commit()
-    
-    return {
+
+    response_payload = {
         "message": f"Vytvořeno {created} závodních čísel v sadě {set_number} (zobrazení: {display_from}-{display_to})",
         "created": created,
         "set_number": set_number,
         "set_color": set_color,
-        "display_range": f"{display_from}-{display_to}"
+        "display_range": f"{display_from}-{display_to}",
+        "idempotency_replayed": False,
     }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.delete("/race-number-sets/{set_number}")

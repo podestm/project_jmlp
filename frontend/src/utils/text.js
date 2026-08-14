@@ -63,15 +63,24 @@ export const slugify = (str) => {
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
 };
 
+// HTML-escape user-supplied text before applying markdown transforms,
+// so the output is safe for dangerouslySetInnerHTML.
+const escapeHtml = (text) => text
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#x27;');
+
 /**
  * Format markdown-like text with basic formatting
  * @param {string} text - Text with markdown-like syntax
- * @returns {string} - HTML formatted text
+ * @returns {string} - HTML formatted text (user content escaped, only **/* and \n produce tags)
  */
 export const formatText = (text) => {
   if (!text) return '';
-  
-  return text
+
+  return escapeHtml(text)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold**
     .replace(/\*(.*?)\*/g, '<em>$1</em>') // *italic*
     .replace(/\n/g, '<br>'); // line breaks

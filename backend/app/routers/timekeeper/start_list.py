@@ -1,7 +1,7 @@
 """Start list management - generate and manage start lists from registrations."""
 import json
 from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 
@@ -13,6 +13,7 @@ from ...utils import (
     StandardExceptions,
     get_category_snapshot_for_birth_year,
 )
+from .idempotency import try_get_idempotent_response, store_idempotent_response
 
 router = APIRouter(tags=["timekeeper-start-list"])
 
@@ -457,21 +458,33 @@ def get_start_list(
 def generate_start_list(
     race_id: int,
     data: Dict[str, Any] = Body(default={}),
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Generate start list from registered racers.
-    
+
     Body (optional):
     {
         "category_order": [11, 10, 8, 7, ...]  // category IDs in desired start order
     }
-    
+
     Creates start list entries for all registered racers who don't have one yet.
     Assigns sequential start numbers and race numbers automatically from lowest
     available across all sets (set 1 first, then set 2, etc.).
     Racers are grouped by categories in the given order.
     """
+    endpoint = f"/api/timekeeper/races/{race_id}/start-list/generate"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     # Verify race exists
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
@@ -512,7 +525,20 @@ def generate_start_list(
     if not new_racers_raw:
         if data and data.get("category_order"):
             db.commit()
-        return {"message": "Všichni registrovaní závodníci jsou již na startovní listině", "added": 0}
+        response_payload = {
+            "message": "Všichni registrovaní závodníci jsou již na startovní listině",
+            "added": 0,
+            "idempotency_replayed": False,
+        }
+        store_idempotent_response(
+            db=db,
+            idempotency_key=x_idempotency_key,
+            admin_id=int(current_admin.id),
+            method="POST",
+            endpoint=endpoint,
+            response_payload=response_payload,
+        )
+        return response_payload
     
     new_racers = []
     for row in new_racers_raw:
@@ -620,41 +646,87 @@ def generate_start_list(
         added += 1
     
     db.commit()
-    
-    return {
+
+    response_payload = {
         "message": f"Přidáno {added} závodníků na startovní listinu",
         "added": added,
         "total": max_start,
+        "idempotency_replayed": False,
     }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.delete("/races/{race_id}/start-list")
 def clear_start_list(
     race_id: int,
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, str]:
     """Clear entire start list for a race (reset)."""
+    endpoint = f"/api/timekeeper/races/{race_id}/start-list"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="DELETE",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
         raise StandardExceptions.race_not_found()
-    
+
     deleted = db.query(models.StartListEntry).filter(
         models.StartListEntry.race_id == race_id
     ).delete()
     db.commit()
-    
-    return {"message": f"Smazáno {deleted} záznamů ze startovní listiny"}
+
+    response_payload = {
+        "message": f"Smazáno {deleted} záznamů ze startovní listiny",
+        "idempotency_replayed": False,
+    }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="DELETE",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.put("/start-list/{entry_id}")
 def update_start_list_entry(
     entry_id: int,
     data: Dict[str, Any] = Body(default={}),
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Update a single start list entry using snapshot-first fields."""
+    endpoint = f"/api/timekeeper/start-list/{entry_id}"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="PUT",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
     entry = db.query(models.StartListEntry).filter(models.StartListEntry.id == entry_id).first()
     if not entry:
         raise StandardExceptions.not_found("Záznam na startovní listině nenalezen")

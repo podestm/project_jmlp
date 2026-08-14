@@ -79,16 +79,24 @@ app.include_router(timekeeper_router)  # Timekeeper section
 @app.get("/uploads/documents/{filename}")
 async def serve_document(filename: str):
     """Serve uploaded PDF documents"""
-    file_path = Path("uploads/documents") / filename
-    if file_path.exists() and file_path.is_file():
-        return FileResponse(
-            path=file_path,
-            media_type="application/pdf",
-            filename=filename
+    base = Path("uploads/documents").resolve()
+    try:
+        file_path = (base / filename).resolve()
+        file_path.relative_to(base)
+    except (ValueError, OSError):
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Soubor nebyl nalezen"}
         )
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "Soubor nebyl nalezen"}
+    if not file_path.is_file():
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Soubor nebyl nalezen"}
+        )
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename=file_path.name,
     )
 
 @app.get("/")
