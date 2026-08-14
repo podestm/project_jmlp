@@ -56,6 +56,7 @@ C:*
 
 # Legacy/temporary scripts (don't commit to GitHub)
 test_*.py
+!backend/app/tests/test_*.py
 generate_*.py
 *_test.py
 *_temp.py
