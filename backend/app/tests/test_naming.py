@@ -61,3 +61,29 @@ def test_owner_stem_post_uses_id():
 
 def test_owner_stem_library_has_no_systematic_name():
     assert owner_stem("library", None, None) is None
+
+
+from app.services.naming import unique_name
+
+
+def test_unique_name_returns_stem_when_free():
+    assert unique_name("JMLP2025-05_propozice", ".pdf", taken=set()) == "JMLP2025-05_propozice.pdf"
+
+
+def test_unique_name_appends_counter_on_collision():
+    taken = {"JMLP2025-05_propozice.pdf"}
+    assert unique_name("JMLP2025-05_propozice", ".pdf", taken) == "JMLP2025-05_propozice-2.pdf"
+
+
+def test_unique_name_skips_multiple_collisions():
+    taken = {
+        "sezona-2025-2026_dokument.pdf",
+        "sezona-2025-2026_dokument-2.pdf",
+        "sezona-2025-2026_dokument-3.pdf",
+    }
+    assert unique_name("sezona-2025-2026_dokument", ".pdf", taken) == "sezona-2025-2026_dokument-4.pdf"
+
+
+def test_unique_name_is_case_insensitive():
+    taken = {"jmlp2025-05_propozice.pdf"}
+    assert unique_name("JMLP2025-05_propozice", ".pdf", taken) == "JMLP2025-05_propozice-2.pdf"

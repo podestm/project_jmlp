@@ -6,7 +6,7 @@ kdykoli přejmenovat a pak se už sám nepřepíše.
 """
 import re
 import unicodedata
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 
 from ..models import AttachmentOwner, AttachmentRole
 from ..utils import fix_encoding
@@ -61,3 +61,24 @@ def owner_stem(owner_type: str, owner_id: Optional[int], owner: Any) -> Optional
         return f"clanek-{owner_id}"
 
     return None
+
+
+def unique_name(stem: str, extension: str, taken: Iterable[str]) -> str:
+    """Název, který se s ničím nesráží. Při kolizi připojí -2, -3, ...
+
+    `taken` jsou existující názvy; porovnává se bez ohledu na velikost písmen,
+    protože MySQL kolace je case-insensitive a jinak by vznikly dva soubory,
+    které databáze považuje za stejné.
+    """
+    used = {name.lower() for name in taken}
+
+    candidate = f"{stem}{extension}"
+    if candidate.lower() not in used:
+        return candidate
+
+    counter = 2
+    while True:
+        candidate = f"{stem}-{counter}{extension}"
+        if candidate.lower() not in used:
+            return candidate
+        counter += 1
