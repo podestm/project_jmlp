@@ -6,8 +6,10 @@ kdykoli přejmenovat a pak se už sám nepřepíše.
 """
 import re
 import unicodedata
+from typing import Any, Optional
 
-from ..models import AttachmentRole
+from ..models import AttachmentOwner, AttachmentRole
+from ..utils import fix_encoding
 
 # Role -> koncovka v názvu. Bez diakritiky, ať název přežije stažení kamkoli.
 ROLE_SUFFIX = {
@@ -36,3 +38,26 @@ def role_suffix(role) -> str:
         return ROLE_SUFFIX[AttachmentRole(role)]
     except (ValueError, KeyError):
         return _FALLBACK_SUFFIX
+
+
+def owner_stem(owner_type: str, owner_id: Optional[int], owner: Any) -> Optional[str]:
+    """Základ názvu podle vlastníka, bez role a přípony.
+
+    Vrací None pro knihovnu - soubor bez vlastníka nemá z čeho název odvodit
+    a nechává si ten, se kterým byl nahraný.
+    """
+    if owner_type == AttachmentOwner.race.value:
+        # Číslo závodu se needituje na malá písmena - "JMLP2025-05" je kód.
+        race_nr = getattr(owner, "race_nr", None)
+        return race_nr or f"zavod-{owner_id}"
+
+    if owner_type == AttachmentOwner.season.value:
+        return f"sezona-{owner_id}-{int(owner_id) + 1}"
+
+    if owner_type == AttachmentOwner.club.value:
+        return f"klub-{slugify(fix_encoding(getattr(owner, 'name', '')))}"
+
+    if owner_type == AttachmentOwner.post.value:
+        return f"clanek-{owner_id}"
+
+    return None

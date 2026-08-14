@@ -24,3 +24,40 @@ def test_every_known_role_has_suffix():
     from app.models import AttachmentRole
     for role in AttachmentRole:
         assert role in ROLE_SUFFIX
+
+
+from app.services.naming import owner_stem
+
+
+class FakeRace:
+    def __init__(self, race_nr):
+        self.race_nr = race_nr
+
+
+class FakeClub:
+    def __init__(self, name):
+        self.name = name
+
+
+def test_owner_stem_race_keeps_race_number_case():
+    assert owner_stem("race", 127, FakeRace("JMLP2025-05")) == "JMLP2025-05"
+
+
+def test_owner_stem_race_without_number_falls_back_to_id():
+    assert owner_stem("race", 127, FakeRace(None)) == "zavod-127"
+
+
+def test_owner_stem_season_spans_two_years():
+    assert owner_stem("season", 2025, None) == "sezona-2025-2026"
+
+
+def test_owner_stem_club_is_slugified():
+    assert owner_stem("club", 5, FakeClub("FreeSki Academy Brno")) == "klub-freeski-academy-brno"
+
+
+def test_owner_stem_post_uses_id():
+    assert owner_stem("post", 6, None) == "clanek-6"
+
+
+def test_owner_stem_library_has_no_systematic_name():
+    assert owner_stem("library", None, None) is None
