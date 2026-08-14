@@ -380,14 +380,33 @@
   color: white !important;
 }
 
-/* Dashboard list groups - ensure light mode */
-.admin-section .list-group-item {
+/* Dashboard list groups - ensure light mode.
+   :not(.active) so Bootstrap's selected state stays visible (white-on-white otherwise). */
+.admin-section .list-group-item:not(.active) {
   background: white !important;
   border-color: #f0f0f0 !important;
 }
 
-.admin-section .list-group-item:hover {
+.admin-section .list-group-item:hover:not(.active) {
   background: #f8f9fa !important;
+}
+
+.admin-section .list-group-item.active {
+  background: var(--adm-primary) !important;
+  border-color: var(--adm-primary) !important;
+  color: #fff !important;
+}
+
+/* Icons/labels inside a selected row — .admin-section .badge/.text-* would keep
+   them white-on-white or low contrast otherwise */
+.admin-section .list-group-item.active .bi,
+.admin-section .list-group-item.active .small,
+.admin-section .list-group-item.active .text-muted {
+  color: #fff !important;
+}
+
+.admin-section .list-group-item.active .badge.bg-white {
+  color: var(--adm-primary) !important;
 }
 
 /* Period toggle buttons */
@@ -867,3 +886,11 @@
 .timekeeper-section .timekeeper-race-number-actual {
   font-size: 0.6rem;
 }
+
+/* Keyboard users must be able to see what is focused on the destructive screen. */
+.admin-section .form-check-input:focus-visible,
+.admin-section .btn:focus-visible {
+  outline: 2px solid var(--adm-primary, #2563eb);
+  outline-offset: 2px;
+}
+
