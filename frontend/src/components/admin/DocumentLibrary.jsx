@@ -31,6 +31,9 @@ const EMPTY_FILTERS = {
 
 const hasFilters = (filters) => Object.values(filters).some((value) => value !== '');
 
+/** Starší sezóny se do nabídky nevejdou a nikdo do nich už nic nezveřejňuje. */
+const OFFERED_SEASONS = 4;
+
 /** Nabídka přípon se bere z dat, ať tam nejsou volby bez jediného souboru. */
 const collectExtensions = (files) => {
   const seen = new Set();
@@ -47,6 +50,7 @@ export default function DocumentLibrary() {
   const [files, setFiles] = useState([]);
   const [total, setTotal] = useState(0);
   const [extensions, setExtensions] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [message, setMessage] = useState(null);
@@ -83,6 +87,15 @@ export default function DocumentLibrary() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [applied, reloadToken]);
+
+  // Sezóny se nemění během práce s knihovnou, stačí je načíst jednou.
+  useEffect(() => {
+    let active = true;
+    LibraryAPI.seasons()
+      .then((data) => { if (active) setSeasons(data || []); })
+      .catch((err) => { if (active) setMessage({ type: 'danger', text: err.message }); });
+    return () => { active = false; };
+  }, []);
 
   const reload = () => setReloadToken((token) => token + 1);
 
@@ -126,6 +139,42 @@ export default function DocumentLibrary() {
     try {
       await LibraryAPI.rename(file.id, name);
       setMessage({ type: 'success', text: 'Soubor přejmenován' });
+      reload();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message });
+    }
+  };
+
+  // ---- zveřejnění na webu ----
+
+  /**
+   * Připne existující soubor k sezóně jako veřejný dokument.
+   *
+   * Bez toho by se soubor, který už v knihovně je, musel kvůli zveřejnění
+   * nahrávat podruhé - a v knihovně by ležel dvakrát.
+   */
+  const handlePublish = async (file) => {
+    if (!seasons.length) {
+      setMessage({ type: 'danger', text: 'Není založená žádná sezóna, kam soubor zveřejnit.' });
+      return;
+    }
+
+    const year = await confirm({
+      title: `Zveřejnit „${file.original_filename}" na webu?`,
+      message: 'Soubor se objeví na stránce /dokumenty u vybrané sezóny. '
+        + 'Popiskem odkazu je název souboru.',
+      choices: seasons.slice(0, OFFERED_SEASONS).map((season) => ({
+        value: season.year_start,
+        label: `Sezóna ${season.season_label}`,
+        variant: 'primary',
+        icon: 'bi-globe'
+      }))
+    });
+    if (!year) return;
+
+    try {
+      await LibraryAPI.publishToSeason(file.id, year);
+      setMessage({ type: 'success', text: 'Soubor zveřejněn na /dokumenty' });
       reload();
     } catch (err) {
       setMessage({ type: 'danger', text: err.message });
@@ -356,6 +405,14 @@ export default function DocumentLibrary() {
                       >
                         <i className="bi bi-download" />
                       </a>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary me-1"
+                        onClick={() => handlePublish(file)}
+                        title="Zveřejnit na webu"
+                      >
+                        <i className="bi bi-globe" />
+                      </button>
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
