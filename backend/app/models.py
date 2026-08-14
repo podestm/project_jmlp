@@ -15,6 +15,71 @@ class FileTypeEnum(str, enum.Enum):
     neprirazene = "neprirazene"
 
 
+class AttachmentOwner(str, enum.Enum):
+    """Typ vlastníka přílohy - viz Attachment.owner_type."""
+    race = "race"
+    post = "post"
+    season = "season"
+    club = "club"
+    library = "library"
+
+
+class AttachmentRole(str, enum.Enum):
+    """Role přílohy u vlastníka - viz Attachment.role."""
+    propozice = "propozice"
+    vysledky = "vysledky"
+    prubezne = "prubezne"
+    image = "image"
+    document = "document"
+    logo = "logo"
+    other = "other"
+
+
+# Lidsky čitelné popisky rolí (české, pro UI i pro kontrolu použití souboru)
+ATTACHMENT_ROLE_LABELS = {
+    AttachmentRole.propozice: "Propozice",
+    AttachmentRole.vysledky: "Výsledky",
+    AttachmentRole.prubezne: "Průběžné výsledky",
+    AttachmentRole.image: "Obrázek",
+    AttachmentRole.document: "Dokument",
+    AttachmentRole.logo: "Logo",
+    AttachmentRole.other: "Ostatní",
+}
+
+# Které role smí mít který vlastník.
+# Závod má záměrně jen propozice a výsledky - vždy nejvýše jeden soubor od každé.
+ATTACHMENT_ROLES_BY_OWNER = {
+    AttachmentOwner.race: (AttachmentRole.propozice, AttachmentRole.vysledky),
+    AttachmentOwner.post: (AttachmentRole.image, AttachmentRole.document),
+    AttachmentOwner.season: (AttachmentRole.vysledky, AttachmentRole.prubezne, AttachmentRole.document),
+    AttachmentOwner.club: (AttachmentRole.logo,),
+    AttachmentOwner.library: (AttachmentRole.document, AttachmentRole.image, AttachmentRole.other),
+}
+
+# Skupiny rolí, ze kterých smí mít vlastník dohromady nejvýše jeden dokument.
+# Nahrazují původní jednosloupcové vazby (race.results_file_id atd.).
+#
+# U sezóny jsou průběžné a celkové výsledky ve stejné skupině: v průběhu sezóny
+# platí průběžné pořadí, po jejím skončení ho nahradí celkové. Obojí zároveň
+# z podstaty věci neexistuje.
+ATTACHMENT_EXCLUSIVE_GROUPS = {
+    AttachmentOwner.race: (
+        (AttachmentRole.propozice,),
+        (AttachmentRole.vysledky,),
+    ),
+    AttachmentOwner.post: (
+        (AttachmentRole.image,),
+        (AttachmentRole.document,),
+    ),
+    AttachmentOwner.season: (
+        (AttachmentRole.vysledky, AttachmentRole.prubezne),
+    ),
+    AttachmentOwner.club: (
+        (AttachmentRole.logo,),
+    ),
+}
+
+
 # Custom type for MySQL BIT(1) fields
 class BitBoolean(TypeDecorator):
     impl = SmallInteger
@@ -62,6 +127,10 @@ class Category(Base):
     __tablename__ = "fuj_jmlp_category"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100, collation='utf8mb4_unicode_ci'))
+    # Jediný zobrazovaný název - web, timekeeper i PDF ("Myšáci dívky").
+    # Když je NULL, složí se z name + sex (viz utils.compose_category_name).
+    display_name: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
     min_birth_year: Mapped[int] = mapped_column(Integer)  # Nejstarší ročník
     max_birth_year: Mapped[int] = mapped_column(Integer)  # Nejmladší ročník
     sex: Mapped[int] = mapped_column(SmallInteger)  # 1 = muži, 2 = ženy, 0 = mix
@@ -84,13 +153,41 @@ class Race(Base):
     race_nr: Mapped[str | None] = mapped_column(String(255), nullable=True)
     registration: Mapped[bool] = mapped_column(BitBoolean)
     timekeeper_category_order: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    proposition_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
-    results_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
+    # Dokumenty závodu (propozice, výsledky) jsou přílohy - viz Attachment.
     areal_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("fuj_jmlp_areal.id"), nullable=True)
     organizer_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     race_method_id: Mapped[int] = mapped_column(BigInteger)
     season_id: Mapped[int] = mapped_column(BigInteger)
     is_live: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Hlavička výsledkové listiny - vyplňuje časoměřič před závodem.
+    # Čisté utf8mb4, čte se prostým SELECTem bez fix_encoding.
+    race_director: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    technical_delegate: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    chief_timekeeper: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    run_count: Mapped[int] = mapped_column(SmallInteger, default=1)
+
+
+class RaceRun(Base):
+    """Údaje o jednom kole závodu - blok 1.KOLO / 2.KOLO ve výsledkové listině."""
+    __tablename__ = "fuj_jmlp_race_run"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    race_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    run_number: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    course_setter: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    gates_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    conditions: Mapped[str | None] = mapped_column(
+        String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    # Jen popisek do listiny ("10:00") - jako TIME by z překlepu byla chyba 500.
+    start_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    course_length_m: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("race_id", "run_number", name="uq_race_run"),
+    )
 
 
 class Registration(Base):
@@ -112,9 +209,10 @@ class Post(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(String)
-    image_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # Obrázek a dokument příspěvku jsou přílohy - viz Attachment.
+    # image_file_id / document_file_id se do odpovědi doplňují z příloh
+    # (services/attachments.py::apply_post_documents), sloupce už neexistují.
     image_position: Mapped[str | None] = mapped_column(String(20), nullable=True, default="right")  # "left", "right", "top", "none"
-    document_file_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)  # FK to fuj_jmlp_files
     published: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -142,16 +240,53 @@ class File(Base):
     file_size: Mapped[int] = mapped_column(BigInteger, default=0)
     mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     file_type: Mapped[FileTypeEnum] = mapped_column(Enum(FileTypeEnum), default=FileTypeEnum.neprirazene)
-    folder: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Knihovna je plochá: soubor nemá složku ani sezónu. Kam patří, říká
+    # příloha (viz Attachment), jak se jmenuje, říká services/naming.py.
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     uploaded_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
 
-class Folder(Base):
-    __tablename__ = "fuj_jmlp_folders"
+class Attachment(Base):
+    """Univerzální vazba souboru na vlastníka.
+
+    Nahrazuje pět dřívějších samostatných vazeb (race.proposition_file_id,
+    race.results_file_id, posts.image_file_id, posts.document_file_id
+    a celou tabulku fuj_jmlp_season_results).
+
+    owner_type / owner_id:
+        'race'    -> fuj_jmlp_race.id
+        'post'    -> fuj_jmlp_posts.id
+        'season'  -> rok začátku sezóny (fuj_jmlp_season.year_start)
+        'club'    -> fuj_jmlp_club.id
+        'library' -> NULL (soubor zatím nikam nepatří)
+    """
+    __tablename__ = "fuj_jmlp_attachment"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
+    file_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    owner_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    role: Mapped[str] = mapped_column(String(24), nullable=False)
+    # Vlastní název přílohy tu byl a zrušil se - soubor má jediný název,
+    # svůj vlastní (File.original_filename).
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # 1 = soubor vygenerovala aplikace (nikoli ruční upload)
+    is_generated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class Season(Base):
+    """Ročník poháru. season_id v ostatních tabulkách == year_start."""
+    __tablename__ = "fuj_jmlp_season"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    year_start: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    year_end: Mapped[int] = mapped_column(Integer, nullable=False)
+    edition: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 19 -> "XIX."
+    name: Mapped[str] = mapped_column(String(160, collation='utf8mb4_unicode_ci'), nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class VisitorLog(Base):
@@ -161,21 +296,6 @@ class VisitorLog(Base):
     user_agent: Mapped[str | None] = mapped_column(String(255), nullable=True)
     path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     visited_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
-
-
-class SeasonResult(Base):
-    __tablename__ = "fuj_jmlp_season_results"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    season_year_start: Mapped[int] = mapped_column(Integer, nullable=False)
-    season_year_end: Mapped[int] = mapped_column(Integer, nullable=False)
-    document_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    final_results: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False)  # 0 = průběžné, 1 = celkové
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    __table_args__ = (
-        UniqueConstraint('season_year_start', 'season_year_end', name='unique_season'),
-    )
 
 
 class RaceNumber(Base):
