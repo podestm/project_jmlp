@@ -39,6 +39,91 @@ def _table_exists(conn, table: str) -> bool:
 
 
 # --------------------------------------------------------------------------
+# 000 - dorovnání schématu z původní databáze
+#
+# Ostrá databáze jmlp.cz vznikla ještě před sjednocením názvů a část změn se
+# tady kdysi udělala ručně, takže po nich v repu nezůstala stopa. Bez tohohle
+# kroku by na ní nový kód spadl hned při startu - modely míří na tabulky
+# a sloupce, které tam nejsou.
+#
+# Běží jako první: ostatní migrace už s novými názvy počítají (například
+# _m_attachments čte fuj_jmlp_posts.image_file_id).
+#
+# Data se nikde nezahazují. Sloupce raceCategory_id a raceType_id nový model
+# nezná, ale nesou klasifikaci 109 závodů - proto se jen uvolní na NULL, aby
+# nebránily zápisu nového závodu. Zahodit je lze později vědomě.
+# --------------------------------------------------------------------------
+_STARTOVKA_SLOUPCE = (
+    ("racer_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("racer_surname", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("racer_year", "int DEFAULT NULL"),
+    ("racer_sex", "smallint DEFAULT NULL"),
+    ("club_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("category_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("category_sex", "smallint DEFAULT NULL"),
+    ("race_number_actual", "int DEFAULT NULL"),
+    ("race_number_display", "int DEFAULT NULL"),
+    ("name_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("surname_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    ("year_override", "int DEFAULT NULL"),
+)
+
+
+def _m_legacy_schema(conn):
+    # 1) tabulky bez prefixu
+    for stary, novy in (("posts", "fuj_jmlp_posts"),
+                        ("race_registration", "fuj_jmlp_race_registration")):
+        if _table_exists(conn, stary) and not _table_exists(conn, novy):
+            conn.execute(text(f"RENAME TABLE {stary} TO {novy}"))
+            logger.info("Migrace: %s -> %s", stary, novy)
+
+    # 2) camelCase sloupce závodu
+    for stary, novy, definice in (
+        ("raceNr", "race_nr", "varchar(255) DEFAULT NULL"),
+        ("raceMethod_id", "race_method_id", "bigint NOT NULL"),
+    ):
+        if _column_exists(conn, "fuj_jmlp_race", stary) and not _column_exists(conn, "fuj_jmlp_race", novy):
+            conn.execute(text(f"ALTER TABLE fuj_jmlp_race CHANGE `{stary}` `{novy}` {definice}"))
+            logger.info("Migrace: fuj_jmlp_race.%s -> %s", stary, novy)
+
+    # 3) chybějící sloupce, které nedoplňuje žádná pozdější migrace
+    chybejici = [
+        ("fuj_jmlp_race", "is_live", "tinyint(1) NOT NULL DEFAULT '0'"),
+        ("fuj_jmlp_race", "timekeeper_category_order", "varchar(1000) DEFAULT NULL"),
+        ("fuj_jmlp_race_numbers", "set_color",
+         "varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'rose'"),
+        ("fuj_jmlp_race_numbers", "is_active", "tinyint(1) NOT NULL DEFAULT '1'"),
+    ]
+    chybejici += [("fuj_jmlp_race_start_list", jmeno, definice)
+                  for jmeno, definice in _STARTOVKA_SLOUPCE]
+
+    for tabulka, sloupec, definice in chybejici:
+        if _table_exists(conn, tabulka) and not _column_exists(conn, tabulka, sloupec):
+            conn.execute(text(f"ALTER TABLE {tabulka} ADD COLUMN `{sloupec}` {definice}"))
+            logger.info("Migrace: %s.%s doplněn", tabulka, sloupec)
+
+    # 4) legacy klasifikace závodu: data zůstávají, jen přestanou být povinná
+    for sloupec in ("raceCategory_id", "raceType_id"):
+        if _column_exists(conn, "fuj_jmlp_race", sloupec):
+            conn.execute(text(f"ALTER TABLE fuj_jmlp_race MODIFY `{sloupec}` bigint NULL"))
+            logger.info("Migrace: fuj_jmlp_race.%s uvolněn na NULL (data zůstávají)", sloupec)
+
+    # 5) posts.image_path nový model nezná. Zahodí se jen když je prázdný -
+    #    jinak by to byla ztráta a raději ať upgrade skončí s plným sloupcem.
+    if _column_exists(conn, "fuj_jmlp_posts", "image_path"):
+        pouzity = conn.execute(text(
+            "SELECT COUNT(*) FROM fuj_jmlp_posts WHERE image_path IS NOT NULL AND image_path <> ''"
+        )).scalar()
+        if pouzity:
+            logger.warning(
+                "Migrace: fuj_jmlp_posts.image_path nese %s hodnot, nechávám ho být", pouzity
+            )
+        else:
+            conn.execute(text("ALTER TABLE fuj_jmlp_posts DROP COLUMN image_path"))
+            logger.info("Migrace: fuj_jmlp_posts.image_path zahozen (byl prázdný)")
+
+
+# --------------------------------------------------------------------------
 # 001 - poznámka k žádosti o klub u registrace
 # --------------------------------------------------------------------------
 def _m_registration_club_request_note(conn):
@@ -604,6 +689,13 @@ def _m_library_tree(conn):
 # by navíc už nebylo z čeho názvy odvodit.
 # --------------------------------------------------------------------------
 def _m_flat_library(conn):
+    # attachment.title padá vždycky, i když databáze stromovou knihovnou nikdy
+    # neprošla: nový model ho nezná a _m_attachments ho zakládá prázdný.
+    # Dřív viselo zahození pod podmínkou folder_id níž, takže na databázi bez
+    # složek (ostrý web) sloupec zůstal a schéma se rozešlo se zdejším.
+    if _column_exists(conn, "fuj_jmlp_attachment", "title"):
+        conn.execute(text("ALTER TABLE fuj_jmlp_attachment DROP COLUMN title"))
+
     if not _column_exists(conn, "fuj_jmlp_files", "folder_id"):
         return
 
@@ -614,9 +706,6 @@ def _m_flat_library(conn):
     for column in ("season_year", "folder_id", "folder"):
         if _column_exists(conn, "fuj_jmlp_files", column):
             conn.execute(text(f"ALTER TABLE fuj_jmlp_files DROP COLUMN {column}"))
-
-    if _column_exists(conn, "fuj_jmlp_attachment", "title"):
-        conn.execute(text("ALTER TABLE fuj_jmlp_attachment DROP COLUMN title"))
 
     if _table_exists(conn, "fuj_jmlp_folders"):
         conn.execute(text("DROP TABLE fuj_jmlp_folders"))
@@ -766,6 +855,7 @@ def _rename_file(conn, file_id: int, new_name: str) -> None:
 
 
 MIGRATIONS = (
+    _m_legacy_schema,
     _m_registration_club_request_note,
     _m_attachments,
     _m_seasons,
