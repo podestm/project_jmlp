@@ -1,11 +1,68 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../../config/auth.jsx';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
+import LoadingState from '../ui/LoadingState.jsx';
 import SearchableSelect from '../ui/SearchableSelect.jsx';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
+
+// Závodníků jsou v databázi tisíce. Vykreslit je všechny naráz znamená tisíce
+// řádků v DOMu a zaseknutou stránku, proto se ukazuje po stovkách.
+const PAGE_SIZE = 100;
+
+// Hledání filtruje celé pole v paměti; bez odkladu by se to přepočítávalo
+// (a tabulka překreslovala) po každé stisknuté klávese.
+const SEARCH_DEBOUNCE_MS = 250;
+
+/**
+ * Jeden řádek tabulky.
+ *
+ * Memoizovaný schválně: při psaní do hledání se překresluje celá obrazovka,
+ * ale data samotných řádků se nemění - bez memo by React zbytečně přepočítal
+ * všech sto. Předpokladem je, že `onEdit` i `onDelete` jsou stabilní
+ * (useCallback v rodiči), jinak memo nic neušetří.
+ */
+const RacerRow = React.memo(function RacerRow({ racer, onEdit, onDelete }) {
+  return (
+    <tr>
+      <td>{racer.firstName}</td>
+      <td>{racer.lastName}</td>
+      <td>
+        <span className={`badge ${racer.sex === 1 ? 'bg-primary' : 'bg-success'}`}>
+          {racer.sex === 1 ? 'M' : 'Z'}
+        </span>
+      </td>
+      <td>{racer.birthYear}</td>
+      <td>
+        {racer.category_name ? (
+          <span className="badge bg-info">{racer.category_name}</span>
+        ) : '-'}
+      </td>
+      <td>{racer.club_name || 'Bez oddílu'}</td>
+      <td><code>{racer.idSlcr || 'N/A'}</code></td>
+      <td>
+        <div className="btn-group">
+          <button
+            onClick={() => onEdit(racer)}
+            className="btn btn-sm btn-outline-primary"
+            title="Upravit"
+          >
+            <i className="bi bi-pencil"></i>
+          </button>
+          <button
+            onClick={() => onDelete(racer)}
+            className="btn btn-sm btn-outline-danger"
+            title="Smazat"
+          >
+            <i className="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
 
 export default function RacerManagement() {
-  const { token } = useAuth();
+  const { confirm, confirmElement } = useConfirm();
   const [racers, setRacers] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -13,13 +70,16 @@ export default function RacerManagement() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingRacer, setEditingRacer] = useState(null);
-  
+
   // Filtry
   const [filterClub, setFilterClub] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSex, setFilterSex] = useState('');
-  const [searchText, setSearchText] = useState('');
-  
+  const [searchInput, setSearchInput] = useState('');   // co je v poli
+  const [searchText, setSearchText] = useState('');     // podle čeho se filtruje
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -33,7 +93,18 @@ export default function RacerManagement() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchText(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Po změně filtru se začíná zase od první stovky - jinak by uživatel po
+  // zúžení výběru koukal na "zobrazeno 300 z 12".
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchText, filterClub, filterCategory, filterSex]);
+
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [racersData, clubsData, categoriesData] = await Promise.all([
@@ -41,17 +112,17 @@ export default function RacerManagement() {
         AdminAPI.get('/races/organizers'),
         AdminAPI.get('/api/admin/categories')
       ]);
-      
+
       setRacers(racersData);
       setClubs(clubsData);
       setCategories(categoriesData || []);
     } catch (err) {
       console.error('Error loading data:', err);
-      setError(err.message);
+      setError(err.message || 'Nepodařilo se načíst závodníky');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Filtrovaní závodníci
   const filteredRacers = useMemo(() => {
@@ -82,25 +153,52 @@ export default function RacerManagement() {
     });
   }, [racers, filterClub, filterCategory, filterSex, searchText]);
 
+  const visibleRacers = useMemo(
+    () => filteredRacers.slice(0, visibleCount),
+    [filteredRacers, visibleCount]
+  );
+
+  const clubOptions = useMemo(
+    () => clubs.map(club => ({ value: String(club.id), label: club.name })),
+    [clubs]
+  );
+
+  // Stejné pravidlo jako category_display_sql na serveru: bez toho ukazuje
+  // filtr interní název, zatímco sloupec v tabulce zobrazovaný, a zrcadlové
+  // kategorie splynou ve dvě nerozlišitelné položky.
+  const categoryOptions = useMemo(
+    () => categories.map(cat => ({
+      value: String(cat.id),
+      label: cat.display_name
+        || `${cat.name}${cat.sex === 1 ? ' - Muži' : cat.sex === 2 ? ' - Ženy' : ''}`,
+    })),
+    [categories]
+  );
+
   // Reset filtrů
   const resetFilters = () => {
     setFilterClub('');
     setFilterCategory('');
     setFilterSex('');
-    setSearchText('');
+    setSearchInput('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Nevybraný oddíl je ve formuláři prázdný řetězec, ale schéma na serveru
+      // čeká číslo nebo nic - prázdný řetězec by skončil chybou 422.
+      const payload = {
+        ...formData,
+        club_id: formData.club_id ? parseInt(formData.club_id, 10) : null,
+      };
+
       if (editingRacer) {
-        // Update racer
-        await AdminAPI.put(`/api/admin/racers/${editingRacer.id}`, formData);
+        await AdminAPI.put(`/api/admin/racers/${editingRacer.id}`, payload);
       } else {
-        // Create racer
-        await AdminAPI.post('/api/admin/racers', formData);
+        await AdminAPI.post('/api/admin/racers', payload);
       }
-      
+
       // Reset form and reload data
       setFormData({
         firstName: '',
@@ -115,11 +213,12 @@ export default function RacerManagement() {
       loadData();
     } catch (err) {
       console.error('Error saving racer:', err);
-      setError(err.message);
+      setError(err.message || 'Nepodařilo se uložit závodníka');
     }
   };
 
-  const handleEdit = (racer) => {
+  // useCallback, aby memoizované řádky nedostávaly novou funkci při každém renderu
+  const handleEdit = useCallback((racer) => {
     setEditingRacer(racer);
     setFormData({
       firstName: racer.firstName || '',
@@ -130,19 +229,27 @@ export default function RacerManagement() {
       idSlcr: racer.idSlcr || ''
     });
     setShowForm(true);
-  };
+  }, []);
 
-  const handleDelete = async (racerId) => {
-    if (window.confirm('Opravdu chcete smazat tohoto závodníka?')) {
-      try {
-        await AdminAPI.delete(`/api/admin/racers/${racerId}`);
-        loadData();
-      } catch (err) {
-        console.error('Error deleting racer:', err);
-        setError(err.message);
-      }
+  const handleDelete = useCallback(async (racer) => {
+    const label = `${racer.firstName || ''} ${racer.lastName || ''}`.trim() || `#${racer.id}`;
+    const confirmed = await confirm({
+      title: 'Smazat závodníka?',
+      message: `Opravdu chcete smazat závodníka ${label} (ročník ${racer.birthYear || '?'})? Tuto akci nelze vrátit zpět.`,
+      confirmLabel: 'Smazat',
+      variant: 'danger',
+      icon: 'bi-trash'
+    });
+    if (!confirmed) return;
+
+    try {
+      await AdminAPI.delete(`/api/admin/racers/${racer.id}`);
+      loadData();
+    } catch (err) {
+      console.error('Error deleting racer:', err);
+      setError(err.message || 'Nepodařilo se smazat závodníka');
     }
-  };
+  }, [confirm, loadData]);
 
   const resetForm = () => {
     setFormData({
@@ -158,14 +265,10 @@ export default function RacerManagement() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Načítám...</span>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
+
+  const filtersActive = Boolean(filterClub || filterCategory || filterSex || searchInput);
 
   return (
     <div className="container-fluid admin-section">
@@ -186,8 +289,8 @@ export default function RacerManagement() {
           </div>
 
           {error && (
-            <Alert 
-              type="danger" 
+            <Alert
+              type="danger"
               message={
                 <>
                   <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -211,8 +314,8 @@ export default function RacerManagement() {
                     type="text"
                     className="form-control"
                     placeholder="Jméno, příjmení, SLCR..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
                 <div className="col-md-3">
@@ -221,10 +324,7 @@ export default function RacerManagement() {
                     Klub
                   </label>
                   <SearchableSelect
-                    options={clubs.map(club => ({
-                      value: String(club.id),
-                      label: club.name
-                    }))}
+                    options={clubOptions}
                     value={filterClub}
                     onChange={setFilterClub}
                     placeholder="Všechny kluby"
@@ -237,10 +337,7 @@ export default function RacerManagement() {
                     Kategorie
                   </label>
                   <SearchableSelect
-                    options={categories.map(cat => ({
-                      value: String(cat.id),
-                      label: cat.name
-                    }))}
+                    options={categoryOptions}
                     value={filterCategory}
                     onChange={setFilterCategory}
                     placeholder="Všechny kategorie"
@@ -263,7 +360,7 @@ export default function RacerManagement() {
                   </select>
                 </div>
                 <div className="col-md-2 d-flex align-items-end">
-                  {(filterClub || filterCategory || filterSex || searchText) && (
+                  {filtersActive && (
                     <button
                       className="btn btn-outline-secondary w-100"
                       onClick={resetFilters}
@@ -274,7 +371,7 @@ export default function RacerManagement() {
                   )}
                 </div>
               </div>
-              {(filterClub || filterCategory || filterSex || searchText) && (
+              {filtersActive && (
                 <div className="mt-2 text-muted small">
                   <i className="bi bi-funnel me-1"></i>
                   Zobrazeno {filteredRacers.length} z {racers.length} závodníků
@@ -300,54 +397,41 @@ export default function RacerManagement() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRacers.length === 0 ? (
+                    {visibleRacers.length === 0 ? (
                       <tr>
                         <td colSpan="8" className="text-center text-muted">
                           {racers.length === 0 ? 'Žádní závodníci nenalezeni' : 'Žádní závodníci neodpovídají filtru'}
                         </td>
                       </tr>
                     ) : (
-                      filteredRacers.map((racer) => (
-                        <tr key={racer.id}>
-                          <td>{racer.firstName}</td>
-                          <td>{racer.lastName}</td>
-                          <td>
-                            <span className={`badge ${racer.sex === 1 ? 'bg-primary' : 'bg-success'}`}>
-                              {racer.sex === 1 ? 'M' : 'Z'}
-                            </span>
-                          </td>
-                          <td>{racer.birthYear}</td>
-                          <td>
-                            {racer.category_name ? (
-                              <span className="badge bg-info">{racer.category_name}</span>
-                            ) : '-'}
-                          </td>
-                          <td>{racer.club_name || 'Bez oddílu'}</td>
-                          <td><code>{racer.idSlcr || 'N/A'}</code></td>
-                          <td>
-                            <div className="btn-group">
-                              <button
-                                onClick={() => handleEdit(racer)}
-                                className="btn btn-sm btn-outline-primary"
-                                title="Upravit"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </button>
-                              <button
-                                onClick={() => handleDelete(racer.id)}
-                                className="btn btn-sm btn-outline-danger"
-                                title="Smazat"
-                              >
-                                <i className="bi bi-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                      visibleRacers.map((racer) => (
+                        <RacerRow
+                          key={racer.id}
+                          racer={racer}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
                       ))
                     )}
                   </tbody>
                 </table>
               </div>
+
+              {filteredRacers.length > visibleRacers.length && (
+                <div className="text-center mt-3">
+                  <div className="text-muted small mb-2">
+                    Zobrazeno {visibleRacers.length} z {filteredRacers.length} závodníků — upřesněte hledání
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
+                  >
+                    <i className="bi bi-chevron-down me-1"></i>
+                    Zobrazit dalších {Math.min(PAGE_SIZE, filteredRacers.length - visibleRacers.length)}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -398,7 +482,7 @@ export default function RacerManagement() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="row">
                     <div className="col-md-4">
                       <div className="mb-3">
@@ -460,7 +544,7 @@ export default function RacerManagement() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="modal-footer">
                   <button
                     type="button"
@@ -479,6 +563,7 @@ export default function RacerManagement() {
         </div>
       )}
       {showForm && <div className="modal-backdrop show"></div>}
+      {confirmElement}
     </div>
   );
 }

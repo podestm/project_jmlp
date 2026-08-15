@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LibraryAPI, OWNER_FILTERS } from '../../config/libraryApi.js';
 import { downloadBlob } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';

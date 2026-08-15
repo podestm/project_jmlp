@@ -1,0 +1,163 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AdminAPI } from '../../config/api.js';
+import { OWNER, ROLE } from '../../config/attachmentsApi.js';
+import AttachmentManager from './attachments/AttachmentManager.jsx';
+import Alert from '../ui/Alert.jsx';
+import LoadingState from '../ui/LoadingState.jsx';
+import EmptyState from '../ui/EmptyState.jsx';
+
+const CLUB_ROLES = [ROLE.logo];
+
+/**
+ * Kluby a jejich loga.
+ *
+ * Logo pořádajícího klubu se tiskne v hlavičce výsledkové listiny, proto se
+ * nahrává tady - stejnou komponentou jako všechny ostatní dokumenty.
+ */
+export default function ClubManagement() {
+  const [clubs, setClubs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(null);
+  const [query, setQuery] = useState('');
+  const [onlyOrganizers, setOnlyOrganizers] = useState(false);
+  const [expandedClub, setExpandedClub] = useState(null);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      setClubs(await AdminAPI.get('/api/admin/clubs/overview'));
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const visibleClubs = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return clubs.filter((club) => {
+      if (onlyOrganizers && !club.organized_races_count) return false;
+      return !needle || club.name.toLowerCase().includes(needle);
+    });
+  }, [clubs, query, onlyOrganizers]);
+
+  const organizerCount = clubs.filter((c) => c.organized_races_count > 0).length;
+  const withLogo = clubs.filter((c) => c.has_logo).length;
+
+  return (
+    <div className="container-fluid">
+      <div className="mb-4">
+        <h2 className="mb-0">Kluby</h2>
+        <small className="text-muted">
+          Logo pořádajícího klubu se tiskne v hlavičce výsledkové listiny.
+          {' '}Loga má {withLogo} z {organizerCount} pořadatelů.
+        </small>
+      </div>
+
+      {message && (
+        <Alert
+          key={message.text}
+          type={message.type}
+          message={message.text}
+          onDismiss={() => setMessage(null)}
+        />
+      )}
+
+      <div className="row g-2 mb-3">
+        <div className="col-md-6">
+          <input
+            type="search"
+            className="form-control"
+            placeholder="Hledat klub…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="col-md-6 d-flex align-items-center">
+          <div className="form-check form-switch">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="only-organizers"
+              checked={onlyOrganizers}
+              onChange={(e) => setOnlyOrganizers(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="only-organizers">
+              Jen pořadatelé závodů
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/*
+        Spinner jen při prvním načtení. Obnovení na pozadí (po nahrání loga)
+        nesmí tabulku vyměnit za spinner - odpojilo by to AttachmentManager,
+        ten by se po návratu připojil znovu, znovu ohlásil změnu a celá
+        obrazovka by blikala v nekonečné smyčce.
+      */}
+      {loading && clubs.length === 0 ? (
+        <LoadingState variant="page" label="Načítám kluby…" />
+      ) : visibleClubs.length === 0 ? (
+        <EmptyState icon="bi-buildings" title="Žádný klub neodpovídá filtru" />
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Klub</th>
+                <th className="text-center">Závodníků</th>
+                <th className="text-center">Pořádá závodů</th>
+                <th className="text-center">Logo</th>
+                <th className="text-end">Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleClubs.map((club) => (
+                <React.Fragment key={club.id}>
+                  <tr className={club.valid ? '' : 'text-muted'}>
+                    <td>
+                      {club.name}
+                      {!club.valid && <span className="badge bg-secondary ms-2">neplatný</span>}
+                    </td>
+                    <td className="text-center">{club.racers_count}</td>
+                    <td className="text-center">{club.organized_races_count || '—'}</td>
+                    <td className="text-center">
+                      {club.has_logo
+                        ? <i className="bi bi-check-circle-fill text-success" title="Logo nahráno" />
+                        : <i className="bi bi-dash-circle text-muted" title="Bez loga" />}
+                    </td>
+                    <td className="text-end">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setExpandedClub(expandedClub === club.id ? null : club.id)}
+                      >
+                        <i className="bi bi-image me-1" />
+                        {club.has_logo ? 'Změnit logo' : 'Nahrát logo'}
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedClub === club.id && (
+                    <tr>
+                      <td colSpan={5} className="bg-light">
+                        <AttachmentManager
+                          ownerType={OWNER.club}
+                          ownerId={club.id}
+                          roles={CLUB_ROLES}
+                          title={`Logo klubu ${club.name}`}
+                          onChange={() => load()}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

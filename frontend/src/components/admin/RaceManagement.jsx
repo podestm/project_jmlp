@@ -1,11 +1,14 @@
-import React from 'react';
 import { useRaceManagement } from '../../hooks/useRaceManagement.js';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
 import RaceFilters from './race/RaceFilters.jsx';
 import RaceTable from './race/RaceTable.jsx';
 import RaceForm from './race/RaceForm.jsx';
 
 const RaceManagement = () => {
-    const raceManagement = useRaceManagement();
+    // Hook sám nic nerenderuje, dialog proto vlastní tahle komponenta
+    // a `confirm` posílá dolů (viz komentář v useConfirm.jsx).
+    const { confirm, confirmElement } = useConfirm();
+    const raceManagement = useRaceManagement({ confirm });
 
     return (
         <div className="container-fluid admin-section">
@@ -18,7 +21,7 @@ const RaceManagement = () => {
                         </h1>
                     </div>
 
-                    <RaceFilters 
+                    <RaceFilters
                         seasonFilter={raceManagement.seasonFilter}
                         setSeasonFilter={raceManagement.setSeasonFilter}
                         availableSeasons={raceManagement.availableSeasons}
@@ -29,16 +32,15 @@ const RaceManagement = () => {
                         setSuccess={raceManagement.setSuccess}
                     />
 
-                    <RaceTable 
+                    <RaceTable
                         races={raceManagement.races}
-                        availableDocuments={raceManagement.availableDocuments}
                         editRace={raceManagement.editRace}
                         deleteRace={raceManagement.deleteRace}
                         toggleRegistration={raceManagement.toggleRegistration}
                         downloadRegistrationsCsv={raceManagement.downloadRegistrationsCsv}
                     />
 
-                    <RaceForm 
+                    <RaceForm
                         showForm={raceManagement.showForm}
                         setShowForm={raceManagement.setShowForm}
                         editingRace={raceManagement.editingRace}
@@ -49,30 +51,18 @@ const RaceManagement = () => {
                         arealSuggestions={raceManagement.arealSuggestions}
                         organizerSearch={raceManagement.organizerSearch}
                         organizerSuggestions={raceManagement.organizerSuggestions}
-                        propositionSearch={raceManagement.propositionSearch}
-                        propositionSuggestions={raceManagement.propositionSuggestions}
-                        resultsSearch={raceManagement.resultsSearch}
-                        resultsSuggestions={raceManagement.resultsSuggestions}
                         raceNumberPreview={raceManagement.raceNumberPreview}
                         seasonPreview={raceManagement.seasonPreview}
-                        propositionDocuments={raceManagement.propositionDocuments}
-                        resultsDocuments={raceManagement.resultsDocuments}
-                        availableDocuments={raceManagement.availableDocumentsOnly}
                         handleArealSearch={raceManagement.handleArealSearch}
                         handleOrganizerSearch={raceManagement.handleOrganizerSearch}
-                        handlePropositionSearch={raceManagement.handlePropositionSearch}
-                        handleResultsSearch={raceManagement.handleResultsSearch}
                         selectAreal={raceManagement.selectAreal}
                         selectOrganizer={raceManagement.selectOrganizer}
-                        selectPropositionDocument={raceManagement.selectPropositionDocument}
-                        selectResultsDocument={raceManagement.selectResultsDocument}
-                        clearPropositionDocument={raceManagement.clearPropositionDocument}
-                        clearResultsDocument={raceManagement.clearResultsDocument}
-                        handleInlineUpload={raceManagement.handleInlineUpload}
                         generateRaceNumberLocal={raceManagement.generateRaceNumberLocal}
                         handleSubmit={raceManagement.handleSubmit}
                         resetForm={raceManagement.resetForm}
                     />
+
+                    {confirmElement}
                 </div>
             </div>
         </div>

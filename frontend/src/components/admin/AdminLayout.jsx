@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
@@ -96,9 +96,13 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-newspaper me-2"></i>
               Posty a zprávy
             </Link>
-            <Link to="/admin/season-results" className={`nav-link text-white ${isActive('/admin/season-results') ? 'active' : ''}`}>
+            <Link to="/admin/seasons" className={`nav-link text-white ${isActive('/admin/seasons') ? 'active' : ''}`}>
               <i className="bi bi-trophy-fill me-2"></i>
-              Celkové výsledky
+              Sezóny
+            </Link>
+            <Link to="/admin/clubs" className={`nav-link text-white ${isActive('/admin/clubs') ? 'active' : ''}`}>
+              <i className="bi bi-buildings-fill me-2"></i>
+              Kluby
             </Link>
             <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
               <i className="bi bi-tag me-2"></i>

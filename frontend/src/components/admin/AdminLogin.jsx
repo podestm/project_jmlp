@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../config/auth.jsx';
 import Alert from '../ui/Alert.jsx';
 
@@ -90,14 +90,6 @@ export default function AdminLogin() {
                 </button>
               </form>
               
-              {/* Development note - remove in production */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mt-3 text-center text-muted">
-                  <small>
-                    Vstup, kdo s dobrým úmyslem přicházíš.
-                  </small>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 
 export default function RaceRegistrations() {
   const { raceId } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
   
   const [race, setRace] = useState(null);
   const [registrations, setRegistrations] = useState([]);
@@ -173,7 +171,7 @@ export default function RaceRegistrations() {
                       </tr>
                     </thead>
                     <tbody>
-                      {registrations.map((registration, index) => (
+                      {registrations.map((registration, _index) => (
                         <tr key={registration.registration_id}>
                           <td>
                             <strong>{registration.firstName}</strong>

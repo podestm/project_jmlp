@@ -127,7 +127,7 @@ export const useRegistration = (raceId, onSuccess) => {
             const note = formData.clubNote.trim();
             if (note.length > 100) {
                 errors.club = 'Název klubu může mít nejvýše 100 znaků';
-            } else if (!/^[a-zA-Z0-9\u00C0-\u017E\s\-\.]+$/.test(note)) {
+            } else if (!/^[a-zA-Z0-9\u00C0-\u017E\s\-.]+$/.test(note)) {
                 errors.club = 'Název klubu smí obsahovat pouze písmena (včetně háčků), číslice, mezery, pomlčky a tečky';
             }
         }

@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import VisitsChart from './VisitsChart.jsx';
 
 export default function AdminDashboard() {
-  const { token } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

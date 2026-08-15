@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import LoadingState from '../../ui/LoadingState.jsx';
 import EmptyState from '../../ui/EmptyState.jsx';
 import { AttachmentsAPI } from '../../../config/attachmentsApi.js';

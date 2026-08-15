@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import API, { API_CONFIG } from '../config/api.js';
-import { formatText as formatTextUtil } from '../utils/text.js';
 import { MONTH_NAMES } from '../config/constants.js';
 
 export const useNewsArchive = () => {
@@ -109,15 +108,6 @@ export const useNewsArchive = () => {
         setCurrentPage(1);
     };
 
-    // Date formatting
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('cs-CZ');
-    };
-
-    const formatText = (text) => {
-        return formatTextUtil(text);
-    };
-
     return {
         // State
         posts,
@@ -144,7 +134,5 @@ export const useNewsArchive = () => {
         monthNames,
         handlePageChange,
         clearFilters,
-        formatDate,
-        formatText
     };
 };

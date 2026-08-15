@@ -50,7 +50,7 @@ export const usePostManagement = () => {
             setLoading(true);
             const data = await AdminAPI.get('/api/admin/posts');
             setPosts(data);
-        } catch (err) {
+        } catch {
             setError('Chyba při načítání postů');
         } finally {
             setLoading(false);

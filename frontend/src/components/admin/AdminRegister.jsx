@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 
@@ -16,7 +15,6 @@ export default function AdminRegister() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   
-  const { token } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -73,7 +71,7 @@ export default function AdminRegister() {
     setErrors({});
     
     try {
-      const response = await AdminAPI.post('/api/admin/auth/register', {
+      await AdminAPI.post('/api/admin/auth/register', {
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ButtonSpinner } from '../../ui/LoadingState.jsx';
 import { getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
 import LibraryPicker from './LibraryPicker.jsx';

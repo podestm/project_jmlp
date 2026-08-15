@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Alert from '../../ui/Alert.jsx';
 import LoadingState from '../../ui/LoadingState.jsx';
 import AttachmentSlot from './AttachmentSlot.jsx';
