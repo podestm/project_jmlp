@@ -7,7 +7,6 @@ import jmlpLogo from '../../assets/images/jmlp_logo.png';
 import slcrLogo from '../../assets/images/czech_ski_snowboard-logo.png';
 import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 function Homepage() {
   const liveRace = useLiveStatus();
@@ -117,55 +116,59 @@ function Homepage() {
         }
       `}</style>
 
-      {/* ===== HERO BANNER ===== */}
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        background: 'linear-gradient(160deg, rgba(10,15,30,0.95) 0%, rgba(20,30,55,0.92) 100%)',
-        marginTop: 'calc(-1 * var(--spacing-xl))',
-        marginBottom: '2rem'
-      }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
-        <div style={{
-          position: 'relative', zIndex: 1,
-          display: 'flex', alignItems: 'center', gap: '1.5rem',
-          padding: '1rem 2rem', width: '100%', maxWidth: '900px'
-        }}>
-          <img
-            src={jmlpLogo}
-            alt="JMLP Logo"
-            style={{ height: '90px', flexShrink: 0, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.6))' }}
-          />
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <h1
-              className="text-white fw-bold mb-1"
-              style={{
-                fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)',
-                textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-                letterSpacing: '-0.01em'
-              }}
-            >
-              Jihomoravský Lyžařský Pohár
-            </h1>
-            <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.65)', margin: 0 }}>
-              Seriál závodů alpského lyžování pro všechny kategorie
-            </p>
-          </div>
-          <img
-            src={slcrLogo}
-            alt="Czech Ski & Snowboard Logo"
-            style={{ height: '90px', flexShrink: 0, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.6))' }}
-          />
-        </div>
-      </div>
-
       <div className="content-wrapper">
         <div className="row justify-content-center">
           <div className="col-lg-10">
+
+            {/*
+              Hlavička s názvem a logy - světlý panel podle ostrého webu jmlp.cz.
+
+              Sedí ve stejném sloupci a má stejné zaoblení jako karty aktualit
+              pod ním, takže nepůsobí jako cizí blok nalepený nahoru. Rozvržení
+              drží flex, ne bootstrapový grid: logo se roztáhne přesně na svou
+              šířku a na úzkém displeji se prvky složí pod sebe samy.
+            */}
+            <div
+              className="mb-4"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                gap: '1.5rem',
+                padding: '1.25rem 1.75rem',
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                borderRadius: '12px',
+                borderBottom: '3px solid #4a90e2',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+            >
+              <img
+                src={jmlpLogo}
+                alt="JMLP Logo"
+                style={{ maxHeight: '100px', width: 'auto', flexShrink: 0, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.1))' }}
+              />
+              <div style={{ flex: '1 1 260px', textAlign: 'center', minWidth: 0 }}>
+                <h1
+                  className="fw-bold mb-1"
+                  style={{
+                    color: '#2c3e50',
+                    fontSize: 'clamp(1.4rem, 3vw, 2rem)',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  Jihomoravský Lyžařský Pohár
+                </h1>
+                <p className="text-muted mb-0" style={{ fontSize: '1rem' }}>
+                  Seriál závodů pro všechny kategorie
+                </p>
+              </div>
+              <img
+                src={slcrLogo}
+                alt="Czech Ski &amp; Snowboard Logo"
+                style={{ maxHeight: '100px', width: 'auto', flexShrink: 0, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.1))' }}
+              />
+            </div>
 
             {/* ===== LIVE ALERT ===== */}
             {liveRace && (
@@ -355,7 +358,7 @@ function Homepage() {
                             </div>
 
                             {/* Races in this month */}
-                            {races.map((race, idx) => {
+                            {races.map((race, _idx) => {
                               const isPast = new Date(race.datum) < today;
                               const raceDate = new Date(race.datum);
                               return (
