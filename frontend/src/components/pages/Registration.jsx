@@ -4,6 +4,7 @@ import API, { API_CONFIG } from '../../config/api.js';
 import { fixEncoding } from '../../utils/text.js';
 import { formatDate } from '../../utils/date.js';
 import RegistrationForm from '../ui/RegistrationForm.jsx';
+import RegisteredRacersCard, { useRaceRegistrations } from './RegisteredRacersCard.jsx';
 
 function Registration() {
   const [races, setRaces] = useState([]);
@@ -11,8 +12,9 @@ function Registration() {
   const [loading, setLoading] = useState(true);
   const [successCount, setSuccessCount] = useState(0);
   const [successMsg, setSuccessMsg] = useState('');
-  const [registrations, setRegistrations] = useState(null);
-  const [loadingRegistrations, setLoadingRegistrations] = useState(false);
+
+  // successCount je refresh token - po každé registraci se seznam natáhne znovu
+  const { registrations, loading: loadingRegistrations } = useRaceRegistrations(selectedRaceId, successCount);
 
   useEffect(() => {
     const fetchRaces = async () => {
@@ -33,28 +35,10 @@ function Registration() {
     fetchRaces();
   }, []);
 
-  useEffect(() => {
-    if (!selectedRaceId) { setRegistrations(null); return; }
-    const fetchRegistrations = async () => {
-      setLoadingRegistrations(true);
-      try {
-        const data = await fetch(`/races/${selectedRaceId}/registrations`).then(r => r.json());
-        setRegistrations(data);
-      } catch (err) {
-        console.error('Chyba pri nacitani registraci:', err);
-      } finally {
-        setLoadingRegistrations(false);
-      }
-    };
-    fetchRegistrations();
-  }, [selectedRaceId, successCount]);
-
   const selectedRace = races.find(r => r.id === selectedRaceId);
 
   return (
-    <div className="content-wrapper">
-      <div className="row justify-content-center">
-        <div className="col-lg-10">
+    <>
 
           <div className="mb-4" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
             <h1 className="mb-0" style={{ fontSize: '1.75rem', fontWeight: '500', color: 'var(--text-primary)' }}>
@@ -146,80 +130,11 @@ function Registration() {
                     }}
                   />
 
-                  {/* Registered racers table */}
-                  <div className="card mt-4" style={{
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    background: 'var(--glass-bg)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}>
-                    <div className="card-header" style={{
-                      background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
-                      color: 'white',
-                      borderTopLeftRadius: '12px',
-                      borderTopRightRadius: '12px',
-                      padding: '1rem 1.25rem'
-                    }}>
-                      <h5 className="card-title mb-0">
-                        <span className="bi bi-people me-2"></span>
-                        Seznam registrovaných závodníků ({registrations?.total_racers || 0})
-                      </h5>
-                    </div>
-                    <div className="card-body">
-                      {loadingRegistrations ? (
-                        <div className="text-center py-3">
-                          <div className="spinner-border spinner-border-sm text-primary" role="status" />
-                        </div>
-                      ) : !registrations || registrations.total_racers === 0 ? (
-                        <div className="text-center text-muted py-3">
-                          <span className="bi bi-person-x" style={{ fontSize: '3rem' }}></span>
-                          <p className="mt-2">Zatím není nikdo přihlášen</p>
-                        </div>
-                      ) : (
-                        <div className="table-responsive">
-                          <table className="table table-hover">
-                            <thead className="table-light">
-                              <tr>
-                                <th>Jméno</th>
-                                <th>Příjmení</th>
-                                <th>Pohlaví</th>
-                                <th>Ročník</th>
-                                <th>Kategorie</th>
-                                <th>SLČR ID</th>
-                                <th>Klub</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {registrations.clubs.flatMap(club =>
-                                club.racers.map((racer, index) => (
-                                  <tr key={`${club.club_name}-${index}`}>
-                                    <td>{racer.firstName}</td>
-                                    <td>{racer.lastName}</td>
-                                    <td>
-                                      {racer.sex && (
-                                        <span className={`badge ${racer.sex === 'M' ? 'bg-primary' : 'bg-warning'}`}>
-                                          {racer.sex === 'M' ? 'Muž' : 'Žena'}
-                                        </span>
-                                      )}
-                                    </td>
-                                    <td>{racer.birthYear || '-'}</td>
-                                    <td>
-                                      {racer.category_name
-                                        ? <span className="badge bg-info">{racer.category_name}</span>
-                                        : '-'}
-                                    </td>
-                                    <td className="text-danger">{racer.idSlcr || '-'}</td>
-                                    <td><span className="badge bg-secondary">{club.club_name}</span></td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <RegisteredRacersCard
+                    registrations={registrations}
+                    loading={loadingRegistrations}
+                    className="mt-4"
+                  />
                 </>
               ) : (
                 <div className="alert alert-secondary">
@@ -229,9 +144,7 @@ function Registration() {
               )}
             </>
           )}
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 

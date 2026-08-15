@@ -39,8 +39,19 @@
   padding: var(--spacing-xl) 0;
 }
 
+/*
+ * Šířka obsahu.
+ *
+ * Layout obsah ještě vkládá do col-lg-10, takže viditelná karta je zhruba
+ * 83 % téhle hodnoty - proto je cíl 72vw, ne 60vw.
+ *
+ * `max()` znamená: na běžném notebooku platí pevných 1200 px (menší číslo se
+ * neuplatní), na širokém monitoru se obsah roztáhne s ním. Dřív tu byl jen
+ * pevný strop, takže čím větší monitor, tím menší podíl obsahu - na 2560 px
+ * zabíral něco přes třetinu a tabulka závodníků se musela posouvat do boku.
+ */
 .content-wrapper {
-  max-width: 1200px;
+  max-width: max(1200px, 72vw);
   margin: 0 auto;
   padding: 0 var(--spacing-md);
 }
