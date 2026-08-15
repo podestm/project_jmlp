@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRegistration } from '../../hooks/useRegistration.js';
 import RegistrationFormFields from './registration/RegistrationFormFields.jsx';
 import RacerSearchResults from './registration/RacerSearchResults.jsx';

@@ -1,4 +1,3 @@
-import React from 'react';
 import SearchableSelect from '../SearchableSelect.jsx';
 
 const RegistrationFormFields = ({
@@ -192,7 +191,7 @@ const RegistrationFormFields = ({
                                 placeholder="Napište název klubu, za který závodíte..."
                                 value={formData.clubNote || ''}
                                 onChange={e => {
-                                    const filtered = e.target.value.replace(/[^a-zA-Z0-9\u00C0-\u017E\s\-\.]/g, '');
+                                    const filtered = e.target.value.replace(/[^a-zA-Z0-9\u00C0-\u017E\s\-.]/g, '');
                                     updateField('clubNote', filtered.slice(0, 100));
                                 }}
                                 rows={2}

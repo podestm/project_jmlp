@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/date.js';
 import { fixEncoding } from '../../utils/text.js';
@@ -190,9 +190,11 @@ export default function RaceCalendar() {
                             </td>
                             <td className="text-end" style={{ verticalAlign: 'middle' }}>
                               <div className="d-flex gap-2 justify-content-end">
-                                {race.proposition_file_path && (
+                                {/* Dokumenty se stahují přes API endpoint, ne přímo z /uploads -
+                                    backend hlídá existenci souboru a vrací původní název přílohy. */}
+                                {race.proposition_file_id && (
                                   <a
-                                    href={`${API_BASE}/${race.proposition_file_path}`}
+                                    href={`${API_BASE}/races/${race.id}/proposition`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="btn btn-sm btn-outline-secondary"
@@ -203,9 +205,9 @@ export default function RaceCalendar() {
                                     Propozice
                                   </a>
                                 )}
-                                {race.results_file_path && (
+                                {race.results_file_id && (
                                   <a
-                                    href={`${API_BASE}/${race.results_file_path}`}
+                                    href={`${API_BASE}/races/${race.id}/results`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="btn btn-sm btn-outline-success"

@@ -1,4 +1,3 @@
-import React from 'react';
 
 const RegistrationMessage = ({ msg, setMsg }) => {
     if (!msg) return null;

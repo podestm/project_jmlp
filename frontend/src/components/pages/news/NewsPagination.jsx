@@ -1,4 +1,3 @@
-import React from 'react';
 
 const NewsPagination = ({ currentPage, totalPages, handlePageChange }) => {
     if (totalPages <= 1) return null;

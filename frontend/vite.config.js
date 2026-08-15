@@ -31,6 +31,11 @@ export default defineConfig({
         target: 'http://backend:8000',
         changeOrigin: true
       },
+      // API se seznamem dokumentů; SPA route je /dokumenty (česky)
+      '/documents': {
+        target: 'http://backend:8000',
+        changeOrigin: true
+      },
       '/visitor-log': {
         target: 'http://backend:8000',
         changeOrigin: true
@@ -52,9 +57,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
+        // Názvy nechává na Vite (`assets/[name]-[hash].[ext]`) - hash obsahu
+        // cache stejně invaliduje, takže nezměněný chunk si drží URL.
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['chart.js', 'react-chartjs-2'],
+          dexie: ['dexie'],
+          // pdfmake i s fonty je velký; načte se až při prvním generování
+          // výsledkové listiny, ne s celou timekeeper sekcí.
+          pdf: ['pdfmake']
+        }
       }
     }
   }

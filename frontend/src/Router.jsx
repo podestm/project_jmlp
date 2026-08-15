@@ -1,6 +1,8 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LiveStatusProvider } from './contexts/LiveStatusContext.jsx';
 import Layout from './components/layouts/Layout.jsx';
+import LoadingState from './components/ui/LoadingState.jsx';
 import Homepage from './components/pages/Homepage.jsx';
 import RaceCalendar from './components/pages/RaceCalendar.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
@@ -11,219 +13,68 @@ import Registration from './components/pages/Registration.jsx';
 import RaceDetail from './components/pages/RaceDetail.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 
-// Admin components
-import { AuthProvider, useAuth } from './config/auth.jsx';
-import AdminLogin from './components/admin/AdminLogin.jsx';
-import AdminRegister from './components/admin/AdminRegister.jsx';
-import AdminLayout from './components/admin/AdminLayout.jsx';
-import AdminDashboard from './components/admin/AdminDashboard.jsx';
-import RaceManagement from './components/admin/RaceManagement.jsx';
-import RacerManagement from './components/admin/RacerManagement.jsx';
-import DocumentManagement from './components/admin/DocumentManagement.jsx';
-import PostManagement from './components/admin/PostManagement.jsx';
-import RaceRegistrations from './components/admin/RaceRegistrations.jsx';
-import CategoryManagement from './components/admin/CategoryManagement.jsx';
-import SeasonResultsManagement from './components/admin/SeasonResultsManagement.jsx';
-import ClubRequests from './components/admin/ClubRequests.jsx';
+// Admin and timekeeper are whole sections a public visitor never reaches, so
+// they load on demand - together with their auth contexts, chart.js and Dexie.
+const AdminRoutes = lazy(() => import('./components/admin/AdminRoutes.jsx'));
+const TimekeeperRoutes = lazy(() => import('./components/timekeeper/TimekeeperRoutes.jsx'));
 
-// Timekeeper components
-import { TimekeeperAuthProvider, useTimekeeperAuth } from './config/timekeeperAuth.jsx';
-import TimekeeperLogin from './components/timekeeper/TimekeeperLogin.jsx';
-import TimekeeperLayout from './components/timekeeper/TimekeeperLayout.jsx';
-import TimekeeperDashboard from './components/timekeeper/TimekeeperDashboard.jsx';
-import StartListManager from './components/timekeeper/StartListManager.jsx';
-import TimekeeperRacers from './components/timekeeper/TimekeeperRacers.jsx';
-import TimingEntry from './components/timekeeper/TimingEntry.jsx';
-import ResultsView from './components/timekeeper/ResultsView.jsx';
-import RaceNumbersManager from './components/timekeeper/RaceNumbersManager.jsx';
-import SyncCenter from './components/timekeeper/SyncCenter.jsx';
-import TimingDeviceSettings from './components/timekeeper/TimingDeviceSettings.jsx';
-
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Načítám...</span>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    return <AdminLogin />;
-  }
-  
-  return <AdminLayout>{children}</AdminLayout>;
-};
-
-// Protected timekeeper route component
-const ProtectedTimekeeperRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useTimekeeperAuth();
-  
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border" style={{ color: '#e94560' }} role="status">
-          <span className="visually-hidden">Načítám...</span>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    return <TimekeeperLogin />;
-  }
-  
-  return <TimekeeperLayout>{children}</TimekeeperLayout>;
-};
+const NotFound = () => (
+  <Layout>
+    <div className="text-center py-5">
+      <h2>Stránka nenalezena</h2>
+      <p className="text-muted">Požadovaná stránka neexistuje.</p>
+      <a href="/" className="btn btn-primary">Zpět na úvod</a>
+    </div>
+  </Layout>
+);
 
 // Wrapper pro tracking, který musí být uvnitř BrowserRouter
 const RouterContent = () => {
   usePageTracking(); // Zde máme přístup k useLocation()
-  
+
   return (
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Layout fluid><Homepage /></Layout>} />
-          <Route path="/zavody" element={<Layout><RaceCalendar /></Layout>} />
-          <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
-          <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
-          <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
-          <Route path="/livetiming" element={<Layout><LiveTiming /></Layout>} />
-          <Route path="/registrace" element={<Layout><Registration /></Layout>} />
-          <Route path="/zavod/:raceId" element={<Layout><RaceDetail /></Layout>} />
-          
-          {/* Admin routes */}
-          <Route path="/admin/*" element={
-            <Routes>
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/races" element={
-                <ProtectedRoute>
-                  <RaceManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/racers" element={
-                <ProtectedRoute>
-                  <RacerManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/races/:raceId/registrations" element={
-                <ProtectedRoute>
-                  <RaceRegistrations />
-                </ProtectedRoute>
-              } />
-              <Route path="/documents" element={
-                <ProtectedRoute>
-                  <DocumentManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/posts" element={
-                <ProtectedRoute>
-                  <PostManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/categories" element={
-                <ProtectedRoute>
-                  <CategoryManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/season-results" element={
-                <ProtectedRoute>
-                  <SeasonResultsManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="/club-requests" element={
-                <ProtectedRoute>
-                  <ClubRequests />
-                </ProtectedRoute>
-              } />
-              <Route path="/register" element={
-                <ProtectedRoute>
-                  <AdminRegister />
-                </ProtectedRoute>
-              } />
-            </Routes>
-          } />
-          
-          {/* Timekeeper routes */}
-          <Route path="/timekeeper/*" element={
-            <Routes>
-              <Route path="/" element={
-                <ProtectedTimekeeperRoute>
-                  <TimekeeperDashboard />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/start-list" element={
-                <ProtectedTimekeeperRoute>
-                  <StartListManager />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/racers" element={
-                <ProtectedTimekeeperRoute>
-                  <TimekeeperRacers />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/timing" element={
-                <ProtectedTimekeeperRoute>
-                  <TimingEntry />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/results" element={
-                <ProtectedTimekeeperRoute>
-                  <ResultsView />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/race-numbers" element={
-                <ProtectedTimekeeperRoute>
-                  <RaceNumbersManager />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/sync" element={
-                <ProtectedTimekeeperRoute>
-                  <SyncCenter />
-                </ProtectedTimekeeperRoute>
-              } />
-              <Route path="/device" element={
-                <ProtectedTimekeeperRoute>
-                  <TimingDeviceSettings />
-                </ProtectedTimekeeperRoute>
-              } />
-            </Routes>
-          } />
-          
-          {/* 404 - neznámá cesta */}
-          <Route path="*" element={
-            <Layout>
-              <div className="text-center py-5">
-                <h2>Stránka nenalezena</h2>
-                <p className="text-muted">Požadovaná stránka neexistuje.</p>
-                <a href="/" className="btn btn-primary">Zpět na úvod</a>
-              </div>
-            </Layout>
-          } />
-        </Routes>
+      <Route path="/zavody" element={<Layout><RaceCalendar /></Layout>} />
+      <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
+      <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
+      <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
+      <Route path="/livetiming" element={<Layout><LiveTiming /></Layout>} />
+      <Route path="/registrace" element={<Layout><Registration /></Layout>} />
+      <Route path="/zavod/:raceId" element={<Layout><RaceDetail /></Layout>} />
+
+      <Route
+        path="/admin/*"
+        element={
+          <Suspense fallback={<LoadingState variant="fullscreen" />}>
+            <AdminRoutes />
+          </Suspense>
+        }
+      />
+
+      <Route
+        path="/timekeeper/*"
+        element={
+          <Suspense fallback={<LoadingState variant="fullscreen" />}>
+            <TimekeeperRoutes />
+          </Suspense>
+        }
+      />
+
+      {/* 404 - neznámá cesta */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
 function AppRouter() {
   return (
-    <AuthProvider>
-      <TimekeeperAuthProvider>
-        <LiveStatusProvider>
-          <BrowserRouter>
-            <RouterContent />
-          </BrowserRouter>
-        </LiveStatusProvider>
-      </TimekeeperAuthProvider>
-    </AuthProvider>
+    <LiveStatusProvider>
+      <BrowserRouter>
+        <RouterContent />
+      </BrowserRouter>
+    </LiveStatusProvider>
   );
 }
 
