@@ -6,9 +6,12 @@ import { useEffect, useRef } from 'react';
  *
  * @param {string} title
  * @param {React.ReactNode} message
- * @param {Array<{value: *, label: string, variant?: string, icon?: string, hint?: string}>} choices
+ * @param {Array<{value: *, label: string, variant?: string, icon?: string, hint?: string,
+ *   disabled?: boolean}>} choices
  *   The buttons offered besides Cancel. A single choice is the usual
- *   confirm/cancel pair; several choices replace a free-text prompt.
+ *   confirm/cancel pair; several choices replace a free-text prompt. A choice
+ *   is disabled while the dialog body still needs an answer - deleting a club
+ *   waits this way until a club to move its racers to is picked.
  * @param {string} [cancelLabel]
  * @param {function} onResolve - called with the chosen value, or null on cancel
  */
@@ -53,10 +56,12 @@ export default function ConfirmDialog({
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="confirm-dialog-title">{title}</h5>
+              {/* Vlastní popisek, ne cancelLabel - dvě tlačítka se stejným
+                  názvem se ve čtečce obrazovky nedají rozlišit. */}
               <button
                 type="button"
                 className="btn-close"
-                aria-label={cancelLabel}
+                aria-label="Zavřít"
                 onClick={() => onResolve(null)}
               />
             </div>
@@ -71,6 +76,7 @@ export default function ConfirmDialog({
                   type="button"
                   ref={index === 0 ? primaryRef : undefined}
                   className={`btn btn-${choice.variant || 'primary'}`}
+                  disabled={choice.disabled}
                   onClick={() => onResolve(choice.value)}
                   title={choice.hint}
                 >

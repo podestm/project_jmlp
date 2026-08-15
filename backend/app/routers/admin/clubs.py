@@ -6,6 +6,7 @@ from sqlalchemy import text
 from ...database import get_db
 from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole
+from ...services import attachments as attachment_service
 from ...utils import fix_encoding, convert_utf8_field
 
 router = APIRouter(prefix="/clubs", tags=["admin-clubs"])
@@ -54,6 +55,74 @@ def clubs_overview(
         "organized_races_count": organized_counts.get(club.id, 0),
         "has_logo": club.id in logos,
     } for club in clubs]
+
+
+@router.delete("/{club_id}")
+def delete_club(
+    club_id: int,
+    reassign_to: int | None = None,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Smaže klub a jeho závodníky i pořádané závody převede na jiný klub.
+
+    Tabulky jsou MyISAM bez cizích klíčů, takže samotné smazání řádku by
+    závodníkům nechalo club_id ukazující na neexistující klub - v přehledech by
+    pak měli prázdnou příslušnost a nikde by to nebylo vidět. Proto se u klubu,
+    na kterém něco visí, cílový klub vyžaduje.
+
+    Logo se jen odpojí; soubor zůstává v knihovně dokumentů, stejně jako když
+    se maže závod nebo příspěvek.
+    """
+    club = db.query(models.Club).filter(models.Club.id == club_id).first()
+    if not club:
+        raise HTTPException(status_code=404, detail="Klub nenalezen")
+    nazev = fix_encoding(club.name)
+
+    zavodniku = db.execute(text(
+        "SELECT COUNT(*) FROM fuj_jmlp_racer WHERE club_id = :id"
+    ), {"id": club_id}).scalar() or 0
+    zavodu = db.execute(text(
+        "SELECT COUNT(*) FROM fuj_jmlp_race WHERE organizer_id = :id"
+    ), {"id": club_id}).scalar() or 0
+
+    cil = None
+    cil_nazev = None
+    if zavodniku or zavodu:
+        if not reassign_to:
+            raise HTTPException(
+                status_code=409,
+                detail=(f"Na klubu {nazev} visí {zavodniku} závodníků "
+                        f"a {zavodu} pořádaných závodů. Vyberte klub, na který se převedou."),
+            )
+        if reassign_to == club_id:
+            raise HTTPException(status_code=400, detail="Klub nelze převést sám na sebe")
+
+        cil = db.query(models.Club).filter(models.Club.id == reassign_to).first()
+        if not cil:
+            raise HTTPException(status_code=404, detail="Cílový klub nenalezen")
+        cil_nazev = fix_encoding(cil.name)
+
+        db.execute(text("UPDATE fuj_jmlp_racer SET club_id = :novy WHERE club_id = :stary"),
+                   {"novy": cil.id, "stary": club_id})
+        db.execute(text("UPDATE fuj_jmlp_race SET organizer_id = :novy WHERE organizer_id = :stary"),
+                   {"novy": cil.id, "stary": club_id})
+        db.commit()
+
+    odpojeno = attachment_service.detach_owner(db, AttachmentOwner.club.value, club_id)
+
+    db.execute(text("DELETE FROM fuj_jmlp_club WHERE id = :id"), {"id": club_id})
+    db.commit()
+
+    return {
+        "deleted_id": club_id,
+        "name": nazev,
+        "moved_racers": zavodniku if cil else 0,
+        "moved_races": zavodu if cil else 0,
+        "reassigned_to": cil.id if cil else None,
+        "reassigned_to_name": cil_nazev if cil else None,
+        "detached_logo": odpojeno > 0,
+    }
 
 
 @router.get("/requests/count")

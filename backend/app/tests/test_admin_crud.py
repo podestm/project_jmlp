@@ -124,6 +124,7 @@ CHRANENE_ENDPOINTY = [
     ("delete", "/api/admin/racers/1"),
     ("get", "/api/admin/clubs/overview"),
     ("get", "/api/admin/clubs/requests"),
+    ("delete", "/api/admin/clubs/1"),
     ("get", "/api/admin/categories"),
     ("post", "/api/admin/categories"),
     ("delete", "/api/admin/categories/1"),
@@ -601,6 +602,102 @@ def test_prehled_klubu_pocita_zavodniky_i_porady(client, admin_headers, db):
     assert podle_jmena["SK Bez cinnosti"]["racers_count"] == 0
     assert podle_jmena["SK Bez cinnosti"]["valid"] is False
     assert podle_jmena["SK Bez cinnosti"]["id"] == prazdny.id
+
+
+def test_smazani_prazdneho_klubu_nepotrebuje_cil(client, admin_headers, db):
+    klub = _klub(db, name="SK Prazdny")
+
+    response = client.delete(f"/api/admin/clubs/{klub.id}", headers=admin_headers)
+
+    assert response.status_code == 200
+    telo = response.json()
+    assert telo["moved_racers"] == 0 and telo["reassigned_to"] is None
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 0
+
+
+def test_klub_se_zavodniky_nejde_smazat_bez_cile(client, admin_headers, db):
+    klub = _klub(db, name="SK Obsazeny")
+    zavodnik = _zavodnik(db, club_id=klub.id)
+
+    response = client.delete(f"/api/admin/clubs/{klub.id}", headers=admin_headers)
+
+    assert response.status_code == 409
+    assert "Vyberte klub" in response.json()["detail"]
+    # Nesmí zmizet ani klub, ani se rozvázat závodník.
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 1
+    db.refresh(zavodnik)
+    assert zavodnik.club_id == klub.id
+
+
+def test_smazani_klubu_prevede_zavodniky_i_porady(client, admin_headers, db):
+    ruseny = _klub(db, name="SK Ruseny", valid=False)
+    cilovy = _klub(db, name="SK Cilovy")
+    prvni = _zavodnik(db, name="Jan", surname="Novak", club_id=ruseny.id)
+    druhy = _zavodnik(db, name="Eva", surname="Novakova", sex=2, club_id=ruseny.id)
+    cizi = _zavodnik(db, name="Petr", surname="Cizi", club_id=cilovy.id)
+    zavod = _zavod(db, race_nr="JMLP2025-07", organizer_id=ruseny.id)
+
+    response = client.delete(f"/api/admin/clubs/{ruseny.id}",
+                             params={"reassign_to": cilovy.id}, headers=admin_headers)
+
+    assert response.status_code == 200
+    telo = response.json()
+    assert telo["moved_racers"] == 2
+    assert telo["moved_races"] == 1
+    assert telo["reassigned_to"] == cilovy.id
+
+    # Kontrola v databázi: odpověď 200 sama neříká, že se zápis povedl.
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=ruseny.id) == 0
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_racer WHERE club_id = :id", id=ruseny.id) == 0
+    for zavodnik in (prvni, druhy, cizi):
+        db.refresh(zavodnik)
+        assert zavodnik.club_id == cilovy.id
+    db.refresh(zavod)
+    assert zavod.organizer_id == cilovy.id
+
+
+def test_smazani_klubu_odpoji_logo_ale_soubor_nechava(client, admin_headers, db):
+    klub = _klub(db, name="SK S Logem")
+    logo = _soubor(db, "logo.png")
+    db.add(models.Attachment(file_id=logo.id, owner_type="club", owner_id=klub.id, role="logo"))
+    db.commit()
+
+    response = client.delete(f"/api/admin/clubs/{klub.id}", headers=admin_headers)
+
+    assert response.status_code == 200
+    assert response.json()["detached_logo"] is True
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_attachment WHERE owner_type = 'club'"
+                      " AND owner_id = :id", id=klub.id) == 0
+    # Soubor je pořád v knihovně - mazání souborů je vědomá akce jinde.
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_files WHERE id = :id", id=logo.id) == 1
+
+
+def test_klub_nelze_prevest_sam_na_sebe(client, admin_headers, db):
+    klub = _klub(db, name="SK Sam")
+    _zavodnik(db, club_id=klub.id)
+
+    response = client.delete(f"/api/admin/clubs/{klub.id}",
+                             params={"reassign_to": klub.id}, headers=admin_headers)
+
+    assert response.status_code == 400
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 1
+
+
+def test_prevod_na_neexistujici_klub_nic_nezmeni(client, admin_headers, db):
+    klub = _klub(db, name="SK Zdrojovy")
+    zavodnik = _zavodnik(db, club_id=klub.id)
+
+    response = client.delete(f"/api/admin/clubs/{klub.id}",
+                             params={"reassign_to": 999999}, headers=admin_headers)
+
+    assert response.status_code == 404
+    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 1
+    db.refresh(zavodnik)
+    assert zavodnik.club_id == klub.id
+
+
+def test_smazani_neexistujiciho_klubu_vraci_404(client, admin_headers):
+    assert client.delete("/api/admin/clubs/999999", headers=admin_headers).status_code == 404
 
 
 def _zadost_o_klub(db, poznamka="Jsem z SK Novy"):

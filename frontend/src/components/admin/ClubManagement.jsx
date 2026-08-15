@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminAPI } from '../../config/api.js';
 import { OWNER, ROLE } from '../../config/attachmentsApi.js';
 import AttachmentManager from './attachments/AttachmentManager.jsx';
+import ClubDeleteDialog from './ClubDeleteDialog.jsx';
 import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 
 const CLUB_ROLES = [ROLE.logo];
+
+const PLATNOST = { vse: 'vse', platne: 'platne', neplatne: 'neplatne' };
 
 /**
  * Kluby a jejich loga.
@@ -20,7 +23,9 @@ export default function ClubManagement() {
   const [message, setMessage] = useState(null);
   const [query, setQuery] = useState('');
   const [onlyOrganizers, setOnlyOrganizers] = useState(false);
+  const [platnost, setPlatnost] = useState(PLATNOST.vse);
   const [expandedClub, setExpandedClub] = useState(null);
+  const [mazanyKlub, setMazanyKlub] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -35,16 +40,36 @@ export default function ClubManagement() {
 
   useEffect(() => { load(); }, [load]);
 
+  const smazatKlub = useCallback(async (club, cilId) => {
+    try {
+      const vysledek = await AdminAPI.delete(
+        `/api/admin/clubs/${club.id}`, {}, cilId ? { reassign_to: cilId } : {}
+      );
+      const prevedeno = vysledek.moved_racers || vysledek.moved_races
+        ? ` Závodníci (${vysledek.moved_racers}) i pořádané závody (${vysledek.moved_races})`
+          + ` přešli na klub ${vysledek.reassigned_to_name}.`
+        : '';
+      setMessage({ type: 'success', text: `Klub ${vysledek.name} byl smazán.${prevedeno}` });
+      setExpandedClub((otevreny) => (otevreny === club.id ? null : otevreny));
+      await load();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message });
+    }
+  }, [load]);
+
   const visibleClubs = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return clubs.filter((club) => {
       if (onlyOrganizers && !club.organized_races_count) return false;
+      if (platnost === PLATNOST.platne && !club.valid) return false;
+      if (platnost === PLATNOST.neplatne && club.valid) return false;
       return !needle || club.name.toLowerCase().includes(needle);
     });
-  }, [clubs, query, onlyOrganizers]);
+  }, [clubs, query, onlyOrganizers, platnost]);
 
   const organizerCount = clubs.filter((c) => c.organized_races_count > 0).length;
   const withLogo = clubs.filter((c) => c.has_logo).length;
+  const neplatnych = clubs.filter((c) => !c.valid).length;
 
   return (
     <div className="container-fluid">
@@ -66,7 +91,7 @@ export default function ClubManagement() {
       )}
 
       <div className="row g-2 mb-3">
-        <div className="col-md-6">
+        <div className="col-md-5">
           <input
             type="search"
             className="form-control"
@@ -75,7 +100,19 @@ export default function ClubManagement() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className="col-md-6 d-flex align-items-center">
+        <div className="col-md-4">
+          <select
+            className="form-select"
+            aria-label="Platnost klubu"
+            value={platnost}
+            onChange={(e) => setPlatnost(e.target.value)}
+          >
+            <option value={PLATNOST.vse}>Všechny kluby ({clubs.length})</option>
+            <option value={PLATNOST.platne}>Jen platné ({clubs.length - neplatnych})</option>
+            <option value={PLATNOST.neplatne}>Jen neplatné ({neplatnych})</option>
+          </select>
+        </div>
+        <div className="col-md-3 d-flex align-items-center">
           <div className="form-check form-switch">
             <input
               className="form-check-input"
@@ -137,6 +174,14 @@ export default function ClubManagement() {
                         <i className="bi bi-image me-1" />
                         {club.has_logo ? 'Změnit logo' : 'Nahrát logo'}
                       </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger ms-2"
+                        title={`Smazat klub ${club.name}`}
+                        aria-label={`Smazat klub ${club.name}`}
+                        onClick={() => setMazanyKlub(club)}
+                      >
+                        <i className="bi bi-trash" />
+                      </button>
                     </td>
                   </tr>
                   {expandedClub === club.id && (
@@ -157,6 +202,18 @@ export default function ClubManagement() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {mazanyKlub && (
+        <ClubDeleteDialog
+          club={mazanyKlub}
+          clubs={clubs}
+          onResolve={(cil) => {
+            const klub = mazanyKlub;
+            setMazanyKlub(null);
+            if (cil !== false) smazatKlub(klub, cil);
+          }}
+        />
       )}
     </div>
   );
