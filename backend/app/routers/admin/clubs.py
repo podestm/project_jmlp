@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...models import AttachmentOwner, AttachmentRole
 from ...utils import fix_encoding, convert_utf8_field
 
 router = APIRouter(prefix="/clubs", tags=["admin-clubs"])
@@ -17,6 +18,42 @@ def list_clubs(
 ):
     """Všechny platné kluby (pro dropdown při vyřizování žádostí)."""
     return db.query(models.Club).filter(models.Club.valid == True).order_by(models.Club.name.asc()).all()
+
+
+@router.get("/overview")
+def clubs_overview(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Kluby se závodníky, počtem pořádaných závodů a logem.
+
+    Logo se používá v hlavičce výsledkové listiny závodu, který klub pořádá.
+    """
+    clubs = db.query(models.Club).order_by(models.Club.name.asc()).all()
+
+    racer_counts = dict(db.execute(text(
+        "SELECT club_id, COUNT(*) FROM fuj_jmlp_racer WHERE club_id IS NOT NULL GROUP BY club_id"
+    )).all())
+    organized_counts = dict(db.execute(text(
+        "SELECT organizer_id, COUNT(*) FROM fuj_jmlp_race WHERE organizer_id IS NOT NULL GROUP BY organizer_id"
+    )).all())
+
+    logos = {
+        row.owner_id: row.file_id
+        for row in db.query(models.Attachment).filter(
+            models.Attachment.owner_type == AttachmentOwner.club.value,
+            models.Attachment.role == AttachmentRole.logo.value,
+        ).all()
+    }
+
+    return [{
+        "id": club.id,
+        "name": fix_encoding(club.name),
+        "valid": bool(club.valid),
+        "racers_count": racer_counts.get(club.id, 0),
+        "organized_races_count": organized_counts.get(club.id, 0),
+        "has_logo": club.id in logos,
+    } for club in clubs]
 
 
 @router.get("/requests/count")

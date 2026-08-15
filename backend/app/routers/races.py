@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from ..database import get_db
 from .. import models, schemas
-from ..utils import get_current_season_id, calculate_season_for_date
+from ..models import AttachmentRole
+from ..services import attachments as attachment_service
+from ..utils import get_current_season_id, calculate_season_for_date, category_display_sql
 from typing import List
+from pathlib import Path
 from datetime import datetime, date
-import os
 
 router = APIRouter(prefix="/races", tags=["races"])
 
@@ -54,20 +56,17 @@ def list_races(
     db: Session = Depends(get_db)
 ):
     # Sestavíme SQL dotaz s filtry
-    base_query = """
+    base_query = f"""
         SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
                r.registration+0 as registration, r.areal_id,
                r.organizer_id, r.race_method_id, r.season_id,
-               r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
-               fp.file_path as proposition_file_path,
-               fr.file_path as results_file_path
+               {attachment_service.RACE_DOCUMENT_COLUMNS}
         FROM fuj_jmlp_race r
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
-        LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
-        LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
+        {attachment_service.race_document_joins(published_only=True)}
         WHERE r.race_nr IS NOT NULL
     """
     
@@ -119,7 +118,35 @@ def list_races(
     return races
 
 
-# Live race public endpoint (must be before /{race_id} to avoid routing conflicts)
+# Live race public endpoints (must be before /{race_id} to avoid routing conflicts)
+@router.get("/live/status")
+def get_live_race_status(response: Response, db: Session = Depends(get_db)):
+    """
+    Lightweight "is anything live right now" check. 404 if nothing is live.
+
+    Every visitor polls this from the navigation banner, so it must not carry
+    the full start list the way /races/live does - one indexed row read only.
+    """
+    response.headers["Cache-Control"] = "no-store"
+    live = db.execute(text("""
+        SELECT r.id, r.race_nr,
+               CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name
+        FROM fuj_jmlp_race r
+        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
+        WHERE r.is_live = 1
+        LIMIT 1
+    """)).fetchone()
+
+    if not live:
+        raise HTTPException(status_code=404, detail="No live race")
+
+    return {
+        "race_id": live.id,
+        "race_nr": live.race_nr,
+        "areal_name": live.areal_name or "Bez areálu",
+    }
+
+
 @router.get("/live")
 def get_live_race(response: Response, db: Session = Depends(get_db)):
     """Returns currently live race with live results. 404 if no race is live."""
@@ -201,10 +228,10 @@ def get_current_season(db: Session = Depends(get_db)):
     
     return {
         "current_season_id": current_season_id,
-        "season_logic": f"Sezóna {current_season_id} (začíná 1.8.{current_season_id-1})",
+        "season_logic": f"Sezóna {current_season_id} (začíná 1.8.{current_season_id})",
         "current_date": current_date,
-        "season_start": date(current_season_id-1, 8, 1),
-        "season_end": date(current_season_id, 7, 31)
+        "season_start": date(current_season_id, 8, 1),
+        "season_end": date(current_season_id + 1, 7, 31)
     }
 
 
@@ -226,7 +253,7 @@ def calculate_season_for_date_endpoint(race_date: str):
             "race_date": race_date,
             "season_id": season_id,
             "season_logic": f"Závod dne {race_date} patří do sezóny {season_id}",
-            "season_period": f"1.8.{season_id-1} - 31.7.{season_id}"
+            "season_period": f"1.8.{season_id} - 31.7.{season_id + 1}"
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -235,20 +262,17 @@ def calculate_season_for_date_endpoint(race_date: str):
 @router.get("/{race_id}", response_model=schemas.Race)
 def get_race(race_id: int, db: Session = Depends(get_db)):
     # Použijeme raw SQL pro správné čtení bit hodnot
-    result = db.execute(text("""
+    result = db.execute(text(f"""
         SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
                r.registration+0 as registration, r.areal_id,
                r.organizer_id, r.race_method_id, r.season_id,
-               r.proposition_file_id, r.results_file_id,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
-               fp.file_path as proposition_file_path,
-               fr.file_path as results_file_path
+               {attachment_service.RACE_DOCUMENT_COLUMNS}
         FROM fuj_jmlp_race r
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
-        LEFT JOIN fuj_jmlp_files fp ON r.proposition_file_id = fp.id
-        LEFT JOIN fuj_jmlp_files fr ON r.results_file_id = fr.id
+        {attachment_service.race_document_joins(published_only=True)}
         WHERE r.id = :race_id
     """), {"race_id": race_id}).fetchone()
     
@@ -289,7 +313,7 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
             c.id as club_id,
             rr.registered_at,
-            CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name,
+            {category_display} as category_name,
             cat.id as category_id,
             cat.sex as category_sex
         FROM fuj_jmlp_race_registration rr
@@ -298,7 +322,7 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
         LEFT JOIN fuj_jmlp_category cat ON rr.category_id = cat.id
         WHERE rr.race_id = :race_id
         ORDER BY c.name ASC, r.surname ASC, r.name ASC
-    """), {"race_id": race_id}).fetchall()
+    """.format(category_display=category_display_sql("cat"))), {"race_id": race_id}).fetchall()
 
     # Group by clubs
     clubs = {}
@@ -311,11 +335,9 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
                 "racers": []
             }
         
-        # Přidáme kategorii do setu
+        # Přidáme kategorii do setu (název už je zobrazovaný, viz category_display_sql)
         if row.category_name:
-            sex_suffix = ' - Ženy' if row.category_sex == 2 else (' - Muži' if row.category_sex == 1 else '')
-            cat_display = f"{row.category_name}{sex_suffix}"
-            categories.add((row.category_id, cat_display))
+            categories.add((row.category_id, row.category_name))
         
         clubs[club_name]["racers"].append({
             "firstName": row.firstName,
@@ -348,91 +370,23 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
         "categories": category_list
     }
 
-@router.get("/{race_id}/club-stats")
-def get_club_stats(race_id: int, db: Session = Depends(get_db)):
-    """Vrátí počet závodníků podle klubů pro daný závod"""
-    result = db.execute(text("""
-        SELECT c.name as club_name, COUNT(rr.id) as racer_count
-        FROM fuj_jmlp_race_registration rr
-        JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
-        JOIN fuj_jmlp_club c ON r.club_id = c.id
-        WHERE rr.race_id = :race_id
-        GROUP BY c.id, c.name
-        ORDER BY racer_count DESC, c.name ASC
-    """), {"race_id": race_id}).fetchall()
-    
-    club_stats = []
-    total_racers = 0
-    for row in result:
-        club_stats.append({
-            "club_name": row.club_name,
-            "racer_count": row.racer_count
-        })
-        total_racers += row.racer_count
-    
-    return {
-        "clubs": club_stats,
-        "total_racers": total_racers
-    }
-
-@router.get("/{race_id}/documents/{doc_type}")
-def download_document(race_id: int, doc_type: str, db: Session = Depends(get_db)):
-    """Stáhne dokument (propozice nebo výsledky) pro daný závod"""
-    if doc_type not in ["proposition", "result"]:
-        raise HTTPException(status_code=400, detail="Invalid document type")
-    
-    # Najdeme závod
-    race = db.query(models.Race).filter(models.Race.id == race_id).first()
-    if not race:
-        raise HTTPException(status_code=404, detail="Race not found")
-    
-    # Získáme název souboru
-    filename = None
-    if doc_type == "proposition" and race.proposition:
-        filename = race.proposition
-    elif doc_type == "result" and race.result:
-        filename = race.result
-    
-    if not filename:
-        raise HTTPException(status_code=404, detail=f"Document not found")
-    
-    # Cesta k souboru
-    file_path = os.path.join("/app/documents", filename)
-    
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found on disk")
-    
-    return FileResponse(
-        path=file_path,
-        filename=filename,
-        media_type='application/pdf'
-    )
-
-
 # ============================================================================
 # PUBLIC DOCUMENT DOWNLOAD ENDPOINTS (fuj_jmlp_files table)
 # ============================================================================
-@router.get("/{race_id}/proposition")
-def download_race_proposition(race_id: int, db: Session = Depends(get_db)):
-    """Download race proposition document (public access)."""
+def _race_document_response(race_id: int, role: str, missing_detail: str, db: Session):
+    """Stažení dokumentu závodu (propozice / výsledky) - veřejně."""
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
-        raise HTTPException(status_code=404, detail="Race not found")
-    
-    if not race.proposition_file_id:
-        raise HTTPException(status_code=404, detail="Proposition not found")
-    
-    # Get file from database
-    file_record = db.query(models.File).filter(models.File.id == race.proposition_file_id).first()
+        raise HTTPException(status_code=404, detail="Závod nebyl nalezen")
+
+    file_record = attachment_service.race_document_file(db, race_id, role)
     if not file_record:
-        raise HTTPException(status_code=404, detail="File record not found")
-    
-    # Check if file exists on disk
-    from pathlib import Path
+        raise HTTPException(status_code=404, detail=missing_detail)
+
     file_path = Path(file_record.file_path)
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found on disk")
-    
+        raise HTTPException(status_code=404, detail="Soubor nebyl na disku nalezen")
+
     return FileResponse(
         path=str(file_path),
         filename=file_record.original_filename,
@@ -440,31 +394,19 @@ def download_race_proposition(race_id: int, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/{race_id}/results")  
+@router.get("/{race_id}/proposition")
+def download_race_proposition(race_id: int, db: Session = Depends(get_db)):
+    """Download race proposition document (public access)."""
+    return _race_document_response(
+        race_id, AttachmentRole.propozice.value, "Propozice nebyly nalezeny", db
+    )
+
+
+@router.get("/{race_id}/results")
 def download_race_results(race_id: int, db: Session = Depends(get_db)):
     """Download race results document (public access)."""
-    race = db.query(models.Race).filter(models.Race.id == race_id).first()
-    if not race:
-        raise HTTPException(status_code=404, detail="Race not found")
-    
-    if not race.results_file_id:
-        raise HTTPException(status_code=404, detail="Results not found")
-    
-    # Get file from database
-    file_record = db.query(models.File).filter(models.File.id == race.results_file_id).first()
-    if not file_record:
-        raise HTTPException(status_code=404, detail="File record not found")
-    
-    # Check if file exists on disk
-    from pathlib import Path
-    file_path = Path(file_record.file_path)
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found on disk")
-    
-    return FileResponse(
-        path=str(file_path),
-        filename=file_record.original_filename,
-        media_type=file_record.mime_type or 'application/octet-stream'
+    return _race_document_response(
+        race_id, AttachmentRole.vysledky.value, "Výsledky nebyly nalezeny", db
     )
 
 

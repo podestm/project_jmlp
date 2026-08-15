@@ -7,7 +7,8 @@ from sqlalchemy import func, text
 from ...database import get_db
 from ... import models, auth
 import os
-from ...utils import get_current_season_id, fix_encoding, convert_utf8_field
+from ...utils import get_current_season_id, fix_encoding, convert_utf8_field, format_file_size
+from ._visits import daily_visits
 
 router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
 
@@ -20,10 +21,8 @@ def get_dashboard_stats(
     """Agregovaná data pro admin dashboard - jeden request místo mnoha."""
     
     today = datetime.now()
-    # Frontend ukládá season_id jako START rok (2025 pro sezónu 2025/2026)
-    # Backend get_current_season_id() vrací END rok (2026) - proto odečteme 1
-    season_end = get_current_season_id()
-    season_id = season_end - 1  # DB convention: start year
+    # season_id je START rok sezóny (2025 pro sezónu 2025/2026)
+    season_id = get_current_season_id()
     
     # --- Počty ---
     total_racers = db.query(func.count(models.Racer.id)).scalar() or 0
@@ -45,21 +44,11 @@ def get_dashboard_stats(
     )).scalar() or 0
     
     # --- Velikost souborů ---
-    files = db.query(models.File).all()
-    total_file_size = sum(f.file_size for f in files)
-    file_count = len(files)
-    
-    def format_size(size_bytes):
-        if size_bytes < 1024:
-            return f"{size_bytes} B"
-        elif size_bytes < 1024 * 1024:
-            return f"{size_bytes / 1024:.1f} KB"
-        elif size_bytes < 1024 * 1024 * 1024:
-            return f"{size_bytes / (1024 * 1024):.1f} MB"
-        else:
-            return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
-    
-    storage_size_formatted = format_size(total_file_size)
+    file_count, total_file_size = db.query(
+        func.count(models.File.id), func.coalesce(func.sum(models.File.file_size), 0)
+    ).first()
+    file_count = file_count or 0
+    storage_size_formatted = format_file_size(int(total_file_size or 0))
     
     # --- Návštěvy ---
     today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -194,29 +183,4 @@ def get_visits_chart(
     
     # Limit days to reasonable range
     days = min(max(days, 7), 90)
-    today = datetime.now().date()
-    data = []
-    
-    for i in range(days - 1, -1, -1):
-        d = today - timedelta(days=i)
-        date_start = datetime.combine(d, datetime.min.time())
-        date_end = datetime.combine(d, datetime.max.time())
-        
-        visits_count = db.query(func.count(models.VisitorLog.id)).filter(
-            models.VisitorLog.visited_at >= date_start,
-            models.VisitorLog.visited_at <= date_end
-        ).scalar() or 0
-        
-        unique_count = db.query(func.count(func.distinct(models.VisitorLog.ip_address))).filter(
-            models.VisitorLog.visited_at >= date_start,
-            models.VisitorLog.visited_at <= date_end
-        ).scalar() or 0
-        
-        data.append({
-            "date": d.strftime("%d.%m"),
-            "visits": visits_count,
-            "unique": unique_count,
-            "fullDate": d.isoformat()
-        })
-    
-    return data
+    return daily_visits(db, days)

@@ -5,9 +5,34 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
-from ...utils import fix_encoding
+from ...utils import fix_encoding, category_display_sql, get_category_snapshot_for_birth_year
 
 router = APIRouter(tags=["admin-racers"])
+
+
+def _racer_columns(racer_data: schemas.RacerCreate, db: Session) -> dict:
+    """Přeloží pole formuláře na sloupce modelu.
+
+    Schéma používá historické názvy z frontendu (firstName, birthYear, ...),
+    model má jiné. Bez tohohle překladu zakládání padalo na TypeError a úprava
+    tiše zapsala jen oddíl - SQLAlchemy nenamapovaný atribut do UPDATE nedá,
+    ale odpověď ho vrátila, takže to vypadalo jako úspěch.
+
+    Kategorie se dopočítává tady, protože závisí na ročníku i pohlaví: závodník
+    bez kategorie by nespadl do žádné startovky.
+    """
+    category_id, _, _ = get_category_snapshot_for_birth_year(
+        racer_data.birthYear, racer_data.sex, db
+    )
+    return {
+        "name": racer_data.firstName,
+        "surname": racer_data.lastName,
+        "sex": racer_data.sex,
+        "year": racer_data.birthYear,
+        "slcr_id": racer_data.idSlcr,
+        "club_id": racer_data.club_id,
+        "category_id": category_id,
+    }
 
 
 @router.get("/racers", response_model=List[schemas.Racer])
@@ -23,13 +48,13 @@ def get_racers(
         SELECT r.id, r.name as firstName, r.surname as lastName, r.sex, r.year as birthYear, 
                r.club_id, r.slcr_id as idSlcr, r.category_id,
                CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
-               CONVERT(CONVERT(cat.name USING binary) USING utf8mb4) as category_name
+               {category_display} as category_name
         FROM fuj_jmlp_racer r 
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         LEFT JOIN fuj_jmlp_category cat ON r.category_id = cat.id
         ORDER BY r.surname, r.name
         LIMIT :limit OFFSET :skip
-    """
+    """.format(category_display=category_display_sql("cat"))
     
     result = db.execute(text(query), {"limit": limit, "skip": skip}).fetchall()
     
@@ -39,7 +64,7 @@ def get_racers(
         first_name = fix_encoding(row.firstName) if row.firstName else None
         last_name = fix_encoding(row.lastName) if row.lastName else None
         club_name = fix_encoding(row.club_name) if row.club_name else None
-        category_name = fix_encoding(row.category_name) if row.category_name else None
+        category_name = row.category_name or None  # display_name je čisté utf8mb4
         
         racer_data = {
             "id": row.id,
@@ -76,7 +101,7 @@ def create_racer(
         if not club:
             raise HTTPException(status_code=400, detail="Klub neexistuje")
     
-    db_racer = models.Racer(**racer_data.dict())
+    db_racer = models.Racer(**_racer_columns(racer_data, db))
     db.add(db_racer)
     db.commit()
     db.refresh(db_racer)
@@ -108,8 +133,7 @@ def update_racer(
         if not club:
             raise HTTPException(status_code=400, detail="Klub neexistuje")
     
-    update_data = racer_data.dict(exclude_unset=True)
-    for field, value in update_data.items():
+    for field, value in _racer_columns(racer_data, db).items():
         setattr(db_racer, field, value)
     
     db.commit()

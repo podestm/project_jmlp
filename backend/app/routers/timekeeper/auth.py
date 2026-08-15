@@ -1,6 +1,6 @@
 """Timekeeper auth - shares the same user table but checks for timekeeper/admin role."""
 from datetime import timedelta, datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from ...database import get_db
@@ -10,23 +10,29 @@ router = APIRouter(prefix="/auth", tags=["timekeeper-auth"])
 
 
 @router.post("/login", response_model=schemas.Token)
-def timekeeper_login(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
+def timekeeper_login(login_data: schemas.AdminLogin, request: Request, db: Session = Depends(get_db)):
     """Timekeeper login - accepts both admin and timekeeper roles."""
+    auth.check_login_allowed(login_data.email, request)
+
     admin = auth.authenticate_admin(db, login_data.email, login_data.password)
     if not admin:
+        auth.register_failed_login(login_data.email, request)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Nesprávný email nebo heslo",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Both admin and timekeeper roles can use the timekeeper interface
     if admin.role not in ("admin", "timekeeper"):
+        auth.register_failed_login(login_data.email, request)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Nemáte oprávnění pro časomíru"
         )
-    
+
+    auth.reset_login_attempts(login_data.email, request)
+
     admin.last_login = datetime.utcnow()
     db.commit()
     

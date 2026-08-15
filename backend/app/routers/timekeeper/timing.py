@@ -8,6 +8,7 @@ from decimal import Decimal
 from ...database import get_db
 from ... import models, schemas, auth
 from ...utils import StandardExceptions
+from ...services import results as results_service
 from .idempotency import try_get_idempotent_response, store_idempotent_response
 
 router = APIRouter(tags=["timekeeper-timing"])
@@ -89,12 +90,13 @@ def save_times(
         raise StandardExceptions.race_not_found()
     
     updated = 0
+    updated_entries: list[models.StartListEntry] = []
     for time_entry in data.entries:
         entry = db.query(models.StartListEntry).filter(
             models.StartListEntry.id == time_entry.entry_id,
             models.StartListEntry.race_id == race_id
         ).first()
-        
+
         if not entry:
             continue
 
@@ -111,25 +113,35 @@ def save_times(
         entry.dns = time_entry.dns
         entry.dsq = time_entry.dsq
         
-        # Calculate time_sum
-        if entry.dnf or entry.dns or entry.dsq:
-            entry.time_sum = None
-        elif entry.time1 is not None and entry.time2 is not None:
-            entry.time_sum = entry.time1 + entry.time2
-        elif entry.time1 is not None:
-            entry.time_sum = entry.time1
-        elif entry.time2 is not None:
-            entry.time_sum = entry.time2
-        else:
-            entry.time_sum = None
+        entry.time_sum = results_service.compute_time_sum(
+            entry.time1, entry.time2, entry.dnf, entry.dns, entry.dsq
+        )
         
         updated += 1
-    
+        updated_entries.append(entry)
+
     db.commit()
+
+    # Per-entry revisions, read back from the rows themselves.
+    #
+    # This used to answer with a single `datetime.utcnow()` taken AFTER the
+    # commit, which is not any row's `updated_at`: the column is a DATETIME with
+    # no fractional seconds, MySQL rounds the flush timestamp into it, and the
+    # response was truncated - so the two disagreed whenever the flush instant
+    # landed at >= .5 s. The client stamped that value onto every row it had
+    # just saved and the next write to any of them came back 409 with nobody
+    # else having touched anything.
+    revisions: Dict[str, str | None] = {}
+    for entry in updated_entries:
+        db.refresh(entry)
+        revisions[str(entry.id)] = _server_revision(entry)
+
     response_payload = {
         "message": f"Uloženo {updated} časů",
         "updated": updated,
-        "revision": datetime.utcnow().isoformat() + "Z",  # batch: no single entry to refresh
+        # entry_id (as string) -> that row's stored revision. Replaces the old
+        # top-level "revision", which belonged to no row at all.
+        "revisions": revisions,
         "idempotency_replayed": False,
     }
     store_idempotent_response(
@@ -188,17 +200,9 @@ def update_single_time(
         else:
             setattr(entry, key, value)
     
-    # Recalculate time_sum
-    if entry.dnf or entry.dns or entry.dsq:
-        entry.time_sum = None
-    elif entry.time1 is not None and entry.time2 is not None:
-        entry.time_sum = entry.time1 + entry.time2
-    elif entry.time1 is not None:
-        entry.time_sum = entry.time1
-    elif entry.time2 is not None:
-        entry.time_sum = entry.time2
-    else:
-        entry.time_sum = None
+    entry.time_sum = results_service.compute_time_sum(
+        entry.time1, entry.time2, entry.dnf, entry.dns, entry.dsq
+    )
     
     db.commit()
     db.refresh(entry)

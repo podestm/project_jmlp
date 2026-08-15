@@ -15,6 +15,13 @@ class RacerBase(BaseModel):
     category_id: Optional[int] = None
 
 
+def _reject_formula_prefix(v):
+    """Odmítne hodnoty, které by se v Excelu vyhodnotily jako vzorec (CSV injection)."""
+    if isinstance(v, str) and v[:1] in ('=', '+', '-', '@', '\t', '\r'):
+        raise ValueError('Hodnota nesmí začínat znakem =, +, -, @ ani tabulátorem')
+    return v
+
+
 class RacerCreate(BaseModel):
     firstName: str  # Will be mapped to 'name' field
     lastName: str   # Will be mapped to 'surname' field
@@ -22,6 +29,11 @@ class RacerCreate(BaseModel):
     birthYear: int  # Will be mapped to 'year' field
     club_id: Optional[int] = None
     idSlcr: Optional[str] = None  # Will be mapped to 'slcr_id' field
+
+    @field_validator('firstName', 'lastName', 'idSlcr')
+    @classmethod
+    def no_formula_prefix(cls, v):
+        return _reject_formula_prefix(v)
 
 
 class Racer(RacerBase):
@@ -31,6 +43,22 @@ class Racer(RacerBase):
     lastName: Optional[str] = None
     birthYear: Optional[int] = None
     idSlcr: Optional[str] = None
+    club_name: Optional[str] = None
+    category_name: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RacerPublic(BaseModel):
+    """Veřejná varianta závodníka - bez kontaktních údajů (telefon, email)."""
+    id: int
+    name: Optional[str] = None
+    surname: str
+    sex: int
+    year: int
+    slcr_id: Optional[str] = None
+    club_id: Optional[int] = None
+    category_id: Optional[int] = None
     club_name: Optional[str] = None
     category_name: Optional[str] = None
 
@@ -51,6 +79,7 @@ class ClubCreate(BaseModel):
 
 class CategoryBase(BaseModel):
     name: str
+    display_name: Optional[str] = None  # zobrazovaný název ("Myšáci dívky")
     min_birth_year: int  # Nejstarší ročník (např. 1990)
     max_birth_year: int  # Nejmladší ročník (např. 2005)
     sex: int  # 0 = mix, 1 = muži, 2 = ženy
@@ -63,6 +92,7 @@ class CategoryCreate(CategoryBase):
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
+    display_name: Optional[str] = None
     min_birth_year: Optional[int] = None
     max_birth_year: Optional[int] = None
     sex: Optional[int] = None
@@ -110,6 +140,56 @@ class Race(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RaceRunIn(BaseModel):
+    """Údaje o jednom kole závodu (blok 1.KOLO / 2.KOLO v listině)."""
+    run_number: int
+    course_setter: Optional[str] = None     # STAVITEL TRATI
+    gates_count: Optional[int] = None       # BRANEK
+    conditions: Optional[str] = None        # PODMÍNKY
+    start_time: Optional[str] = None        # ČAS STARTU ("10:00")
+    course_length_m: Optional[int] = None   # DÉLKA TRATI
+
+    @field_validator('gates_count', 'course_length_m', mode='before')
+    @classmethod
+    def empty_to_none(cls, v):
+        return None if v in ('', None) else v
+
+
+class RaceRunOut(RaceRunIn):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RaceDetailUpdate(BaseModel):
+    """Hlavičkové údaje závodu zadávané v timekeeper sekci."""
+    model_config = ConfigDict(extra='ignore')
+    race_director: Optional[str] = None
+    technical_delegate: Optional[str] = None
+    chief_timekeeper: Optional[str] = None
+    run_count: Optional[int] = None
+    runs: Optional[list[RaceRunIn]] = None
+
+
+class RaceDetail(BaseModel):
+    """Vše, co potřebuje hlavička výsledkové listiny."""
+    race_id: int
+    race_nr: Optional[str] = None
+    race_number_label: Optional[str] = None   # "2025-05" (race_nr bez prefixu JMLP)
+    datum: Optional[date] = None
+    areal_name: Optional[str] = None
+    organizer_id: Optional[int] = None
+    organizer_name: Optional[str] = None
+    organizer_logo_url: Optional[str] = None
+    season_id: int
+    season_name: Optional[str] = None
+    edition: Optional[int] = None
+    edition_label: Optional[str] = None       # "XIX."
+    race_director: Optional[str] = None
+    technical_delegate: Optional[str] = None
+    chief_timekeeper: Optional[str] = None
+    run_count: int = 1
+    runs: list[RaceRunOut] = []
+
+
 class RegistrationCreate(BaseModel):
     race_id: int
     # Pro existujícího závodníka
@@ -125,6 +205,11 @@ class RegistrationCreate(BaseModel):
     # Klub - buď ID existujícího nebo poznámka pro admina
     club_id: Optional[int] = None
     club_request_note: Optional[str] = None
+
+    @field_validator('racer_name', 'racer_surname', 'racer_slcr_id')
+    @classmethod
+    def no_formula_prefix(cls, v):
+        return _reject_formula_prefix(v)
 
     @model_validator(mode='after')
     def validate_club(self):
@@ -204,6 +289,7 @@ class AdminUserBase(BaseModel):
 
 class AdminUserCreate(AdminUserBase):
     password: str
+    role: str = "timekeeper"  # explicitní volba role; "admin" musí být zadán vědomě
 
 
 class AdminUser(AdminUserBase):
@@ -305,31 +391,35 @@ class RaceUpdate(BaseModel):
         return _empty_to_none(v)
 
 
-# Season Results Schemas
-class SeasonResultBase(BaseModel):
-    season_year_start: int
-    season_year_end: int
-    document_id: int
-    final_results: int = 1  # 0 = průběžné výsledky, 1 = celkové výsledky
+# ===== Sezóny (ročníky poháru) =====
+
+class SeasonBase(BaseModel):
+    year_start: int
+    year_end: Optional[int] = None       # dopočítá se jako year_start + 1
+    edition: Optional[int] = None        # 19 -> "XIX."
+    name: str = "Jihomoravský lyžařský pohár"
+    active: bool = True
 
 
-class SeasonResultCreate(SeasonResultBase):
+class SeasonCreate(SeasonBase):
     pass
 
 
-class SeasonResultUpdate(BaseModel):
-    document_id: Optional[int] = None
-    final_results: Optional[int] = None
+class SeasonUpdate(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    year_end: Optional[int] = None
+    edition: Optional[int] = None
+    name: Optional[str] = None
+    active: Optional[bool] = None
 
 
-class SeasonResult(SeasonResultBase):
+class Season(SeasonBase):
     id: int
-    created_at: datetime
-    updated_at: datetime
-    # Document details populated by join
-    document_filename: Optional[str] = None
-    document_original_filename: Optional[str] = None
-    document_file_path: Optional[str] = None
+    year_end: int
+    edition_label: Optional[str] = None   # "XIX."
+    season_label: Optional[str] = None    # "2025/2026"
+    races_count: int = 0
+    documents_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

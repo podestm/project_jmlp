@@ -9,6 +9,7 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...utils import csv_safe
 
 router = APIRouter(tags=["admin-registrations"])
 
@@ -113,13 +114,13 @@ def export_race_registrations_csv(
         id_slcr = row.idSlcr or ''
         
         writer.writerow([
-            row.firstName or '',
-            row.lastName or '',
+            csv_safe(row.firstName),
+            csv_safe(row.lastName),
             sex_letter,
             row.birthYear or '',
-            club_name,
+            csv_safe(club_name),
             '',  # body_jmlp - empty as requested
-            id_slcr
+            csv_safe(id_slcr)
         ])
     
     csv_content = output.getvalue()

@@ -57,23 +57,42 @@ def get_current_season_id(reference_date: Optional[date] = None) -> int:
         reference_date = date.today()
     
     year = reference_date.year
-    
-    # Pokud jsme před 1. srpnem, patříme do sezóny tohoto roku
-    # Pokud jsme od 1. srpna, patříme do sezóny následujícího roku
-    if reference_date.month >= 8:  # srpen a později
-        season_id = year + 1
-    else:  # leden až červenec
+
+    # season_id v databázi je POČÁTEČNÍ rok sezóny.
+    # Sezóna 2025 = 1.8.2025 - 31.7.2026 (viz fuj_jmlp_race.season_id)
+    if reference_date.month >= 8:  # srpen a později - začíná nová sezóna
         season_id = year
-    
+    else:  # leden až červenec - stále běží sezóna začínající loni
+        season_id = year - 1
+
     return season_id
 
 
 def get_current_season(reference_date: Optional[date] = None) -> dict:
     season_id = get_current_season_id(reference_date)
     return {
-        'year_start': season_id - 1,
-        'year_end': season_id
+        'year_start': season_id,
+        'year_end': season_id + 1
     }
+
+
+_ROMAN_NUMERALS = (
+    (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
+    (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),
+    (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I'),
+)
+
+
+def to_roman(number: Optional[int]) -> str:
+    """Číslo ročníku na římské číslice (19 -> 'XIX'). Prázdný řetězec pro None."""
+    if not number or number <= 0:
+        return ""
+    result = []
+    remaining = int(number)
+    for value, numeral in _ROMAN_NUMERALS:
+        count, remaining = divmod(remaining, value)
+        result.append(numeral * count)
+    return "".join(result)
 
 
 def parse_date_string(date_string: str) -> date:
@@ -90,6 +109,41 @@ def calculate_season_for_date(date_string: str) -> int:
 
 def convert_utf8_field(field_name: str) -> str:
     return f"CONVERT(CONVERT({field_name} USING binary) USING utf8mb4)"
+
+
+def category_display_sql(alias: str = "cat") -> str:
+    """SQL výraz pro zobrazovaný název kategorie.
+
+    Protějšek category_display_name() pro raw SQL dotazy. display_name je čisté
+    utf8mb4 (nová data), zatímco name je legacy sloupec a potřebuje konverzi.
+    """
+    return (
+        f"COALESCE(NULLIF({alias}.display_name, ''), CONCAT("
+        f"{convert_utf8_field(f'{alias}.name')}, "
+        f"CASE {alias}.sex WHEN 2 THEN ' - Ženy' WHEN 1 THEN ' - Muži' ELSE '' END))"
+    )
+
+
+def format_file_size(size_bytes: int) -> str:
+    """Převede byty na čitelný formát (jednotné formátování napříč adminem)."""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    elif size_bytes < 1024 * 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    else:
+        return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+
+def csv_safe(value) -> str:
+    """Neutralizuje hodnoty, které by Excel interpretoval jako vzorec (CSV injection)."""
+    if value is None:
+        return ''
+    text = str(value)
+    if text and text[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + text
+    return text
 
 
 # Standard HTTP exceptions for consistent error handling
@@ -154,6 +208,33 @@ class StandardExceptions:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
 
 
+def compose_category_name(name: Optional[str], sex: Optional[int]) -> Optional[str]:
+    """Záložní název kategorie, když není vyplněný display_name.
+
+    Skládá "U8 Myšáci" + sex na "U8 Myšáci - Ženy". Pro nová data se používá
+    fuj_jmlp_category.display_name ("Myšáci dívky"), který je jediný
+    zobrazovaný název napříč webem, timekeeperem i výsledkovou listinou.
+    """
+    if not name:
+        return None
+    composed = fix_encoding(name)
+    if sex == 2:
+        return f"{composed} - Ženy"
+    if sex == 1:
+        return f"{composed} - Muži"
+    return composed
+
+
+def category_display_name(category) -> Optional[str]:
+    """Zobrazovaný název kategorie - display_name, jinak složený z name + sex."""
+    if category is None:
+        return None
+    display_name = getattr(category, "display_name", None)
+    if display_name and display_name.strip():
+        return fix_encoding(display_name)
+    return compose_category_name(category.name, category.sex)
+
+
 def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) -> tuple[Optional[int], Optional[str], Optional[int]]:
     from .models import Category
 
@@ -172,14 +253,7 @@ def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) ->
     if not category:
         return None, None, None
 
-    category_name = fix_encoding(category.name) if category.name else None
-    if category_name:
-        if category.sex == 2:
-            category_name = f"{category_name} - Ženy"
-        elif category.sex == 1:
-            category_name = f"{category_name} - Muži"
-
-    return category.id, category_name, category.sex
+    return category.id, category_display_name(category), category.sex
 
 
 def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:

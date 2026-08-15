@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from ..database import get_db
@@ -10,15 +10,5 @@ router = APIRouter(prefix="/clubs", tags=["clubs"])
 def list_clubs(db: Session = Depends(get_db)):
     return db.query(models.Club).filter(models.Club.valid == True).order_by(models.Club.name.asc()).all()
 
-@router.post("/", response_model=schemas.Club)
-def create_club(name: str, db: Session = Depends(get_db)):
-    # check if club already exists
-    existing = db.query(models.Club).filter(models.Club.name == name).first()
-    if existing:
-        return existing
-    
-    club = models.Club(name=name, valid=True)
-    db.add(club)
-    db.commit()
-    db.refresh(club)
-    return club
+# Kluby vznikají pouze schválením žádosti v adminu
+# (viz backend/app/routers/admin/clubs.py - POST /requests/{registration_id}/resolve).

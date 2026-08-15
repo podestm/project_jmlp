@@ -1,14 +1,57 @@
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, text
 
 from ...database import get_db
 from ... import models, schemas, auth
-from ...models import FileTypeEnum
+from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
+from ...services import attachments as attachment_service
 from ...utils import fix_encoding
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/races", tags=["admin-races"])
+
+# Závod má právě dva dokumenty; klíč je název pole v API, hodnota role přílohy.
+RACE_DOCUMENT_ROLES = {
+    "proposition_file_id": AttachmentRole.propozice,
+    "results_file_id": AttachmentRole.vysledky,
+}
+
+# Role -> file_type v knihovně (zachovává původní auto-kategorizaci souborů)
+_LIBRARY_FILE_TYPE = {
+    AttachmentRole.propozice: FileTypeEnum.propozice,
+    AttachmentRole.vysledky: FileTypeEnum.vysledky,
+}
+
+
+def _sync_race_document(db: Session, race_id: int, role: AttachmentRole,
+                        file_id, admin_id: int) -> None:
+    """Připojí nebo odpojí dokument závodu podle zaslaného file_id.
+
+    Prázdná hodnota dokument odpojí. Soubor zůstane v knihovně.
+    """
+    file_record = None
+    if file_id:
+        file_record = db.query(models.File).filter(models.File.id == file_id).first()
+        if not file_record:
+            raise HTTPException(status_code=404, detail="Soubor nebyl nalezen")
+
+    attachment_service.sync_single(
+        db,
+        owner_type=AttachmentOwner.race.value,
+        owner_id=race_id,
+        role=role.value,
+        file_id=file_id,
+        created_by=admin_id,
+    )
+
+    # Zachovává původní auto-kategorizaci souboru v knihovně
+    if file_record and file_record.file_type == FileTypeEnum.neprirazene:
+        file_record.file_type = _LIBRARY_FILE_TYPE[role]
+        db.commit()
 
 
 def _build_race_dict(race: models.Race, db: Session) -> dict:
@@ -38,6 +81,16 @@ def _build_race_dict(race: models.Race, db: Session) -> dict:
     race_dict["registrations_count"] = db.query(models.Registration).filter(
         models.Registration.race_id == race.id
     ).count()
+
+    # Dokumenty závodu se čtou z příloh, ne z (dnes už nepoužívaných) sloupců.
+    for field, role in RACE_DOCUMENT_ROLES.items():
+        document = attachment_service.first_for_owner(
+            db, AttachmentOwner.race.value, race.id, role.value
+        )
+        race_dict[field] = document["file_id"] if document else None
+        race_dict[field.replace("_id", "_path")] = (
+            f"uploads/documents/{document['filename']}" if document else None
+        )
     return race_dict
 
 
@@ -49,8 +102,43 @@ def get_races(
     db: Session = Depends(get_db)
 ):
     """List all races for admin management."""
-    races = db.query(models.Race).order_by(desc(models.Race.datum)).offset(skip).limit(limit).all()
-    return [_build_race_dict(race, db) for race in races]
+    # Jeden dotaz místo tří na každý závod (areál, organizátor, počet registrací)
+    rows = db.execute(text(f"""
+        SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
+               r.registration+0 as registration, r.areal_id,
+               r.organizer_id, r.race_method_id, r.season_id, r.is_live+0 as is_live,
+               CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
+               CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
+               {attachment_service.RACE_DOCUMENT_COLUMNS},
+               (SELECT COUNT(*) FROM fuj_jmlp_race_registration rr WHERE rr.race_id = r.id)
+                   as registrations_count
+        FROM fuj_jmlp_race r
+        LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
+        LEFT JOIN fuj_jmlp_club o ON r.organizer_id = o.id
+        {attachment_service.race_document_joins()}
+        ORDER BY r.datum DESC, r.id DESC
+        LIMIT :limit OFFSET :skip
+    """), {"limit": limit, "skip": skip}).fetchall()
+
+    return [{
+        "id": row.id,
+        "closed": bool(row.closed),
+        "datum": row.datum,
+        "race_nr": row.race_nr,
+        "registration": bool(row.registration),
+        "is_live": bool(row.is_live),
+        "proposition_file_id": row.proposition_file_id,
+        "results_file_id": row.results_file_id,
+        "proposition_file_path": row.proposition_file_path,
+        "results_file_path": row.results_file_path,
+        "areal_id": row.areal_id,
+        "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
+        "organizer_id": row.organizer_id,
+        "organizer_name": fix_encoding(row.organizer_name) if row.organizer_name else None,
+        "race_method_id": row.race_method_id,
+        "season_id": row.season_id,
+        "registrations_count": row.registrations_count,
+    } for row in rows]
 
 
 @router.get("/{race_id}", response_model=schemas.Race)
@@ -122,23 +210,17 @@ def create_race(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+    # Dokumenty se ukládají jako přílohy, ne jako sloupce závodu.
+    document_ids = {field: race_dict.pop(field, None) for field in RACE_DOCUMENT_ROLES}
+
     race = models.Race(**race_dict)
     db.add(race)
     db.commit()
     db.refresh(race)
 
-    # Auto-categorize files when assigned to race
-    if race_data.proposition_file_id:
-        file_record = db.query(models.File).filter(models.File.id == race_data.proposition_file_id).first()
-        if file_record and file_record.file_type == FileTypeEnum.neprirazene:
-            file_record.file_type = FileTypeEnum.propozice
-            db.commit()
-
-    if race_data.results_file_id:
-        file_record = db.query(models.File).filter(models.File.id == race_data.results_file_id).first()
-        if file_record and file_record.file_type == FileTypeEnum.neprirazene:
-            file_record.file_type = FileTypeEnum.vysledky
-            db.commit()
+    for field, role in RACE_DOCUMENT_ROLES.items():
+        if document_ids.get(field):
+            _sync_race_document(db, race.id, role, document_ids[field], current_admin.id)
 
     # Re-query to get a fresh object with all attributes loaded
     # (MyISAM + multiple commits can expire the SQLAlchemy instance state)
@@ -192,27 +274,20 @@ def update_race(
             update_data['organizer_id'] = organizer.id
         update_data.pop('organizer_name', None)
 
-    # Handle file assignments and disconnections
-    if 'proposition_file_id' in update_data:
-        if update_data['proposition_file_id']:
-            file_record = db.query(models.File).filter(models.File.id == update_data['proposition_file_id']).first()
-            if file_record and file_record.file_type == FileTypeEnum.neprirazene:
-                file_record.file_type = FileTypeEnum.propozice
-        else:
-            update_data['proposition_file_id'] = None
-
-    if 'results_file_id' in update_data:
-        if update_data['results_file_id']:
-            file_record = db.query(models.File).filter(models.File.id == update_data['results_file_id']).first()
-            if file_record and file_record.file_type == FileTypeEnum.neprirazene:
-                file_record.file_type = FileTypeEnum.vysledky
-        else:
-            update_data['results_file_id'] = None
+    # Dokumenty jsou přílohy - prázdná hodnota dokument odpojí.
+    document_updates = {
+        field: update_data.pop(field)
+        for field in list(RACE_DOCUMENT_ROLES)
+        if field in update_data
+    }
 
     for field, value in update_data.items():
         setattr(race, field, value)
 
     db.commit()
+
+    for field, file_id in document_updates.items():
+        _sync_race_document(db, race_id, RACE_DOCUMENT_ROLES[field], file_id, current_admin.id)
 
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     return _build_race_dict(race, db)
@@ -241,11 +316,25 @@ def delete_race(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Delete a race and all its registrations (cascade delete)."""
+    """Delete a race and all its child rows (start list + registrations).
+
+    MyISAM neumí transakce ani cizí klíče, takže mažeme od potomků k rodiči -
+    když něco selže uprostřed, zůstane závod (ne osiřelé řádky).
+    """
     try:
         race = db.query(models.Race).filter(models.Race.id == race_id).first()
         if not race:
             raise HTTPException(status_code=404, detail="Závod nenalezen")
+
+        start_list_count = db.query(models.StartListEntry).filter(
+            models.StartListEntry.race_id == race_id
+        ).count()
+
+        if start_list_count > 0:
+            db.query(models.StartListEntry).filter(
+                models.StartListEntry.race_id == race_id
+            ).delete()
+            db.commit()
 
         registrations_count = db.query(models.Registration).filter(
             models.Registration.race_id == race_id
@@ -255,21 +344,31 @@ def delete_race(
             db.query(models.Registration).filter(
                 models.Registration.race_id == race_id
             ).delete()
+            db.commit()
+
+        # Přílohy se jen odpojí, soubory zůstávají v knihovně dokumentů.
+        attachment_service.detach_owner(db, AttachmentOwner.race.value, race_id)
 
         db.delete(race)
         db.commit()
 
         message = "Závod úspěšně smazán"
+        details = []
         if registrations_count > 0:
-            message += f" (včetně {registrations_count} registrací)"
+            details.append(f"{registrations_count} registrací")
+        if start_list_count > 0:
+            details.append(f"{start_list_count} řádků startovní listiny")
+        if details:
+            message += f" (včetně {' a '.join(details)})"
 
         return {"message": message}
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Chyba při mazání závodu: {str(e)}")
+        logger.exception("Mazání závodu %s selhalo", race_id)
+        raise HTTPException(status_code=500, detail="Chyba při mazání závodu")
 
 
 @router.get("/autocomplete/areals")

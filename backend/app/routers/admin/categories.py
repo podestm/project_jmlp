@@ -5,7 +5,6 @@ from sqlalchemy import desc, text, and_
 
 from ...database import get_db
 from ... import models, schemas, auth
-from ...utils import get_category_for_birth_year
 
 router = APIRouter(tags=["admin-categories"])
 
@@ -30,8 +29,10 @@ def get_category(
         SELECT 
             id,
             CONVERT(CONVERT(name USING binary) USING utf8mb4) as name,
+            display_name,
             min_birth_year,
             max_birth_year,
+            sex,
             active,
             created_at,
             updated_at
@@ -41,15 +42,17 @@ def get_category(
     result = db.execute(query, {"category_id": category_id}).first()
     if not result:
         raise HTTPException(status_code=404, detail="Kategorie nenalezena")
-    
+
     return schemas.Category(
-        id=result[0],
-        name=result[1],
-        min_birth_year=result[2],
-        max_birth_year=result[3],
-        active=bool(result[4]),
-        created_at=result[5],
-        updated_at=result[6]
+        id=result.id,
+        name=result.name,
+        display_name=result.display_name,
+        min_birth_year=result.min_birth_year,
+        max_birth_year=result.max_birth_year,
+        sex=result.sex,
+        active=bool(result.active),
+        created_at=result.created_at,
+        updated_at=result.updated_at
     )
 
 
@@ -343,18 +346,34 @@ def recalculate_all_racer_categories(
     """
     # Načteme všechny závodníky
     racers = db.query(models.Racer).filter(models.Racer.year.isnot(None)).all()
-    
+
+    # Kategorie načteme jednou a vyhodnocujeme v paměti - jinak by šel jeden SELECT
+    # na závodníka (2000+ dotazů nad 14řádkovou tabulkou).
+    # Řazení odpovídá ORDER BY sex DESC v utils.get_category_snapshot_for_birth_year:
+    # kategorie pro konkrétní pohlaví má přednost před mix kategorií.
+    active_categories = sorted(
+        db.query(models.Category).filter(models.Category.active == True).all(),
+        key=lambda c: c.sex,
+        reverse=True
+    )
+
+    def resolve_category_id(birth_year, racer_sex):
+        for cat in active_categories:
+            if cat.min_birth_year <= birth_year <= cat.max_birth_year and cat.sex in (0, racer_sex):
+                return cat.id
+        return None
+
     stats = {
         "total": len(racers),
         "updated": 0,
         "unchanged": 0,
         "no_category": 0
     }
-    
+
     for racer in racers:
         old_category_id = racer.category_id
-        new_category_id = get_category_for_birth_year(racer.year, racer.sex, db)
-        
+        new_category_id = resolve_category_id(racer.year, racer.sex)
+
         if old_category_id != new_category_id:
             racer.category_id = new_category_id
             stats["updated"] += 1

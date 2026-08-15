@@ -1,89 +1,82 @@
+"""Veřejné výsledky sezóny.
+
+Cesta zůstává /season-results, aby se nemusel měnit nginx ani proxy ve Vite,
+ale data se čtou z fuj_jmlp_season + fuj_jmlp_attachment.
+
+Sezóna má vždy nejvýše jeden výsledkový dokument: během sezóny průběžné pořadí,
+po jejím skončení celkové výsledky, které ho nahradí. Hlídá to
+ATTACHMENT_EXCLUSIVE_GROUPS v models.py.
+"""
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
-from typing import List
+
 from ..database import get_db
-from .. import models, schemas
-from ..utils import get_current_season
+from .. import models
+from ..models import AttachmentOwner, AttachmentRole
+from ..services import attachments as attachment_service
+from ..utils import get_current_season, to_roman
 
 router = APIRouter(prefix="/season-results", tags=["season-results"])
 
+def _season_payload(season: models.Season, db: Session) -> Optional[Dict[str, Any]]:
+    documents = attachment_service.list_for_owner(
+        db, AttachmentOwner.season.value, season.year_start, published_only=True
+    )
+    if not documents:
+        return None
 
-def _row_to_result_dict(row) -> dict:
-    sr = row[0]
+    primary = documents[0]
+
     return {
-        "id": sr.id,
-        "season_year_start": sr.season_year_start,
-        "season_year_end": sr.season_year_end,
-        "document_id": sr.document_id,
-        "final_results": sr.final_results,
-        "created_at": sr.created_at,
-        "updated_at": sr.updated_at,
-        "document_filename": row[1],
-        "document_original_filename": row[2],
-        "document_file_path": row[3],
+        "season_year_start": season.year_start,
+        "season_year_end": season.year_end,
+        "edition": season.edition,
+        "edition_label": f"{to_roman(season.edition)}." if season.edition else None,
+        "name": season.name,
+        # final_results drží tvar, na který je navázaný kalendář:
+        # 1 = celkové výsledky, 0 = průběžné
+        "final_results": 1 if primary["role"] == AttachmentRole.vysledky.value else 0,
+        "document_id": primary["file_id"],
+        "document_filename": primary["filename"],
+        "document_original_filename": primary["original_filename"],
+        "document_file_path": f"uploads/documents/{primary['filename']}",
     }
 
 
-def _season_result_query():
-    return select(
-        models.SeasonResult,
-        models.File.filename,
-        models.File.original_filename,
-        models.File.file_path,
-    ).join(models.File, models.SeasonResult.document_id == models.File.id)
+@router.get("/")
+def get_all_season_results(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+    """Sezóny, které mají alespoň jeden zveřejněný dokument."""
+    seasons = db.query(models.Season).order_by(models.Season.year_start.desc()).all()
+    payloads = (_season_payload(season, db) for season in seasons)
+    return [payload for payload in payloads if payload]
 
 
-@router.get("/", response_model=List[schemas.SeasonResult])
-def get_all_season_results(db: Session = Depends(get_db)):
-    """Get all season results with document details"""
-    results = db.execute(
-        _season_result_query().order_by(models.SeasonResult.season_year_start.desc())
-    ).all()
-    return [_row_to_result_dict(row) for row in results]
-
-
-@router.get("/current", response_model=schemas.SeasonResult)
-def get_current_season_result(db: Session = Depends(get_db)):
-    """Get season result for current season"""
-    current_season = get_current_season()
-    year_start = current_season['year_start']
-    year_end = current_season['year_end']
-
-    result = db.execute(
-        _season_result_query().where(
-            and_(
-                models.SeasonResult.season_year_start == year_start,
-                models.SeasonResult.season_year_end == year_end,
-            )
-        )
-    ).first()
-
-    if not result:
+@router.get("/current")
+def get_current_season_result(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Dokumenty aktuální sezóny."""
+    year_start = get_current_season()["year_start"]
+    season = db.query(models.Season).filter(models.Season.year_start == year_start).first()
+    payload = _season_payload(season, db) if season else None
+    if not payload:
         raise HTTPException(
             status_code=404,
-            detail=f"Celkové výsledky pro sezónu {year_start}/{year_end} nebyly nalezeny",
+            detail=f"Celkové výsledky pro sezónu {year_start}/{year_start + 1} nebyly nalezeny",
         )
+    return payload
 
-    return _row_to_result_dict(result)
 
-
-@router.get("/{season_year_start}/{season_year_end}", response_model=schemas.SeasonResult)
-def get_season_result_by_years(season_year_start: int, season_year_end: int, db: Session = Depends(get_db)):
-    """Get season result for specific season years"""
-    result = db.execute(
-        _season_result_query().where(
-            and_(
-                models.SeasonResult.season_year_start == season_year_start,
-                models.SeasonResult.season_year_end == season_year_end,
-            )
-        )
-    ).first()
-
-    if not result:
+@router.get("/{season_year_start}/{season_year_end}")
+def get_season_result_by_years(
+    season_year_start: int, season_year_end: int, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Dokumenty konkrétní sezóny."""
+    season = db.query(models.Season).filter(models.Season.year_start == season_year_start).first()
+    payload = _season_payload(season, db) if season else None
+    if not payload:
         raise HTTPException(
             status_code=404,
             detail=f"Celkové výsledky pro sezónu {season_year_start}/{season_year_end} nebyly nalezeny",
         )
-
-    return _row_to_result_dict(result)
+    return payload

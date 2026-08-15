@@ -5,6 +5,7 @@ souboru úplná - dřív se na sezónní výsledky zapomínalo a soubor šlo sma
 i když ho veřejný kalendář používal.
 """
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 from sqlalchemy import text
@@ -96,19 +97,31 @@ def apply_post_documents(db: Session, posts: Iterable[Any]) -> None:
 
     Příspěvek má stejně jako dřív nejvýše jeden obrázek a jeden dokument, jen
     se čtou z fuj_jmlp_attachment místo ze sloupců.
+
+    Příloha, jejíž soubor na disku není, se přeskočí. Bez toho web tvrdil, že
+    obrázek existuje, prohlížeč si ho vyžádal a dostal 404 - u příspěvku pak
+    zůstalo prázdné místo po obrázku, který nikde není. Radši žádný obrázek
+    než rozbitý.
     """
     posts = list(posts)
     if not posts:
         return
 
-    rows = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == AttachmentOwner.post.value,
-        models.Attachment.owner_id.in_([p.id for p in posts]),
-        models.Attachment.role.in_([AttachmentRole.image.value, AttachmentRole.document.value]),
-    ).all()
+    rows = (
+        db.query(models.Attachment, models.File)
+        .join(models.File, models.File.id == models.Attachment.file_id)
+        .filter(
+            models.Attachment.owner_type == AttachmentOwner.post.value,
+            models.Attachment.owner_id.in_([p.id for p in posts]),
+            models.Attachment.role.in_([AttachmentRole.image.value, AttachmentRole.document.value]),
+        )
+        .all()
+    )
 
     by_post: Dict[int, Dict[str, int]] = defaultdict(dict)
-    for row in rows:
+    for row, file_obj in rows:
+        if not Path(file_obj.file_path).exists():
+            continue
         field = "image_file_id" if row.role == AttachmentRole.image.value else "document_file_id"
         by_post[row.owner_id][field] = row.file_id
 

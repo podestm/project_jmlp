@@ -5,8 +5,9 @@ from sqlalchemy import desc
 from typing import List
 from pathlib import Path
 from ..database import get_db
-from ..models import Post, File
-from ..schemas import Post as PostSchema, PostCreate, PostUpdate
+from ..models import AttachmentRole, Post, File
+from ..schemas import Post as PostSchema
+from ..services import attachments as attachment_service
 from ..utils import fix_encoding
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -31,16 +32,18 @@ def get_posts(
     for post in posts:
         post.title = fix_encoding(post.title)
         post.content = fix_encoding(post.content)
-    
+
+    attachment_service.apply_post_documents(db, posts)
     return posts
 
 
 @router.get("/{post_id}", response_model=PostSchema)
 def get_post(post_id: int, db: Session = Depends(get_db)):
-    """Získat konkrétní příspěvek podle ID"""
-    post = db.query(Post).filter(Post.id == post_id).first()
+    """Získat konkrétní publikovaný příspěvek podle ID"""
+    post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
+    attachment_service.apply_post_documents(db, [post])
     return post
 
 
@@ -51,14 +54,10 @@ def download_post_document(post_id: int, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
     
-    if not post.document_file_id:
-        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný dokument")
-    
-    # Get file from database
-    file_record = db.query(File).filter(File.id == post.document_file_id).first()
+    file_record = attachment_service.post_document_file(db, post_id, AttachmentRole.document.value)
     if not file_record:
-        raise HTTPException(status_code=404, detail="Soubor nenalezen v databázi")
-    
+        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný dokument")
+
     # Check if file exists on disk
     file_path = Path(file_record.file_path)
     if not file_path.exists():
@@ -78,14 +77,10 @@ def get_post_image(post_id: int, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
     
-    if not post.image_file_id:
-        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný obrázek")
-    
-    # Get file from database
-    file_record = db.query(File).filter(File.id == post.image_file_id).first()
+    file_record = attachment_service.post_document_file(db, post_id, AttachmentRole.image.value)
     if not file_record:
-        raise HTTPException(status_code=404, detail="Soubor nenalezen v databázi")
-    
+        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný obrázek")
+
     # Check if file exists on disk
     file_path = Path(file_record.file_path)
     if not file_path.exists():
@@ -98,49 +93,13 @@ def get_post_image(post_id: int, db: Session = Depends(get_db)):
         media_type=file_record.mime_type or 'application/octet-stream'
     )
     
-    # Add ETag based on post's updated_at timestamp and image_file_id
+    # Add ETag based on post's updated_at timestamp and the actual file id
     # This ensures browser cache is invalidated when image changes
-    etag = f'"{post.updated_at.timestamp()}-{post.image_file_id}"'
+    etag = f'"{post.updated_at.timestamp()}-{file_record.id}"'
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour, but check ETag
     
     return response
 
-
-# Admin endpoints (zatím bez autentizace)
-@router.post("/", response_model=PostSchema)
-def create_post(post: PostCreate, db: Session = Depends(get_db)):
-    """Vytvořit nový příspěvek"""
-    db_post = Post(**post.dict())
-    db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
-    return db_post
-
-
-@router.put("/{post_id}", response_model=PostSchema)
-def update_post(post_id: int, post_update: PostUpdate, db: Session = Depends(get_db)):
-    """Aktualizovat existující příspěvek"""
-    db_post = db.query(Post).filter(Post.id == post_id).first()
-    if not db_post:
-        raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
-    
-    # Aktualizovat pouze poskytnutá pole
-    for field, value in post_update.dict(exclude_unset=True).items():
-        setattr(db_post, field, value)
-    
-    db.commit()
-    db.refresh(db_post)
-    return db_post
-
-
-@router.delete("/{post_id}")
-def delete_post(post_id: int, db: Session = Depends(get_db)):
-    """Smazat příspěvek"""
-    db_post = db.query(Post).filter(Post.id == post_id).first()
-    if not db_post:
-        raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
-    
-    db.delete(db_post)
-    db.commit()
-    return {"message": "Příspěvek byl úspěšně smazán"}
+# Zápisové operace nad příspěvky jsou pouze v chráněném adminu
+# (viz backend/app/routers/admin/posts.py).
