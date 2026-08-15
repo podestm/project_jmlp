@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AdminAPI } from '../config/api.js';
+import { MONTH_NAMES } from '../config/constants.js';
 
 export const usePostManagement = () => {
     // State management
@@ -49,7 +50,7 @@ export const usePostManagement = () => {
             setLoading(true);
             const data = await AdminAPI.get('/api/admin/posts');
             setPosts(data);
-        } catch (err) {
+        } catch {
             setError('Chyba při načítání postů');
         } finally {
             setLoading(false);
@@ -147,10 +148,7 @@ export const usePostManagement = () => {
         return [...new Set(months)].sort((a, b) => a - b);
     };
 
-    const monthNames = [
-        'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
-        'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'
-    ];
+    const monthNames = MONTH_NAMES;
 
     const clearFilters = () => {
         setSearchTerm('');

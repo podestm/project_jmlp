@@ -1,0 +1,147 @@
+"""Zakládání a úprava závodníka v administraci.
+
+Schéma RacerCreate používá jiné názvy polí než model (firstName vs name,
+birthYear vs year, ...). Komentáře u schématu slibují mapování, které se ale
+nikde neprovádělo: založení končilo chybou 500 a úprava tiše zahodila všechno
+kromě oddílu, přičemž odpověď vypadala jako úspěšná.
+"""
+import pytest
+
+from app import models
+
+
+def _klub(db, name="SK Test"):
+    klub = models.Club(name=name, valid=True)
+    db.add(klub)
+    db.commit()
+    db.refresh(klub)
+    return klub
+
+
+def _zavodnik(db, **overrides):
+    data = dict(name="Jan", surname="Novak", year=2010, sex=1)
+    data.update(overrides)
+    racer = models.Racer(**data)
+    db.add(racer)
+    db.commit()
+    db.refresh(racer)
+    return racer
+
+
+@pytest.fixture
+def kategorie(db):
+    kategorie = models.Category(
+        name="Zaci", sex=1, min_birth_year=2008, max_birth_year=2012, active=True
+    )
+    db.add(kategorie)
+    db.commit()
+    db.refresh(kategorie)
+    return kategorie
+
+
+def test_zalozeni_zavodnika_ulozi_jmeno_i_rocnik(client, db, admin_headers, kategorie):
+    odpoved = client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Anna",
+        "lastName": "Holcickova",
+        "sex": 2,
+        "birthYear": 2011,
+        "idSlcr": "SLCR-42",
+    })
+
+    assert odpoved.status_code in (200, 201), odpoved.text
+    ulozeny = db.query(models.Racer).filter(models.Racer.surname == "Holcickova").first()
+    assert ulozeny is not None, "závodník se vůbec neuložil"
+    assert ulozeny.name == "Anna"
+    assert ulozeny.year == 2011
+    assert ulozeny.slcr_id == "SLCR-42"
+
+
+def test_zalozeni_zavodnika_prirradi_kategorii(client, db, admin_headers, kategorie):
+    client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Petr", "lastName": "Maly", "sex": 1, "birthYear": 2010,
+    })
+
+    ulozeny = db.query(models.Racer).filter(models.Racer.surname == "Maly").first()
+    # Bez kategorie závodník nespadne do žádné startovky.
+    assert ulozeny.category_id == kategorie.id
+
+
+def test_zalozeni_s_oddilem(client, db, admin_headers, kategorie):
+    klub = _klub(db)
+
+    odpoved = client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Eva", "lastName": "Klubova", "sex": 2, "birthYear": 2010,
+        "club_id": klub.id,
+    })
+
+    assert odpoved.status_code in (200, 201), odpoved.text
+    assert db.query(models.Racer).filter(models.Racer.surname == "Klubova").first().club_id == klub.id
+
+
+def test_zalozeni_s_neexistujicim_oddilem_odmitne(client, admin_headers, kategorie):
+    odpoved = client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "Nikdo", "sex": 1, "birthYear": 2010,
+        "club_id": 999999,
+    })
+    assert odpoved.status_code == 400
+
+
+def test_uprava_zavodnika_skutecne_ulozi_zmeny(client, db, admin_headers, kategorie):
+    """Odpověď dřív vracela nové hodnoty, ale do databáze se nezapsaly."""
+    racer = _zavodnik(db)
+
+    odpoved = client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Josef",
+        "lastName": "Opraveny",
+        "sex": 1,
+        "birthYear": 2009,
+        "idSlcr": "SLCR-99",
+    })
+
+    assert odpoved.status_code == 200, odpoved.text
+    db.expire_all()
+    ulozeny = db.query(models.Racer).get(racer.id)
+    assert ulozeny.name == "Josef"
+    assert ulozeny.surname == "Opraveny"
+    assert ulozeny.year == 2009
+    assert ulozeny.slcr_id == "SLCR-99"
+
+
+def test_uprava_rocniku_prepocita_kategorii(client, db, admin_headers, kategorie):
+    stara = models.Category(name="Starsi", sex=1, min_birth_year=2000, max_birth_year=2005, active=True)
+    db.add(stara)
+    db.commit()
+    db.refresh(stara)
+    racer = _zavodnik(db, year=2003, category_id=stara.id)
+
+    client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "Novak", "sex": 1, "birthYear": 2010,
+    })
+
+    db.expire_all()
+    assert db.query(models.Racer).get(racer.id).category_id == kategorie.id
+
+
+def test_uprava_neexistujiciho_zavodnika_je_404(client, admin_headers):
+    odpoved = client.put("/api/admin/racers/999999", headers=admin_headers, json={
+        "firstName": "Nikdo", "lastName": "Nikde", "sex": 1, "birthYear": 2010,
+    })
+    assert odpoved.status_code == 404
+
+
+def test_prazdny_oddil_neni_chyba(client, db, admin_headers, kategorie):
+    """Formulář posílá u nevybraného oddílu prázdnou hodnotu."""
+    odpoved = client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Bez", "lastName": "Oddilu", "sex": 1, "birthYear": 2010,
+        "club_id": None,
+    })
+
+    assert odpoved.status_code in (200, 201), odpoved.text
+    assert db.query(models.Racer).filter(models.Racer.surname == "Oddilu").first().club_id is None
+
+
+def test_zalozeni_bez_prihlaseni_neprojde(client):
+    odpoved = client.post("/api/admin/racers", json={
+        "firstName": "Jan", "lastName": "Novak", "sex": 1, "birthYear": 2010,
+    })
+    assert odpoved.status_code in (401, 403)

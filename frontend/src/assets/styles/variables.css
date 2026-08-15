@@ -24,6 +24,17 @@
   --text-secondary: #e0e0e0;
   --text-muted: #a0a0a0;
   --text-dark: #1a1a1a;
+
+  /* Gray Scale for Dark Mode (inverted: 900=lightest for headings, 100=darkest) */
+  --gray-900: #f1f5f9;
+  --gray-800: #e2e8f0;
+  --gray-700: #cbd5e1;
+  --gray-600: #94a3b8;
+  --gray-500: #64748b;
+  --gray-400: #475569;
+  --gray-300: rgba(255, 255, 255, 0.2);
+  --gray-200: rgba(255, 255, 255, 0.1);
+  --gray-100: rgba(255, 255, 255, 0.05);
   
   /* Primary Colors - Sunset Theme */
   --primary-blue: var(--sunset-orange);

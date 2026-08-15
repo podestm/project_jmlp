@@ -22,50 +22,48 @@ def search_racers(
     """Vyhledávání závodníků s podporou filtrování podle jména, příjmení, roku, klubu a SLCR ID"""
     
     from sqlalchemy import text
-    
-    # Nejdříve načteme všechny závodníky (bez emailu a telefonu pro vyhledávání)
-    sql = "SELECT id, name, surname, year, sex, slcr_id, club_id FROM fuj_jmlp_racer WHERE 1=1"
+
+    # Jeden dotaz s JOINem na klub - filtr podle klubu musí proběhnout v SQL,
+    # jinak by se aplikoval až po LIMIT 50 a vracel prázdné výsledky.
+    # TRIM() odstraňuje historické odsazení mezerami v name/surname.
+    sql = """
+        SELECT r.id, TRIM(r.name) as name, TRIM(r.surname) as surname,
+               r.year, r.sex, r.slcr_id, r.club_id, c.name as club_name
+        FROM fuj_jmlp_racer r
+        LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
+        WHERE 1=1
+    """
     params = {}
-    
+
     # Přidáme filtry pro závodníka
     if name and name.strip():
-        sql += " AND name LIKE :name_filter"
+        sql += " AND r.name LIKE :name_filter"
         params['name_filter'] = f"%{name.strip()}%"
-        
+
     if surname and surname.strip():
-        sql += " AND surname LIKE :surname_filter" 
+        sql += " AND r.surname LIKE :surname_filter"
         params['surname_filter'] = f"%{surname.strip()}%"
-        
+
     if year:
-        sql += " AND year = :year"
+        sql += " AND r.year = :year"
         params['year'] = year
-    
+
     # Přidáme filtr pro SLCR ID
     if slcr_id and slcr_id.strip():
-        sql += " AND slcr_id LIKE :slcr_id_filter"
+        sql += " AND r.slcr_id LIKE :slcr_id_filter"
         params['slcr_id_filter'] = f"%{slcr_id.strip()}%"
-    
-    sql += " ORDER BY surname ASC, name ASC LIMIT 50"
-    
+
+    if club and club.strip():
+        sql += " AND c.name LIKE :club_filter"
+        params['club_filter'] = f"%{club.strip()}%"
+
+    sql += " ORDER BY r.surname ASC, r.name ASC LIMIT 50"
+
     result = db.execute(text(sql), params)
     racers_data = result.fetchall()
-    
-    # Pro každého závodníka načteme klub explicitně
+
     results = []
     for row in racers_data:
-        club_name = None
-        if row.club_id:
-            club_result = db.execute(text("SELECT name FROM fuj_jmlp_club WHERE id = :club_id"), 
-                                   {"club_id": row.club_id})
-            club_row = club_result.fetchone()
-            if club_row:
-                club_name = club_row.name
-        
-        # Pokud hledáme podle klubu a závodník klub nemá nebo neodpovídá, přeskočíme
-        if club and club.strip():
-            if not club_name or club.strip().lower() not in club_name.lower():
-                continue
-        
         results.append({
             "id": row.id,
             "name": fix_encoding(row.name) if row.name else None,
@@ -74,14 +72,15 @@ def search_racers(
             "sex": row.sex,
             "slcr_id": row.slcr_id,
             "club_id": row.club_id,
-            "club_name": fix_encoding(club_name) if club_name else None
+            "club_name": fix_encoding(row.club_name) if row.club_name else None
             # telefon a email se záměrně nevrací při vyhledávání
         })
-    
+
     return results
 
-@router.get("/", response_model=List[schemas.Racer])
+@router.get("/", response_model=List[schemas.RacerPublic])
 def list_racers(q: str | None = Query(default=None), db: Session = Depends(get_db)):
+    """Veřejný seznam závodníků - bez kontaktních údajů."""
     query = db.query(models.Racer)
     if q:
         like = f"%{q.lower()}%"
@@ -89,11 +88,3 @@ def list_racers(q: str | None = Query(default=None), db: Session = Depends(get_d
             (models.Racer.name.like(like)) | (models.Racer.surname.like(like))
         )
     return query.order_by(models.Racer.surname.asc(), models.Racer.name.asc()).limit(50).all()
-
-@router.post("/", response_model=schemas.Racer)
-def create_racer(r: schemas.RacerBase, db: Session = Depends(get_db)):
-    racer = models.Racer(**r.dict())
-    db.add(racer)
-    db.commit()
-    db.refresh(racer)
-    return racer

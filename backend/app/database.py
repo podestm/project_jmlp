@@ -2,7 +2,10 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://app:default-dev-app-password@db:3306/jmlpcz?charset=utf8mb4")
+try:
+    DATABASE_URL = os.environ["DATABASE_URL"]
+except KeyError as e:
+    raise RuntimeError("DATABASE_URL environment variable is required (set in secret/.env)") from e
 
 engine = create_engine(
     DATABASE_URL, 
@@ -21,5 +24,8 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

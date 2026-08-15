@@ -1,41 +1,43 @@
-import React from 'react';
 import { formatSeason } from '../../../utils/season.js';
 
-const RaceTable = ({ 
-    races, 
-    availableDocuments, 
-    editRace, 
-    deleteRace, 
-    toggleRegistration, 
-    downloadRegistrationsCsv 
+const RaceTable = ({
+    races,
+    editRace,
+    deleteRace,
+    toggleRegistration,
+    downloadRegistrationsCsv
 }) => {
-    const getDocumentName = (fileId) => {
-        const doc = availableDocuments.find(d => d.id === fileId);
-        return doc ? doc.original_filename : '';
-    };
-
-    const renderDocumentLinks = (race) => {
-        const propositionDoc = race.proposition_file_id ? getDocumentName(race.proposition_file_id) : null;
-        const resultsDoc = race.results_file_id ? getDocumentName(race.results_file_id) : null;
-        
-        return (
-            <div className="d-flex flex-wrap gap-1">
-                {propositionDoc && (
-                    <span className="badge bg-primary" title={propositionDoc}>
-                        <i className="bi bi-file-text me-1"></i>P
-                    </span>
-                )}
-                {resultsDoc && (
-                    <span className="badge bg-success" title={resultsDoc}>
-                        <i className="bi bi-file-text me-1"></i>V
-                    </span>
-                )}
-                {!propositionDoc && !resultsDoc && (
-                    <span className="text-muted">-</span>
-                )}
-            </div>
-        );
-    };
+    // Odkazy míří na veřejné trvalé adresy závodu, ne na konkrétní soubor -
+    // po výměně přílohy zůstávají platné a admin si dokument rovnou otevře.
+    const renderDocumentLinks = (race) => (
+        <div className="d-flex flex-wrap gap-1">
+            {race.proposition_file_id && (
+                <a
+                    className="badge bg-primary text-decoration-none"
+                    href={`/races/${race.id}/proposition`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Propozice"
+                >
+                    <i className="bi bi-file-text me-1"></i>P
+                </a>
+            )}
+            {race.results_file_id && (
+                <a
+                    className="badge bg-success text-decoration-none"
+                    href={`/races/${race.id}/results`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Výsledky"
+                >
+                    <i className="bi bi-file-text me-1"></i>V
+                </a>
+            )}
+            {!race.proposition_file_id && !race.results_file_id && (
+                <span className="text-muted">-</span>
+            )}
+        </div>
+    );
 
     if (races.length === 0) {
         return (
@@ -70,7 +72,7 @@ const RaceTable = ({
                             </td>
                             <td>
                                 <code className="bg-light px-2 py-1 rounded">
-                                    {race.raceNr}
+                                    {race.race_nr}
                                 </code>
                             </td>
                             <td>
@@ -107,14 +109,14 @@ const RaceTable = ({
                                     </button>
                                     <button 
                                         className="btn btn-outline-success" 
-                                        onClick={() => downloadRegistrationsCsv(race.id, race.raceNr)}
+                                        onClick={() => downloadRegistrationsCsv(race.id, race.race_nr)}
                                         title="Stáhnout registrace CSV"
                                     >
                                         <i className="bi bi-download"></i>
                                     </button>
                                     <button 
                                         className="btn btn-outline-danger" 
-                                        onClick={() => deleteRace(race.id)}
+                                        onClick={() => deleteRace(race.id, race.race_nr)}
                                         title="Smazat závod"
                                     >
                                         <i className="bi bi-trash"></i>

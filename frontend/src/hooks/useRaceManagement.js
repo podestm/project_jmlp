@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AdminAPI, API_CONFIG } from '../config/api.js';
+import { AdminAPI } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 
 export const useRaceManagement = () => {
@@ -14,83 +14,30 @@ export const useRaceManagement = () => {
     const [editingRace, setEditingRace] = useState(null);
     const [formData, setFormData] = useState({
         datum: '',
-        raceNr: '',
+        race_nr: '',
         season_id: '',
         areal_id: '',
         organizer_id: '',
         registration: true,
-        proposition_file_id: null,
-        results_file_id: null,
-        raceMethod_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
+        race_method_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     
     // Documents state
-    const [availableDocuments, setAvailableDocuments] = useState([]);
-    const [availableDocumentsOnly, setAvailableDocumentsOnly] = useState([]); // Documents only (no images)
-    const [propositionDocuments, setPropositionDocuments] = useState([]);
-    const [resultsDocuments, setResultsDocuments] = useState([]);
     
     // Autocomplete states
     const [arealSearch, setArealSearch] = useState('');
     const [arealSuggestions, setArealSuggestions] = useState([]);
     const [organizerSearch, setOrganizerSearch] = useState('');
     const [organizerSuggestions, setOrganizerSuggestions] = useState([]);
-    const [propositionSearch, setPropositionSearch] = useState('');
-    const [propositionSuggestions, setPropositionSuggestions] = useState([]);
-    const [resultsSearch, setResultsSearch] = useState('');
-    const [resultsSuggestions, setResultsSuggestions] = useState([]);
     const [raceNumberPreview, setRaceNumberPreview] = useState('');
     const [seasonPreview, setSeasonPreview] = useState('');
     
     // Filter states
     const [seasonFilter, setSeasonFilter] = useState('');
     const [availableSeasons, setAvailableSeasons] = useState([]);
-
-    // Helper function to determine if file is a document (not image)
-    const isDocument = (doc) => {
-        if (!doc.original_filename) return true; // Safe fallback
-        
-        const filename = doc.original_filename.toLowerCase();
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-        const documentExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.rtf', '.odt', '.ods'];
-        
-        // If it's explicitly an image, exclude it
-        if (imageExtensions.some(ext => filename.endsWith(ext))) {
-            return false;
-        }
-        
-        // If it's explicitly a document, include it
-        if (documentExtensions.some(ext => filename.endsWith(ext))) {
-            return true;
-        }
-        
-        // For unknown extensions, include by default (safer for race propositions)
-        return true;
-    };
-
-    // Data loading functions
-    const loadDocuments = async () => {
-        try {
-            const data = await AdminAPI.get('/api/admin/files');
-            setAvailableDocuments(data);
-            
-            // Filter for documents only (exclude images) for propositions
-            const documentsOnly = data.filter(isDocument);
-            setAvailableDocumentsOnly(documentsOnly);
-            
-            setPropositionDocuments(documentsOnly.filter(doc => 
-                doc.file_type === 'proposition' || (doc.original_filename && doc.original_filename.toLowerCase().includes('propozice'))
-            ));
-            setResultsDocuments(documentsOnly.filter(doc => 
-                doc.file_type === 'results' || (doc.original_filename && doc.original_filename.toLowerCase().includes('vysledky'))
-            ));
-        } catch (err) {
-            console.error('Error loading documents:', err);
-        }
-    };
 
     const loadRaces = async () => {
         try {
@@ -138,7 +85,7 @@ export const useRaceManagement = () => {
         setSeasonPreview(seasonDisplay);
         
         return {
-            raceNr: raceNumber,
+            race_nr: raceNumber,
             seasonId: seasonId,
             seasonDisplay: seasonDisplay
         };
@@ -219,63 +166,6 @@ export const useRaceManagement = () => {
         }
     };
 
-    // Document autocomplete handlers
-    const handlePropositionSearch = (value) => {
-        setPropositionSearch(value);
-        
-        if (!value.trim()) {
-            setPropositionSuggestions([]);
-            return;
-        }
-        
-        // Filter documents by search query
-        const filtered = availableDocumentsOnly.filter(doc =>
-            doc.original_filename.toLowerCase().includes(value.toLowerCase())
-        ).slice(0, 10); // Limit to 10 suggestions
-        
-        setPropositionSuggestions(filtered);
-    };
-
-    const handleResultsSearch = (value) => {
-        setResultsSearch(value);
-        
-        if (!value.trim()) {
-            setResultsSuggestions([]);
-            return;
-        }
-        
-        // Filter documents by search query
-        const filtered = availableDocumentsOnly.filter(doc =>
-            doc.original_filename.toLowerCase().includes(value.toLowerCase())
-        ).slice(0, 10); // Limit to 10 suggestions
-        
-        setResultsSuggestions(filtered);
-    };
-
-    const selectPropositionDocument = (doc) => {
-        setFormData(prev => ({...prev, proposition_file_id: doc.id}));
-        setPropositionSearch(doc.original_filename);
-        setPropositionSuggestions([]);
-    };
-
-    const selectResultsDocument = (doc) => {
-        setFormData(prev => ({...prev, results_file_id: doc.id}));
-        setResultsSearch(doc.original_filename);
-        setResultsSuggestions([]);
-    };
-
-    const clearPropositionDocument = () => {
-        setFormData(prev => ({...prev, proposition_file_id: null}));
-        setPropositionSearch('');
-        setPropositionSuggestions([]);
-    };
-
-    const clearResultsDocument = () => {
-        setFormData(prev => ({...prev, results_file_id: null}));
-        setResultsSearch('');
-        setResultsSuggestions([]);
-    };
-
     // CRUD operations
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -296,16 +186,15 @@ export const useRaceManagement = () => {
             if (!editingRace) {
                 const result = generateRaceNumberLocal();
                 if (result) {
-                    submitData.raceNr = result.raceNr;
+                    submitData.race_nr = result.race_nr;
                     submitData.season_id = result.seasonId;
                 }
             }
 
-            let response;
             if (editingRace) {
-                response = await AdminAPI.put(`/api/admin/races/${editingRace.id}`, submitData);
+                await AdminAPI.put(`/api/admin/races/${editingRace.id}`, submitData);
             } else {
-                response = await AdminAPI.post('/api/admin/races', submitData);
+                await AdminAPI.post('/api/admin/races', submitData);
             }
 
             setSuccess(editingRace ? 'Závod byl úspěšně aktualizován' : 'Závod byl úspěšně vytvořen');
@@ -323,63 +212,41 @@ export const useRaceManagement = () => {
     const resetForm = () => {
         setFormData({
             datum: '',
-            raceNr: '',
+            race_nr: '',
             season_id: '',
             areal_id: '',
             organizer_id: '',
             registration: true,
-            proposition_file_id: null,
-            results_file_id: null,
-            raceMethod_id: 1
+            race_method_id: 1
         });
         setEditingRace(null);
         setArealSearch('');
         setOrganizerSearch('');
-        setPropositionSearch('');
-        setResultsSearch('');
         setRaceNumberPreview('');
         setSeasonPreview('');
         setArealSuggestions([]);
         setOrganizerSuggestions([]);
-        setPropositionSuggestions([]);
-        setResultsSuggestions([]);
     };
 
     const editRace = (race) => {
         setEditingRace(race);
         setFormData({
             datum: race.datum,
-            raceNr: race.raceNr,
+            race_nr: race.race_nr,
             season_id: race.season_id,
             areal_id: race.areal_id,
             organizer_id: race.organizer_id,
             registration: race.registration,
-            proposition_file_id: race.proposition_file_id,
-            results_file_id: race.results_file_id,
-            raceMethod_id: race.raceMethod_id || 1
+            race_method_id: race.race_method_id || 1
         });
         
         // Set areál and organizer names for autocomplete display
         setArealSearch(race.areal_name || '');
         setOrganizerSearch(race.organizer_name || '');
         
-        // Set document names for autocomplete display
-        if (race.proposition_file_id) {
-            const propDoc = availableDocumentsOnly.find(doc => doc.id === race.proposition_file_id);
-            if (propDoc) {
-                setPropositionSearch(propDoc.original_filename);
-            }
-        }
-        if (race.results_file_id) {
-            const resDoc = availableDocumentsOnly.find(doc => doc.id === race.results_file_id);
-            if (resDoc) {
-                setResultsSearch(resDoc.original_filename);
-            }
-        }
-        
         // Set preview values for editing
-        if (race.raceNr) {
-            setRaceNumberPreview(race.raceNr);
+        if (race.race_nr) {
+            setRaceNumberPreview(race.race_nr);
         }
         if (race.season_id) {
             setSeasonPreview(formatSeason(race.season_id));
@@ -412,7 +279,7 @@ export const useRaceManagement = () => {
         }
     };
 
-    const downloadRegistrationsCsv = async (raceId, raceNr) => {
+    const downloadRegistrationsCsv = async (raceId, race_nr) => {
         try {
             const token = localStorage.getItem('admin_token');
             const endpoint = `/api/admin/races/${raceId}/export-csv`;
@@ -431,7 +298,7 @@ export const useRaceManagement = () => {
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = downloadUrl;
-            link.download = `registrace_${raceNr}.csv`;
+            link.download = `registrace_${race_nr}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -447,7 +314,6 @@ export const useRaceManagement = () => {
     // Initialize data loading
     useEffect(() => {
         loadRaces();
-        loadDocuments();
     }, []);
 
     useEffect(() => {
@@ -479,11 +345,11 @@ export const useRaceManagement = () => {
                 if (result) {
                     setFormData(prev => ({
                         ...prev,
-                        raceNr: result.raceNr,
+                        race_nr: result.race_nr,
                         season_id: result.seasonId
                     }));
                     // Update preview too
-                    setRaceNumberPreview(result.raceNr);
+                    setRaceNumberPreview(result.race_nr);
                     setSeasonPreview(result.seasonDisplay);
                 }
             }
@@ -500,18 +366,10 @@ export const useRaceManagement = () => {
         loading,
         error,
         success,
-        availableDocuments,
-        availableDocumentsOnly,
-        propositionDocuments,
-        resultsDocuments,
         arealSearch,
         arealSuggestions,
         organizerSearch,
         organizerSuggestions,
-        propositionSearch,
-        propositionSuggestions,
-        resultsSearch,
-        resultsSuggestions,
         raceNumberPreview,
         seasonPreview,
         seasonFilter,
@@ -525,14 +383,8 @@ export const useRaceManagement = () => {
         setSeasonFilter,
         handleArealSearch,
         handleOrganizerSearch,
-        handlePropositionSearch,
-        handleResultsSearch,
         selectAreal,
         selectOrganizer,
-        selectPropositionDocument,
-        selectResultsDocument,
-        clearPropositionDocument,
-        clearResultsDocument,
         generateRaceNumberLocal,
         handleSubmit,
         resetForm,
@@ -541,6 +393,5 @@ export const useRaceManagement = () => {
         toggleRegistration,
         downloadRegistrationsCsv,
         loadRaces,
-        loadDocuments
     };
 };

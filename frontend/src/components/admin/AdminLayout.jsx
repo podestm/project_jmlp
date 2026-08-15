@@ -1,10 +1,27 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
+import { AdminAPI } from '../../config/api.js';
 
 export default function AdminLayout({ children }) {
   const { admin, logout } = useAuth();
   const location = useLocation();
+  const [pendingClubRequests, setPendingClubRequests] = useState(0);
+
+  const refreshClubCount = () => {
+    AdminAPI.get('/api/admin/clubs/requests/count')
+      .then(data => setPendingClubRequests(data.count || 0))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshClubCount();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    window.addEventListener('club-request-resolved', refreshClubCount);
+    return () => window.removeEventListener('club-request-resolved', refreshClubCount);
+  }, []);
 
   const isActive = (path) => {
     if (path === '/admin' && location.pathname === '/admin') return true;
@@ -62,6 +79,15 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-people me-2"></i>
               Závodníci
             </Link>
+            <Link to="/admin/club-requests" className={`nav-link text-white d-flex align-items-center justify-content-between ${isActive('/admin/club-requests') ? 'active' : ''}`}>
+              <span className="d-flex align-items-center">
+                <i className="bi bi-buildings me-2" style={{ fontStyle: 'normal', fontFamily: 'bootstrap-icons' }}></i>
+                Žádosti o kluby
+              </span>
+              {pendingClubRequests > 0 && (
+                <span className="badge bg-warning text-dark ms-1">{pendingClubRequests}</span>
+              )}
+            </Link>
             <Link to="/admin/documents" className={`nav-link text-white ${isActive('/admin/documents') ? 'active' : ''}`}>
               <i className="bi bi-file-text me-2"></i>
               Dokumenty
@@ -70,9 +96,13 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-newspaper me-2"></i>
               Posty a zprávy
             </Link>
-            <Link to="/admin/season-results" className={`nav-link text-white ${isActive('/admin/season-results') ? 'active' : ''}`}>
+            <Link to="/admin/seasons" className={`nav-link text-white ${isActive('/admin/seasons') ? 'active' : ''}`}>
               <i className="bi bi-trophy-fill me-2"></i>
-              Celkové výsledky
+              Sezóny
+            </Link>
+            <Link to="/admin/clubs" className={`nav-link text-white ${isActive('/admin/clubs') ? 'active' : ''}`}>
+              <i className="bi bi-buildings-fill me-2"></i>
+              Kluby
             </Link>
             <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
               <i className="bi bi-tag me-2"></i>
@@ -125,7 +155,7 @@ export default function AdminLayout({ children }) {
       {/* Main content */}
       <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
         {/* Page content */}
-        <main className="flex-grow-1 p-4 bg-light" style={{ overflowY: 'auto' }}>
+        <main className="flex-grow-1 p-4 admin-layout-content" style={{ overflowY: 'auto', background: '#f8f9fa' }}>
           <div className="container-fluid">
             {children}
           </div>

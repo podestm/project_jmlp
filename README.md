@@ -1,6 +1,6 @@
 # JMLP – Registrační systém závodů
 
-Full‑stack systém pro správu závodů a registrací české "Jezerní Motolodní Liga Pardubice". Backend běží na FastAPI, frontend na Reactu (Vite), databáze je MySQL. Projekt je plně dockerizovaný a připravený pro vývoj i produkci.
+Full‑stack systém pro správu seriálu lyžařských závodů Jihomoravský Lyžařský Pohár (JMLP) — plánování závodů, registrace závodníků, časomíra s offline podporou a evidence výsledků. Backend běží na FastAPI, frontend na Reactu (Vite), databáze je MySQL. Projekt je plně dockerizovaný a připravený pro vývoj i produkci.
 
 **Tento README je jediným zdrojem pravdy** – veškerá dokumentace, bezpečnost, provoz i troubleshooting jsou sjednoceny v tomto souboru.
 

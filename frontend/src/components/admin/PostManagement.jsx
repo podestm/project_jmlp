@@ -1,4 +1,3 @@
-import React from 'react';
 import { usePostManagement } from '../../hooks/usePostManagement.js';
 import PostFilters from './post/PostFilters.jsx';
 import PostTable from './post/PostTable.jsx';

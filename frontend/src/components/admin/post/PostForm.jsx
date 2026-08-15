@@ -1,4 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
+import { OWNER, ROLE } from '../../../config/attachmentsApi.js';
+import AttachmentManager from '../attachments/AttachmentManager.jsx';
+
+// Příspěvek má nejvýše jeden obrázek a nejvýše jeden dokument - obojí řeší
+// jeden AttachmentManager, backend stejné omezení hlídá taky.
+const POST_ROLES = [ROLE.image, ROLE.document];
 
 const PostForm = ({
     showForm,
@@ -6,11 +12,13 @@ const PostForm = ({
     editingPost,
     formData,
     setFormData,
-    availableFiles,
-    getFileName,
     handleSubmit,
     resetForm
 }) => {
+    // Pozice obrázku má smysl jen když nějaký obrázek připojený je. Stav
+    // příloh zná AttachmentManager, proto si ho posílá zpátky přes onChange.
+    const [hasImage, setHasImage] = useState(false);
+
     if (!showForm) return null;
 
     return (
@@ -21,8 +29,8 @@ const PostForm = ({
                         <h5 className="modal-title">
                             {editingPost ? 'Upravit post' : 'Nový post'}
                         </h5>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="btn-close"
                             onClick={() => {
                                 setShowForm(false);
@@ -45,7 +53,7 @@ const PostForm = ({
                                             placeholder="Zadejte nadpis příspěvku..."
                                         />
                                     </div>
-                                    
+
                                     <div className="mb-3">
                                         <label className="form-label">Obsah *</label>
                                         <textarea
@@ -61,7 +69,7 @@ const PostForm = ({
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="col-md-4">
                                     <div className="mb-3">
                                         <div className="form-check">
@@ -81,28 +89,15 @@ const PostForm = ({
                                         </div>
                                     </div>
 
-                                    <div className="mb-3">
-                                        <label className="form-label">Obrázek</label>
-                                        <select
-                                            className="form-select"
-                                            value={formData.image_file_id}
-                                            onChange={(e) => setFormData({...formData, image_file_id: e.target.value})}
-                                        >
-                                            <option value="">Žádný obrázek</option>
-                                            {availableFiles?.images?.map(image => (
-                                                <option key={image.id} value={image.id}>
-                                                    {image.original_filename}
-                                                </option>
-                                            )) || []}
-                                        </select>
-                                        {formData.image_file_id && (
-                                            <div className="form-text">
-                                                Vybraný: {getFileName(formData.image_file_id, 'image')}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <AttachmentManager
+                                        ownerType={OWNER.post}
+                                        ownerId={editingPost?.id || null}
+                                        roles={POST_ROLES}
+                                        title="Obrázek a dokument"
+                                        onChange={(items) => setHasImage(items.some((item) => item.role === ROLE.image))}
+                                    />
 
-                                    {formData.image_file_id && (
+                                    {hasImage && (
                                         <div className="mb-3">
                                             <label className="form-label">Pozice obrázku</label>
                                             <select
@@ -113,58 +108,16 @@ const PostForm = ({
                                                 <option value="left">Vlevo</option>
                                                 <option value="right">Vpravo</option>
                                                 <option value="top">Nahoře</option>
+                                                <option value="none">Nezobrazovat</option>
                                             </select>
                                         </div>
                                     )}
-
-                                    <div className="mb-3">
-                                        <label className="form-label">Dokument</label>
-                                        <select
-                                            className="form-select"
-                                            value={formData.document_file_id}
-                                            onChange={(e) => setFormData({...formData, document_file_id: e.target.value})}
-                                        >
-                                            <option value="">Žádný dokument</option>
-                                            {availableFiles?.documents?.map(doc => (
-                                                <option key={doc.id} value={doc.id}>
-                                                    {doc.original_filename}
-                                                </option>
-                                            )) || []}
-                                        </select>
-                                        {formData.document_file_id && (
-                                            <div className="form-text">
-                                                Vybraný: {getFileName(formData.document_file_id, 'document')}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="card">
-                                        <div className="card-header">
-                                            <h6 className="card-title mb-0">📁 Správa souborů</h6>
-                                        </div>
-                                        <div className="card-body">
-                                            <div className="d-grid gap-2">
-                                                <a 
-                                                    href="/admin/documents" 
-                                                    target="_blank" 
-                                                    className="btn btn-sm btn-outline-primary"
-                                                    title="Otevřít správu dokumentů v novém okně"
-                                                >
-                                                    <i className="bi bi-folder-plus me-1"></i>
-                                                    Spravovat soubory
-                                                </a>
-                                            </div>
-                                            <div className="form-text mt-2">
-                                                Můžete nahrát nové soubory v Správě dokumentů
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="btn btn-secondary"
                                 onClick={() => {
                                     setShowForm(false);
@@ -173,8 +126,8 @@ const PostForm = ({
                             >
                                 Zrušit
                             </button>
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="btn btn-primary"
                             >
                                 {editingPost ? 'Aktualizovat post' : 'Vytvořit post'}

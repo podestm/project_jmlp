@@ -141,7 +141,14 @@ img {
 }
 
 .table-light {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+  --bs-table-color: var(--text-primary) !important;
+  --bs-table-bg: rgba(255, 255, 255, 0.08) !important;
+}
+
+.table-light th,
+.table-light td {
   color: var(--text-primary) !important;
 }
 

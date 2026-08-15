@@ -1,6 +1,6 @@
 import Navigation from './Navigation.jsx';
 
-export default function Layout({ children }) {
+export default function Layout({ children, fluid }) {
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -12,13 +12,17 @@ export default function Layout({ children }) {
       
       {/* Main Content */}
       <main style={{ flex: '1 0 auto' }} className="main-content">
-        <div className="content-wrapper">
-          <div className="row justify-content-center">
-            <div className="col-lg-10">
-              {children}
+        {fluid ? (
+          children
+        ) : (
+          <div className="content-wrapper">
+            <div className="row justify-content-center">
+              <div className="col-lg-10">
+                {children}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
       
       {/* Footer */}

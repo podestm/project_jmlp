@@ -1,8 +1,9 @@
 // Admin authentication context
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import API from './api.js';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createTokenStore, fetchProfile, loginWithCredentials } from './authCore.js';
 
 const AuthContext = createContext();
+const store = createTokenStore('admin_token');
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,66 +16,71 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('admin_token'));
+  const [token, setToken] = useState(() => store.getToken());
+
+  const logout = useCallback(() => {
+    store.clear();
+    setToken(null);
+    setAdmin(null);
+  }, []);
 
   // Check if user is authenticated on app load
   useEffect(() => {
-    if (token) {
-      checkAuth();
-    } else {
+    const initialToken = store.getToken();
+    if (!initialToken) {
       setLoading(false);
+      return;
     }
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const adminData = await API.get('/api/admin/auth/me', {}, {
-        'Authorization': `Bearer ${token}`
-      });
-      setAdmin(adminData);
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    if (store.isExpired()) {
       logout();
-    } finally {
       setLoading(false);
+      return;
     }
-  };
 
-  const login = async (email, password) => {
-    try {
-      const response = await API.post('/api/admin/auth/login', { email, password });
-      const { access_token, expires_in } = response;
-      
-      localStorage.setItem('admin_token', access_token);
-      setToken(access_token);
-      
-      // Get admin details
-      const adminData = await API.get('/api/admin/auth/me', {}, {
-        'Authorization': `Bearer ${access_token}`
+    let cancelled = false;
+    fetchProfile('/api/admin/auth/me', initialToken)
+      .then((adminData) => {
+        if (!cancelled) setAdmin(adminData);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('Auth check failed:', error);
+        logout();
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
-      setAdmin(adminData);
-      
+
+    return () => { cancelled = true; };
+  }, [logout]);
+
+  const login = useCallback(async (email, password) => {
+    try {
+      const { access_token, user } = await loginWithCredentials({
+        loginEndpoint: '/api/admin/auth/login',
+        meEndpoint: '/api/admin/auth/me',
+        store,
+        email,
+        password
+      });
+      setToken(access_token);
+      setAdmin(user);
       return { success: true };
     } catch (error) {
       console.error('Login failed:', error);
       return { success: false, error: error.message };
     }
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('admin_token');
-    setToken(null);
-    setAdmin(null);
-  };
-
-  const value = {
+  // Memoized so consumers don't re-render on every provider render.
+  const value = useMemo(() => ({
     admin,
     loading,
     login,
     logout,
     isAuthenticated: !!admin,
     token
-  };
+  }), [admin, loading, login, logout, token]);
 
   return (
     <AuthContext.Provider value={value}>

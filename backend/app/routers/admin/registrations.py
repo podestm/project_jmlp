@@ -9,6 +9,7 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...utils import csv_safe
 
 router = APIRouter(tags=["admin-registrations"])
 
@@ -37,8 +38,9 @@ def get_race_registrations(
             r.sex,
             r.year as birthYear,
             r.slcr_id as idSlcr,
-            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name
-        FROM race_registration reg
+            CONVERT(CONVERT(c.name USING binary) USING utf8mb4) as club_name,
+            reg.club_request_note
+        FROM fuj_jmlp_race_registration reg
         LEFT JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         WHERE reg.race_id = :race_id
@@ -59,7 +61,7 @@ def get_race_registrations(
             "sex": "M" if reg.sex == 1 else ("Z" if reg.sex == 2 else ""),
             "birthYear": reg.birthYear,
             "idSlcr": reg.idSlcr,
-            "club_name": reg.club_name or "Bez klubu"
+            "club_name": reg.club_name or ("Nový Klub" if reg.club_request_note else "Bez klubu")
         })
     
     return result
@@ -86,7 +88,7 @@ def export_race_registrations_csv(
             r.year as birthYear,
             TRIM(CONVERT(CONVERT(c.name USING binary) USING utf8mb4)) as clubName,
             TRIM(r.slcr_id) as idSlcr
-        FROM race_registration reg
+        FROM fuj_jmlp_race_registration reg
         JOIN fuj_jmlp_racer r ON reg.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         WHERE reg.race_id = :race_id
@@ -112,20 +114,20 @@ def export_race_registrations_csv(
         id_slcr = row.idSlcr or ''
         
         writer.writerow([
-            row.firstName or '',
-            row.lastName or '',
+            csv_safe(row.firstName),
+            csv_safe(row.lastName),
             sex_letter,
             row.birthYear or '',
-            club_name,
+            csv_safe(club_name),
             '',  # body_jmlp - empty as requested
-            id_slcr
+            csv_safe(id_slcr)
         ])
     
     csv_content = output.getvalue()
     output.close()
     
     # Create filename with race number
-    race_number = race.raceNr or f"zavod_{race_id}"
+    race_number = race.race_nr or f"zavod_{race_id}"
     filename = f"registrace_{race_number}.csv"
     
     # Encode as Windows-1250 for Excel compatibility with Czech characters

@@ -1,20 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import VisitsChart from './VisitsChart.jsx';
 
 export default function AdminDashboard() {
-  const { token } = useAuth();
-  const [stats, setStats] = useState({
-    totalRaces: 0,
-    openRaces: 0,
-    storageSize: 'Načítám...',
-    fileCount: 0,
-    visitsLast7Days: 0,
-    recentActivity: []
-  });
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,44 +16,8 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Get races data
-      const races = await AdminAPI.get('/api/admin/races');
-
-      // Calculate stats
-      const totalRaces = races.length;
-      const openRaces = races.filter(race => race.registration && !race.closed).length;
-
-      // Get storage stats
-      let storageSize = 'N/A';
-      let fileCount = 0;
-      try {
-        const storageStats = await AdminAPI.get('/api/admin/files/storage-stats');
-        storageSize = storageStats.total_size_formatted;
-        fileCount = storageStats.file_count;
-      } catch (storageErr) {
-        console.error('Error loading storage stats:', storageErr);
-        storageSize = 'Chyba';
-      }
-
-      // Get visitor stats
-      let visitsLast7Days = 0;
-      try {
-        const visitorStats = await AdminAPI.get('/api/admin/analytics/visitors?days=7');
-        visitsLast7Days = visitorStats.total_visits;
-      } catch (visitorErr) {
-        console.error('Error loading visitor stats:', visitorErr);
-      }
-
-      setStats({
-        totalRaces,
-        openRaces,
-        storageSize,
-        fileCount,
-        visitsLast7Days,
-        recentActivity: races.slice(0, 5) // Last 5 races
-      });
-
+      const result = await AdminAPI.get('/api/admin/dashboard/stats');
+      setData(result);
     } catch (err) {
       console.error('Error loading dashboard:', err);
       setError(err.message);
@@ -73,7 +28,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="text-center">
+      <div className="text-center py-5">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Načítám...</span>
         </div>
@@ -86,180 +41,345 @@ export default function AdminDashboard() {
     return (
       <Alert 
         type="danger" 
-        message={
-          <>
-            <i className="bi bi-exclamation-triangle-fill me-2"></i>
-            Chyba při načítání dashboard: {error}
-          </>
-        }
+        message={<><i className="bi bi-exclamation-triangle-fill me-2"></i>Chyba při načítání: {error}</>}
         onDismiss={() => setError(null)}
       />
     );
   }
 
+  const { counts, visits, upcoming_race, recent_registrations, top_pages, recent_posts, season } = data;
+
   const formatDate = (dateString) => {
-    if (!dateString) return 'Bez data';
+    if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('cs-CZ');
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('cs-CZ', {
+      day: 'numeric', month: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const pathLabels = {
+    '/zavody': 'Závody',
+    '/archiv-zprav': 'Archiv zpráv',
+    '/dokumenty': 'Dokumenty',
+    '/kontakty': 'Kontakty',
+  };
+
+  const getPathLabel = (path) => {
+    if (pathLabels[path]) return pathLabels[path];
+    return path;
   };
 
   return (
     <div className="admin-section">
-      <div className="mb-4">
-        <h1>Dashboard</h1>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 className="mb-1">Dashboard</h1>
+          <span className="text-muted">
+            <i className="bi bi-calendar3 me-1"></i>
+            Sezóna {season.label}
+          </span>
+        </div>
+        <button className="btn btn-outline-secondary btn-sm" onClick={loadDashboardData}>
+          <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
+        </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="row mb-4">
-        <div className="col-md-3">
-          <div className="card bg-primary text-white">
+      {/* Stat Cards */}
+      <div className="row g-3 mb-4">
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <div className="d-flex justify-content-between">
-                <div>
-                  <h4>{stats.totalRaces}</h4>
-                  <p className="mb-0">Celkem závodů</p>
+              <div className="d-flex align-items-center">
+                <div className="dashboard-icon-box dashboard-icon-primary me-3">
+                  <i className="bi bi-people-fill fs-4"></i>
                 </div>
-                <i className="bi bi-trophy fs-1 opacity-50"></i>
+                <div>
+                  <div className="fs-3 fw-bold">{counts.total_racers.toLocaleString('cs-CZ')}</div>
+                  <small className="text-muted">Závodníků</small>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <div className="col-md-3">
-          <div className="card bg-success text-white">
+
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <div className="d-flex justify-content-between">
-                <div>
-                  <h4>{stats.openRaces}</h4>
-                  <p className="mb-0">Otevřené registrace</p>
+              <div className="d-flex align-items-center">
+                <div className="dashboard-icon-box dashboard-icon-success me-3">
+                  <i className="bi bi-hdd-fill fs-4"></i>
                 </div>
-                <i className="bi bi-door-open fs-1 opacity-50"></i>
+                <div>
+                  <div className="fs-3 fw-bold">{counts.storage_size}</div>
+                  <small className="text-muted">Nahraných souborů</small>
+                  {counts.file_count > 0 && <div><small className="text-muted" style={{fontSize: '0.7rem'}}>{counts.file_count} souborů</small></div>}
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <div className="col-md-3">
-          <div className="card bg-info text-white">
+
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <div className="d-flex justify-content-between">
-                <div>
-                  <h4>{stats.storageSize}</h4>
-                  <p className="mb-0">Velikost souborů</p>
-                  {stats.fileCount > 0}
+              <div className="d-flex align-items-center">
+                <div className="dashboard-icon-box dashboard-icon-warning me-3">
+                  <i className="bi bi-trophy-fill fs-4"></i>
                 </div>
-                <i className="bi bi-hdd fs-1 opacity-50"></i>
+                <div>
+                  <div className="fs-3 fw-bold">{counts.season_races}</div>
+                  <small className="text-muted">Závodů v sezóně</small>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <div className="col-md-3">
-          <div className="card bg-warning text-dark">
+
+        <div className="col-6 col-lg-3">
+          <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
-              <div className="d-flex justify-content-between">
-                <div>
-                  <h4>{stats.visitsLast7Days.toLocaleString('cs-CZ')}</h4>
-                  <p className="mb-0">Návštěv (7 dní)</p>
+              <div className="d-flex align-items-center">
+                <div className="dashboard-icon-box dashboard-icon-info me-3">
+                  <i className="bi bi-eye-fill fs-4"></i>
                 </div>
-                <i className="bi bi-people fs-1 opacity-50"></i>
+                <div>
+                  <div className="fs-3 fw-bold">{visits.today.toLocaleString('cs-CZ')}</div>
+                  <small className="text-muted">Návštěv dnes</small>
+                  <div><small className="text-muted" style={{fontSize: '0.7rem'}}>{visits.today_unique} unikátních</small></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Pending Club Requests Alert */}
+      {counts.pending_club_requests > 0 && (
+        <div className="card border-warning shadow-sm mb-4">
+          <div className="card-body d-flex align-items-center gap-3">
+            <div className="dashboard-icon-box" style={{ background: 'rgba(255,193,7,0.15)', color: '#856404' }}>
+              <i className="bi bi-building fs-4"></i>
+            </div>
+            <div className="flex-grow-1">
+              <div className="fw-semibold">Nevyřízené žádosti o přiřazení klubu</div>
+              <small className="text-muted">{counts.pending_club_requests} závodníků čeká na přiřazení klubu</small>
+            </div>
+            <a href="/admin/club-requests" className="btn btn-warning btn-sm">
+              Vyřídit žádosti <i className="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Upcoming Race Highlight */}
+      {upcoming_race && (
+        <div className="card border-0 shadow-sm mb-4 dashboard-upcoming-race">
+          <div className="card-body text-white py-3">
+            <div className="row align-items-center">
+              <div className="col-auto">
+                <div className="dashboard-upcoming-icon">
+                  <i className="bi bi-flag-fill fs-4"></i>
+                </div>
+              </div>
+              <div className="col">
+                <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                  <h5 className="mb-0 text-white" style={{color: 'white !important'}}>
+                    Nadcházející závod: {upcoming_race.race_nr || `#${upcoming_race.id}`}
+                  </h5>
+                  {upcoming_race.registration && (
+                    <span className="badge bg-white bg-opacity-25 text-white">
+                      <i className="bi bi-door-open me-1"></i>Registrace otevřena
+                    </span>
+                  )}
+                </div>
+                <div className="d-flex flex-wrap gap-3 opacity-75">
+                  <span><i className="bi bi-calendar3 me-1"></i>{formatDate(upcoming_race.datum)}</span>
+                  {upcoming_race.areal_name && <span><i className="bi bi-geo-alt me-1"></i>{upcoming_race.areal_name}</span>}
+                  <span><i className="bi bi-people me-1"></i>{upcoming_race.registration_count} registrovaných</span>
+                </div>
+              </div>
+              <div className="col-auto d-none d-md-block text-end">
+                {upcoming_race.days_until !== null && (
+                  <div>
+                    <div className="fs-2 fw-bold">{upcoming_race.days_until}</div>
+                    <small className="opacity-75">{upcoming_race.days_until === 1 ? 'den' : upcoming_race.days_until >= 2 && upcoming_race.days_until <= 4 ? 'dny' : 'dní'}</small>
+                  </div>
+                )}
+              </div>
+              <div className="col-auto">
+                <Link to="/admin/races" className="btn btn-outline-light btn-sm">
+                  <i className="bi bi-arrow-right me-1"></i>Detail
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Visits Chart */}
       <div className="mb-4">
         <VisitsChart />
       </div>
 
-      {/* Recent Activity */}
-      <div className="row">
+      {/* Bottom Row: Recent Activity + Sidebar */}
+      <div className="row g-3">
+        {/* Left: Recent Registrations + Recent Posts */}
         <div className="col-lg-8">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">
+          {/* Recent Registrations */}
+          <div className="card border-0 shadow-sm mb-3">
+            <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">
                 <i className="bi bi-clock-history me-2"></i>
-                Poslední závody
-              </h5>
+                Poslední registrace
+              </h6>
+              <Link to="/admin/races" className="btn btn-link btn-sm p-0 text-decoration-none">
+                Všechny závody <i className="bi bi-arrow-right"></i>
+              </Link>
             </div>
-            <div className="card-body">
-              {stats.recentActivity.length === 0 ? (
-                <p className="text-muted text-center">Žádné závody nenalezeny</p>
+            <div className="card-body p-0">
+              {recent_registrations.length === 0 ? (
+                <p className="text-muted text-center py-4 mb-0">Žádné registrace</p>
               ) : (
-                <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Číslo závodu</th>
-                        <th>Datum</th>
-                        <th>Areál</th>
-                        <th>Registrace</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.recentActivity.map((race) => (
-                        <tr key={race.id}>
-                          <td>
-                            <strong>{race.raceNr || `#${race.id}`}</strong>
-                          </td>
-                          <td>{formatDate(race.datum)}</td>
-                          <td>{race.areal_name || 'Neznámý areál'}</td>
-                          <td>
-                            <span className={`badge ${race.registration ? 'bg-success' : 'bg-secondary'}`}>
-                              {race.registration ? 'Otevřená' : 'Uzavřená'}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge ${race.closed ? 'bg-dark' : 'bg-primary'}`}>
-                              {race.closed ? 'Uzavřen' : 'Aktivní'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="list-group list-group-flush">
+                  {recent_registrations.map((reg, idx) => (
+                    <div key={idx} className="list-group-item px-3 py-2">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <span className="fw-semibold">{reg.racer_name} {reg.racer_surname}</span>
+                          {reg.club_name && <span className="text-muted ms-2 small">({reg.club_name})</span>}
+                        </div>
+                        <div className="text-end">
+                          <span className="badge bg-primary me-1">Závod {reg.race_nr || '?'}</span>
+                          {reg.areal_name && <small className="text-muted d-none d-md-inline">{reg.areal_name}</small>}
+                        </div>
+                      </div>
+                      <small className="text-muted">{formatDateTime(reg.registered_at)}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Posts */}
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">
+                <i className="bi bi-newspaper me-2"></i>
+                Poslední příspěvky
+              </h6>
+              <Link to="/admin/posts" className="btn btn-link btn-sm p-0 text-decoration-none">
+                Správa příspěvků <i className="bi bi-arrow-right"></i>
+              </Link>
+            </div>
+            <div className="card-body p-0">
+              {recent_posts.length === 0 ? (
+                <p className="text-muted text-center py-4 mb-0">Žádné příspěvky</p>
+              ) : (
+                <div className="list-group list-group-flush">
+                  {recent_posts.map((post) => (
+                    <div key={post.id} className="list-group-item px-3 py-2 d-flex justify-content-between align-items-center">
+                      <div>
+                        <span className="fw-semibold">{post.title}</span>
+                        <br />
+                        <small className="text-muted">{formatDateTime(post.created_at)}</small>
+                      </div>
+                      <span className={`badge ${post.published ? 'bg-success' : 'bg-secondary'}`}>
+                        {post.published ? 'Publikováno' : 'Koncept'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </div>
 
+        {/* Right Sidebar */}
         <div className="col-lg-4">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">
-                <i className="bi bi-tools me-2"></i>
+          {/* Top Pages */}
+          <div className="card border-0 shadow-sm mb-3">
+            <div className="card-header bg-transparent border-bottom">
+              <h6 className="mb-0">
+                <i className="bi bi-bar-chart me-2"></i>
+                Nejnavštěvovanější stránky
+              </h6>
+              <small className="text-muted">posledních 30 dní</small>
+            </div>
+            <div className="card-body p-0">
+              {top_pages.length === 0 ? (
+                <p className="text-muted text-center py-4 mb-0">Žádná data</p>
+              ) : (
+                <div className="list-group list-group-flush">
+                  {top_pages.map((page, idx) => (
+                    <div key={idx} className="list-group-item px-3 py-2 d-flex justify-content-between align-items-center">
+                      <span className="text-truncate me-2" style={{maxWidth: '180px'}} title={page.path}>
+                        {getPathLabel(page.path)}
+                      </span>
+                      <span className="badge bg-primary">{page.visits.toLocaleString('cs-CZ')}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="card border-0 shadow-sm mb-3">
+            <div className="card-header bg-transparent border-bottom">
+              <h6 className="mb-0">
+                <i className="bi bi-info-circle me-2"></i>
+                Přehled systému
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="d-flex justify-content-between py-1 border-bottom">
+                <span className="text-muted">Aktivní kluby</span>
+                <strong>{counts.total_clubs}</strong>
+              </div>
+              <div className="d-flex justify-content-between py-1 border-bottom">
+                <span className="text-muted">Otevřené registrace</span>
+                <strong>{counts.open_registrations}</strong>
+              </div>
+              <div className="d-flex justify-content-between py-1 border-bottom">
+                <span className="text-muted">Celkem příspěvků</span>
+                <strong>{counts.total_posts}</strong>
+              </div>
+              <div className="d-flex justify-content-between py-1">
+                <span className="text-muted">Návštěvy (7 dní)</span>
+                <strong>{visits.last_7_days.toLocaleString('cs-CZ')}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-transparent border-bottom">
+              <h6 className="mb-0">
+                <i className="bi bi-lightning me-2"></i>
                 Rychlé akce
-              </h5>
+              </h6>
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <Link to="/admin/races" className="btn btn-primary">
-                  <i className="bi bi-plus-circle me-2"></i>
-                  Nový závod
+                <Link to="/admin/races" className="btn btn-primary btn-sm">
+                  <i className="bi bi-plus-circle me-2"></i>Nový závod
                 </Link>
-                <Link to="/admin/races" className="btn btn-outline-primary">
-                  <i className="bi bi-list me-2"></i>
-                  Spravovat závody
+                <Link to="/admin/posts" className="btn btn-outline-success btn-sm">
+                  <i className="bi bi-pencil me-2"></i>Nový příspěvek
                 </Link>
-                <Link to="/admin/documents" className="btn btn-outline-success">
-                  <i className="bi bi-upload me-2"></i>
-                  Nahrát dokumenty
+                <Link to="/admin/documents" className="btn btn-outline-secondary btn-sm">
+                  <i className="bi bi-upload me-2"></i>Nahrát dokumenty
                 </Link>
-                <Link to="/admin/season-results" className="btn btn-outline-info">
-                  <i className="bi bi-trophy me-2"></i>
-                  Celkové výsledky sezón
-                </Link>
-                <Link to="/admin/categories" className="btn btn-outline-warning">
-                  <i className="bi bi-tag me-2"></i>
-                  Správa kategorií
-                </Link>
-                <hr />
-                <a href="/" target="_blank" className="btn btn-outline-info">
-                  <i className="bi bi-box-arrow-up-right me-2"></i>
-                  Zobrazit web
+                <hr className="my-1" />
+                <a href="/" target="_blank" className="btn btn-outline-info btn-sm">
+                  <i className="bi bi-box-arrow-up-right me-2"></i>Zobrazit web
                 </a>
               </div>
             </div>

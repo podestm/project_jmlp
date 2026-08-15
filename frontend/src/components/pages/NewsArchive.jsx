@@ -1,8 +1,8 @@
-import React from 'react';
 import { useNewsArchive } from '../../hooks/useNewsArchive.js';
 import NewsFilters from './news/NewsFilters.jsx';
 import PostsList from './news/PostsList.jsx';
 import NewsPagination from './news/NewsPagination.jsx';
+import LoadingState from '../ui/LoadingState.jsx';
 
 function NewsArchive() {
     const newsArchive = useNewsArchive();
@@ -10,14 +10,7 @@ function NewsArchive() {
     if (newsArchive.loading) {
         return (
             <div className="container">
-                <div className="d-flex justify-content-center align-items-center" style={{minHeight: '400px'}}>
-                    <div className="text-center">
-                        <div className="spinner-border text-primary mb-3" role="status">
-                            <span className="visually-hidden">Načítám...</span>
-                        </div>
-                        <p className="text-muted">Načítám příspěvky...</p>
-                    </div>
-                </div>
+                <LoadingState label="Načítám příspěvky…" />
             </div>
         );
     }
@@ -59,11 +52,9 @@ function NewsArchive() {
                         totalPostsCount={newsArchive.posts.length}
                     />
 
-                    <PostsList 
-                        posts={newsArchive.currentPosts}
-                        formatDate={newsArchive.formatDate}
-                        formatText={newsArchive.formatText}
-                    />
+                    {/* PostsList i PostCard si formátování řeší samy přes utils,
+                        proto se sem formatDate/formatText už nepředává. */}
+                    <PostsList posts={newsArchive.currentPosts} />
 
                     <NewsPagination 
                         currentPage={newsArchive.currentPage}

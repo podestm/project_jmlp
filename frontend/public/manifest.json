@@ -1,0 +1,22 @@
+{
+  "name": "JMLP Timekeeper",
+  "short_name": "JMLP",
+  "description": "Časomíra a správa závodů JMLP",
+  "start_url": "/timekeeper",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e94560",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

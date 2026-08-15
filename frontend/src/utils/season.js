@@ -1,123 +1,53 @@
 // Season Utilities
+// season_id is the START year: 2025 = season 2025/2026 (1.8.2025 - 31.7.2026).
 import { SEASON_CONFIG } from '../config/constants.js';
 
 /**
- * Získá aktuální season_id podle data
- * @param {Date} referenceDate - Referenční datum (výchozí: aktuální datum)
- * @returns {number} Season ID
+ * Season id for a given date (defaults to now).
+ * @param {Date} [referenceDate]
+ * @returns {number}
  */
-export const getCurrentSeasonId = (referenceDate = new Date()) => {
-  return SEASON_CONFIG.getCurrentSeasonId(referenceDate);
-};
+export const getCurrentSeasonId = (referenceDate = new Date()) => (
+  SEASON_CONFIG.getCurrentSeasonId(referenceDate)
+);
 
 /**
- * Vypočítá season_id pro zadané datum závodu
- * @param {string|Date} raceDate - Datum závodu
- * @returns {number} Season ID pro tento závod
+ * Season id a race on the given date belongs to.
+ * @param {string|Date} raceDate
+ * @returns {number}
  */
-export const getSeasonIdForRace = (raceDate) => {
-  const date = typeof raceDate === 'string' ? new Date(raceDate) : raceDate;
-  return getCurrentSeasonId(date);
-};
+export const getSeasonIdForRace = (raceDate) => (
+  getCurrentSeasonId(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
+);
 
 /**
- * Formátuje sezónu pro zobrazení (např. "2025/2026")
- * @param {number} seasonId - ID sezóny
- * @returns {string} Formátovaná sezóna
+ * Display form of a season - "2025/2026".
+ * @param {number} seasonId
+ * @returns {string}
  */
-export const formatSeason = (seasonId) => {
-  return SEASON_CONFIG.formatSeason(seasonId);
-};
+export const formatSeason = (seasonId) => SEASON_CONFIG.formatSeason(seasonId);
 
 /**
- * Vygeneruje číslo závodu na základě existujících závodů
- * @param {Array} existingRaces - Pole existujících závodů
- * @param {number} seasonId - ID sezóny pro kterou generujeme číslo
- * @returns {string} Číslo závodu ve formátu JMLP2025-XX
+ * Next free race number within a season - "JMLP2025-03".
+ * @param {Array} existingRaces
+ * @param {number} seasonId
+ * @returns {string}
  */
 export const generateRaceNumber = (existingRaces, seasonId) => {
-  // Najdeme všechny závody v dané sezóně
-  const seasonRaces = existingRaces.filter(race => race.season_id === seasonId);
-  
-  // Najdeme nejvyšší pořadové číslo v této sezóně
-  const maxNumber = seasonRaces.reduce((max, race) => {
-    if (race.raceNr && race.raceNr.startsWith(`JMLP${seasonId}-`)) {
-      const number = parseInt(race.raceNr.split('-')[1]);
-      return isNaN(number) ? max : Math.max(max, number);
-    }
-    return max;
+  const prefix = `JMLP${seasonId}-`;
+
+  const maxNumber = existingRaces.reduce((max, race) => {
+    if (race.season_id !== seasonId || !race.race_nr?.startsWith(prefix)) return max;
+    const number = parseInt(race.race_nr.slice(prefix.length), 10);
+    return Number.isNaN(number) ? max : Math.max(max, number);
   }, 0);
-  
-  // Nové číslo je o 1 vyšší
-  const newNumber = maxNumber + 1;
-  
-  // Formátujeme s leading zero
-  return `JMLP${seasonId}-${newNumber.toString().padStart(2, '0')}`;
-};
 
-/**
- * Získá období sezóny
- * @param {number} seasonId - ID sezóny
- * @returns {object} Objekt s start a end datem
- */
-export const getSeasonPeriod = (seasonId) => {
-  return SEASON_CONFIG.getSeasonPeriod(seasonId);
-};
-
-/**
- * Kontroluje, zda je zadaná sezóna aktuální
- * @param {number} seasonId - ID sezóny k ověření
- * @returns {boolean} True pokud je sezóna aktuální
- */
-export const isCurrentSeason = (seasonId) => {
-  return seasonId === getCurrentSeasonId();
-};
-
-/**
- * Získá všechny sezóny v rozsahu
- * @param {number} startSeason - Počáteční sezóna
- * @param {number} endSeason - Koncová sezóna (výchozí: aktuální)
- * @returns {Array} Pole objektů se sezónami
- */
-export const getSeasonsList = (startSeason, endSeason = getCurrentSeasonId()) => {
-  const seasons = [];
-  for (let i = startSeason; i <= endSeason; i++) {
-    seasons.push({
-      id: i,
-      label: formatSeason(i),
-      period: getSeasonPeriod(i),
-      isCurrent: isCurrentSeason(i)
-    });
-  }
-  return seasons.reverse(); // Nejnovější první
-};
-
-/**
- * Validuje, zda datum patří do očekávané sezóny
- * @param {string|Date} raceDate - Datum závodu
- * @param {number} expectedSeasonId - Očekávané season_id
- * @returns {object} Výsledek validace
- */
-export const validateSeasonForDate = (raceDate, expectedSeasonId) => {
-  const calculatedSeasonId = getSeasonIdForRace(raceDate);
-  const isValid = calculatedSeasonId === expectedSeasonId;
-  
-  return {
-    isValid,
-    calculatedSeasonId,
-    expectedSeasonId,
-    message: isValid 
-      ? `Datum ${raceDate} správně patří do sezóny ${formatSeason(expectedSeasonId)}`
-      : `Datum ${raceDate} patří do sezóny ${formatSeason(calculatedSeasonId)}, ne ${formatSeason(expectedSeasonId)}`
-  };
+  return `${prefix}${String(maxNumber + 1).padStart(2, '0')}`;
 };
 
 export default {
   getCurrentSeasonId,
   getSeasonIdForRace,
   formatSeason,
-  getSeasonPeriod,
-  isCurrentSeason,
-  getSeasonsList,
-  validateSeasonForDate
+  generateRaceNumber
 };

@@ -1,9 +1,43 @@
+/* ═══════════════════════════════════════════════════════════
+   ADMIN DESIGN TOKENS — single source of truth
+   Scope: both .admin-section and .admin-layout-content
+   ═══════════════════════════════════════════════════════════ */
+.admin-section,
+.admin-layout-content {
+  /* Backgrounds */
+  --adm-bg:             #f0f2f5;
+  --adm-card-bg:        #ffffff;
+  --adm-card-border:    #dee2e6;
+  --adm-card-header-bg: #f8f9fa;
+
+  /* Form inputs — borders darker than Bootstrap default #ced4da */
+  --adm-input-bg:           #ffffff;
+  --adm-input-text:         #212529;
+  --adm-input-border:       #9ca3af;
+  --adm-input-border-focus: #3b82f6;
+  --adm-input-placeholder:  #9ca3af;
+  --adm-input-disabled-bg:  #f3f4f6;
+  --adm-input-disabled-text:#6b7280;
+
+  /* Text */
+  --adm-text:       #212529;
+  --adm-text-muted: #6c757d;
+  --adm-text-label: #374151;
+
+  /* Semantic colors — all meet WCAG AA (≥4.5:1) on white */
+  --adm-primary: #2563eb;
+  --adm-success: #16a34a;
+  --adm-warning: #92400e;
+  --adm-danger:  #dc2626;
+  --adm-info:    #0e7490;
+}
+
 /* Admin Section Light Mode Styles */
 /* Keep admin interface separate from public dark mode theme */
 
 /* Override dark mode body styles for admin */
 .admin-section {
-  background: #f8f9fa !important;
+  background: var(--adm-bg) !important;
   min-height: 100vh;
   padding: 2rem 0;
 }
@@ -12,17 +46,17 @@
 .admin-section .card,
 .admin-section .card-body,
 .admin-section .card-header {
-  background: white !important;
-  border: 1px solid #dee2e6 !important;
+  background: var(--adm-card-bg) !important;
+  border: 1px solid var(--adm-card-border) !important;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  color: #212529 !important;
+  color: var(--adm-text) !important;
 }
 
 .admin-section .card-header {
-  background: #f8f9fa !important;
-  border-bottom: 1px solid #dee2e6 !important;
+  background: var(--adm-card-header-bg) !important;
+  border-bottom: 1px solid var(--adm-card-border) !important;
 }
 
 .admin-section .table {
@@ -67,23 +101,61 @@
 }
 
 .admin-section .form-control,
-.admin-section .form-select {
-  background: white;
-  border: 1px solid #ced4da;
-  color: #212529;
+.admin-section .form-select,
+.admin-layout-content .form-control,
+.admin-layout-content .form-select {
+  background-color: var(--adm-input-bg) !important;
+  border: 1px solid var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+.admin-section .form-control::placeholder,
+.admin-section .form-select::placeholder,
+.admin-layout-content .form-control::placeholder,
+.admin-layout-content .form-select::placeholder {
+  color: var(--adm-input-placeholder) !important;
+  opacity: 1 !important;
 }
 
 .admin-section .form-control:focus,
-.admin-section .form-select:focus {
-  background: white;
-  border-color: #86b7fe;
-  color: #212529;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.admin-section .form-select:focus,
+.admin-layout-content .form-control:focus,
+.admin-layout-content .form-select:focus {
+  background-color: var(--adm-input-bg) !important;
+  border-color: var(--adm-input-border-focus) !important;
+  color: var(--adm-input-text) !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2) !important;
+}
+
+.admin-section .form-control:disabled,
+.admin-section .form-control[readonly],
+.admin-section .form-select:disabled,
+.admin-layout-content .form-control:disabled,
+.admin-layout-content .form-control[readonly],
+.admin-layout-content .form-select:disabled {
+  background-color: var(--adm-input-disabled-bg) !important;
+  color: var(--adm-input-disabled-text) !important;
+  border-color: var(--adm-card-border) !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
 }
 
 .admin-section .modal-content {
-  background: white;
-  color: #212529;
+  background: var(--adm-card-bg) !important;
+  color: var(--adm-text) !important;
+}
+
+.admin-section .modal-content .form-control,
+.admin-section .modal-content .form-select {
+  background-color: var(--adm-input-bg) !important;
+  border-color: var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+.admin-section .modal-header,
+.admin-section .modal-footer {
+  background: var(--adm-card-header-bg) !important;
+  border-color: var(--adm-card-border) !important;
 }
 
 .admin-section h1, 
@@ -93,7 +165,6 @@
 .admin-section h5,
 .admin-section h6,
 .admin-section p,
-.admin-section span,
 .admin-section label,
 .admin-section td,
 .admin-section th {
@@ -101,11 +172,19 @@
 }
 
 .admin-section .text-muted {
-  color: #6c757d !important;
+  color: var(--adm-text-muted) !important;
 }
 
 .admin-section .badge {
   color: white !important;
+}
+
+.admin-section .badge.bg-warning {
+  color: #000 !important;
+}
+
+.admin-section .badge.bg-light {
+  color: #212529 !important;
 }
 
 /* Remove forced background from outline buttons */
@@ -174,21 +253,35 @@
 }
 
 .admin-section .btn-outline-info {
-  color: #0dcaf0;
+  color: var(--adm-info);
+  --bs-btn-color: var(--adm-info);
+  --bs-btn-border-color: var(--adm-info);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--adm-info);
+  --bs-btn-hover-border-color: var(--adm-info);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--adm-info);
 }
 
 .admin-section .btn-outline-info .bi,
 .admin-section .btn-outline-info i {
-  color: #0dcaf0 !important;
+  color: inherit !important;
 }
 
 .admin-section .btn-outline-warning {
-  color: #ffc107;
+  color: var(--adm-warning);
+  --bs-btn-color: var(--adm-warning);
+  --bs-btn-border-color: var(--adm-warning);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--adm-warning);
+  --bs-btn-hover-border-color: var(--adm-warning);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--adm-warning);
 }
 
 .admin-section .btn-outline-warning .bi,
 .admin-section .btn-outline-warning i {
-  color: #ffc107 !important;
+  color: inherit !important;
 }
 
 .admin-section .btn-outline-secondary {
@@ -208,3 +301,596 @@
 .admin-section .cursor-pointer {
   cursor: pointer !important;
 }
+
+/* ========== Dashboard Styles ========== */
+
+/* Icon boxes for stat cards */
+.dashboard-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.dashboard-icon-primary {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.dashboard-icon-primary i { color: #0d6efd !important; }
+
+.dashboard-icon-success {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.dashboard-icon-success i { color: #198754 !important; }
+
+.dashboard-icon-warning {
+  background: rgba(146, 64, 14, 0.1);
+  color: var(--adm-warning);
+}
+
+.dashboard-icon-warning i { color: var(--adm-warning) !important; }
+
+.dashboard-icon-info {
+  background: rgba(14, 116, 144, 0.1);
+  color: var(--adm-info);
+}
+
+.dashboard-icon-info i { color: var(--adm-info) !important; }
+
+/* Upcoming race card */
+.dashboard-upcoming-race {
+  background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
+}
+
+.dashboard-upcoming-race .card-body {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.dashboard-upcoming-race h5,
+.dashboard-upcoming-race span,
+.dashboard-upcoming-race small,
+.dashboard-upcoming-race div,
+.dashboard-upcoming-race .fs-2 {
+  color: white !important;
+}
+
+.dashboard-upcoming-race .badge {
+  color: white !important;
+}
+
+.dashboard-upcoming-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-upcoming-icon i {
+  color: white !important;
+}
+
+/* Dashboard list groups - ensure light mode.
+   :not(.active) so Bootstrap's selected state stays visible (white-on-white otherwise). */
+.admin-section .list-group-item:not(.active) {
+  background: white !important;
+  border-color: #f0f0f0 !important;
+}
+
+.admin-section .list-group-item:hover:not(.active) {
+  background: #f8f9fa !important;
+}
+
+.admin-section .list-group-item.active {
+  background: var(--adm-primary) !important;
+  border-color: var(--adm-primary) !important;
+  color: #fff !important;
+}
+
+/* Icons/labels inside a selected row — .admin-section .badge/.text-* would keep
+   them white-on-white or low contrast otherwise */
+.admin-section .list-group-item.active .bi,
+.admin-section .list-group-item.active .small,
+.admin-section .list-group-item.active .text-muted {
+  color: #fff !important;
+}
+
+.admin-section .list-group-item.active .badge.bg-white {
+  color: var(--adm-primary) !important;
+}
+
+/* Period toggle buttons */
+.admin-section .btn-group .btn-outline-secondary {
+  color: #6c757d !important;
+  border-color: #dee2e6 !important;
+}
+
+.admin-section .btn-group .btn-outline-secondary:hover {
+  background: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.admin-section .btn-group .btn-primary {
+  background: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: white !important;
+}
+
+.admin-section .btn-group .btn-primary i {
+  color: white !important;
+}
+
+/* Stat card responsive */
+@media (max-width: 576px) {
+  .dashboard-icon-box {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .admin-section .fs-3 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ========================================
+   ADMIN SECTION: Text Color Overrides
+   Ensure Bootstrap text utilities show dark text on light admin bg
+   ======================================== */
+.admin-section .text-secondary {
+  color: #464555 !important;
+}
+
+.admin-section .text-primary {
+  color: #2664EB !important;
+}
+
+.admin-section .text-success {
+  color: #198754 !important;
+}
+
+.admin-section .text-info {
+  color: var(--adm-info) !important;
+}
+
+.admin-section .text-warning {
+  color: var(--adm-warning) !important;
+}
+
+.admin-section .text-danger {
+  color: #dc3545 !important;
+}
+
+/* Admin alerts - dark text on light alert backgrounds */
+.admin-section .alert-danger {
+  color: #842029 !important;
+  background-color: #f8d7da !important;
+  border-color: #f5c2c7 !important;
+}
+
+.admin-section .alert-success {
+  color: #0f5132 !important;
+  background-color: #d1e7dd !important;
+  border-color: #badbcc !important;
+}
+
+.admin-section .alert-warning {
+  color: #664d03 !important;
+  background-color: #fff3cd !important;
+  border-color: #ffecb5 !important;
+}
+
+.admin-section .alert-info {
+  color: #055160 !important;
+  background-color: #cff4fc !important;
+  border-color: #b6effb !important;
+}
+
+/* Admin btn-outline-secondary - keep dark for light bg */
+.admin-section .btn-outline-secondary {
+  --bs-btn-color: #6c757d !important;
+  --bs-btn-border-color: #6c757d !important;
+}
+
+/* Admin table-light - standard light mode */
+.admin-section .table-light,
+.admin-section .table-light th,
+.admin-section .table-light td {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  --bs-table-color: #212529 !important;
+  --bs-table-bg: #f8f9fa !important;
+}
+
+/* ========================================
+   TIMEKEEPER SECTION: Light Mode Overrides
+   Reset dark glassmorphism styles for timekeeper content area
+   ======================================== */
+
+.timekeeper-section {
+  background: #f0f2f5 !important;
+  color: #212529 !important;
+}
+
+/* Reset dark mode card styles */
+.timekeeper-section .card,
+.timekeeper-section .card-body,
+.timekeeper-section .card-header {
+  background: white !important;
+  border: 1px solid #dee2e6 !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .card-header {
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Tables */
+.timekeeper-section .table {
+  background: white !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .table thead,
+.timekeeper-section .table-dark {
+  background: #343a40 !important;
+  color: white !important;
+}
+
+.timekeeper-section .table thead th,
+.timekeeper-section .table-dark th {
+  color: white !important;
+  background: #343a40 !important;
+}
+
+.timekeeper-section .table-light,
+.timekeeper-section .table-light th {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .table tbody {
+  background: white !important;
+}
+
+.timekeeper-section .table tbody tr {
+  background: white !important;
+}
+
+.timekeeper-section .table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+
+.timekeeper-section .table tbody td {
+  color: #212529 !important;
+  background: transparent !important;
+}
+
+/* Forms */
+.timekeeper-section .form-control,
+.timekeeper-section .form-select {
+  background: white !important;
+  border: 1px solid #ced4da !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .form-control:focus,
+.timekeeper-section .form-select:focus {
+  background: white !important;
+  border-color: #86b7fe !important;
+  color: #212529 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.timekeeper-section .form-control:disabled,
+.timekeeper-section .form-control[readonly] {
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+}
+
+.timekeeper-section .form-label {
+  color: #212529 !important;
+}
+
+/* Modals */
+.timekeeper-section .modal-content {
+  background: white !important;
+  color: #212529 !important;
+}
+
+/* All text elements - dark on light */
+.timekeeper-section h1,
+.timekeeper-section h2,
+.timekeeper-section h3,
+.timekeeper-section h4,
+.timekeeper-section h5,
+.timekeeper-section h6,
+.timekeeper-section p,
+.timekeeper-section label,
+.timekeeper-section small,
+.timekeeper-section td,
+.timekeeper-section th {
+  color: #212529 !important;
+}
+
+/* Bootstrap text utilities - scoped to light bg */
+.timekeeper-section .text-muted {
+  color: #6c757d !important;
+}
+
+.timekeeper-section .text-secondary {
+  color: #6c757d !important;
+}
+
+.timekeeper-section .text-primary {
+  color: #0d6efd !important;
+}
+
+.timekeeper-section .text-success {
+  color: #198754 !important;
+}
+
+.timekeeper-section .text-danger {
+  color: #dc3545 !important;
+}
+
+.timekeeper-section .text-warning {
+  color: #ffc107 !important;
+}
+
+.timekeeper-section .text-info {
+  color: #0dcaf0 !important;
+}
+
+.timekeeper-section .text-white {
+  color: #fff !important;
+}
+
+.timekeeper-section .text-white-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Badge text stays white */
+.timekeeper-section .badge {
+  color: white !important;
+}
+
+.timekeeper-section .badge.bg-light {
+  color: #212529 !important;
+}
+
+.timekeeper-section .badge.bg-warning {
+  color: #000 !important;
+}
+
+/* Solid buttons - ensure white text */
+.timekeeper-section .btn-primary,
+.timekeeper-section .btn-success,
+.timekeeper-section .btn-danger,
+.timekeeper-section .btn-secondary {
+  color: white !important;
+}
+
+.timekeeper-section .btn-warning,
+.timekeeper-section .btn-info,
+.timekeeper-section .btn-light {
+  color: #000 !important;
+}
+
+/* Outline buttons */
+.timekeeper-section .btn-outline-primary,
+.timekeeper-section .btn-outline-secondary,
+.timekeeper-section .btn-outline-danger,
+.timekeeper-section .btn-outline-success,
+.timekeeper-section .btn-outline-info,
+.timekeeper-section .btn-outline-warning,
+.timekeeper-section .btn-outline-dark {
+  background: transparent !important;
+}
+
+/* Alerts - dark text on light alert backgrounds */
+.timekeeper-section .alert-danger {
+  color: #842029 !important;
+  background-color: #f8d7da !important;
+  border-color: #f5c2c7 !important;
+}
+
+.timekeeper-section .alert-success {
+  color: #0f5132 !important;
+  background-color: #d1e7dd !important;
+  border-color: #badbcc !important;
+}
+
+.timekeeper-section .alert-warning {
+  color: #664d03 !important;
+  background-color: #fff3cd !important;
+  border-color: #ffecb5 !important;
+}
+
+.timekeeper-section .alert-info {
+  color: #055160 !important;
+  background-color: #cff4fc !important;
+  border-color: #b6effb !important;
+}
+
+/* List groups */
+.timekeeper-section .list-group-item {
+  background: white !important;
+  border-color: #dee2e6 !important;
+  color: #212529 !important;
+}
+
+.timekeeper-section .list-group-item:hover {
+  background: #f8f9fa !important;
+}
+
+/* bg-light and bg-white resets */
+.timekeeper-section .bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.timekeeper-section .bg-white {
+  background-color: #fff !important;
+}
+
+/* Timekeeper btn-outline-secondary - keep dark for light bg */
+.timekeeper-section .btn-outline-secondary {
+  --bs-btn-color: #6c757d !important;
+  --bs-btn-border-color: #6c757d !important;
+}
+
+/* Timekeeper table-light - standard light mode */
+.timekeeper-section .table-light,
+.timekeeper-section .table-light th,
+.timekeeper-section .table-light td {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  --bs-table-color: #212529 !important;
+  --bs-table-bg: #f8f9fa !important;
+}
+
+/* Timekeeper overview dashboard */
+.timekeeper-section .timekeeper-overview-panel {
+  border-top: 3px solid #e94560 !important;
+}
+
+.timekeeper-section .timekeeper-overview-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff !important;
+  background: linear-gradient(135deg, #e94560, #c23152);
+  box-shadow: 0 0.25rem 0.75rem rgba(233, 69, 96, 0.2);
+}
+
+.timekeeper-section .timekeeper-overview-stat,
+.timekeeper-section .timekeeper-race-metric {
+  background: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+
+.timekeeper-section .timekeeper-overview-stat .fw-bold,
+.timekeeper-section .timekeeper-race-metric-value {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.timekeeper-section .timekeeper-race-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.timekeeper-section .timekeeper-race-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.timekeeper-section .timekeeper-race-card.is-upcoming {
+  border-top: 3px solid #e94560 !important;
+}
+
+.timekeeper-section .timekeeper-race-card.is-past {
+  border-top: 3px solid #adb5bd !important;
+}
+
+.timekeeper-section .timekeeper-race-number-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  min-width: max-content;
+}
+
+.timekeeper-section .timekeeper-race-number-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 82px;
+}
+
+.timekeeper-section .timekeeper-race-number-column-header {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #6c757d !important;
+  text-align: center;
+  padding-bottom: 0.1rem;
+}
+
+.timekeeper-section .timekeeper-race-number-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.22rem 0.38rem;
+  border: 1px solid var(--set-border, #dee2e6);
+  border-radius: 7px;
+  background: var(--set-bg, #fff) !important;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.timekeeper-section .timekeeper-race-number-item:hover {
+  filter: brightness(0.98);
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-active {
+  border-color: var(--set-border, rgba(233, 69, 96, 0.35));
+  background: var(--set-bg, rgba(233, 69, 96, 0.06)) !important;
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-inactive {
+  opacity: 0.55;
+  border-color: #e9ecef;
+  background: #f8f9fa !important;
+}
+
+.timekeeper-section .timekeeper-race-number-item:disabled {
+  cursor: wait;
+}
+
+.timekeeper-section .timekeeper-race-number-state {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--set-solid, #e94560);
+  flex-shrink: 0;
+}
+
+.timekeeper-section .timekeeper-race-number-item.is-inactive .timekeeper-race-number-state {
+  background: #adb5bd;
+}
+
+.timekeeper-section .timekeeper-race-number-display {
+  min-width: 18px;
+}
+
+.timekeeper-section .timekeeper-race-number-actual {
+  font-size: 0.6rem;
+}
+
+/* Keyboard users must be able to see what is focused on the destructive screen. */
+.admin-section .form-check-input:focus-visible,
+.admin-section .btn:focus-visible {
+  outline: 2px solid var(--adm-primary, #2563eb);
+  outline-offset: 2px;
+}
+

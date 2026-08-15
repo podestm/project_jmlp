@@ -1,4 +1,3 @@
-import React from 'react';
 
 const RacerSearchResults = ({
     filteredRacers,
@@ -47,6 +46,9 @@ const RacerSearchResults = ({
                                         {racer.year} • {getSexLabel(racer.sex)}
                                         {racer.club_name && (
                                             <span> • {racer.club_name}</span>
+                                        )}
+                                        {racer.slcr_id && (
+                                            <span> • SLČR {racer.slcr_id}</span>
                                         )}
                                     </div>
                                 </div>

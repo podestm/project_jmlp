@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import API, { API_CONFIG } from '../config/api.js';
-import { formatText as formatTextUtil } from '../utils/text.js';
+import { MONTH_NAMES } from '../config/constants.js';
 
 export const useNewsArchive = () => {
     // State management
@@ -88,10 +88,7 @@ export const useNewsArchive = () => {
         return [...new Set(months)].sort((a, b) => a - b);
     };
 
-    const monthNames = [
-        '', 'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
-        'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'
-    ];
+    const monthNames = ['', ...MONTH_NAMES];
 
     // Pagination
     const indexOfLastPost = currentPage * postsPerPage;
@@ -109,15 +106,6 @@ export const useNewsArchive = () => {
         setSelectedYear('');
         setSelectedMonth('');
         setCurrentPage(1);
-    };
-
-    // Date formatting
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('cs-CZ');
-    };
-
-    const formatText = (text) => {
-        return formatTextUtil(text);
     };
 
     return {
@@ -146,7 +134,5 @@ export const useNewsArchive = () => {
         monthNames,
         handlePageChange,
         clearFilters,
-        formatDate,
-        formatText
     };
 };

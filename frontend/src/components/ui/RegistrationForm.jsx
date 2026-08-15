@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRegistration } from '../../hooks/useRegistration.js';
 import RegistrationFormFields from './registration/RegistrationFormFields.jsx';
 import RacerSearchResults from './registration/RacerSearchResults.jsx';
@@ -37,38 +36,19 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                     {/* Formulář vlevo */}
                     <div className="col-12 col-lg-7 mb-4 mb-lg-0">
                         <form onSubmit={registration.handleSubmit}>
-                            <RegistrationFormFields 
+                            <RegistrationFormFields
                                 formData={registration.formData}
                                 updateField={registration.updateField}
                                 clubs={registration.clubs}
+                                fieldErrors={registration.fieldErrors}
+                                clubNoteMode={registration.clubNoteMode}
+                                setClubNoteMode={registration.setClubNoteMode}
                             />
 
-                            {/* Submit tlačítka */}
-                            <div className="d-flex gap-2 justify-content-end mt-3">
-                                <button 
-                                    type="button" 
-                                    className="btn"
-                                    onClick={registration.resetForm}
-                                    style={{
-                                        background: 'rgba(239, 68, 68, 0.2)',
-                                        color: '#ef4444',
-                                        border: '1px solid #ef4444',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = '#ef4444';
-                                        e.currentTarget.style.color = 'white';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                                        e.currentTarget.style.color = '#ef4444';
-                                    }}
-                                >
-                                    <span className="bi bi-x-circle me-1"></span>
-                                    Vymazat formulář
-                                </button>
-                                <button 
-                                    type="submit" 
+                            {/* Submit tlačítko */}
+                            <div className="d-flex justify-content-end mt-3">
+                                <button
+                                    type="submit"
                                     className="btn"
                                     style={{
                                         background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',

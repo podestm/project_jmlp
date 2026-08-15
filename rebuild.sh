@@ -1,108 +1,101 @@
 #!/bin/bash
+# =============================================================================
+# JMLP Rebuild Script - Rebuild a restart služeb
+#
+# Použití:
+#   ./rebuild.sh              # Rebuild všech služeb
+#   ./rebuild.sh all          # Rebuild všech služeb
+#   ./rebuild.sh frontend     # Rebuild jen frontend
+#   ./rebuild.sh backend      # Rebuild jen backend
+#   ./rebuild.sh db           # Rebuild jen databáze (⚠️ smaže data!)
+#   ./rebuild.sh --help       # Nápověda
+# =============================================================================
 
-# JMLP Production Rebuild Script
-# Usage: ./rebuild.sh [service_name] or ./rebuild.sh all
+set -e
 
-set -e  # Exit on any error
-
-COMPOSE_FILE="docker-compose.server.yml"
-PROJECT_NAME="jmlp"
-
-# Colors for output
+# Barvy
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[OK]${NC} $1"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 
-echo_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+# Konfigurace
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
 
-echo_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+# Zajisti symlink .env
+if [[ ! -L "${SCRIPT_DIR}/.env" ]]; then
+    ln -sf "${SCRIPT_DIR}/secret/.env" "${SCRIPT_DIR}/.env"
+    log_info "Vytvořen symlink .env -> secret/.env"
+fi
 
-echo_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Function to rebuild specific service
+# Rebuild jedné služby
 rebuild_service() {
     local service=$1
-    
-    echo_info "Rebuilding service: $service"
-    
-    # Stop the service
-    echo_info "Stopping $service..."
-    docker-compose -f $COMPOSE_FILE stop $service
-    
-    # Remove the container (but keep volumes)
-    echo_info "Removing $service container..."
-    docker-compose -f $COMPOSE_FILE rm -f $service
-    
-    # Build and start the service
-    echo_info "Building and starting $service..."
-    docker-compose -f $COMPOSE_FILE up --build -d $service
-    
-    # Wait a moment for health checks
+
+    log_info "Rebuild služby: $service"
+
+    log_info "Zastavuji $service..."
+    docker compose -f "$COMPOSE_FILE" stop "$service"
+
+    log_info "Odstraňuji kontejner $service..."
+    docker compose -f "$COMPOSE_FILE" rm -f "$service"
+
+    log_info "Builduji a spouštím $service..."
+    docker compose -f "$COMPOSE_FILE" up --build -d "$service"
+
     sleep 5
-    
-    # Check status
-    echo_info "Checking $service status..."
-    docker-compose -f $COMPOSE_FILE ps $service
-    
-    echo_success "$service rebuild completed!"
+    docker compose -f "$COMPOSE_FILE" ps "$service"
+
+    log_success "$service rebuild hotov!"
 }
 
-# Function to rebuild all services
+# Rebuild všeho
 rebuild_all() {
-    echo_info "Starting full rebuild of all services..."
-    
-    # Stop all services
-    echo_info "Stopping all services..."
-    docker-compose -f $COMPOSE_FILE down
-    
-    # Build and start all services
-    echo_info "Building and starting all services..."
-    docker-compose -f $COMPOSE_FILE up --build -d
-    
-    # Wait for services to start
-    echo_info "Waiting for services to start..."
+    log_info "Rebuild všech služeb..."
+
+    log_info "Zastavuji vše..."
+    docker compose -f "$COMPOSE_FILE" down
+
+    log_info "Builduji a spouštím vše..."
+    docker compose -f "$COMPOSE_FILE" up --build -d
+
+    log_info "Čekám na start..."
     sleep 10
-    
-    # Show final status
-    echo_info "Final status:"
-    docker-compose -f $COMPOSE_FILE ps
-    
-    echo_success "Full rebuild completed!"
-    echo_info "Application available at: http://localhost:8080"
-    echo_info "Admin panel at: http://localhost:8080/admin"
+
+    docker compose -f "$COMPOSE_FILE" ps
+
+    local IP
+    IP=$(hostname -I | awk '{print $1}')
+
+    echo ""
+    log_success "Rebuild dokončen!"
+    echo -e "  Frontend:  ${GREEN}https://${IP}:8443${NC}  (nebo http://${IP}:8080)"
+    echo -e "  Admin:     ${GREEN}https://${IP}:8443/admin${NC}"
 }
 
-# Function to show help
+# Nápověda
 show_help() {
-    echo "JMLP Production Rebuild Script"
+    echo "JMLP Rebuild Script"
     echo ""
-    echo "Usage:"
-    echo "  ./rebuild.sh                 - Rebuild all services"
-    echo "  ./rebuild.sh all            - Rebuild all services"
-    echo "  ./rebuild.sh frontend       - Rebuild only frontend"
-    echo "  ./rebuild.sh backend        - Rebuild only backend" 
-    echo "  ./rebuild.sh db             - Rebuild only database"
-    echo "  ./rebuild.sh --help         - Show this help"
+    echo "Použití:"
+    echo "  ./rebuild.sh              - Rebuild všech služeb"
+    echo "  ./rebuild.sh all          - Rebuild všech služeb"
+    echo "  ./rebuild.sh frontend     - Rebuild jen frontend"
+    echo "  ./rebuild.sh backend      - Rebuild jen backend"
+    echo "  ./rebuild.sh db           - Rebuild jen databáze (⚠️ smaže data!)"
+    echo "  ./rebuild.sh --help       - Tato nápověda"
     echo ""
-    echo "Services:"
-    echo "  frontend  - React app with nginx (port 8080)"
-    echo "  backend   - FastAPI server (internal port 8000)"
-    echo "  db        - MySQL database (port 3307)"
+    echo "Pro první nastavení s importem dat: ./build.sh"
 }
 
-# Main script logic
+# Main
 case "${1:-all}" in
     "frontend")
         rebuild_service "frontend"
@@ -111,13 +104,13 @@ case "${1:-all}" in
         rebuild_service "backend"
         ;;
     "db")
-        echo_warning "Rebuilding database will reset all data!"
-        read -p "Are you sure? (y/N): " -n 1 -r
+        log_warn "Rebuild databáze smaže všechna data!"
+        read -p "Pokračovat? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             rebuild_service "db"
         else
-            echo_info "Database rebuild cancelled."
+            log_info "Zrušeno."
         fi
         ;;
     "all"|"")
@@ -127,11 +120,9 @@ case "${1:-all}" in
         show_help
         ;;
     *)
-        echo_error "Unknown service: $1"
+        log_error "Neznámá služba: $1"
         echo ""
         show_help
         exit 1
         ;;
 esac
-
-echo_success "Script completed successfully!"

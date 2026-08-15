@@ -88,8 +88,8 @@
 }
 
 .btn-outline-secondary {
-  --bs-btn-color: #464555 !important;
-  --bs-btn-border-color: #464555 !important;
+  --bs-btn-color: #b0b8c4 !important;
+  --bs-btn-border-color: #6c757d !important;
   --bs-btn-hover-bg: #464555 !important;
   --bs-btn-hover-color: #fff !important;
   --bs-btn-hover-border-color: #464555 !important;
@@ -128,9 +128,9 @@
 .bg-warning { background-color: #C59D00 !important; }
 .bg-danger { background-color: #ef4444 !important; }
 
-/* Text Colors */
+/* Text Colors - adapted for dark mode public pages */
 .text-primary { color: #2664EB !important; }
-.text-secondary { color: #464555 !important; }
+.text-secondary { color: #b0b8c4 !important; }
 .text-success { color: #2F9592 !important; }
 .text-info { color: #A6C2C0 !important; }
 .text-warning { color: #C59D00 !important; }

@@ -1,7 +1,10 @@
-import React from 'react';
 import API from '../../../config/api.js';
+import { formatDateShort } from '../../../utils/date.js';
+import { formatText } from '../../../utils/text.js';
 
-const PostCard = ({ post, formatDate, formatText }) => {
+// Pomocné funkce si karta bere přímo z utils - dřív je dostávala jako props,
+// což vázalo každé místo, které kartu vykreslí, na hook s formátováním.
+const PostCard = ({ post }) => {
     const showImage = post.image_file_id && post.image_position !== 'none';
     const imagePosition = post.image_position || 'right';
     
@@ -26,7 +29,7 @@ const PostCard = ({ post, formatDate, formatText }) => {
                 <h5 className="card-title mb-0">{post.title}</h5>
                 <small className="text-muted">
                     <i className="bi bi-calendar3 me-1"></i>
-                    {formatDate(post.created_at)}
+                    {formatDateShort(post.created_at)}
                 </small>
             </div>
             <div className="card-body">

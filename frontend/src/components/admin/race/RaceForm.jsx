@@ -1,6 +1,11 @@
-import React from 'react';
+import { OWNER, ROLE } from '../../../config/attachmentsApi.js';
+import AttachmentManager from '../attachments/AttachmentManager.jsx';
 
-const RaceForm = ({ 
+// Závod má právě dvě role dokumentů, od každé nejvýše jeden - hlídá to
+// i backend (ATTACHMENT_ROLES_BY_OWNER / ATTACHMENT_EXCLUSIVE_GROUPS).
+const RACE_ROLES = [ROLE.propozice, ROLE.vysledky];
+
+const RaceForm = ({
     showForm,
     setShowForm,
     editingRace,
@@ -11,25 +16,12 @@ const RaceForm = ({
     arealSuggestions,
     organizerSearch,
     organizerSuggestions,
-    propositionSearch,
-    propositionSuggestions,
-    resultsSearch,
-    resultsSuggestions,
     raceNumberPreview,
     seasonPreview,
-    propositionDocuments,
-    resultsDocuments,
-    availableDocuments,
     handleArealSearch,
     handleOrganizerSearch,
-    handlePropositionSearch,
-    handleResultsSearch,
     selectAreal,
     selectOrganizer,
-    selectPropositionDocument,
-    selectResultsDocument,
-    clearPropositionDocument,
-    clearResultsDocument,
     generateRaceNumberLocal,
     handleSubmit,
     resetForm
@@ -45,16 +37,16 @@ const RaceForm = ({
                             <h5 className="modal-title">
                                 {editingRace ? 'Upravit závod' : 'Přidat nový závod'}
                             </h5>
-                            <button 
-                                type="button" 
-                                className="btn-close" 
+                            <button
+                                type="button"
+                                className="btn-close"
                                 onClick={() => {
                                     setShowForm(false);
                                     resetForm();
                                 }}
                             ></button>
                         </div>
-                        
+
                         <div className="modal-body">
                             <div className="row">
                                 <div className="col-md-6">
@@ -72,7 +64,7 @@ const RaceForm = ({
                                                         if (result) {
                                                             setFormData(prev => ({
                                                                 ...prev,
-                                                                raceNr: result.raceNr,
+                                                                race_nr: result.race_nr,
                                                                 season_id: result.seasonId
                                                             }));
                                                         }
@@ -132,7 +124,7 @@ const RaceForm = ({
                                             {arealSuggestions.length > 0 && (
                                                 <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%'}}>
                                                     {arealSuggestions.map((areal, index) => (
-                                                        <div 
+                                                        <div
                                                             key={index}
                                                             className="p-2 border-bottom cursor-pointer hover-bg-light"
                                                             onClick={() => selectAreal(areal)}
@@ -161,7 +153,7 @@ const RaceForm = ({
                                             {organizerSuggestions.length > 0 && (
                                                 <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%'}}>
                                                     {organizerSuggestions.map((organizer, index) => (
-                                                        <div 
+                                                        <div
                                                             key={index}
                                                             className="p-2 border-bottom cursor-pointer hover-bg-light"
                                                             onClick={() => selectOrganizer(organizer)}
@@ -177,137 +169,18 @@ const RaceForm = ({
                                 </div>
                             </div>
 
+                            {/*
+                              Dokumenty se nahrávají rovnou k závodu přes přílohy - formulář
+                              o souborech nic neví a neposílá je s ostatními poli. U nového
+                              závodu ještě není ownerId, komponenta si to ošetří sama.
+                            */}
                             <div className="row">
-                                <div className="col-12">
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 className="mb-0">Dokumenty</h6>
-                                        <a 
-                                            href="/admin/documents" 
-                                            target="_blank" 
-                                            className="btn btn-sm btn-outline-secondary"
-                                            title="Otevřít správu dokumentů v novém okně"
-                                        >
-                                            <i className="bi bi-folder-plus me-1"></i>
-                                            Spravovat dokumenty
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="row">
-                                <div className="col-md-6">
-                                    <div className="mb-3">
-                                        <label className="form-label">Propozice</label>
-                                        <div className="position-relative">
-                                            <div className="input-group">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={propositionSearch}
-                                                    onChange={(e) => handlePropositionSearch(e.target.value)}
-                                                    placeholder="Začněte psát název dokumentu..."
-                                                />
-                                                {formData.proposition_file_id && (
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-outline-secondary"
-                                                        onClick={clearPropositionDocument}
-                                                        title="Odebrat propozice"
-                                                    >
-                                                        <i className="bi bi-x-lg"></i>
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {propositionSuggestions.length > 0 && (
-                                                <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
-                                                    {propositionSuggestions.map((doc, index) => (
-                                                        <div 
-                                                            key={index}
-                                                            className="p-2 border-bottom cursor-pointer hover-bg-light"
-                                                            onClick={() => selectPropositionDocument(doc)}
-                                                            style={{cursor: 'pointer'}}
-                                                        >
-                                                            <div className="d-flex justify-content-between align-items-center">
-                                                                <span>{doc.original_filename}</span>
-                                                                {doc.file_type && (
-                                                                    <span className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
-                                                                        {doc.file_type}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="form-text">
-                                            {formData.proposition_file_id ? (
-                                                <span className="text-success">
-                                                    <i className="bi bi-check-circle me-1"></i>
-                                                    Dokument vybrán
-                                                </span>
-                                            ) : (
-                                                'Začněte psát pro vyhledání dokumentu'
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-md-6">
-                                    <div className="mb-3">
-                                        <label className="form-label">Výsledky</label>
-                                        <div className="position-relative">
-                                            <div className="input-group">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={resultsSearch}
-                                                    onChange={(e) => handleResultsSearch(e.target.value)}
-                                                    placeholder="Začněte psát název dokumentu..."
-                                                />
-                                                {formData.results_file_id && (
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-outline-secondary"
-                                                        onClick={clearResultsDocument}
-                                                        title="Odebrat výsledky"
-                                                    >
-                                                        <i className="bi bi-x-lg"></i>
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {resultsSuggestions.length > 0 && (
-                                                <div className="position-absolute w-100 bg-white border rounded-bottom shadow-sm" style={{zIndex: 1000, top: '100%', maxHeight: '300px', overflowY: 'auto'}}>
-                                                    {resultsSuggestions.map((doc, index) => (
-                                                        <div 
-                                                            key={index}
-                                                            className="p-2 border-bottom cursor-pointer hover-bg-light"
-                                                            onClick={() => selectResultsDocument(doc)}
-                                                            style={{cursor: 'pointer'}}
-                                                        >
-                                                            <div className="d-flex justify-content-between align-items-center">
-                                                                <span>{doc.original_filename}</span>
-                                                                {doc.file_type && (
-                                                                    <span className="badge bg-secondary" style={{fontSize: '0.7rem'}}>
-                                                                        {doc.file_type}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="form-text">
-                                            {formData.results_file_id ? (
-                                                <span className="text-success">
-                                                    <i className="bi bi-check-circle me-1"></i>
-                                                    Dokument vybrán
-                                                </span>
-                                            ) : (
-                                                'Začněte psát pro vyhledání dokumentu'
-                                            )}
-                                        </div>
-                                    </div>
+                                <div className="col-12 mb-3">
+                                    <AttachmentManager
+                                        ownerType={OWNER.race}
+                                        ownerId={editingRace?.id || null}
+                                        roles={RACE_ROLES}
+                                    />
                                 </div>
                             </div>
 
@@ -335,10 +208,10 @@ const RaceForm = ({
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="suchySlalom"
-                                                checked={formData.raceMethod_id === 2}
+                                                checked={formData.race_method_id === 2}
                                                 onChange={(e) => setFormData(prev => ({
-                                                    ...prev, 
-                                                    raceMethod_id: e.target.checked ? 2 : 1
+                                                    ...prev,
+                                                    race_method_id: e.target.checked ? 2 : 1
                                                 }))}
                                             />
                                             <label className="form-check-label" htmlFor="suchySlalom">
@@ -350,11 +223,11 @@ const RaceForm = ({
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="modal-footer">
-                            <button 
-                                type="button" 
-                                className="btn btn-secondary" 
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
                                 onClick={() => {
                                     setShowForm(false);
                                     resetForm();
@@ -362,8 +235,8 @@ const RaceForm = ({
                             >
                                 Zrušit
                             </button>
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="btn btn-primary"
                                 disabled={loading}
                             >
