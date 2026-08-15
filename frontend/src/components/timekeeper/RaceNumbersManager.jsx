@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TimekeeperAPI } from '../../config/api.js';
+import { useState, useEffect } from 'react';
+import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
 
 export default function RaceNumbersManager() {
@@ -38,7 +38,7 @@ export default function RaceNumbersManager() {
       } else {
         setSetFormData(prev => ({ ...prev, set_number: '1', display_from: '1' }));
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst sady čísel' });
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ export default function RaceNumbersManager() {
       setLoadingNumbers(true);
       const data = await TimekeeperAPI.get(`/api/timekeeper/race-numbers?set_number=${setNumber}`);
       setNumbers(data);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst čísla' });
     } finally {
       setLoadingNumbers(false);

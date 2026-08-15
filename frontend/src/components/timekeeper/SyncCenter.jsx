@@ -1,8 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { TimekeeperAPI } from '../../config/api.js';
+import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { downloadBackup, importBackupPayload } from '../../offline/backup.js';
-import { getOpenConflicts, getRecentQueueItems, resolveConflict } from '../../offline/timekeeperOffline.js';
+import { getOpenConflicts, getRecentQueueItems, resolveConflict, retryQueueItem } from '../../offline/syncQueue.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
+import { formatDateTimeShort } from '../../utils/date.js';
+import { TimekeeperMessage } from './TimekeeperChrome.jsx';
+
+const STATUS_BADGE = {
+  done: 'bg-success',
+  failed: 'bg-warning text-dark',
+  conflict: 'bg-danger',
+  dead: 'bg-danger'
+};
+
+// Text, kterým přehrávací smyčka označí zápis zaparkovaný na vypršelém tokenu
+// (viz AUTH_EXPIRED_MESSAGE v offline/sync.js). Poznáváme ho podle začátku,
+// aby banner nezmizel při drobné úpravě konce věty.
+const AUTH_EXPIRED_PREFIX = 'Přihlášení vypršelo';
 
 export default function SyncCenter() {
   const { syncState, queueStats, refreshStats } = useSyncStatus();
@@ -26,6 +40,18 @@ export default function SyncCenter() {
     loadData();
   }, []);
 
+  /**
+   * Fronta stojící na vypršelém přihlášení vypadá zvenčí jako obyčejné
+   * "čeká ve frontě" - rozhodčí by čekal, až se to samo odešle, a ono by se
+   * to nestalo. Stav se čte z fronty samotné, ne z paměti, aby banner přežil
+   * i obnovení stránky.
+   */
+  const authExpired = useMemo(() => queueItems.some((item) => (
+    item.status === 'pending'
+    && typeof item.last_error === 'string'
+    && item.last_error.startsWith(AUTH_EXPIRED_PREFIX)
+  )), [queueItems]);
+
   const handleSyncNow = async () => {
     try {
       setBusy(true);
@@ -33,7 +59,7 @@ export default function SyncCenter() {
       await refreshStats();
       await loadData();
       setMessage({ type: 'success', text: 'Synchronizace spuštěna.' });
-    } catch (error) {
+    } catch {
       setMessage({ type: 'danger', text: 'Synchronizace se nezdařila.' });
     } finally {
       setBusy(false);
@@ -58,9 +84,17 @@ export default function SyncCenter() {
       const result = await importBackupPayload(raw);
       await refreshStats();
       await loadData();
+
+      // Import zálohy nikdy nepřepisuje, co v zařízení už je. Bez téhle věty
+      // vypadá "Import dokončen (0 záznamů)" jako selhání, i když je všechno
+      // v pořádku.
+      const added = Object.values(result.tableCounts).reduce((acc, n) => acc + n, 0);
+      const skipped = result.skippedTotal || 0;
       setMessage({
         type: 'success',
-        text: `Import dokončen (${Object.values(result.tableCounts).reduce((acc, n) => acc + n, 0)} záznamů).`
+        text: skipped > 0
+          ? `Import dokončen: přidáno ${added} záznamů, ${skipped} už bylo v zařízení (ponecháno beze změny).`
+          : `Import dokončen (${added} záznamů).`
       });
     } catch (error) {
       setMessage({ type: 'danger', text: error?.message || 'Import zálohy selhal.' });
@@ -98,6 +132,22 @@ export default function SyncCenter() {
           ? 'Konflikt bude odeslán v režimu force apply.'
           : 'Konflikt označen jako uzavřený.'
     });
+  };
+
+  /** Ruční záchrana zápisu, kterému došly pokusy - jinak zůstane ležet navždy. */
+  const handleRetryItem = async (queueItemId) => {
+    try {
+      setBusy(true);
+      await retryQueueItem(queueItemId);
+      await TimekeeperAPI.flushQueue();
+      await refreshStats();
+      await loadData();
+      setMessage({ type: 'info', text: 'Položka byla vrácena do fronty.' });
+    } catch {
+      setMessage({ type: 'danger', text: 'Nepodařilo se položku odeslat znovu.' });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const formatValue = (value) => {
@@ -157,14 +207,17 @@ export default function SyncCenter() {
         </span>
       </div>
 
-      {message && (
-        <div className={`alert alert-${message.type} py-2 small`} role="alert">
-          {message.text}
+      {authExpired && (
+        <div className="alert alert-warning py-2 d-flex align-items-center small" role="alert">
+          <i className="bi bi-person-lock me-2"></i>
+          Přihlášení vypršelo – fronta čeká, přihlaste se znovu.
         </div>
       )}
 
-      <div className="row g-3 mb-3">
-        <div className="col-md-3">
+      <TimekeeperMessage message={message} onDismiss={() => setMessage(null)} />
+
+      <div className="row row-cols-2 row-cols-md-5 g-3 mb-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <small className="text-muted">Ve frontě</small>
@@ -172,7 +225,7 @@ export default function SyncCenter() {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <small className="text-muted">Chyby</small>
@@ -180,7 +233,7 @@ export default function SyncCenter() {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <small className="text-muted">Konflikty</small>
@@ -188,11 +241,19 @@ export default function SyncCenter() {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body">
               <small className="text-muted">Aktivně sync</small>
               <div className="fs-4 fw-bold text-primary">{queueStats.processing}</div>
+            </div>
+          </div>
+        </div>
+        <div className="col">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <small className="text-muted">Neodeslané</small>
+              <div className="fs-4 fw-bold text-danger">{queueStats.dead || 0}</div>
             </div>
           </div>
         </div>
@@ -240,7 +301,7 @@ export default function SyncCenter() {
                   {conflicts.map((conflict) => (
                     <React.Fragment key={conflict.id}>
                       <tr>
-                        <td>{new Date(conflict.created_at).toLocaleString('cs-CZ')}</td>
+                        <td>{formatDateTimeShort(conflict.created_at)}</td>
                         <td>{conflict.method}</td>
                         <td className="small">{conflict.endpoint}</td>
                         <td className="small text-danger">
@@ -326,20 +387,37 @@ export default function SyncCenter() {
                     <th>Endpoint</th>
                     <th>Stav</th>
                     <th>Retry</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {queueItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>{new Date(item.created_at).toLocaleString('cs-CZ')}</td>
+                    // 'dead' znamená naměřený čas, který na serveru není. Řádek
+                    // musí být vidět na první pohled, ne jen jako slovo ve sloupci.
+                    <tr key={item.id} className={item.status === 'dead' ? 'table-danger' : ''}>
+                      <td>{formatDateTimeShort(item.created_at)}</td>
                       <td>{item.method}</td>
                       <td className="small">{item.endpoint}</td>
                       <td>
-                        <span className={`badge ${item.status === 'done' ? 'bg-success' : item.status === 'failed' ? 'bg-warning text-dark' : item.status === 'conflict' ? 'bg-danger' : 'bg-secondary'}`}>
-                          {item.status}
+                        <span className={`badge ${STATUS_BADGE[item.status] || 'bg-secondary'}`}>
+                          {item.status === 'dead' ? 'neodesláno' : item.status}
                         </span>
+                        {item.last_error && (
+                          <div className="text-muted small">{item.last_error}</div>
+                        )}
                       </td>
                       <td>{item.retry_count || 0}</td>
+                      <td className="text-end">
+                        {(item.status === 'dead' || item.status === 'failed') && (
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            disabled={busy}
+                            onClick={() => handleRetryItem(item.id)}
+                          >
+                            Zkusit znovu
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

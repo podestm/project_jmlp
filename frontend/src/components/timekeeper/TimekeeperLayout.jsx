@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
@@ -207,8 +206,16 @@ export default function TimekeeperLayout({ children }) {
               <i className="bi bi-list-ol timekeeper-sidebar-link-icon"></i>
               <span>Listina</span>
             </Link>
-            <Link 
-              to="/timekeeper/racers" 
+            <Link
+              to="/timekeeper/race-detail"
+              className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/race-detail') ? 'active' : ''}`}
+              style={isActive('/timekeeper/race-detail') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
+            >
+              <i className="bi bi-card-heading timekeeper-sidebar-link-icon"></i>
+              <span>Údaje</span>
+            </Link>
+            <Link
+              to="/timekeeper/racers"
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/racers') ? 'active' : ''}`}
               style={isActive('/timekeeper/racers') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >

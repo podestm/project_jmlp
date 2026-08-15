@@ -1,12 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TimekeeperAPI } from '../../config/api.js';
-import RaceNumberBadge from './RaceNumberBadge.jsx';
+import { TimekeeperAPI } from '../../config/timekeeperApi.js';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
+import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
+import EmptyState from '../ui/EmptyState.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import StartListRow from './StartListRow.jsx';
+import {
+  OFFLINE_QUEUED_TEXT,
+  findRaceNumberOption,
+  getRaceNumberValidationError,
+  resolveCategoryPreview,
+  sortStartListEntries,
+} from './startListHelpers.js';
+
+/**
+ * Generování a ruční správa startovní listiny.
+ *
+ * Pravidla kolem startovních čísel a řazení jsou v `startListHelpers.js` -
+ * stejná pravidla platí i na obrazovce Závodníci a rozcházet se nesmějí.
+ */
+
+// Kategorii dopočítává server podle ročníku a pohlaví, tohle je jen náhled.
+const CATEGORY_PENDING_TEXT = 'Kategorie se dopočítá při uložení';
 
 export default function StartListManager() {
+  const { confirm, confirmElement } = useConfirm();
   const [races, setRaces] = useState([]);
-  const [selectedRaceId, setSelectedRaceId] = useState(
-    localStorage.getItem('timekeeper_selected_race') || ''
+  const [selectedRaceId] = useState(
+    localStorage.getItem(SELECTED_RACE_KEY) || ''
   );
   const [startList, setStartList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,6 +49,11 @@ export default function StartListManager() {
 
   const [raceNumberOptions, setRaceNumberOptions] = useState([]);
 
+  // Drží aktuální loadStartList, aby mazání závodníka nemuselo být závislé
+  // na startList - jinak by se při každém úhozu měnila identita callbacku
+  // a memoizované řádky by se překreslovaly všechny.
+  const loadStartListRef = useRef(null);
+
   // Drag & drop refs
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
@@ -37,7 +64,7 @@ export default function StartListManager() {
     if (selectedRaceId) {
       loadStartList();
       loadRaceNumberOptions();
-      localStorage.setItem('timekeeper_selected_race', selectedRaceId);
+      localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
     }
   }, [selectedRaceId]);
 
@@ -56,18 +83,19 @@ export default function StartListManager() {
       setLoading(true);
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/start-list`);
       setStartList(data);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst startovní listinu' });
     } finally {
       setLoading(false);
     }
   };
+  loadStartListRef.current = loadStartList;
 
   const loadRaceNumberOptions = async () => {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/race-number-options');
       setRaceNumberOptions(data);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst seznam závodních čísel' });
     }
   };
@@ -79,7 +107,7 @@ export default function StartListManager() {
       const cats = await TimekeeperAPI.get('/api/timekeeper/categories');
       setCategories(cats);
       setCategoryOrder(cats.map(c => c.id));
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst nastavení' });
       setShowGenerateSetup(false);
     } finally {
@@ -108,18 +136,25 @@ export default function StartListManager() {
 
   const clearStartList = async () => {
     if (!selectedRaceId) return;
-    if (!window.confirm('Opravdu chcete smazat celou startovní listinu? Tato akce je nevratná.')) return;
+    const confirmed = await confirm({
+      title: 'Smazat celou startovní listinu?',
+      message: 'Tato akce je nevratná.',
+      confirmLabel: 'Smazat vše',
+      variant: 'danger',
+      icon: 'bi-trash',
+    });
+    if (!confirmed) return;
     try {
       const result = await TimekeeperAPI.delete(`/api/timekeeper/races/${selectedRaceId}/start-list`);
       setMessage({ type: 'info', text: result.message });
       setStartList([]);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se smazat startovní listinu' });
     }
   };
 
   // --- Inline editing ---
-  const startEditing = (entry) => {
+  const startEditing = useCallback((entry) => {
     setEditingId(entry.id);
     setEditForm({
       start_number: entry.start_number || '',
@@ -131,7 +166,7 @@ export default function StartListManager() {
       race_number_display: entry.race_number_display || '',
     });
     setEditValidationError('');
-  };
+  }, []);
 
   const cancelEditing = () => {
     setEditingId(null);
@@ -139,67 +174,22 @@ export default function StartListManager() {
     setEditValidationError('');
   };
 
-  const sortStartListEntries = (entries) => [...entries].sort((a, b) => {
-    const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
-    const bRank = b.category_rank ?? Number.MAX_SAFE_INTEGER;
-    if (aRank !== bRank) return aRank - bRank;
-    const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
-    const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
-    if (aStart !== bStart) return aStart - bStart;
-    return a.id - b.id;
-  });
+  const validateRaceNumber = useCallback((displayNumber, excludeEntryId = null) => (
+    getRaceNumberValidationError(displayNumber, {
+      options: raceNumberOptions,
+      entries: startList,
+      excludeEntryId,
+    })
+  ), [raceNumberOptions, startList]);
 
-  const findRaceNumberOption = (displayNumber) => {
-    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return null;
-    return raceNumberOptions.find(option => String(option.display_number) === String(displayNumber)) || null;
-  };
-
-  const getRaceNumberValidationError = (displayNumber, excludeEntryId = null, currentEntry = null) => {
-    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return '';
-
-    const option = findRaceNumberOption(displayNumber);
-    const isCurrentEntryNumber = currentEntry && currentEntry.race_number_display != null &&
-      String(currentEntry.race_number_display) === String(displayNumber);
-
-    if (!option && !isCurrentEntryNumber) {
-      return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
-    }
-
-    const conflict = startList.find(entry =>
-      entry.id !== excludeEntryId &&
-      entry.race_number_display != null &&
-      String(entry.race_number_display) === String(displayNumber)
-    );
-
-    if (conflict) {
-      return `St. číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
-    }
-
-    return '';
-  };
-
-  const resolveCategoryPreview = (year, sex) => {
-    if (!year || !sex || categories.length === 0) return 'Kategorie se dopočítá při uložení';
-
-    const parsedYear = parseInt(year);
-    const parsedSex = parseInt(sex);
-    if (Number.isNaN(parsedYear) || Number.isNaN(parsedSex)) return 'Kategorie se dopočítá při uložení';
-
-    const match = categories.find(category =>
-      category.min_birth_year <= parsedYear &&
-      category.max_birth_year >= parsedYear &&
-      (category.sex === 0 || category.sex === parsedSex)
-    );
-
-    if (!match) return 'Bez kategorie';
-    return match.sex_label === 'Mix' ? match.name : `${match.name} - ${match.sex_label}`;
-  };
+  const categoryPreview = (year, sex) => (
+    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT, 'Bez kategorie')
+  );
 
   const saveEditing = async () => {
     if (!editingId) return;
-    const currentEntry = startList.find(entry => entry.id === editingId) || null;
 
-    const raceNumberError = getRaceNumberValidationError(editForm.race_number_display, editingId, currentEntry);
+    const raceNumberError = validateRaceNumber(editForm.race_number_display, editingId);
     if (raceNumberError) {
       setEditValidationError(raceNumberError);
       return;
@@ -217,34 +207,46 @@ export default function StartListManager() {
       body.race_number_display = editForm.race_number_display !== '' ? parseInt(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
-      setStartList(prev => sortStartListEntries(prev.map(entry => (
-        entry.id === editingId ? result.entry : entry
-      ))));
+      if (result?.entry) {
+        setStartList(prev => sortStartListEntries(prev.map(entry => (
+          entry.id === editingId ? result.entry : entry
+        ))));
+      } else {
+        // Offline: požadavek leží ve frontě a žádný `entry` se nevrátil, takže
+        // řádek přepíšeme tím, co jsme odeslali, a označíme ho jako nesynchronizovaný.
+        setStartList(prev => sortStartListEntries(prev.map(entry => (
+          entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry
+        ))));
+        setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
+      }
       setEditingId(null);
       setEditForm({});
       setEditValidationError('');
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se uložit změny' });
     }
   };
 
-  const deleteEntry = async (entryId, name) => {
-    if (!window.confirm(`Odebrat ${name} ze startovní listiny?`)) return;
+  const deleteEntry = useCallback(async (entryId, name) => {
+    const confirmed = await confirm({
+      title: `Odebrat ${name} ze startovní listiny?`,
+      confirmLabel: 'Odebrat',
+      variant: 'danger',
+      icon: 'bi-trash',
+    });
+    if (!confirmed) return;
     try {
       await TimekeeperAPI.delete(`/api/timekeeper/start-list/${entryId}`);
-      await loadStartList();
+      await loadStartListRef.current();
       setMessage({ type: 'info', text: `${name} odebrán/a ze startovní listiny` });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se odebrat závodníka' });
     }
-  };
+  }, [confirm]);
 
-  const currentEditingEntry = editingId
-    ? startList.find(entry => entry.id === editingId) || null
-    : null;
-  const liveEditRaceNumberError = editingId
-    ? getRaceNumberValidationError(editForm.race_number_display, editingId, currentEditingEntry)
-    : '';
+  const liveEditRaceNumberError = useMemo(() => (
+    editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''
+  ), [editingId, editForm.race_number_display, validateRaceNumber]);
 
   // --- Drag & drop ---
   const handleDragStart = (index) => { dragItem.current = index; };
@@ -275,13 +277,8 @@ export default function StartListManager() {
   const getCategoryById = (id) => categories.find(c => c.id === id);
   const selectedRace = races.find(r => String(r.id) === String(selectedRaceId));
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-  };
-
   // Group by category — use array to preserve start_number order
-  const groupedByCategory = (() => {
+  const groupedByCategory = useMemo(() => {
     const groups = [];
     const indexMap = new Map();
     for (const entry of sortStartListEntries(startList)) {
@@ -298,7 +295,7 @@ export default function StartListManager() {
       groups[indexMap.get(catKey)].entries.push(entry);
     }
     return groups.sort((a, b) => a.rank - b.rank);
-  })();
+  }, [startList]);
 
   return (
     <div>
@@ -318,14 +315,7 @@ export default function StartListManager() {
         <div className="card-body py-2 px-3">
           <div className="row align-items-center g-2">
             <div className="col-md-5">
-              <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
-                <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
-                  {selectedRace
-                    ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
-                    : 'Závod vyberte v Přehledu závodů'}
-                </div>
-              </div>
+              <SelectedRaceBar race={selectedRace} />
             </div>
             {selectedRace && (
               <div className="col-md-7">
@@ -369,10 +359,7 @@ export default function StartListManager() {
         <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px', borderTop: '3px solid #e94560' }}>
           <div className="card-body py-3 px-3">
             {loadingSetup ? (
-              <div className="text-center py-3">
-                <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
-                <small className="text-muted ms-2">Načítám nastavení...</small>
-              </div>
+              <LoadingState variant="timekeeper" label="Načítám nastavení..." />
             ) : (
               <>
                 <h6 className="fw-bold mb-2">
@@ -429,7 +416,7 @@ export default function StartListManager() {
                     onClick={generateStartList}
                     disabled={generating}>
                     {generating ? (
-                      <><span className="spinner-border spinner-border-sm me-1"></span>Generuji...</>
+                      <><ButtonSpinner />Generuji...</>
                     ) : (
                       <><i className="bi bi-lightning me-1"></i>Vygenerovat</>
                     )}
@@ -441,21 +428,9 @@ export default function StartListManager() {
         </div>
       )}
 
-      {/* Messages */}
-      {message && (
-        <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
-          <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : message.type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2`}></i>
-          {message.text}
-          <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={() => setMessage(null)}></button>
-        </div>
-      )}
+      <TimekeeperMessage message={message} onDismiss={() => setMessage(null)} />
 
-      {/* Loading */}
-      {loading && (
-        <div className="text-center py-4">
-          <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
-        </div>
-      )}
+      {loading && <LoadingState variant="timekeeper" />}
 
       {/* Start list */}
       {!loading && selectedRaceId && startList.length > 0 && (
@@ -514,7 +489,7 @@ export default function StartListManager() {
                                 placeholder="St. číslo"
                               />
                               <small className="text-muted d-block mt-1">
-                                Číslo dresu: {findRaceNumberOption(editForm.race_number_display)?.actual_number ?? entry.race_number_actual ?? '—'}
+                                Číslo dresu: {findRaceNumberOption(raceNumberOptions, editForm.race_number_display)?.actual_number ?? entry.race_number_actual ?? '—'}
                               </small>
                               {(liveEditRaceNumberError || editValidationError) && (
                                 <div className="invalid-feedback d-block">{liveEditRaceNumberError || editValidationError}</div>
@@ -551,7 +526,7 @@ export default function StartListManager() {
                             </td>
                             <td colSpan="3" style={{ padding: '4px 8px' }}>
                               <div className="small text-muted">
-                                Kategorie po uložení: <strong>{resolveCategoryPreview(editForm.racer_year, editForm.racer_sex)}</strong>
+                                Kategorie po uložení: <strong>{categoryPreview(editForm.racer_year, editForm.racer_sex)}</strong>
                               </div>
                             </td>
                             <td style={{ padding: '4px 8px' }}>
@@ -568,46 +543,12 @@ export default function StartListManager() {
                             </td>
                           </tr>
                         ) : (
-                          <tr key={entry.id}>
-                            <td className="fw-bold" style={{ padding: '4px 8px' }}>{entry.start_number || '—'}</td>
-                            <td style={{ padding: '4px 8px' }}>
-                              <RaceNumberBadge
-                                actualNumber={entry.race_number_actual}
-                                displayNumber={entry.race_number_display}
-                                setColor={entry.set_color}
-                              />
-                            </td>
-                            <td style={{ padding: '4px 8px' }}>
-                              <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
-                              <small className="text-muted ms-1">| {entry.category_name || 'Bez kategorie'}</small>
-                            </td>
-                            <td style={{ padding: '4px 8px' }}>{entry.racer_year}</td>
-                            <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || '—'}</td>
-                            <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              {(entry.dnf || entry.dns || entry.dsq) ? '—' : (entry.time1 != null ? entry.time1.toFixed(2) : '—')}
-                            </td>
-                            <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              {(entry.dnf || entry.dns || entry.dsq) ? '—' : (entry.time2 != null ? entry.time2.toFixed(2) : '—')}
-                            </td>
-                            <td className="fw-bold" style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                              {entry.dnf ? <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>DNF</span>
-                                : entry.dns ? <span className="badge bg-secondary" style={{ fontSize: '0.65rem' }}>DNS</span>
-                                : entry.dsq ? <span className="badge bg-danger" style={{ fontSize: '0.65rem' }}>DSQ</span>
-                                : (entry.time_sum != null ? entry.time_sum.toFixed(2) : '—')}
-                            </td>
-                            <td style={{ padding: '4px 8px' }}>
-                              <div className="d-flex gap-1">
-                                <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
-                                  onClick={() => startEditing(entry)} title="Upravit">
-                                  <i className="bi bi-pencil"></i>
-                                </button>
-                                <button className="btn btn-sm btn-outline-danger py-0 px-1" style={{ fontSize: '0.7rem' }}
-                                  onClick={() => deleteEntry(entry.id, `${entry.racer_surname} ${entry.racer_name}`)} title="Odebrat">
-                                  <i className="bi bi-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
+                          <StartListRow
+                            key={entry.id}
+                            entry={entry}
+                            onEdit={startEditing}
+                            onDelete={deleteEntry}
+                          />
                         )
                       ))}
                     </tbody>
@@ -619,21 +560,17 @@ export default function StartListManager() {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && selectedRaceId && startList.length === 0 && !showGenerateSetup && (
-        <div className="text-center py-4">
-          <i className="bi bi-list-ul text-muted" style={{ fontSize: '2rem' }}></i>
-          <p className="text-muted mt-2 mb-0 small">Startovní listina je prázdná</p>
-          <small className="text-muted">Klikněte na "Generovat" pro vytvoření listiny</small>
-        </div>
+        <EmptyState
+          icon="bi-list-ul"
+          title="Startovní listina je prázdná"
+          hint='Klikněte na "Generovat" pro vytvoření listiny'
+        />
       )}
 
-      {!selectedRaceId && (
-        <div className="text-center py-4">
-          <i className="bi bi-hand-index text-muted" style={{ fontSize: '2rem' }}></i>
-          <p className="text-muted mt-2 small">Vyberte závod</p>
-        </div>
-      )}
+      {!selectedRaceId && <EmptyState icon="bi-hand-index" title="Vyberte závod" />}
+
+      {confirmElement}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { formatSystemRaceNumber, getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
 
 export default function RaceNumberBadge({

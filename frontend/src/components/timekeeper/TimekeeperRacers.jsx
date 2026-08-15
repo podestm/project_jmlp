@@ -1,10 +1,32 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API, { TimekeeperAPI } from '../../config/api.js';
+import API from '../../config/api.js';
+import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import RegistrationFormFields from '../ui/registration/RegistrationFormFields.jsx';
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
-import RaceNumberBadge from './RaceNumberBadge.jsx';
+import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
+import EmptyState from '../ui/EmptyState.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import TimekeeperRacerRow, { getSexLabel } from './TimekeeperRacerRow.jsx';
+import {
+  OFFLINE_QUEUED_TEXT,
+  findRaceNumberOption,
+  getRaceNumberValidationError,
+  resolveCategoryPreview,
+  sortStartListEntries,
+} from './startListHelpers.js';
 import { getRaceNumberBadgeStyle, getSetColorTheme } from '../../utils/raceNumbers.js';
+
+/**
+ * Závodníci jednoho závodu - přidání a inline oprava bez zápisu do registrací.
+ *
+ * Pravidla startovních čísel, řazení listiny i náhled kategorie jsou ve
+ * `startListHelpers.js` - platí i na obrazovce Startovní listina a rozejít se
+ * nesmějí, jinak by každá obrazovka hlásila jiný konflikt čísel.
+ */
+
+// Kategorii dopočítává server podle ročníku a pohlaví, tohle je jen náhled.
+const CATEGORY_PENDING_TEXT = 'Kategorie se dopočítá při přidání';
 
 const createEmptyForm = (raceNumberDisplay = '') => ({
   name: '',
@@ -21,8 +43,8 @@ const createEmptyForm = (raceNumberDisplay = '') => ({
 export default function TimekeeperRacers() {
   const navigate = useNavigate();
   const [races, setRaces] = useState([]);
-  const [selectedRaceId, setSelectedRaceId] = useState(
-    localStorage.getItem('timekeeper_selected_race') || ''
+  const [selectedRaceId] = useState(
+    localStorage.getItem(SELECTED_RACE_KEY) || ''
   );
   const [startList, setStartList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -46,16 +68,6 @@ export default function TimekeeperRacers() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editValidationError, setEditValidationError] = useState('');
-
-  const sortEntries = (entries) => [...entries].sort((a, b) => {
-    const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
-    const bRank = b.category_rank ?? Number.MAX_SAFE_INTEGER;
-    if (aRank !== bRank) return aRank - bRank;
-    const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
-    const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
-    if (aStart !== bStart) return aStart - bStart;
-    return a.id - b.id;
-  });
 
   const getNextAvailableRaceNumberDisplay = (entries = startList) => {
     const assigned = entries
@@ -88,7 +100,7 @@ export default function TimekeeperRacers() {
 
   useEffect(() => {
     if (!selectedRaceId) return;
-    localStorage.setItem('timekeeper_selected_race', selectedRaceId);
+    localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
     loadStartList(selectedRaceId);
   }, [selectedRaceId]);
 
@@ -122,7 +134,7 @@ export default function TimekeeperRacers() {
         setIsSearching(true);
         const results = await TimekeeperAPI.get('/api/timekeeper/racers/search', { q: query });
         setSearchResults(results);
-      } catch (err) {
+      } catch {
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -136,7 +148,7 @@ export default function TimekeeperRacers() {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/races');
       setRaces(data);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst závody' });
     }
   };
@@ -145,7 +157,7 @@ export default function TimekeeperRacers() {
     try {
       const data = await API.get('/clubs/');
       setClubs(data);
-    } catch (err) {
+    } catch {
       setClubs([]);
     }
   };
@@ -154,7 +166,7 @@ export default function TimekeeperRacers() {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/race-number-options');
       setRaceNumberOptions(data);
-    } catch (err) {
+    } catch {
       setRaceNumberOptions([]);
     }
   };
@@ -163,7 +175,7 @@ export default function TimekeeperRacers() {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/categories');
       setCategories(data);
-    } catch (err) {
+    } catch {
       setCategories([]);
     }
   };
@@ -172,11 +184,11 @@ export default function TimekeeperRacers() {
     try {
       setLoading(true);
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${raceId}/start-list`);
-      const sorted = sortEntries(data);
+      const sorted = sortStartListEntries(data);
       setStartList(sorted);
       resetForm(sorted);
       setFilters({ club: 'all', category: 'all', sex: 'all', text: '' });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst závodníky závodu' });
     } finally {
       setLoading(false);
@@ -206,56 +218,23 @@ export default function TimekeeperRacers() {
     setMessage(null);
   };
 
-  const getSexLabel = (sex) => {
-    if (Number(sex) === 1) return 'Muž';
-    if (Number(sex) === 2) return 'Žena';
-    return 'Neznámé';
-  };
+  // Stabilní identita callbacku, aby memoizované řádky nepřekreslovala každá
+  // změna formuláře nahoře. `excludeEntryId` je editovaný záznam - vlastní
+  // číslo si sám sobě konfliktovat nesmí.
+  const validateRaceNumber = useCallback((displayNumber, excludeEntryId = null) => (
+    getRaceNumberValidationError(displayNumber, {
+      options: raceNumberOptions,
+      entries: startList,
+      excludeEntryId,
+    })
+  ), [raceNumberOptions, startList]);
 
-  const findRaceNumberOption = (displayNumber) => {
-    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return null;
-    return raceNumberOptions.find(option => String(option.display_number) === String(displayNumber)) || null;
-  };
-
-  const getRaceNumberValidationError = (displayNumber) => {
-    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return '';
-
-    const option = findRaceNumberOption(displayNumber);
-    if (!option) return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
-
-    const conflict = startList.find(entry =>
-      entry.race_number_display != null &&
-      String(entry.race_number_display) === String(displayNumber)
-    );
-
-    if (conflict) {
-      return `St. číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
-    }
-
-    return '';
-  };
-
-  const resolveCategoryPreview = (year, sex) => {
-    if (!year || !sex) return 'Kategorie se dopočítá při přidání';
-
-    const parsedYear = parseInt(year, 10);
-    const parsedSex = parseInt(sex, 10);
-    if (Number.isNaN(parsedYear) || Number.isNaN(parsedSex)) return 'Kategorie se dopočítá při přidání';
-
-    const match = categories.find(category =>
-      category.min_birth_year <= parsedYear &&
-      category.max_birth_year >= parsedYear &&
-      (category.sex === 0 || category.sex === parsedSex)
-    );
-    if (match) {
-      return match.sex_label === 'Mix' ? match.name : `${match.name} - ${match.sex_label}`;
-    }
-
-    return 'Kategorie se dopočítá při přidání';
-  };
+  const categoryPreview = (year, sex) => (
+    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT)
+  );
 
   // --- Inline editing ---
-  const startEditing = (entry) => {
+  const startEditing = useCallback((entry) => {
     setEditingId(entry.id);
     setEditForm({
       racer_name: entry.racer_name || '',
@@ -266,7 +245,7 @@ export default function TimekeeperRacers() {
       race_number_display: entry.race_number_display || '',
     });
     setEditValidationError('');
-  };
+  }, []);
 
   const cancelEditing = () => {
     setEditingId(null);
@@ -274,33 +253,10 @@ export default function TimekeeperRacers() {
     setEditValidationError('');
   };
 
-  const getEditRaceNumberError = (displayNumber, excludeEntryId) => {
-    if (displayNumber === '' || displayNumber === null || displayNumber === undefined) return '';
-
-    const currentEntry = startList.find(e => e.id === excludeEntryId);
-    const isCurrentNumber = currentEntry && currentEntry.race_number_display != null &&
-      String(currentEntry.race_number_display) === String(displayNumber);
-
-    const option = findRaceNumberOption(displayNumber);
-    if (!option && !isCurrentNumber) {
-      return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
-    }
-
-    const conflict = startList.find(entry =>
-      entry.id !== excludeEntryId &&
-      entry.race_number_display != null &&
-      String(entry.race_number_display) === String(displayNumber)
-    );
-    if (conflict) {
-      return `St. číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
-    }
-    return '';
-  };
-
   const saveEditing = async () => {
     if (!editingId) return;
 
-    const raceNumberError = getEditRaceNumberError(editForm.race_number_display, editingId);
+    const raceNumberError = validateRaceNumber(editForm.race_number_display, editingId);
     if (raceNumberError) {
       setEditValidationError(raceNumberError);
       return;
@@ -319,13 +275,24 @@ export default function TimekeeperRacers() {
         ? parseInt(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
-      setStartList(prev => sortEntries(prev.map(entry => (
-        entry.id === editingId ? result.entry : entry
-      ))));
+
+      if (result?.entry) {
+        setStartList(prev => sortStartListEntries(prev.map(entry => (
+          entry.id === editingId ? result.entry : entry
+        ))));
+        setMessage({ type: 'success', text: 'Závodník upraven' });
+      } else {
+        // Offline: server žádný `entry` nevrátil, změna leží ve frontě. Řádek
+        // proto přepíšeme odeslanými hodnotami, ať rozhodčí vidí, co zapsal.
+        setStartList(prev => sortStartListEntries(prev.map(entry => (
+          entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry
+        ))));
+        setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
+      }
+
       setEditingId(null);
       setEditForm({});
       setEditValidationError('');
-      setMessage({ type: 'success', text: 'Závodník upraven' });
     } catch (err) {
       setMessage({ type: 'danger', text: err.message || 'Nepodařilo se uložit změny' });
     }
@@ -340,7 +307,7 @@ export default function TimekeeperRacers() {
       return;
     }
 
-    const raceNumberError = getRaceNumberValidationError(formData.race_number_display);
+    const raceNumberError = validateRaceNumber(formData.race_number_display);
     if (raceNumberError) {
       setMessage({ type: 'danger', text: raceNumberError });
       return;
@@ -367,7 +334,15 @@ export default function TimekeeperRacers() {
         payload
       );
 
-      const updatedEntries = sortEntries([...startList, result.entry]);
+      // Offline zápis nemá `entry` - kategorii ani startovní číslo přiděluje
+      // server, takže do listiny nic nedopisujeme, jen uklidíme formulář.
+      if (!result?.entry) {
+        resetForm(startList);
+        setMessage({ type: 'info', text: 'Závodník bude přidán po obnovení připojení.' });
+        return;
+      }
+
+      const updatedEntries = sortStartListEntries([...startList, result.entry]);
       setStartList(updatedEntries);
       resetForm(updatedEntries);
       setMessage({ type: 'success', text: result.message });
@@ -408,17 +383,19 @@ export default function TimekeeperRacers() {
   ), [startList, filters]);
 
   const selectedRace = races.find(race => String(race.id) === String(selectedRaceId));
-  const liveRaceNumberError = getRaceNumberValidationError(formData.race_number_display);
-  const selectedRaceNumberOption = findRaceNumberOption(formData.race_number_display);
+  const liveRaceNumberError = useMemo(
+    () => validateRaceNumber(formData.race_number_display),
+    [validateRaceNumber, formData.race_number_display]
+  );
+  const selectedRaceNumberOption = useMemo(
+    () => findRaceNumberOption(raceNumberOptions, formData.race_number_display),
+    [raceNumberOptions, formData.race_number_display]
+  );
   const selectedRaceNumberTheme = getSetColorTheme(selectedRaceNumberOption?.set_color);
-  const liveEditRaceNumberError = editingId
-    ? getEditRaceNumberError(editForm.race_number_display, editingId)
-    : '';
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-  };
+  const liveEditRaceNumberError = useMemo(
+    () => (editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''),
+    [validateRaceNumber, editingId, editForm.race_number_display]
+  );
 
   return (
     <div>
@@ -480,14 +457,7 @@ export default function TimekeeperRacers() {
         <div className="card-body py-2 px-3">
           <div className="row align-items-center g-2">
             <div className="col-md-6">
-              <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
-                <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
-                  {selectedRace
-                    ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
-                    : 'Závod vyberte v Přehledu závodů'}
-                </div>
-              </div>
+              <SelectedRaceBar race={selectedRace} />
             </div>
             <div className="col-md-6 text-md-end">
               <small className="text-muted">
@@ -498,13 +468,7 @@ export default function TimekeeperRacers() {
         </div>
       </div>
 
-      {message && (
-        <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
-          <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
-          {message.text}
-          <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={() => setMessage(null)}></button>
-        </div>
-      )}
+      <TimekeeperMessage message={message} onDismiss={() => setMessage(null)} />
 
       {selectedRaceId && (
         <div className="card border-0 shadow-sm mb-3 timekeeper-racers-panel" style={{ borderRadius: '10px' }}>
@@ -590,7 +554,7 @@ export default function TimekeeperRacers() {
                         padding: '0.45rem 0.7rem',
                       }}
                     >
-                      Kategorie: {resolveCategoryPreview(formData.year, formData.sex)}
+                      Kategorie: {categoryPreview(formData.year, formData.sex)}
                     </span>
                   </div>
 
@@ -620,7 +584,7 @@ export default function TimekeeperRacers() {
                       }}
                     >
                       {submitting ? (
-                        <><span className="spinner-border spinner-border-sm me-1"></span>Přidávám...</>
+                        <><ButtonSpinner />Přidávám...</>
                       ) : (
                         <><span className="bi bi-plus-circle me-1"></span>Přidat</>
                       )}
@@ -708,13 +672,9 @@ export default function TimekeeperRacers() {
             </div>
 
             {loading ? (
-              <div className="text-center py-4">
-                <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
-              </div>
+              <LoadingState variant="timekeeper" />
             ) : filteredEntries.length === 0 ? (
-              <div className="text-center py-4 text-muted">
-                Žádní závodníci neodpovídají aktuálním filtrům.
-              </div>
+              <EmptyState icon="bi-funnel" title="Žádní závodníci neodpovídají aktuálním filtrům." />
             ) : (
               <div className="table-responsive">
                 <table className="table table-sm table-hover align-middle mb-0 timekeeper-racers-table">
@@ -778,7 +738,7 @@ export default function TimekeeperRacers() {
                             </select>
                           </td>
                           <td>
-                            <small className="text-muted">{resolveCategoryPreview(editForm.racer_year, editForm.racer_sex)}</small>
+                            <small className="text-muted">{categoryPreview(editForm.racer_year, editForm.racer_sex)}</small>
                           </td>
                           <td>
                             <input type="text" className="form-control form-control-sm"
@@ -803,30 +763,7 @@ export default function TimekeeperRacers() {
                           </td>
                         </tr>
                       ) : (
-                        <tr key={entry.id}>
-                          <td className="fw-bold">{entry.start_number || '—'}</td>
-                          <td>
-                            <RaceNumberBadge
-                              actualNumber={entry.race_number_actual}
-                              displayNumber={entry.race_number_display}
-                              setColor={entry.set_color}
-                              smallTopMargin={false}
-                            />
-                          </td>
-                          <td>
-                            <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
-                          </td>
-                          <td>{entry.racer_year}</td>
-                          <td>{getSexLabel(entry.racer_sex)}</td>
-                          <td>{entry.category_name || 'Bez kategorie'}</td>
-                          <td className="text-muted">{entry.club_name || 'Bez oddílu'}</td>
-                          <td>
-                            <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
-                              onClick={() => startEditing(entry)} title="Upravit">
-                              <i className="bi bi-pencil"></i>
-                            </button>
-                          </td>
-                        </tr>
+                        <TimekeeperRacerRow key={entry.id} entry={entry} onEdit={startEditing} />
                       )
                     ))}
                   </tbody>
@@ -838,10 +775,7 @@ export default function TimekeeperRacers() {
       )}
 
       {!selectedRaceId && (
-        <div className="text-center py-4">
-          <i className="bi bi-hand-index text-muted" style={{ fontSize: '2rem' }}></i>
-          <p className="text-muted mt-2 small">Vyberte závod</p>
-        </div>
+        <EmptyState icon="bi-hand-index" title="Vyberte závod" />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TimekeeperAPI } from '../../config/api.js';
+import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 
 export default function TimekeeperDashboard() {
   const [races, setRaces] = useState([]);
