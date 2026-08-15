@@ -32,6 +32,9 @@ backend/documents/
 # Database
 db_data/
 *.sql
+# Schéma pro testovací databázi - jen struktura, žádná data. Bez něj
+# nejde postavit testovací databáze (viz backend/app/tests/conftest.py).
+!backend/app/tests/schema.sql
 !db/init_exact.sql
 
 # IDE
