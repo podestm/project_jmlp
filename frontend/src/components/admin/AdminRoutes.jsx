@@ -3,6 +3,7 @@
 // boundary is what stops a public visitor from downloading the admin console.
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../config/auth.jsx';
+import { useBodyClass } from '../../hooks/useBodyClass.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import AdminLogin from './AdminLogin.jsx';
 import AdminRegister from './AdminRegister.jsx';
@@ -30,6 +31,9 @@ const ProtectedRoute = ({ children }) => {
 const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function AdminRoutes() {
+  // Světlé téma administrace pro celou stránku včetně modálních oken.
+  useBodyClass('theme-backoffice');
+
   return (
     <AuthProvider>
       <Routes>

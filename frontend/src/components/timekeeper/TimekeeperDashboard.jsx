@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
+import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 
 export default function TimekeeperDashboard() {
   const [races, setRaces] = useState([]);
@@ -53,7 +54,7 @@ export default function TimekeeperDashboard() {
   if (loading) {
     return (
       <div className="text-center py-4">
-        <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
+        <div className="spinner-border spinner-border-sm" style={{ color: TK_ACCENT }}></div>
         <small className="text-muted ms-2">Načítám závody...</small>
       </div>
     );
@@ -76,7 +77,7 @@ export default function TimekeeperDashboard() {
             <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
               <div className="min-w-0">
                 <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
-                  <span className={`badge ${isPastRace ? 'bg-secondary' : ''}`} style={!isPastRace ? { background: 'linear-gradient(135deg, #e94560, #c23152)' } : undefined}>
+                  <span className={`badge ${isPastRace ? 'bg-secondary' : ''}`} style={!isPastRace ? { background: TK_ACCENT_GRADIENT } : undefined}>
                     {race.race_nr || `#${race.id}`}
                   </span>
                   <span className={`badge ${isPastRace ? 'bg-light text-secondary' : 'bg-success'}`}>
@@ -96,7 +97,7 @@ export default function TimekeeperDashboard() {
                   style={{
                     borderRadius: '8px',
                     border: race.is_live ? 'none' : undefined,
-                    background: race.is_live ? 'linear-gradient(135deg, #c0392b, #e74c3c)' : undefined,
+                    background: race.is_live ? 'linear-gradient(135deg, var(--adm-danger-hover), var(--adm-danger))' : undefined,
                     minWidth: '72px'
                   }}
                   onClick={(e) => toggleLive(race.id, e)}
@@ -111,7 +112,7 @@ export default function TimekeeperDashboard() {
                   style={{
                     borderRadius: '8px',
                     border: isPastRace ? undefined : 'none',
-                    background: isPastRace ? undefined : 'linear-gradient(135deg, #e94560, #c23152)'
+                    background: isPastRace ? undefined : TK_ACCENT_GRADIENT
                   }}
                   onClick={() => selectRace(race.id)}
                 >
@@ -156,7 +157,7 @@ export default function TimekeeperDashboard() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-stopwatch me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-stopwatch me-2" style={{ color: TK_ACCENT }}></i>
             Přehled závodů
           </h5>
           <small className="text-muted">Vyberte závod pro správu startovní listiny a zadávání časů</small>
@@ -226,7 +227,7 @@ export default function TimekeeperDashboard() {
                   {lastSelectedRace && (
                     <button
                       className="btn btn-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                      style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
                       onClick={() => selectRace(lastSelectedRace.id)}
                     >
                       <i className="bi bi-arrow-return-right me-1"></i>Pokračovat

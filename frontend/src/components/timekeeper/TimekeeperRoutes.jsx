@@ -3,6 +3,7 @@
 // public visitor never opens a database or starts a sync timer.
 import { Routes, Route } from 'react-router-dom';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
+import { useBodyClass } from '../../hooks/useBodyClass.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import TimekeeperLogin from './TimekeeperLogin.jsx';
 import TimekeeperLayout from './TimekeeperLayout.jsx';
@@ -29,6 +30,9 @@ const ProtectedTimekeeperRoute = ({ children }) => {
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;
 
 export default function TimekeeperRoutes() {
+  // Stejné světlé téma jako administrace, včetně modálních oken.
+  useBodyClass('theme-backoffice');
+
   return (
     <TimekeeperAuthProvider>
       {/* Wraps <Routes>, so the serial port stays open across screen changes. */}

@@ -9,6 +9,7 @@ import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
+import { TK_ACCENT, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 export default function ResultsView() {
   const [races, setRaces] = useState([]);
@@ -206,7 +207,7 @@ export default function ResultsView() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-trophy me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-trophy me-2" style={{ color: TK_ACCENT }}></i>
             Výsledky závodu
           </h5>
           <small className="text-muted">Výsledky seřazené podle času, výpočet bodů</small>
@@ -247,7 +248,7 @@ export default function ResultsView() {
             </button>
             <button
               className="btn btn-sm text-white"
-              style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+              style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
               onClick={calculatePoints}
               disabled={calculating}
             >
@@ -276,7 +277,7 @@ export default function ResultsView() {
           <div className="row align-items-center g-2">
             <div className="col-md-9">
               <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+                <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
                 <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
                   {selectedRace
                     ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
@@ -287,7 +288,7 @@ export default function ResultsView() {
             {results && (
               <div className="col-md-3 text-end">
                 <small className="text-muted">Závodníků: </small>
-                <span className="fw-bold" style={{ color: '#e94560' }}>{results.total_entries}</span>
+                <span className="fw-bold" style={{ color: TK_ACCENT_TEXT }}>{results.total_entries}</span>
               </div>
             )}
           </div>
@@ -306,7 +307,7 @@ export default function ResultsView() {
       {/* Loading */}
       {loading && (
         <div className="text-center py-4">
-          <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
+          <div className="spinner-border spinner-border-sm" style={{ color: TK_ACCENT }}></div>
         </div>
       )}
 
@@ -322,7 +323,7 @@ export default function ResultsView() {
         <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
           <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
             <small className="fw-bold">
-              <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
+              <i className="bi bi-tag-fill me-1" style={{ color: TK_ACCENT }}></i>
               {selectedCategory.category_name}
               <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{selectedCategory.entries.length}</span>
             </small>

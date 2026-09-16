@@ -5,7 +5,7 @@ import RegistrationFormFields from '../ui/registration/RegistrationFormFields.js
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage, TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 import TimekeeperRacerRow, { getSexLabel } from './TimekeeperRacerRow.jsx';
 import {
   OFFLINE_QUEUED_TEXT,
@@ -439,7 +439,7 @@ export default function TimekeeperRacers() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-people me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-people me-2" style={{ color: TK_ACCENT }}></i>
             Závodníci
           </h5>
           <small className="text-muted">Správa závodníků daného závodu bez zápisu do registrací</small>
@@ -476,7 +476,7 @@ export default function TimekeeperRacers() {
         <div className="card border-0 shadow-sm mb-3 timekeeper-racers-panel" style={{ borderRadius: '10px' }}>
           <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
             <h6 className="fw-bold mb-0">
-              <span className="bi bi-person-plus me-2" style={{ color: '#e94560' }}></span>
+              <span className="bi bi-person-plus me-2" style={{ color: TK_ACCENT }}></span>
               Přidat závodníka do závodu
             </h6>
           </div>
@@ -563,13 +563,8 @@ export default function TimekeeperRacers() {
                   <div className="d-flex gap-2 justify-content-end mt-2">
                     <button
                       type="button"
-                      className="btn btn-sm"
+                      className="btn btn-sm btn-outline-danger"
                       onClick={() => resetForm()}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.2)',
-                        color: '#ef4444',
-                        border: '1px solid #ef4444',
-                      }}
                     >
                       <span className="bi bi-x-circle me-1"></span>
                       Vymazat
@@ -579,7 +574,7 @@ export default function TimekeeperRacers() {
                       className="btn btn-sm"
                       disabled={submitting}
                       style={{
-                        background: 'linear-gradient(135deg, var(--sunset-orange) 0%, #e65a00 100%)',
+                        background: TK_ACCENT_GRADIENT,
                         color: 'white',
                         border: 'none',
                         fontWeight: '500',

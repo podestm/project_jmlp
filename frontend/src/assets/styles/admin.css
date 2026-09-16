@@ -1,336 +1,712 @@
-/* ═══════════════════════════════════════════════════════════
-   ADMIN DESIGN TOKENS — single source of truth
-   Scope: both .admin-section and .admin-layout-content
-   ═══════════════════════════════════════════════════════════ */
-.admin-section,
-.admin-layout-content {
-  /* Backgrounds */
-  --adm-bg:             #f0f2f5;
-  --adm-card-bg:        #ffffff;
-  --adm-card-border:    #dee2e6;
-  --adm-card-header-bg: #f8f9fa;
+/* ═══════════════════════════════════════════════════════════════════════
+   ADMINISTRACE (/admin) A ČASOMĚŘIČ (/timekeeper) - světlé téma
+   ═══════════════════════════════════════════════════════════════════════
 
-  /* Form inputs — borders darker than Bootstrap default #ced4da */
-  --adm-input-bg:           #ffffff;
-  --adm-input-text:         #212529;
-  --adm-input-border:       #9ca3af;
-  --adm-input-border-focus: #3b82f6;
-  --adm-input-placeholder:  #9ca3af;
-  --adm-input-disabled-bg:  #f3f4f6;
-  --adm-input-disabled-text:#6b7280;
+   Zapíná ho třída .theme-backoffice na <body> (useBodyClass v AdminRoutes
+   a TimekeeperRoutes), takže platí pro všechno, co se v obou sekcích
+   vykreslí: stránky, modální okna, výběr z knihovny, rozbalovací seznamy
+   i přihlášení.
+
+   Proč na <body>: styly veřejného webu jsou tmavé, globální a často
+   s !important. Admin je dřív přebíjel jen uvnitř .admin-section a časoměřič
+   uvnitř .timekeeper-section, každý po svém a jen pro vyjmenované prvky.
+   Modální okna, stránky bez obalové třídy a všechno, na co se zapomnělo,
+   pak dostalo tmavé barvy - světlý text na světlém pozadí. Konkrétně text
+   modálního okna: Bootstrap nechává jeho barvu prázdnou, text ji proto
+   zdědí z <body>, a to měl veřejný web bílé.
+
+   Pravidla pro úpravy:
+   - barvy jen z tokenů --adm-* níže, ne natvrdo v komponentách,
+   - text proti svému pozadí aspoň 4.5:1 (WCAG AA), okraje polí a ikony 3:1
+     (u tokenů je uvedený kontrast na bílé),
+   - selektory začínají body.theme-backoffice - jen tak spolehlivě přebijí
+     globální pravidla veřejného webu.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+body.theme-backoffice {
+  /* Plochy */
+  --adm-bg: #f1f5f9;
+  --adm-surface: #ffffff;
+  --adm-surface-alt: #f8fafc;
+  --adm-surface-hover: #eef2f7;
+  --adm-border: #dbe1e8;
+  --adm-input-border: #8b95a5;      /* 3.0:1 - okraj pole musí být vidět */
+  --adm-thead-bg: #1e293b;
 
   /* Text */
-  --adm-text:       #212529;
-  --adm-text-muted: #6c757d;
-  --adm-text-label: #374151;
+  --adm-text: #0f172a;              /* 17.9:1 */
+  --adm-text-label: #334155;        /* 10.4:1 */
+  --adm-text-muted: #475569;        /*  7.6:1, na --adm-bg 6.9:1 */
+  --adm-placeholder: #64748b;       /*  4.8:1 */
 
-  /* Semantic colors — all meet WCAG AA (≥4.5:1) on white */
-  --adm-primary: #2563eb;
-  --adm-success: #16a34a;
-  --adm-warning: #92400e;
-  --adm-danger:  #dc2626;
-  --adm-info:    #0e7490;
+  /* Barvy akcí a stavů
+     plná barva nese bílý text (u warning tmavý), -line je text a okraj
+     obrysového tlačítka na bílé, -subtle/-emphasis světlé pozadí a text
+     upozornění */
+  --adm-primary: #2563eb;           /*  5.2:1 */
+  --adm-primary-hover: #1d4ed8;
+  --adm-primary-subtle: #dbeafe;
+  --adm-primary-border: #93c5fd;
+  --adm-primary-emphasis: #1e3a8a;
+
+  --adm-secondary: #475569;         /*  7.6:1 */
+  --adm-secondary-hover: #334155;
+  --adm-secondary-subtle: #e2e8f0;
+  --adm-secondary-border: #cbd5e1;
+  --adm-secondary-emphasis: #1e293b;
+
+  --adm-success: #15803d;           /*  5.0:1 */
+  --adm-success-hover: #166534;
+  --adm-success-subtle: #dcfce7;
+  --adm-success-border: #86efac;
+  --adm-success-emphasis: #14532d;
+
+  --adm-danger: #dc2626;            /*  4.8:1 */
+  --adm-danger-hover: #b91c1c;
+  --adm-danger-line: #b91c1c;       /* text: 6.5:1, na --adm-bg 5.9:1 */
+  --adm-danger-subtle: #fee2e2;
+  --adm-danger-border: #fca5a5;
+  --adm-danger-emphasis: #7f1d1d;
+
+  --adm-warning: #f59e0b;           /* pozadí s tmavým textem 6.8:1 */
+  --adm-warning-hover: #d97706;
+  --adm-warning-line: #92400e;      /* text na bílé 7.1:1 */
+  --adm-warning-subtle: #fef3c7;
+  --adm-warning-border: #fcd34d;
+  --adm-warning-emphasis: #78350f;
+
+  --adm-info: #0e7490;              /*  5.4:1 */
+  --adm-info-hover: #155e75;
+  --adm-info-subtle: #cffafe;
+  --adm-info-border: #67e8f9;
+  --adm-info-emphasis: #164e63;
+
+  /* Časoměřič: akcent (TimekeeperChrome.jsx) a barvy sad startovních čísel
+     (utils/raceNumbers.js) - všechny nesou bílý text */
+  --tk-accent: #e94560;             /* ikony a okraje 3.8:1 */
+  --tk-accent-text: #be123c;        /*  6.3:1 */
+  --tk-accent-fill: #be123c;
+  --tk-accent-gradient: linear-gradient(135deg, #c8284b 0%, #9f1239 100%);
+  --tk-set-rose: #be123c;           /*  6.3:1 */
+  --tk-set-blue: #2563eb;           /*  5.2:1 */
+  --tk-set-emerald: #047857;        /*  5.5:1 */
+  --tk-set-amber: #b45309;          /*  5.0:1 */
+  --tk-set-violet: #7c3aed;         /*  5.7:1 */
+
+  --adm-focus-ring: 0 0 0 0.2rem rgba(37, 99, 235, 0.3);
+  --adm-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+
+  /* Tokeny veřejného webu přepnuté na světlé. Používají je globální styly
+     (nadpisy, odkazy, obrys fokusu) i komponenty v inline stylech. */
+  --text-primary: var(--adm-text);
+  --text-secondary: var(--adm-text-label);
+  --text-muted: var(--adm-text-muted);
+  --gray-900: #0f172a;
+  --gray-800: #1e293b;
+  --gray-700: #334155;
+  --gray-600: #475569;
+  --gray-500: #64748b;
+  --gray-400: #94a3b8;
+  --gray-300: #cbd5e1;
+  --gray-200: #e2e8f0;
+  --gray-100: #f1f5f9;
+  --primary-blue: var(--adm-primary);
+  --primary-blue-light: #3b82f6;
+  --primary-blue-dark: var(--adm-primary-hover);
+  --glass-bg: var(--adm-surface);
+  --glass-border: var(--adm-border);
+  --glass-shadow: rgba(15, 23, 42, 0.08);
+  --bg-primary: var(--adm-surface);
+  --bg-secondary: var(--adm-surface-alt);
+  --bg-tertiary: var(--adm-surface-hover);
+  --border-color: var(--adm-border);
+  --border-color-dark: var(--adm-input-border);
+
+  /* Bootstrap - jeho komponenty berou barvy z těchto proměnných */
+  --bs-body-color: var(--adm-text);
+  --bs-body-color-rgb: 15, 23, 42;
+  --bs-body-bg: var(--adm-surface);
+  --bs-body-bg-rgb: 255, 255, 255;
+  --bs-emphasis-color: #000;
+  --bs-emphasis-color-rgb: 0, 0, 0;
+  --bs-secondary-color: var(--adm-text-muted);
+  --bs-secondary-color-rgb: 71, 85, 105;
+  --bs-secondary-bg: var(--adm-secondary-subtle);
+  --bs-tertiary-color: var(--adm-text-muted);
+  --bs-tertiary-bg: var(--adm-surface-alt);
+  --bs-heading-color: inherit;
+  --bs-link-color: var(--adm-primary);
+  --bs-link-color-rgb: 37, 99, 235;
+  --bs-link-hover-color: var(--adm-primary-hover);
+  --bs-link-hover-color-rgb: 29, 78, 216;
+  --bs-border-color: var(--adm-border);
+  --bs-code-color: #be185d;
+  --bs-primary: var(--adm-primary);
+  --bs-primary-rgb: 37, 99, 235;
+  --bs-secondary: var(--adm-secondary);
+  --bs-secondary-rgb: 71, 85, 105;
+  --bs-success: var(--adm-success);
+  --bs-success-rgb: 21, 128, 61;
+  --bs-info: var(--adm-info);
+  --bs-info-rgb: 14, 116, 144;
+  --bs-warning: var(--adm-warning);
+  --bs-warning-rgb: 245, 158, 11;
+  --bs-danger: var(--adm-danger);
+  --bs-danger-rgb: 220, 38, 38;
+  --bs-light: var(--adm-surface-alt);
+  --bs-light-rgb: 248, 250, 252;
+  --bs-dark: #1e293b;
+  --bs-dark-rgb: 30, 41, 59;
+  --bs-primary-bg-subtle: var(--adm-primary-subtle);
+  --bs-primary-border-subtle: var(--adm-primary-border);
+  --bs-primary-text-emphasis: var(--adm-primary-emphasis);
+  --bs-secondary-bg-subtle: var(--adm-secondary-subtle);
+  --bs-secondary-border-subtle: var(--adm-secondary-border);
+  --bs-secondary-text-emphasis: var(--adm-secondary-emphasis);
+  --bs-success-bg-subtle: var(--adm-success-subtle);
+  --bs-success-border-subtle: var(--adm-success-border);
+  --bs-success-text-emphasis: var(--adm-success-emphasis);
+  --bs-danger-bg-subtle: var(--adm-danger-subtle);
+  --bs-danger-border-subtle: var(--adm-danger-border);
+  --bs-danger-text-emphasis: var(--adm-danger-emphasis);
+  --bs-warning-bg-subtle: var(--adm-warning-subtle);
+  --bs-warning-border-subtle: var(--adm-warning-border);
+  --bs-warning-text-emphasis: var(--adm-warning-emphasis);
+  --bs-info-bg-subtle: var(--adm-info-subtle);
+  --bs-info-border-subtle: var(--adm-info-border);
+  --bs-info-text-emphasis: var(--adm-info-emphasis);
+  --bs-light-bg-subtle: var(--adm-surface-alt);
+  --bs-light-border-subtle: var(--adm-border);
+  --bs-light-text-emphasis: var(--adm-text-label);
+  --bs-dark-bg-subtle: var(--adm-secondary-border);
+  --bs-dark-border-subtle: #94a3b8;
+  --bs-dark-text-emphasis: var(--adm-text);
+  --bs-form-valid-color: var(--adm-success);
+  --bs-form-valid-border-color: var(--adm-success);
+  --bs-form-invalid-color: var(--adm-danger);
+  --bs-form-invalid-border-color: var(--adm-danger);
+
+  background: var(--adm-bg);
+  color: var(--adm-text);
 }
 
-/* Admin Section Light Mode Styles */
-/* Keep admin interface separate from public dark mode theme */
+/* ── Text ────────────────────────────────────────────────────────────── */
 
-/* Override dark mode body styles for admin */
-.admin-section {
+/* Nadpisy a titulky dědí barvu plochy, na které jsou. Na světlé ploše tak
+   vyjdou tmavé, v tmavém menu nebo v barevné kartě bílé. */
+body.theme-backoffice :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, .card-title, .modal-title) {
+  color: inherit;
+}
+
+/* Titulky stránek mají všude stejnou velikost, ať je v kódu h1, nebo h2 */
+body.theme-backoffice .admin-layout-content :is(h1, h2) {
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+
+body.theme-backoffice .form-label,
+body.theme-backoffice .form-check-label {
+  color: var(--adm-text-label);
+}
+
+body.theme-backoffice .text-white .form-label,
+body.theme-backoffice .text-white .form-check-label {
+  color: inherit;
+}
+
+body.theme-backoffice .form-text {
+  color: var(--adm-text-muted);
+}
+
+body.theme-backoffice :is(.text-muted, .text-body-secondary) { color: var(--adm-text-muted) !important; }
+body.theme-backoffice :is(.text-dark, .text-body, .text-black, .text-body-emphasis) { color: var(--adm-text) !important; }
+body.theme-backoffice .text-white { color: #fff !important; }
+body.theme-backoffice .text-primary { color: var(--adm-primary) !important; }
+body.theme-backoffice .text-secondary { color: var(--adm-text-muted) !important; }
+body.theme-backoffice .text-success { color: var(--adm-success) !important; }
+body.theme-backoffice .text-danger { color: var(--adm-danger-line) !important; }
+body.theme-backoffice .text-warning { color: var(--adm-warning-line) !important; }
+body.theme-backoffice .text-info { color: var(--adm-info) !important; }
+body.theme-backoffice .text-primary-emphasis { color: var(--adm-primary-emphasis) !important; }
+body.theme-backoffice .text-secondary-emphasis { color: var(--adm-secondary-emphasis) !important; }
+body.theme-backoffice .text-success-emphasis { color: var(--adm-success-emphasis) !important; }
+body.theme-backoffice .text-danger-emphasis { color: var(--adm-danger-emphasis) !important; }
+body.theme-backoffice .text-warning-emphasis { color: var(--adm-warning-emphasis) !important; }
+body.theme-backoffice .text-info-emphasis { color: var(--adm-info-emphasis) !important; }
+
+/* ── Pozadí a okraje ─────────────────────────────────────────────────── */
+
+/* Přes rgb proměnné, aby dál fungovaly třídy bg-opacity-* */
+body.theme-backoffice .bg-primary { background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-secondary { background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-success { background-color: rgba(var(--bs-success-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-danger { background-color: rgba(var(--bs-danger-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-warning { background-color: rgba(var(--bs-warning-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-info { background-color: rgba(var(--bs-info-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-light { background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-white { background-color: rgba(255, 255, 255, var(--bs-bg-opacity, 1)) !important; }
+body.theme-backoffice .bg-primary-subtle { background-color: var(--adm-primary-subtle) !important; }
+body.theme-backoffice .bg-secondary-subtle { background-color: var(--adm-secondary-subtle) !important; }
+body.theme-backoffice .bg-success-subtle { background-color: var(--adm-success-subtle) !important; }
+body.theme-backoffice .bg-danger-subtle { background-color: var(--adm-danger-subtle) !important; }
+body.theme-backoffice .bg-warning-subtle { background-color: var(--adm-warning-subtle) !important; }
+body.theme-backoffice .bg-info-subtle { background-color: var(--adm-info-subtle) !important; }
+
+body.theme-backoffice .border-primary { border-color: var(--adm-primary) !important; }
+body.theme-backoffice .border-secondary { border-color: var(--adm-secondary-border) !important; }
+body.theme-backoffice .border-success { border-color: var(--adm-success) !important; }
+body.theme-backoffice .border-danger { border-color: var(--adm-danger) !important; }
+body.theme-backoffice .border-warning { border-color: var(--adm-warning) !important; }
+body.theme-backoffice .border-info { border-color: var(--adm-info) !important; }
+
+/* ── Rozložení ───────────────────────────────────────────────────────── */
+
+body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) {
   background: var(--adm-bg) !important;
-  min-height: 100vh;
-  padding: 2rem 0;
+  color: var(--adm-text);
 }
 
-/* Reset all dark mode card styles */
-.admin-section .card,
-.admin-section .card-body,
-.admin-section .card-header {
-  background: var(--adm-card-bg) !important;
-  border: 1px solid var(--adm-card-border) !important;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+/* Stránky si přidávají vlastní container-fluid, takže obsah dřív začínal na
+   každé jinde. Okraj stránky dává jen rozložení adminu. */
+body.theme-backoffice .admin-layout-content > .container-fluid > .container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Tmavé menu - text v něm zůstává bílý */
+body.theme-backoffice :is(.admin-sidebar, .timekeeper-sidebar) .nav-link { color: #fff !important; }
+body.theme-backoffice .admin-sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.08); }
+body.theme-backoffice .admin-sidebar .nav-pills { --bs-nav-pills-link-active-bg: var(--adm-primary); }
+body.theme-backoffice .admin-sidebar .border-secondary { border-color: rgba(255, 255, 255, 0.15) !important; }
+/* Bootstrapových 50 % bílé má na tmavém menu jen 4.3:1 */
+body.theme-backoffice :is(.admin-sidebar, .timekeeper-sidebar) .text-white-50 { color: rgba(255, 255, 255, 0.72) !important; }
+
+/* Odkazy v obsahu - veřejný web jim vnucuje bílou barvu */
+body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) .nav-link,
+body.theme-backoffice .modal .nav-link {
+  color: var(--adm-primary) !important;
+}
+
+body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) .nav-link.active,
+body.theme-backoffice .modal .nav-link.active {
   color: var(--adm-text) !important;
 }
 
-.admin-section .card-header {
-  background: var(--adm-card-header-bg) !important;
-  border-bottom: 1px solid var(--adm-card-border) !important;
-}
-
-.admin-section .table {
-  background: white !important;
-  color: #212529 !important;
-}
-
-.admin-section .table thead {
-  background: #343a40 !important;
-  color: white !important;
-}
-
-.admin-section .table-dark {
-  background: #343a40 !important;
-  color: white !important;
-}
-
-.admin-section .table-dark th {
-  color: white !important;
-}
-
-.admin-section .table thead th {
-  color: white !important;
-  background: #343a40 !important;
-}
-
-.admin-section .table tbody {
-  background: white !important;
-}
-
-.admin-section .table tbody tr {
-  background: white !important;
-}
-
-.admin-section .table tbody tr:hover {
-  background: #f8f9fa !important;
-}
-
-.admin-section .table tbody td {
-  color: #212529 !important;
-  background: transparent !important;
-}
-
-.admin-section .form-control,
-.admin-section .form-select,
-.admin-layout-content .form-control,
-.admin-layout-content .form-select {
-  background-color: var(--adm-input-bg) !important;
-  border: 1px solid var(--adm-input-border) !important;
-  color: var(--adm-input-text) !important;
-}
-
-.admin-section .form-control::placeholder,
-.admin-section .form-select::placeholder,
-.admin-layout-content .form-control::placeholder,
-.admin-layout-content .form-select::placeholder {
-  color: var(--adm-input-placeholder) !important;
-  opacity: 1 !important;
-}
-
-.admin-section .form-control:focus,
-.admin-section .form-select:focus,
-.admin-layout-content .form-control:focus,
-.admin-layout-content .form-select:focus {
-  background-color: var(--adm-input-bg) !important;
-  border-color: var(--adm-input-border-focus) !important;
-  color: var(--adm-input-text) !important;
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2) !important;
-}
-
-.admin-section .form-control:disabled,
-.admin-section .form-control[readonly],
-.admin-section .form-select:disabled,
-.admin-layout-content .form-control:disabled,
-.admin-layout-content .form-control[readonly],
-.admin-layout-content .form-select:disabled {
-  background-color: var(--adm-input-disabled-bg) !important;
-  color: var(--adm-input-disabled-text) !important;
-  border-color: var(--adm-card-border) !important;
-  opacity: 1 !important;
-  cursor: not-allowed;
-}
-
-.admin-section .modal-content {
-  background: var(--adm-card-bg) !important;
-  color: var(--adm-text) !important;
-}
-
-.admin-section .modal-content .form-control,
-.admin-section .modal-content .form-select {
-  background-color: var(--adm-input-bg) !important;
-  border-color: var(--adm-input-border) !important;
-  color: var(--adm-input-text) !important;
-}
-
-.admin-section .modal-header,
-.admin-section .modal-footer {
-  background: var(--adm-card-header-bg) !important;
-  border-color: var(--adm-card-border) !important;
-}
-
-.admin-section h1, 
-.admin-section h2, 
-.admin-section h3,
-.admin-section h4,
-.admin-section h5,
-.admin-section h6,
-.admin-section p,
-.admin-section label,
-.admin-section td,
-.admin-section th {
-  color: #212529 !important;
-}
-
-.admin-section .text-muted {
-  color: var(--adm-text-muted) !important;
-}
-
-/* Barva textu v odznacích.
- *
- * Dřív tu stálo plošné `.badge { color: white !important }`. To je past:
- * !important ve stylopisu přebije i inline style, takže bílý text dostal
- * i odznak se světlým pozadím (třídy text-bg-*, bg-white) nebo s vlastní
- * barvou zadanou inline (medailové pozice) - a zmizel. Bílá na #f8f9fa má
- * kontrast 1.05:1, tedy nečitelno.
- *
- * Proto se bílá vnucuje jen tam, kde je pozadí prokazatelně tmavé, a světlé
- * varianty mají naopak vynucený tmavý text. Odznak s vlastní inline barvou si
- * ji díky tomu uhájí. */
-.admin-section .badge.bg-primary,
-.admin-section .badge.bg-secondary,
-.admin-section .badge.bg-success,
-.admin-section .badge.bg-danger,
-.admin-section .badge.bg-dark,
-.admin-section .badge.text-bg-primary,
-.admin-section .badge.text-bg-secondary,
-.admin-section .badge.text-bg-success,
-.admin-section .badge.text-bg-danger,
-.admin-section .badge.text-bg-dark {
+body.theme-backoffice .nav-pills .nav-link.active {
   color: #fff !important;
 }
 
-.admin-section .badge.bg-warning,
-.admin-section .badge.text-bg-warning,
-.admin-section .badge.bg-info,
-.admin-section .badge.text-bg-info {
-  color: #000 !important;
+/* ── Karty ───────────────────────────────────────────────────────────── */
+
+body.theme-backoffice .card {
+  --bs-card-color: var(--adm-text);
+  --bs-card-bg: var(--adm-surface);
+  --bs-card-border-color: var(--adm-border);
+  --bs-card-cap-bg: var(--adm-surface-alt);
+  --bs-card-cap-color: var(--adm-text);
+  background: var(--adm-surface) !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: var(--adm-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--adm-text);
 }
 
-.admin-section .badge.bg-light,
-.admin-section .badge.text-bg-light,
-.admin-section .badge.bg-white,
-.admin-section .badge.text-bg-white {
-  color: #212529 !important;
+/* Karty se na veřejném webu při najetí zvedají. V adminu ne - tabulky by
+   poskakovaly a transform navíc rozbíjí modální okna vykreslená v kartě. */
+body.theme-backoffice .card:hover {
+  transform: none;
+  box-shadow: var(--adm-shadow) !important;
 }
 
-/* Remove forced background from outline buttons */
-.admin-section .btn-outline-primary,
-.admin-section .btn-outline-secondary,
-.admin-section .btn-outline-danger,
-.admin-section .btn-outline-success,
-.admin-section .btn-outline-info,
-.admin-section .btn-outline-warning {
-  background: transparent !important;
+body.theme-backoffice .card.border-0 { border: 0 !important; }
+body.theme-backoffice .card.border-primary { border-color: var(--adm-primary) !important; }
+body.theme-backoffice .card.border-success { border-color: var(--adm-success) !important; }
+body.theme-backoffice .card.border-danger { border-color: var(--adm-danger) !important; }
+body.theme-backoffice .card.border-warning { border-color: var(--adm-warning) !important; }
+body.theme-backoffice .card.border-info { border-color: var(--adm-info) !important; }
+
+body.theme-backoffice .card-body { color: inherit; }
+
+body.theme-backoffice .card-header:not([class*="bg-"]),
+body.theme-backoffice .card-footer:not([class*="bg-"]) {
+  background: var(--adm-surface-alt) !important;
+  color: var(--adm-text) !important;
 }
 
-/* Icon visibility fixes */
-.admin-section .bi,
-.admin-section i {
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  font-style: normal !important;
-  font-weight: normal !important;
-  font-variant: normal !important;
-  text-transform: none !important;
-  line-height: 1 !important;
-  vertical-align: -0.125em !important;
+body.theme-backoffice .card-header,
+body.theme-backoffice .card-footer {
+  border-color: var(--adm-border) !important;
 }
 
-.admin-section .bi::before,
-.admin-section i.bi::before {
-  display: inline-block !important;
-  font-family: "bootstrap-icons" !important;
-  font-style: normal !important;
-  font-weight: normal !important;
-  font-variant: normal !important;
-  text-transform: none !important;
-  line-height: 1 !important;
-  vertical-align: -0.125em !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
+body.theme-backoffice .card-header.bg-transparent { background: transparent !important; color: var(--adm-text) !important; }
+body.theme-backoffice .card-header.bg-primary { background: var(--adm-primary) !important; color: #fff !important; }
+body.theme-backoffice .card-header.bg-success { background: var(--adm-success) !important; color: #fff !important; }
+body.theme-backoffice .card-header.bg-danger { background: var(--adm-danger) !important; color: #fff !important; }
+body.theme-backoffice .card-header.bg-info { background: var(--adm-info) !important; color: #fff !important; }
+body.theme-backoffice .card-header.bg-warning { background: var(--adm-warning) !important; color: var(--adm-text) !important; }
+body.theme-backoffice .card-header.bg-light { background: var(--adm-surface-alt) !important; color: var(--adm-text) !important; }
+
+/* ── Tlačítka ────────────────────────────────────────────────────────────
+   Bootstrap kreslí tlačítka z proměnných --bs-btn-*. Veřejný web mu je
+   u barevných variant přepisuje s !important (i s vyšší specifičností
+   .btn-primary:not(...)), proto tu :is(varianty).btn - jinak by pravidla
+   prohrála. Tlačítko bez varianty si barvy nastavuje samo (např. Odhlásit se
+   v tmavém menu časoměřiče) a nechává se být. */
+
+body.theme-backoffice :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light, .btn-link).btn {
+  color: var(--bs-btn-color) !important;
+  background-color: var(--bs-btn-bg) !important;
+  background-image: none !important;
+  border: var(--bs-btn-border-width) solid var(--bs-btn-border-color) !important;
 }
 
-.admin-section .btn-outline-primary {
-  color: #0d6efd;
+body.theme-backoffice :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light, .btn-link).btn:is(:hover, :focus-visible) {
+  color: var(--bs-btn-hover-color) !important;
+  background-color: var(--bs-btn-hover-bg) !important;
+  border-color: var(--bs-btn-hover-border-color) !important;
 }
 
-.admin-section .btn-outline-primary .bi,
-.admin-section .btn-outline-primary i {
-  color: #0d6efd !important;
+/* Kdo ovládá klávesnicí, musí vidět, kde je - i na obrazovkách s mazáním */
+body.theme-backoffice .btn.btn:focus-visible,
+body.theme-backoffice .form-check-input:focus-visible {
+  box-shadow: var(--adm-focus-ring);
+  outline: 2px solid var(--adm-primary);
+  outline-offset: 2px;
 }
 
-.admin-section .btn-outline-success {
-  color: #198754;
+body.theme-backoffice :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light, .btn-link).btn:is(:active, .active, .show),
+body.theme-backoffice .btn-check:checked + :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light).btn {
+  color: var(--bs-btn-active-color) !important;
+  background-color: var(--bs-btn-active-bg) !important;
+  border-color: var(--bs-btn-active-border-color) !important;
 }
 
-.admin-section .btn-outline-success .bi,
-.admin-section .btn-outline-success i {
-  color: #198754 !important;
+body.theme-backoffice :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light, .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light, .btn-link).btn:is(:disabled, .disabled) {
+  color: var(--bs-btn-disabled-color) !important;
+  background-color: var(--bs-btn-disabled-bg) !important;
+  border-color: var(--bs-btn-disabled-border-color) !important;
+  opacity: 0.6;
 }
 
-.admin-section .btn-outline-danger {
-  color: #dc3545;
+body.theme-backoffice .btn-primary { --adm-btn: var(--adm-primary); --adm-btn-hover: var(--adm-primary-hover); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-secondary { --adm-btn: var(--adm-secondary); --adm-btn-hover: var(--adm-secondary-hover); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-success { --adm-btn: var(--adm-success); --adm-btn-hover: var(--adm-success-hover); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-danger { --adm-btn: var(--adm-danger); --adm-btn-hover: var(--adm-danger-hover); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-info { --adm-btn: var(--adm-info); --adm-btn-hover: var(--adm-info-hover); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-warning { --adm-btn: var(--adm-warning); --adm-btn-hover: var(--adm-warning-hover); --adm-btn-text: var(--adm-text); }
+body.theme-backoffice .btn-dark { --adm-btn: #1e293b; --adm-btn-hover: #0f172a; --adm-btn-text: #fff; }
+body.theme-backoffice .btn-light { --adm-btn: #f1f5f9; --adm-btn-hover: #e2e8f0; --adm-btn-text: var(--adm-text); }
+
+body.theme-backoffice :is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-dark, .btn-light) {
+  --bs-btn-color: var(--adm-btn-text) !important;
+  --bs-btn-bg: var(--adm-btn) !important;
+  --bs-btn-border-color: var(--adm-btn) !important;
+  --bs-btn-hover-color: var(--adm-btn-text) !important;
+  --bs-btn-hover-bg: var(--adm-btn-hover) !important;
+  --bs-btn-hover-border-color: var(--adm-btn-hover) !important;
+  --bs-btn-active-color: var(--adm-btn-text) !important;
+  --bs-btn-active-bg: var(--adm-btn-hover) !important;
+  --bs-btn-active-border-color: var(--adm-btn-hover) !important;
+  --bs-btn-disabled-color: var(--adm-btn-text) !important;
+  --bs-btn-disabled-bg: var(--adm-btn) !important;
+  --bs-btn-disabled-border-color: var(--adm-btn) !important;
 }
 
-.admin-section .btn-outline-danger .bi,
-.admin-section .btn-outline-danger i {
-  color: #dc3545 !important;
+body.theme-backoffice .btn-light { --bs-btn-border-color: var(--adm-secondary-border) !important; }
+
+body.theme-backoffice .btn-outline-primary { --adm-btn: var(--adm-primary); --adm-btn-line: var(--adm-primary); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-outline-secondary { --adm-btn: var(--adm-secondary); --adm-btn-line: var(--adm-secondary); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-outline-success { --adm-btn: var(--adm-success); --adm-btn-line: var(--adm-success); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-outline-danger { --adm-btn: var(--adm-danger); --adm-btn-line: var(--adm-danger-line); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-outline-info { --adm-btn: var(--adm-info); --adm-btn-line: var(--adm-info); --adm-btn-text: #fff; }
+body.theme-backoffice .btn-outline-warning { --adm-btn: var(--adm-warning); --adm-btn-line: var(--adm-warning-line); --adm-btn-text: var(--adm-text); }
+body.theme-backoffice .btn-outline-dark { --adm-btn: #1e293b; --adm-btn-line: #1e293b; --adm-btn-text: #fff; }
+/* Jen na tmavém podkladu (menu, barevná karta) */
+body.theme-backoffice .btn-outline-light { --adm-btn: #fff; --adm-btn-line: #fff; --adm-btn-text: var(--adm-text); }
+
+body.theme-backoffice :is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger, .btn-outline-info, .btn-outline-warning, .btn-outline-dark, .btn-outline-light) {
+  --bs-btn-color: var(--adm-btn-line) !important;
+  --bs-btn-bg: transparent !important;
+  --bs-btn-border-color: var(--adm-btn-line) !important;
+  --bs-btn-hover-color: var(--adm-btn-text) !important;
+  --bs-btn-hover-bg: var(--adm-btn) !important;
+  --bs-btn-hover-border-color: var(--adm-btn) !important;
+  --bs-btn-active-color: var(--adm-btn-text) !important;
+  --bs-btn-active-bg: var(--adm-btn) !important;
+  --bs-btn-active-border-color: var(--adm-btn) !important;
+  --bs-btn-disabled-color: var(--adm-btn-line) !important;
+  --bs-btn-disabled-bg: transparent !important;
+  --bs-btn-disabled-border-color: var(--adm-btn-line) !important;
 }
 
-.admin-section .btn-outline-info {
-  color: var(--adm-info);
-  --bs-btn-color: var(--adm-info);
-  --bs-btn-border-color: var(--adm-info);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: var(--adm-info);
-  --bs-btn-hover-border-color: var(--adm-info);
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: var(--adm-info);
+body.theme-backoffice .btn-link {
+  --bs-btn-color: var(--adm-primary) !important;
+  --bs-btn-hover-color: var(--adm-primary-hover) !important;
+  --bs-btn-active-color: var(--adm-primary-hover) !important;
+  --bs-btn-disabled-color: var(--adm-text-muted) !important;
+  --bs-btn-bg: transparent !important;
+  --bs-btn-hover-bg: transparent !important;
+  --bs-btn-active-bg: transparent !important;
+  --bs-btn-disabled-bg: transparent !important;
+  --bs-btn-border-color: transparent !important;
+  --bs-btn-hover-border-color: transparent !important;
+  --bs-btn-active-border-color: transparent !important;
+  --bs-btn-disabled-border-color: transparent !important;
 }
 
-.admin-section .btn-outline-info .bi,
-.admin-section .btn-outline-info i {
-  color: inherit !important;
+/* Ikony v tlačítku mají barvu textu tlačítka (i při najetí myší) */
+body.theme-backoffice .btn .bi { color: inherit !important; }
+
+/* ── Formuláře ───────────────────────────────────────────────────────── */
+
+body.theme-backoffice :is(.form-control, .form-select) {
+  background-color: var(--adm-surface) !important;
+  color: var(--adm-text) !important;
+  border: 1px solid var(--adm-input-border) !important;
 }
 
-.admin-section .btn-outline-warning {
-  color: var(--adm-warning);
-  --bs-btn-color: var(--adm-warning);
-  --bs-btn-border-color: var(--adm-warning);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: var(--adm-warning);
-  --bs-btn-hover-border-color: var(--adm-warning);
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: var(--adm-warning);
+/* Stejná výška a zaoblení textových polí a výběrů. Veřejný web dává
+   .form-control větší odsazení i zaoblení než má Bootstrapový .form-select,
+   takže pole vedle sebe neseděla. */
+body.theme-backoffice .form-control:not(textarea) { padding: 0.375rem 0.75rem; line-height: 1.5; }
+body.theme-backoffice .form-control-sm:not(textarea) { padding: 0.25rem 0.5rem; }
+body.theme-backoffice .form-control-lg:not(textarea) { padding: 0.5rem 1rem; }
+body.theme-backoffice .form-select { border-radius: var(--border-radius); }
+
+body.theme-backoffice :is(.form-control, .form-select)::placeholder {
+  color: var(--adm-placeholder) !important;
+  opacity: 1;
 }
 
-.admin-section .btn-outline-warning .bi,
-.admin-section .btn-outline-warning i {
-  color: inherit !important;
+body.theme-backoffice :is(.form-control, .form-select):focus {
+  border-color: var(--adm-primary) !important;
+  box-shadow: var(--adm-focus-ring) !important;
+  outline: none;
 }
 
-.admin-section .btn-outline-secondary {
-  color: #6c757d;
+body.theme-backoffice :is(.form-control, .form-select):is(:disabled, [readonly]) {
+  background-color: var(--adm-bg) !important;
+  color: var(--adm-text-muted) !important;
+  border-color: var(--adm-border) !important;
 }
 
-.admin-section .btn-outline-secondary .bi,
-.admin-section .btn-outline-secondary i {
-  color: #6c757d !important;
+body.theme-backoffice :is(.form-control, .form-select):is(:disabled, [readonly])::placeholder {
+  color: var(--adm-text-muted) !important;
 }
 
-/* Autocomplete suggestions */
-.admin-section .hover-bg-light:hover {
-  background-color: #f8f9fa !important;
+body.theme-backoffice .form-control.is-invalid,
+body.theme-backoffice .form-select.is-invalid { border-color: var(--adm-danger) !important; }
+body.theme-backoffice .form-control.is-valid,
+body.theme-backoffice .form-select.is-valid { border-color: var(--adm-success) !important; }
+
+body.theme-backoffice .form-control-plaintext { color: var(--adm-text); }
+
+body.theme-backoffice .form-check-input {
+  --bs-form-check-bg: var(--adm-surface);
+  border-color: var(--adm-input-border);
 }
 
-.admin-section .cursor-pointer {
-  cursor: pointer !important;
+body.theme-backoffice .form-check-input:checked {
+  background-color: var(--adm-primary);
+  border-color: var(--adm-primary);
 }
 
-/* ========== Dashboard Styles ========== */
+body.theme-backoffice .form-switch .form-check-input:not(:checked) {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2364748b'/%3e%3c/svg%3e");
+}
 
-/* Icon boxes for stat cards */
+body.theme-backoffice .input-group-text {
+  background-color: var(--adm-surface-alt);
+  border-color: var(--adm-input-border);
+  color: var(--adm-text-label);
+}
+
+/* ── Tabulky ─────────────────────────────────────────────────────────── */
+
+body.theme-backoffice .table {
+  --bs-table-color: var(--adm-text);
+  --bs-table-bg: var(--adm-surface);
+  --bs-table-border-color: var(--adm-border);
+  --bs-table-striped-color: var(--adm-text);
+  --bs-table-striped-bg: var(--adm-surface-alt);
+  --bs-table-hover-color: var(--adm-text);
+  --bs-table-hover-bg: var(--adm-surface-hover);
+  --bs-table-active-color: var(--adm-text);
+  --bs-table-active-bg: var(--adm-secondary-subtle);
+  color: var(--adm-text);
+  background-color: var(--adm-surface);
+}
+
+/* Záhlaví všech tabulek je stejné - tmavé s bílým textem */
+body.theme-backoffice .table > thead > tr > :is(th, td) {
+  --bs-table-color: #fff;
+  --bs-table-bg: var(--adm-thead-bg);
+  background-color: var(--adm-thead-bg) !important;
+  color: #fff !important;
+  border-color: var(--adm-thead-bg) !important;
+}
+
+body.theme-backoffice .table > tbody > tr > :is(th, td) {
+  border-color: var(--adm-border);
+}
+
+/* Veřejný web podbarvuje řádek pod myší oranžově */
+body.theme-backoffice .table-hover tbody tr:hover { background-color: transparent !important; }
+
+body.theme-backoffice .table-light,
+body.theme-backoffice .table-light > :is(th, td),
+body.theme-backoffice tr.table-light > :is(th, td) {
+  --bs-table-color: var(--adm-text) !important;
+  --bs-table-bg: var(--adm-surface-alt) !important;
+  --bs-table-hover-color: var(--adm-text) !important;
+  --bs-table-hover-bg: var(--adm-surface-hover) !important;
+  --bs-table-striped-bg: var(--adm-surface-alt) !important;
+  --bs-table-active-bg: var(--adm-secondary-subtle) !important;
+  background-color: var(--adm-surface-alt) !important;
+  color: var(--adm-text) !important;
+}
+
+/* ── Odznaky ─────────────────────────────────────────────────────────────
+   Barva textu se řídí pozadím odznaku: na tmavém bílá, na světlém tmavá.
+   Plošné `.badge { color: white }` dřív schovalo odznaky se světlým
+   pozadím. Odznak s vlastním pozadím (bg-opacity, inline styl) si barvu
+   textu nechává. */
+
+body.theme-backoffice .badge {
+  --bs-badge-font-weight: 600;
+}
+
+body.theme-backoffice .badge:not([class*="bg-"]) {
+  background-color: var(--adm-secondary);
+  color: #fff;
+}
+
+body.theme-backoffice .badge:is(.bg-primary, .bg-secondary, .bg-success, .bg-danger, .bg-info, .bg-dark, .text-bg-primary, .text-bg-secondary, .text-bg-success, .text-bg-danger, .text-bg-info, .text-bg-dark):not([class*="bg-opacity"]) {
+  color: #fff !important;
+}
+
+body.theme-backoffice .badge:is(.bg-warning, .text-bg-warning, .bg-light, .text-bg-light, .bg-white):not([class*="bg-opacity"]) {
+  color: var(--adm-text) !important;
+}
+
+body.theme-backoffice .badge.bg-primary-subtle { color: var(--adm-primary-emphasis) !important; }
+body.theme-backoffice .badge.bg-secondary-subtle { color: var(--adm-secondary-emphasis) !important; }
+body.theme-backoffice .badge.bg-success-subtle { color: var(--adm-success-emphasis) !important; }
+body.theme-backoffice .badge.bg-danger-subtle { color: var(--adm-danger-emphasis) !important; }
+body.theme-backoffice .badge.bg-warning-subtle { color: var(--adm-warning-emphasis) !important; }
+body.theme-backoffice .badge.bg-info-subtle { color: var(--adm-info-emphasis) !important; }
+
+body.theme-backoffice .badge.bg-light,
+body.theme-backoffice .badge.bg-white {
+  border: 1px solid var(--adm-secondary-border);
+}
+
+/* ── Upozornění ──────────────────────────────────────────────────────── */
+
+body.theme-backoffice .alert-primary { color: var(--adm-primary-emphasis) !important; background-color: var(--adm-primary-subtle) !important; border-color: var(--adm-primary-border) !important; }
+body.theme-backoffice .alert-secondary { color: var(--adm-secondary-emphasis) !important; background-color: var(--adm-secondary-subtle) !important; border-color: var(--adm-secondary-border) !important; }
+body.theme-backoffice .alert-success { color: var(--adm-success-emphasis) !important; background-color: var(--adm-success-subtle) !important; border-color: var(--adm-success-border) !important; }
+body.theme-backoffice .alert-danger { color: var(--adm-danger-emphasis) !important; background-color: var(--adm-danger-subtle) !important; border-color: var(--adm-danger-border) !important; }
+body.theme-backoffice .alert-warning { color: var(--adm-warning-emphasis) !important; background-color: var(--adm-warning-subtle) !important; border-color: var(--adm-warning-border) !important; }
+body.theme-backoffice .alert-info { color: var(--adm-info-emphasis) !important; background-color: var(--adm-info-subtle) !important; border-color: var(--adm-info-border) !important; }
+body.theme-backoffice .alert-light { color: var(--adm-text) !important; background-color: var(--adm-surface-alt) !important; border-color: var(--adm-border) !important; }
+
+/* Text a odkazy uvnitř upozornění mají jeho barvu */
+body.theme-backoffice .alert :is(h1, h2, h3, h4, h5, h6, p, small, strong, .alert-heading) { color: inherit; }
+
+/* Barevný text v upozornění (např. text-danger v červeném) by měl na
+   podbarvení málo kontrastu - použije se tmavá varianta barvy */
+body.theme-backoffice .alert .text-primary { color: var(--adm-primary-emphasis) !important; }
+body.theme-backoffice .alert .text-success { color: var(--adm-success-emphasis) !important; }
+body.theme-backoffice .alert .text-danger { color: var(--adm-danger-emphasis) !important; }
+body.theme-backoffice .alert .text-warning { color: var(--adm-warning-emphasis) !important; }
+body.theme-backoffice .alert .text-info { color: var(--adm-info-emphasis) !important; }
+body.theme-backoffice .alert .text-muted { color: inherit !important; }
+body.theme-backoffice .alert .alert-link { color: inherit; font-weight: 700; }
+
+/* ── Seznamy ─────────────────────────────────────────────────────────── */
+
+body.theme-backoffice .list-group {
+  --bs-list-group-color: var(--adm-text);
+  --bs-list-group-bg: var(--adm-surface);
+  --bs-list-group-border-color: var(--adm-border);
+  --bs-list-group-action-color: var(--adm-text);
+  --bs-list-group-action-hover-color: var(--adm-text);
+  --bs-list-group-action-hover-bg: var(--adm-surface-hover);
+  --bs-list-group-action-active-color: var(--adm-text);
+  --bs-list-group-action-active-bg: var(--adm-secondary-subtle);
+  --bs-list-group-disabled-color: var(--adm-text-muted);
+  --bs-list-group-disabled-bg: var(--adm-surface);
+  --bs-list-group-active-color: #fff;
+  --bs-list-group-active-bg: var(--adm-primary);
+  --bs-list-group-active-border-color: var(--adm-primary);
+}
+
+/* Ve vybraném řádku je všechno bílé - i ztlumený text a ikony */
+body.theme-backoffice .list-group-item.active :is(.text-muted, .small, small, .bi) { color: #fff !important; }
+
+/* ── Modální okna ────────────────────────────────────────────────────── */
+
+body.theme-backoffice .modal {
+  --bs-modal-color: var(--adm-text);
+  --bs-modal-bg: var(--adm-surface);
+  --bs-modal-border-color: var(--adm-border);
+  --bs-modal-header-border-color: var(--adm-border);
+  --bs-modal-footer-border-color: var(--adm-border);
+  color: var(--adm-text);
+}
+
+body.theme-backoffice .modal-content {
+  background-color: var(--adm-surface);
+  color: var(--adm-text);
+}
+
+body.theme-backoffice .modal-header,
+body.theme-backoffice .modal-footer {
+  background-color: var(--adm-surface-alt);
+}
+
+body.theme-backoffice .modal-title { font-weight: 600; }
+
+/* ── Drobnosti ───────────────────────────────────────────────────────── */
+
+body.theme-backoffice code { color: var(--bs-code-color); }
+
+/* Rozbalovací nabídka SearchableSelect (vykresluje se mimo stránku) */
+body.theme-backoffice .searchable-select-trigger {
+  background: var(--adm-surface) !important;
+  border: 1px solid var(--adm-input-border) !important;
+  color: var(--adm-text) !important;
+}
+
+body.theme-backoffice .searchable-select-trigger .searchable-select-placeholder {
+  color: var(--adm-placeholder) !important;
+}
+
+/* Popisek zůstane na jednom řádku jako u ostatních polí, v úzkém sloupci
+   filtru se zkrátí */
+body.theme-backoffice .searchable-select-trigger > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Zóna pro přetažení souboru */
+body.theme-backoffice .attachment-dropzone {
+  border: 2px dashed var(--adm-input-border) !important;
+  background: var(--adm-surface-alt);
+}
+
+body.theme-backoffice .attachment-dropzone.border-primary {
+  border-color: var(--adm-primary) !important;
+  background: var(--adm-primary-subtle);
+}
+
+/* ── Dashboard ───────────────────────────────────────────────────────── */
+
 .dashboard-icon-box {
   display: flex;
   align-items: center;
@@ -341,56 +717,28 @@
   flex-shrink: 0;
 }
 
-.dashboard-icon-primary {
-  background: rgba(13, 110, 253, 0.1);
-  color: #0d6efd;
+body.theme-backoffice .dashboard-icon-primary { background: var(--adm-primary-subtle); color: var(--adm-primary); }
+body.theme-backoffice .dashboard-icon-success { background: var(--adm-success-subtle); color: var(--adm-success); }
+body.theme-backoffice .dashboard-icon-warning { background: var(--adm-warning-subtle); color: var(--adm-warning-line); }
+body.theme-backoffice .dashboard-icon-info { background: var(--adm-info-subtle); color: var(--adm-info); }
+body.theme-backoffice .dashboard-icon-box .bi { color: inherit; }
+
+/* Nadcházející závod. Dřív tu byl přechod do světle tyrkysové, na které
+   bílý text neměl kontrast (2.2:1), a navíc ho přebíjelo bílé pozadí karet -
+   celá karta byla bílý text na bílém. */
+body.theme-backoffice .card.dashboard-upcoming-race {
+  background: linear-gradient(135deg, #166534 0%, #0f766e 100%) !important;
+  border: 0 !important;
+  color: #fff;
 }
 
-.dashboard-icon-primary i { color: #0d6efd !important; }
-
-.dashboard-icon-success {
-  background: rgba(25, 135, 84, 0.1);
-  color: #198754;
-}
-
-.dashboard-icon-success i { color: #198754 !important; }
-
-.dashboard-icon-warning {
-  background: rgba(146, 64, 14, 0.1);
-  color: var(--adm-warning);
-}
-
-.dashboard-icon-warning i { color: var(--adm-warning) !important; }
-
-.dashboard-icon-info {
-  background: rgba(14, 116, 144, 0.1);
-  color: var(--adm-info);
-}
-
-.dashboard-icon-info i { color: var(--adm-info) !important; }
-
-/* Upcoming race card */
-.dashboard-upcoming-race {
-  background: linear-gradient(135deg, #198754 0%, #20c997 100%) !important;
-}
-
-.dashboard-upcoming-race .card-body {
+body.theme-backoffice .dashboard-upcoming-race .card-body {
   background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  color: #fff;
 }
 
-.dashboard-upcoming-race h5,
-.dashboard-upcoming-race span,
-.dashboard-upcoming-race small,
-.dashboard-upcoming-race div,
-.dashboard-upcoming-race .fs-2 {
-  color: white !important;
-}
-
-.dashboard-upcoming-race .badge {
-  color: white !important;
-}
+body.theme-backoffice .dashboard-upcoming-race .opacity-75 { opacity: 0.9 !important; }
+body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(15, 23, 42, 0.35) !important; }
 
 .dashboard-upcoming-icon {
   width: 56px;
@@ -402,408 +750,21 @@
   justify-content: center;
 }
 
-.dashboard-upcoming-icon i {
-  color: white !important;
-}
-
-/* Dashboard list groups - ensure light mode.
-   :not(.active) so Bootstrap's selected state stays visible (white-on-white otherwise). */
-.admin-section .list-group-item:not(.active) {
-  background: white !important;
-  border-color: #f0f0f0 !important;
-}
-
-.admin-section .list-group-item:hover:not(.active) {
-  background: #f8f9fa !important;
-}
-
-.admin-section .list-group-item.active {
-  background: var(--adm-primary) !important;
-  border-color: var(--adm-primary) !important;
-  color: #fff !important;
-}
-
-/* Icons/labels inside a selected row — .admin-section .badge/.text-* would keep
-   them white-on-white or low contrast otherwise */
-.admin-section .list-group-item.active .bi,
-.admin-section .list-group-item.active .small,
-.admin-section .list-group-item.active .text-muted {
-  color: #fff !important;
-}
-
-.admin-section .list-group-item.active .badge.bg-white {
-  color: var(--adm-primary) !important;
-}
-
-/* Period toggle buttons */
-.admin-section .btn-group .btn-outline-secondary {
-  color: #6c757d !important;
-  border-color: #dee2e6 !important;
-}
-
-.admin-section .btn-group .btn-outline-secondary:hover {
-  background: #f8f9fa !important;
-  color: #495057 !important;
-}
-
-.admin-section .btn-group .btn-primary {
-  background: #0d6efd !important;
-  border-color: #0d6efd !important;
-  color: white !important;
-}
-
-.admin-section .btn-group .btn-primary i {
-  color: white !important;
-}
-
-/* Stat card responsive */
 @media (max-width: 576px) {
   .dashboard-icon-box {
     width: 40px;
     height: 40px;
   }
-  
-  .admin-section .fs-3 {
+
+  body.theme-backoffice .admin-layout-content .fs-3 {
     font-size: 1.25rem !important;
   }
 }
 
-/* ========================================
-   ADMIN SECTION: Text Color Overrides
-   Ensure Bootstrap text utilities show dark text on light admin bg
-   ======================================== */
-.admin-section .text-secondary {
-  color: #464555 !important;
-}
-
-.admin-section .text-primary {
-  color: #2664EB !important;
-}
-
-.admin-section .text-success {
-  color: #198754 !important;
-}
-
-.admin-section .text-info {
-  color: var(--adm-info) !important;
-}
-
-.admin-section .text-warning {
-  color: var(--adm-warning) !important;
-}
-
-.admin-section .text-danger {
-  color: #dc3545 !important;
-}
-
-/* Admin alerts - dark text on light alert backgrounds */
-.admin-section .alert-danger {
-  color: #842029 !important;
-  background-color: #f8d7da !important;
-  border-color: #f5c2c7 !important;
-}
-
-.admin-section .alert-success {
-  color: #0f5132 !important;
-  background-color: #d1e7dd !important;
-  border-color: #badbcc !important;
-}
-
-.admin-section .alert-warning {
-  color: #664d03 !important;
-  background-color: #fff3cd !important;
-  border-color: #ffecb5 !important;
-}
-
-.admin-section .alert-info {
-  color: #055160 !important;
-  background-color: #cff4fc !important;
-  border-color: #b6effb !important;
-}
-
-/* Admin btn-outline-secondary - keep dark for light bg */
-.admin-section .btn-outline-secondary {
-  --bs-btn-color: #6c757d !important;
-  --bs-btn-border-color: #6c757d !important;
-}
-
-/* Admin table-light - standard light mode */
-.admin-section .table-light,
-.admin-section .table-light th,
-.admin-section .table-light td {
-  background-color: #f8f9fa !important;
-  color: #212529 !important;
-  --bs-table-color: #212529 !important;
-  --bs-table-bg: #f8f9fa !important;
-}
-
-/* ========================================
-   TIMEKEEPER SECTION: Light Mode Overrides
-   Reset dark glassmorphism styles for timekeeper content area
-   ======================================== */
-
-.timekeeper-section {
-  background: #f0f2f5 !important;
-  color: #212529 !important;
-}
-
-/* Reset dark mode card styles */
-.timekeeper-section .card,
-.timekeeper-section .card-body,
-.timekeeper-section .card-header {
-  background: white !important;
-  border: 1px solid #dee2e6 !important;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  color: #212529 !important;
-}
-
-.timekeeper-section .card-header {
-  background: #f8f9fa !important;
-  border-bottom: 1px solid #dee2e6 !important;
-}
-
-/* Tables */
-.timekeeper-section .table {
-  background: white !important;
-  color: #212529 !important;
-}
-
-.timekeeper-section .table thead,
-.timekeeper-section .table-dark {
-  background: #343a40 !important;
-  color: white !important;
-}
-
-.timekeeper-section .table thead th,
-.timekeeper-section .table-dark th {
-  color: white !important;
-  background: #343a40 !important;
-}
-
-.timekeeper-section .table-light,
-.timekeeper-section .table-light th {
-  background-color: #f8f9fa !important;
-  color: #212529 !important;
-}
-
-.timekeeper-section .table tbody {
-  background: white !important;
-}
-
-.timekeeper-section .table tbody tr {
-  background: white !important;
-}
-
-.timekeeper-section .table tbody tr:hover {
-  background: #f8f9fa !important;
-}
-
-.timekeeper-section .table tbody td {
-  color: #212529 !important;
-  background: transparent !important;
-}
-
-/* Forms */
-.timekeeper-section .form-control,
-.timekeeper-section .form-select {
-  background: white !important;
-  border: 1px solid #ced4da !important;
-  color: #212529 !important;
-}
-
-.timekeeper-section .form-control:focus,
-.timekeeper-section .form-select:focus {
-  background: white !important;
-  border-color: #86b7fe !important;
-  color: #212529 !important;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-}
-
-.timekeeper-section .form-control:disabled,
-.timekeeper-section .form-control[readonly] {
-  background-color: #e9ecef !important;
-  color: #6c757d !important;
-}
-
-.timekeeper-section .form-label {
-  color: #212529 !important;
-}
-
-/* Modals */
-.timekeeper-section .modal-content {
-  background: white !important;
-  color: #212529 !important;
-}
-
-/* All text elements - dark on light */
-.timekeeper-section h1,
-.timekeeper-section h2,
-.timekeeper-section h3,
-.timekeeper-section h4,
-.timekeeper-section h5,
-.timekeeper-section h6,
-.timekeeper-section p,
-.timekeeper-section label,
-.timekeeper-section small,
-.timekeeper-section td,
-.timekeeper-section th {
-  color: #212529 !important;
-}
-
-/* Bootstrap text utilities - scoped to light bg */
-.timekeeper-section .text-muted {
-  color: #6c757d !important;
-}
-
-.timekeeper-section .text-secondary {
-  color: #6c757d !important;
-}
-
-.timekeeper-section .text-primary {
-  color: #0d6efd !important;
-}
-
-.timekeeper-section .text-success {
-  color: #198754 !important;
-}
-
-.timekeeper-section .text-danger {
-  color: #dc3545 !important;
-}
-
-.timekeeper-section .text-warning {
-  color: #ffc107 !important;
-}
-
-.timekeeper-section .text-info {
-  color: #0dcaf0 !important;
-}
-
-.timekeeper-section .text-white {
-  color: #fff !important;
-}
-
-.timekeeper-section .text-white-50 {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* Bílý text jen na tmavém pozadí - viz vysvětlení u .admin-section .badge výše.
- * Odznaky "Port vybrán", "Nevyřízeno", "Vyřízeno" v liště časomíry i medailové
- * pozice ve výsledcích byly kvůli plošnému pravidlu prakticky neviditelné. */
-.timekeeper-section .badge.bg-primary,
-.timekeeper-section .badge.bg-secondary,
-.timekeeper-section .badge.bg-success,
-.timekeeper-section .badge.bg-danger,
-.timekeeper-section .badge.bg-dark,
-.timekeeper-section .badge.text-bg-primary,
-.timekeeper-section .badge.text-bg-secondary,
-.timekeeper-section .badge.text-bg-success,
-.timekeeper-section .badge.text-bg-danger,
-.timekeeper-section .badge.text-bg-dark {
-  color: #fff !important;
-}
-
-.timekeeper-section .badge.bg-warning,
-.timekeeper-section .badge.text-bg-warning,
-.timekeeper-section .badge.bg-info,
-.timekeeper-section .badge.text-bg-info {
-  color: #000 !important;
-}
-
-.timekeeper-section .badge.bg-light,
-.timekeeper-section .badge.text-bg-light,
-.timekeeper-section .badge.bg-white,
-.timekeeper-section .badge.text-bg-white {
-  color: #212529 !important;
-}
-
-/* Solid buttons - ensure white text */
-.timekeeper-section .btn-primary,
-.timekeeper-section .btn-success,
-.timekeeper-section .btn-danger,
-.timekeeper-section .btn-secondary {
-  color: white !important;
-}
-
-.timekeeper-section .btn-warning,
-.timekeeper-section .btn-info,
-.timekeeper-section .btn-light {
-  color: #000 !important;
-}
-
-/* Outline buttons */
-.timekeeper-section .btn-outline-primary,
-.timekeeper-section .btn-outline-secondary,
-.timekeeper-section .btn-outline-danger,
-.timekeeper-section .btn-outline-success,
-.timekeeper-section .btn-outline-info,
-.timekeeper-section .btn-outline-warning,
-.timekeeper-section .btn-outline-dark {
-  background: transparent !important;
-}
-
-/* Alerts - dark text on light alert backgrounds */
-.timekeeper-section .alert-danger {
-  color: #842029 !important;
-  background-color: #f8d7da !important;
-  border-color: #f5c2c7 !important;
-}
-
-.timekeeper-section .alert-success {
-  color: #0f5132 !important;
-  background-color: #d1e7dd !important;
-  border-color: #badbcc !important;
-}
-
-.timekeeper-section .alert-warning {
-  color: #664d03 !important;
-  background-color: #fff3cd !important;
-  border-color: #ffecb5 !important;
-}
-
-.timekeeper-section .alert-info {
-  color: #055160 !important;
-  background-color: #cff4fc !important;
-  border-color: #b6effb !important;
-}
-
-/* List groups */
-.timekeeper-section .list-group-item {
-  background: white !important;
-  border-color: #dee2e6 !important;
-  color: #212529 !important;
-}
-
-.timekeeper-section .list-group-item:hover {
-  background: #f8f9fa !important;
-}
-
-/* bg-light and bg-white resets */
-.timekeeper-section .bg-light {
-  background-color: #f8f9fa !important;
-}
-
-.timekeeper-section .bg-white {
-  background-color: #fff !important;
-}
-
-/* Timekeeper btn-outline-secondary - keep dark for light bg */
-.timekeeper-section .btn-outline-secondary {
-  --bs-btn-color: #6c757d !important;
-  --bs-btn-border-color: #6c757d !important;
-}
-
-/* Timekeeper table-light - standard light mode */
-.timekeeper-section .table-light,
-.timekeeper-section .table-light th,
-.timekeeper-section .table-light td {
-  background-color: #f8f9fa !important;
-  color: #212529 !important;
-  --bs-table-color: #212529 !important;
-  --bs-table-bg: #f8f9fa !important;
-}
+/* ── Časoměřič: komponenty ───────────────────────────────────────────────
+   Barvy řeší sdílené téma výše. Dřív tu byla vlastní kopie přebarvení
+   jen pro .timekeeper-section (s .text-warning #ffc107 na bílé 1.6:1
+   a vynuceně tmavým textem i na tmavých prvcích). */
 
 /* Timekeeper overview dashboard */
 .timekeeper-section .timekeeper-overview-panel {
@@ -931,11 +892,3 @@
 .timekeeper-section .timekeeper-race-number-actual {
   font-size: 0.6rem;
 }
-
-/* Keyboard users must be able to see what is focused on the destructive screen. */
-.admin-section .form-check-input:focus-visible,
-.admin-section .btn:focus-visible {
-  outline: 2px solid var(--adm-primary, #2563eb);
-  outline-offset: 2px;
-}
-

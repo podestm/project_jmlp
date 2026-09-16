@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 const SERIAL_BAUD_KEY = 'timekeeper_serial_baud';
 const BAUD_OPTIONS = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200];
@@ -170,7 +171,7 @@ export default function TimingDeviceSettings() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-usb-symbol me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-usb-symbol me-2" style={{ color: TK_ACCENT }}></i>
             Připojení časomíry
           </h5>
           <small className="text-muted">Pouze přímé připojení přes Web Serial API (Edge/Chrome)</small>
@@ -193,7 +194,7 @@ export default function TimingDeviceSettings() {
 
       <div className="card border-0 shadow-sm" style={{ borderRadius: '12px' }}>
         <div className="card-header bg-white py-2 px-3" style={{ borderBottom: '2px solid #e94560' }}>
-          <small className="fw-bold"><i className="bi bi-sliders me-1" style={{ color: '#e94560' }}></i>Nastavení serial portu</small>
+          <small className="fw-bold"><i className="bi bi-sliders me-1" style={{ color: TK_ACCENT }}></i>Nastavení serial portu</small>
         </div>
         <div className="card-body p-3">
           <div className="row g-3 align-items-end mb-3">
@@ -217,7 +218,7 @@ export default function TimingDeviceSettings() {
           </div>
 
           <div className="mb-3">
-            <div className="fw-semibold small mb-2" style={{ color: '#e94560' }}>Dostupné porty</div>
+            <div className="fw-semibold small mb-2" style={{ color: TK_ACCENT_TEXT }}>Dostupné porty</div>
             {ports.length === 0 ? (
               <div className="text-muted small">Žádný port zatím nebyl povolen. Klikněte Přidat port.</div>
             ) : (
@@ -245,7 +246,7 @@ export default function TimingDeviceSettings() {
           </div>
 
           <div>
-            <div className="fw-semibold small mb-1" style={{ color: '#e94560' }}>Živý log</div>
+            <div className="fw-semibold small mb-1" style={{ color: TK_ACCENT_TEXT }}>Živý log</div>
             <div className="rounded p-2" style={{ background: '#1a1a2e', color: '#86efac', fontFamily: 'monospace', fontSize: '0.78rem', minHeight: '96px', maxHeight: '180px', overflowY: 'auto' }}>
               {log.length === 0 ? (
                 <span className="text-white-50">Čeká na data ze sériového portu...</span>

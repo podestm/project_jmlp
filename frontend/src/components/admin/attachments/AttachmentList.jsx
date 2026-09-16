@@ -128,7 +128,7 @@ export default function AttachmentList({
       )}
 
       <div
-        className={`border rounded p-3 text-center ${dragOver ? 'border-primary bg-primary-subtle' : ''}`}
+        className={`attachment-dropzone border rounded p-3 text-center ${dragOver ? 'border-primary bg-primary-subtle' : ''}`}
         onDragOver={(e) => { e.preventDefault(); if (!busy) setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {

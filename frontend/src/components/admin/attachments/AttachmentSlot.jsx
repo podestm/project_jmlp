@@ -119,7 +119,7 @@ export default function AttachmentSlot({
         </div>
       ) : (
         <div
-          className={`border rounded p-3 text-center ${dragOver ? 'border-primary bg-primary-subtle' : 'border-dashed'}`}
+          className={`attachment-dropzone border rounded p-3 text-center ${dragOver ? 'border-primary bg-primary-subtle' : 'border-dashed'}`}
           onDragOver={(e) => { e.preventDefault(); if (!busy) setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}

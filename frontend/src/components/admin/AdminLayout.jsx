@@ -33,9 +33,10 @@ export default function AdminLayout({ children }) {
     <div className="d-flex" style={{ minHeight: '100vh' }}>
       {/* Sidebar */}
       <div 
-        className="bg-dark text-white d-flex flex-column" 
+        className="bg-dark text-white d-flex flex-column admin-sidebar" 
         style={{ 
           width: '280px',
+          flexShrink: 0,
           position: 'sticky',
           top: 0,
           height: '100vh',
@@ -43,7 +44,7 @@ export default function AdminLayout({ children }) {
         }}
       >
         {/* Header with logo/icon */}
-        <div className="p-4 border-bottom border-secondary bg-gradient" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' }}>
+        <div className="p-4 border-bottom border-secondary" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
           <div className="d-flex align-items-center mb-2">
             <div className="me-3" style={{ 
               width: '48px', 
@@ -155,7 +156,7 @@ export default function AdminLayout({ children }) {
       {/* Main content */}
       <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
         {/* Page content */}
-        <main className="flex-grow-1 p-4 admin-layout-content" style={{ overflowY: 'auto', background: '#f8f9fa' }}>
+        <main className="flex-grow-1 p-4 admin-layout-content" style={{ overflowY: 'auto' }}>
           <div className="container-fluid">
             {children}
           </div>

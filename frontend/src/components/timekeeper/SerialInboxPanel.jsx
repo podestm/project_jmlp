@@ -1,5 +1,6 @@
 import BridgeEventRow from './BridgeEventRow.jsx';
 import { EMPTY_RESOLUTION } from './inboxMatching.js';
+import { TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 /**
  * Schránka impulzů z časomíry.
@@ -35,7 +36,7 @@ export default function SerialInboxPanel({
       <div className="card-body p-0">
         <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom flex-wrap gap-2">
           <div>
-            <div className="fw-semibold" style={{ color: '#e94560', fontSize: '0.95rem' }}>
+            <div className="fw-semibold" style={{ color: TK_ACCENT_TEXT, fontSize: '0.95rem' }}>
               <i className="bi bi-journal-text me-1"></i>Serial inbox
             </div>
             <small className="text-muted">

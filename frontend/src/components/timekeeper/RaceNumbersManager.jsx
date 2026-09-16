@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
+import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 
 export default function RaceNumbersManager() {
   const [sets, setSets] = useState([]);
@@ -208,7 +209,7 @@ export default function RaceNumbersManager() {
   if (loading) {
     return (
       <div className="text-center py-5">
-        <div className="spinner-border" style={{ color: '#e94560' }} role="status">
+        <div className="spinner-border" style={{ color: TK_ACCENT }} role="status">
           <span className="visually-hidden">Načítám...</span>
         </div>
       </div>
@@ -221,13 +222,13 @@ export default function RaceNumbersManager() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h3 className="fw-bold mb-1" style={{ fontSize: '1.3rem' }}>
-            <i className="bi bi-123 me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-123 me-2" style={{ color: TK_ACCENT }}></i>
             Startovní čísla
           </h3>
           <p className="text-muted mb-0 small">Správa sad startovních čísel</p>
         </div>
         <button className="btn text-white btn-sm"
-          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+          style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
           onClick={() => setShowSetForm(!showSetForm)}>
           <i className={`bi ${showSetForm ? 'bi-x-lg' : 'bi-plus-circle'} me-1`}></i>
           {showSetForm ? 'Zrušit' : 'Nová sada'}
@@ -301,7 +302,7 @@ export default function RaceNumbersManager() {
               )}
               <div className="mt-2">
                 <button type="submit" className="btn btn-sm text-white"
-                  style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                  style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
                   disabled={creating}>
                   {creating ? <><span className="spinner-border spinner-border-sm me-1"></span>Vytvářím...</> : <><i className="bi bi-check-lg me-1"></i>Vytvořit</>}
                 </button>
@@ -387,7 +388,7 @@ export default function RaceNumbersManager() {
                             onChange={(e) => setAddNumberData(prev => ({ ...prev, display_number: e.target.value }))} min="1" required />
                         </div>
                         <button type="submit" className="btn btn-sm text-white"
-                          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '6px' }}>
+                          style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '6px' }}>
                           <i className="bi bi-plus-lg"></i>
                         </button>
                       </form>
@@ -396,7 +397,7 @@ export default function RaceNumbersManager() {
 
                   {loadingNumbers ? (
                     <div className="text-center py-3">
-                      <div className="spinner-border spinner-border-sm" style={{ color: '#e94560' }}></div>
+                      <div className="spinner-border spinner-border-sm" style={{ color: TK_ACCENT }}></div>
                     </div>
                   ) : (
                     <div className="px-3 py-2" style={{ maxHeight: '320px', overflowY: 'auto' }}>

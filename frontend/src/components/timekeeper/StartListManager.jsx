@@ -8,7 +8,7 @@ import { useRacePdf } from '../../hooks/useRacePdf.js';
 import { dropRaceSnapshot } from '../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
 import {
@@ -344,7 +344,7 @@ export default function StartListManager() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-list-ol me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-list-ol me-2" style={{ color: TK_ACCENT }}></i>
             Startovní listina
           </h5>
           <small className="text-muted">Generování a správa startovní listiny</small>
@@ -363,7 +363,7 @@ export default function StartListManager() {
                 <div className="d-flex gap-2 justify-content-end flex-wrap">
                   <button
                     className="btn btn-sm text-white"
-                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                    style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
                     onClick={showGenerateSetup ? () => setShowGenerateSetup(false) : openGenerateSetup}
                     disabled={generating}
                   >
@@ -422,7 +422,7 @@ export default function StartListManager() {
                     <div className="p-2 rounded-2" style={{ background: '#f8f9fa' }}>
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <small className="fw-bold">
-                          <i className="bi bi-arrow-down-up me-1" style={{ color: '#e94560' }}></i>Pořadí kategorií
+                          <i className="bi bi-arrow-down-up me-1" style={{ color: TK_ACCENT }}></i>Pořadí kategorií
                         </small>
                         <small className="text-muted"><i className="bi bi-grip-vertical me-1"></i>Přetáhněte</small>
                       </div>
@@ -440,7 +440,7 @@ export default function StartListManager() {
                               style={{ background: 'white', border: '1px solid #dee2e6', cursor: 'grab', userSelect: 'none', fontSize: '0.85rem' }}
                             >
                               <i className="bi bi-grip-vertical text-muted me-2"></i>
-                              <span className="badge me-2" style={{ background: '#e94560', minWidth: '22px', fontSize: '0.7rem' }}>{index + 1}</span>
+                              <span className="badge me-2" style={{ background: TK_ACCENT_FILL, minWidth: '22px', fontSize: '0.7rem' }}>{index + 1}</span>
                               <span className="fw-semibold flex-grow-1">{categoryLabel(cat)}</span>
                               {cat.code && (
                                 <small className="text-muted me-2" title="Kódové označení kategorie">{cat.code}</small>
@@ -466,7 +466,7 @@ export default function StartListManager() {
 
                 <div className="mt-3 d-flex justify-content-end">
                   <button className="btn btn-sm text-white px-3"
-                    style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+                    style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
                     onClick={generateStartList}
                     disabled={generating}>
                     {generating ? (
@@ -491,7 +491,7 @@ export default function StartListManager() {
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <small className="fw-semibold">
-              Závodníků: <span style={{ color: '#e94560' }}>{startList.length}</span>
+              Závodníků: <span style={{ color: TK_ACCENT_TEXT }}>{startList.length}</span>
             </small>
             <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
               onClick={() => navigate('/timekeeper/timing')}>
@@ -503,7 +503,7 @@ export default function StartListManager() {
             <div key={group.key} className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
               <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
                 <small className="fw-bold">
-                  <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
+                  <i className="bi bi-tag-fill me-1" style={{ color: TK_ACCENT }}></i>
                   {group.category_name}
                   <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.entries.length}</span>
                 </small>

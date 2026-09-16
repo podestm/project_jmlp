@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import Alert from '../ui/Alert.jsx';
+import { TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 
 export default function TimekeeperLogin() {
   const [email, setEmail] = useState('');
@@ -96,7 +97,7 @@ export default function TimekeeperLogin() {
                   className="btn btn-lg w-100 text-white fw-semibold"
                   disabled={loading}
                   style={{ 
-                    background: 'linear-gradient(135deg, #e94560 0%, #c23152 100%)',
+                    background: TK_ACCENT_GRADIENT,
                     borderRadius: '10px',
                     border: 'none',
                     padding: '12px'

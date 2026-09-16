@@ -2,7 +2,7 @@ import { formatDateLong } from '../../utils/date.js';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import SerialStatusBar from './SerialStatusBar.jsx';
-import { TimekeeperMessage } from './TimekeeperChrome.jsx';
+import { TimekeeperMessage, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 /**
  * Ovládací část obrazovky zadávání časů: uložení, výběr závodu, filtry,
@@ -48,7 +48,7 @@ export default function TimingToolbar({
     <div className="d-flex justify-content-between align-items-center mb-2">
       <div>
         <h5 className="fw-bold mb-0">
-          <i className="bi bi-clock me-2" style={{ color: '#e94560' }}></i>
+          <i className="bi bi-clock me-2" style={{ color: TK_ACCENT }}></i>
           Zadávání časů
         </h5>
         <small className="text-muted">Zapište časy jízd pro závodníky</small>
@@ -56,7 +56,7 @@ export default function TimingToolbar({
       {startListLength > 0 && (
         <button
           className="btn btn-sm text-white"
-          style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', border: 'none', borderRadius: '8px' }}
+          style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
           onClick={saveAllTimes}
           disabled={saving || !hasWriteLock}
         >
@@ -86,7 +86,7 @@ export default function TimingToolbar({
         <div className="card-body py-2 px-3">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div className="d-flex align-items-center gap-2">
-              <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+              <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
               <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>
                 {selectedRace.race_nr || `#${selectedRace.id}`} — {selectedRace.areal_name || '?'}
               </span>
@@ -116,7 +116,7 @@ export default function TimingToolbar({
                   <div className="progress" style={{ height: '16px', borderRadius: '8px' }}>
                     <div className="progress-bar" style={{
                       width: `${categoryFilteredLength > 0 ? (completedCount / categoryFilteredLength * 100) : 0}%`,
-                      background: 'linear-gradient(135deg, #e94560, #c23152)', borderRadius: '8px', fontSize: '0.65rem'
+                      background: TK_ACCENT_GRADIENT, borderRadius: '8px', fontSize: '0.65rem'
                     }}>
                       {categoryFilteredLength > 0 ? Math.round(completedCount / categoryFilteredLength * 100) : 0}%
                     </div>
@@ -132,7 +132,7 @@ export default function TimingToolbar({
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
         <div className="card-body py-2 px-3">
           <div className="d-flex align-items-center gap-2">
-            <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
             <select className="form-select form-select-sm" value={selectedRaceId}
               onChange={(e) => setSelectedRaceId(e.target.value)} style={{ borderRadius: '8px' }}>
               <option value="">-- Vyberte závod --</option>
@@ -154,14 +154,14 @@ export default function TimingToolbar({
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             {/* Category pills */}
             <div className="d-flex align-items-center gap-1 flex-wrap">
-              <small className="fw-semibold me-1" style={{ color: '#e94560' }}>
+              <small className="fw-semibold me-1" style={{ color: TK_ACCENT_TEXT }}>
                 <i className="bi bi-tag me-1"></i>Kat:
               </small>
               <button
                 className={`btn py-0 px-2 ${selectedCategory === 'all' ? '' : 'btn-outline-dark'}`}
                 style={{
                   fontSize: '0.75rem', borderRadius: '12px',
-                  ...(selectedCategory === 'all' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                  ...(selectedCategory === 'all' ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                 }}
                 onClick={() => setSelectedCategory('all')}
               >
@@ -172,7 +172,7 @@ export default function TimingToolbar({
                   className={`btn py-0 px-2 ${selectedCategory === cat.name ? '' : 'btn-outline-dark'}`}
                   style={{
                     fontSize: '0.75rem', borderRadius: '12px',
-                    ...(selectedCategory === cat.name ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    ...(selectedCategory === cat.name ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                   }}
                   onClick={() => setSelectedCategory(cat.name)}
                 >
@@ -183,20 +183,20 @@ export default function TimingToolbar({
 
             {/* Round toggle */}
             <div className="d-flex align-items-center gap-2">
-              <small className="fw-semibold" style={{ color: '#e94560' }}>
+              <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
                 <i className="bi bi-toggles me-1"></i>Kolo:
               </small>
               <div className="btn-group btn-group-sm">
                 <button className={`btn py-0 px-2 ${activeRound === '1' ? '' : 'btn-outline-dark'}`}
                   style={{
                     fontSize: '0.75rem',
-                    ...(activeRound === '1' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    ...(activeRound === '1' ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                   }}
                   onClick={() => setActiveRound('1')}>1</button>
                 <button className={`btn py-0 px-2 ${activeRound === '2' ? '' : 'btn-outline-dark'}`}
                   style={{
                     fontSize: '0.75rem',
-                    ...(activeRound === '2' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    ...(activeRound === '2' ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                   }}
                   onClick={() => setActiveRound('2')}>2</button>
                 <button className={`btn py-0 px-2 ${activeRound === 'both' ? 'btn-dark' : 'btn-outline-dark'}`}
@@ -213,7 +213,7 @@ export default function TimingToolbar({
 
           {/* Tisk rovnou od časomíry - stejný formát jako průběžné výsledky */}
           <div className="d-flex align-items-center gap-2 flex-wrap mt-2 pt-2 border-top">
-            <small className="fw-semibold" style={{ color: '#e94560' }}>
+            <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
               <i className="bi bi-printer me-1"></i>Tisk:
             </small>
             <ResultsPrintButtons

@@ -4,7 +4,7 @@ import { downloadBackup, importBackupPayload } from '../../offline/backup.js';
 import { getOpenConflicts, getRecentQueueItems, resolveConflict, retryQueueItem } from '../../offline/syncQueue.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { formatDateTimeShort } from '../../utils/date.js';
-import { TimekeeperMessage } from './TimekeeperChrome.jsx';
+import { TimekeeperMessage, TK_ACCENT } from './TimekeeperChrome.jsx';
 
 const STATUS_BADGE = {
   done: 'bg-success',
@@ -197,7 +197,7 @@ export default function SyncCenter() {
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
         <div>
           <h5 className="fw-bold mb-1">
-            <i className="bi bi-arrow-repeat me-2" style={{ color: '#e94560' }}></i>
+            <i className="bi bi-arrow-repeat me-2" style={{ color: TK_ACCENT }}></i>
             Sync centrum
           </h5>
           <small className="text-muted">Správa fronty, konfliktů a lokálních záloh.</small>

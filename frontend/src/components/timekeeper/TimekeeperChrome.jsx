@@ -7,6 +7,17 @@ import { formatDateLong } from '../../utils/date.js';
  * already drifted into four variants.
  */
 
+/**
+ * Akcentová barva časoměřiče. Konkrétní odstíny dosazuje téma back-office
+ * (admin.css, proměnné --tk-*) tak, aby měl text dost kontrastu - #e94560
+ * sám má s bílou jen 3.8:1. Výchozí hodnota platí tam, kde téma není:
+ * tabulka výsledků se ukazuje i na veřejném Live timingu.
+ */
+export const TK_ACCENT = 'var(--tk-accent, #e94560)'; // ikony, okraje
+export const TK_ACCENT_TEXT = 'var(--tk-accent-text, #e94560)'; // text
+export const TK_ACCENT_FILL = 'var(--tk-accent-fill, #e94560)'; // pozadí pod bílým textem
+export const TK_ACCENT_GRADIENT = 'var(--tk-accent-gradient, linear-gradient(135deg, #e94560, #c23152))';
+
 /** The one place the selected race is stored. Typos here used to be silent. */
 export const SELECTED_RACE_KEY = 'timekeeper_selected_race';
 
@@ -20,7 +31,7 @@ export const formatRaceLabel = (race) => (
 /** Read-only selected-race bar used by Listina / Závodníci / Výsledky. */
 export const SelectedRaceBar = ({ race }) => (
   <div className="d-flex align-items-center gap-2">
-    <i className="bi bi-trophy" style={{ color: '#e94560' }}></i>
+    <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
     <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
       {formatRaceLabel(race)}
     </div>

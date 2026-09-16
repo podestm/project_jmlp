@@ -240,7 +240,7 @@ export default function SearchableSelect({
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
       <div
-        className="form-control d-flex align-items-center justify-content-between"
+        className="form-control d-flex align-items-center justify-content-between searchable-select-trigger"
         style={{
           background: 'rgba(255, 255, 255, 0.1)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -250,7 +250,10 @@ export default function SearchableSelect({
         }}
         onClick={handleToggle}
       >
-        <span style={{ color: value ? 'var(--text-primary)' : 'rgba(255,255,255,0.5)' }}>
+        <span
+          className={value ? undefined : 'searchable-select-placeholder'}
+          style={{ color: value ? 'var(--text-primary)' : 'rgba(255,255,255,0.5)' }}
+        >
           {value ? getCurrentLabel() : placeholder}
         </span>
         <div className="d-flex align-items-center gap-1">

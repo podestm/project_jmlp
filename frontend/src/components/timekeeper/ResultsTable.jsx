@@ -1,5 +1,6 @@
 import { getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
 import { pointsForRank } from '../../utils/points.js';
+import { TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 /**
  * The one results table in the app.
@@ -116,7 +117,7 @@ export const CategoryPills = ({ categories, selectedId, onSelect, inactiveClass 
   <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
     <div className="card-body py-2 px-3">
       <div className="d-flex align-items-center gap-1 flex-wrap">
-        <small className="fw-semibold me-1" style={{ color: '#e94560' }}>
+        <small className="fw-semibold me-1" style={{ color: TK_ACCENT_TEXT }}>
           <i className="bi bi-tag me-1"></i>Kat:
         </small>
         {categories.map((cat) => {
@@ -128,7 +129,7 @@ export const CategoryPills = ({ categories, selectedId, onSelect, inactiveClass 
               style={{
                 fontSize: '0.75rem',
                 borderRadius: '12px',
-                ...(isActive ? { background: '#e94560', color: 'white', border: 'none' } : {}),
+                ...(isActive ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {}),
               }}
               onClick={() => onSelect(String(cat.category_id))}
             >
@@ -187,7 +188,7 @@ export default function ResultsTable({ entries, showPoints = false }) {
               {showPoints && (
                 <td className="text-center" style={{ padding: '3px 8px' }}>
                   {entry.points != null && entry.points > 0 ? (
-                    <span className="badge" style={{ background: 'linear-gradient(135deg, #e94560, #c23152)', fontSize: '0.7rem' }}>{entry.points}</span>
+                    <span className="badge" style={{ background: TK_ACCENT_GRADIENT, fontSize: '0.7rem' }}>{entry.points}</span>
                   ) : <span className="text-muted">0</span>}
                 </td>
               )}

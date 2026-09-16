@@ -1,4 +1,5 @@
 import { BAUD_OPTIONS, describeSerialPort } from '../../utils/serial.js';
+import { TK_ACCENT_FILL, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 /**
  * Stav časomíry a její připojení.
@@ -85,7 +86,7 @@ export default function SerialStatusBar({
         <div className="card-body py-2 px-3">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div className="d-flex align-items-center gap-2 flex-wrap">
-              <span className="fw-semibold" style={{ fontSize: '0.85rem', color: '#e94560' }}>
+              <span className="fw-semibold" style={{ fontSize: '0.85rem', color: TK_ACCENT_TEXT }}>
                 <i className="bi bi-usb-symbol me-1"></i>Přímé serial připojení
               </span>
               <select
@@ -166,7 +167,7 @@ export default function SerialStatusBar({
               )}
             </div>
             <div className="d-flex align-items-center gap-2 flex-wrap">
-              <small className="fw-semibold" style={{ color: '#e94560' }}>
+              <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
                 <i className="bi bi-arrow-return-right me-1"></i>Cílové kolo:
               </small>
               <div className="btn-group btn-group-sm">
@@ -174,7 +175,7 @@ export default function SerialStatusBar({
                   className={`btn py-0 px-2 ${bridgeTargetRound === '1' ? '' : 'btn-outline-dark'}`}
                   style={{
                     fontSize: '0.75rem',
-                    ...(bridgeTargetRound === '1' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    ...(bridgeTargetRound === '1' ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                   }}
                   onClick={() => setBridgeTargetRound('1')}
                 >
@@ -184,7 +185,7 @@ export default function SerialStatusBar({
                   className={`btn py-0 px-2 ${bridgeTargetRound === '2' ? '' : 'btn-outline-dark'}`}
                   style={{
                     fontSize: '0.75rem',
-                    ...(bridgeTargetRound === '2' ? { background: '#e94560', color: 'white', border: 'none' } : {})
+                    ...(bridgeTargetRound === '2' ? { background: TK_ACCENT_FILL, color: 'white', border: 'none' } : {})
                   }}
                   onClick={() => setBridgeTargetRound('2')}
                 >
