@@ -806,29 +806,32 @@ def test_koncovy_rok_v_ceste_se_neoveruje(client, db):
     assert data["season_year_end"] == AKTUALNI_SEZONA + 1
 
 
-def test_obecny_dokument_sezony_se_tvari_jako_prubezne_poradi(client, db):
-    """CHYBA: /season-results/ nefiltruje role příloh.
+def test_obecny_dokument_sezony_se_nevydava_za_vysledky(client, db):
+    """Sezóna, která má jen soutěžní řád (role 'document'), výsledky nemá.
 
-    Sezóna, která má jen soutěžní řád (role 'document'), se ve výsledcích
-    objeví jako by měla průběžné pořadí - a odkaz vede na soutěžní řád.
+    Dřív se tvářila, že má průběžné pořadí, a kalendář pod tlačítkem
+    "Průběžné výsledky" nabízel ke stažení soutěžní řád - na ostrém webu
+    sezóna 2026/27 a několik starších.
     """
     _sezona_s_dokumentem(db, AKTUALNI_SEZONA, "document", original_filename="Soutezni rad.pdf")
 
-    data = client.get("/season-results/current").json()
-
-    assert data["final_results"] == 0
-    assert data["document_original_filename"] == "Soutezni rad.pdf"
+    assert client.get("/season-results/current").status_code == 404
+    assert client.get("/season-results/").json() == []
 
 
-def test_vysledky_maji_prednost_pred_pozdeji_pridanym_dokumentem(client, db):
-    """Pořadí příloh rozhoduje, který dokument se ve výsledcích ukáže."""
+@pytest.mark.parametrize("role, rad_je_prvni", [
+    ("vysledky", False),  # soutěžní řád přidaný až po výsledcích
+    ("prubezne", True),   # řád nahraný na začátku sezóny, pořadí přibylo později
+])
+def test_obecny_dokument_vysledky_nezastini(client, db, role, rad_je_prvni):
+    """Na pořadí příloh nezáleží - soutěžní řád výsledky nezastíní, ani když je první."""
     _sezona(db, AKTUALNI_SEZONA)
-    vysledky = _soubor(db, "vysledky.pdf")
     rad = _soubor(db, "rad.pdf")
-    _priloha(db, vysledky.id, "season", AKTUALNI_SEZONA, "vysledky", sort_order=0)
-    _priloha(db, rad.id, "season", AKTUALNI_SEZONA, "document", sort_order=1)
+    vysledky = _soubor(db, f"{role}.pdf")
+    _priloha(db, rad.id, "season", AKTUALNI_SEZONA, "document", sort_order=0 if rad_je_prvni else 1)
+    _priloha(db, vysledky.id, "season", AKTUALNI_SEZONA, role, sort_order=1 if rad_je_prvni else 0)
 
     data = client.get("/season-results/current").json()
 
-    assert data["document_original_filename"] == "vysledky.pdf"
-    assert data["final_results"] == 1
+    assert data["document_id"] == vysledky.id
+    assert data["final_results"] == (1 if role == "vysledky" else 0)

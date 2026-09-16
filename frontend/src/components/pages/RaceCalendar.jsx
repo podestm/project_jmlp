@@ -1,9 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/date.js';
 import { fixEncoding } from '../../utils/text.js';
+import { getCurrentSeasonId } from '../../utils/season.js';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
+
+/** Klíč sezóny je "JMLP2025" - skončená je každá před tou aktuální. */
+const isFinishedSeason = (seasonKey) => parseInt(seasonKey.replace('JMLP', ''), 10) < getCurrentSeasonId();
 
 export default function RaceCalendar() {
   const [races, setRaces] = useState([]);
@@ -12,27 +17,33 @@ export default function RaceCalendar() {
   const [error, setError] = useState(null);
   const [selectedSeason, setSelectedSeason] = useState(null);
 
-  useEffect(() => {
-    Promise.all([
-      fetch('/races/').then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      }),
-      fetch('/season-results/').then(r => r.json()).catch(() => [])
-    ]).then(([raceData, resultData]) => {
-      setRaces(raceData);
-      const resultMap = {};
-      resultData.forEach(result => {
-        const seasonKey = `JMLP${result.season_year_start}`;
-        resultMap[seasonKey] = result;
-      });
-      setSeasonResults(resultMap);
-    }).catch(err => {
-      setError(err.message);
-    }).finally(() => {
-      setLoading(false);
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes kalendář,
+  // který už na obrazovce je
+  const loadCalendar = useCallback(({ silent = false } = {}) => Promise.all([
+    fetch('/races/').then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }),
+    fetch('/season-results/').then(r => r.json()).catch(() => [])
+  ]).then(([raceData, resultData]) => {
+    setRaces(raceData);
+    const resultMap = {};
+    resultData.forEach(result => {
+      const seasonKey = `JMLP${result.season_year_start}`;
+      resultMap[seasonKey] = result;
     });
-  }, []);
+    setSeasonResults(resultMap);
+  }).catch(err => {
+    if (!silent) setError(err.message);
+  }).finally(() => {
+    if (!silent) setLoading(false);
+  }), []);
+
+  useEffect(() => {
+    loadCalendar();
+  }, [loadCalendar]);
+
+  useRevalidateOnFocus(() => loadCalendar({ silent: true }));
 
   const groupedRaces = useMemo(() => {
     const groups = {};
@@ -144,7 +155,7 @@ export default function RaceCalendar() {
                     <i className="bi bi-calendar3 me-2"></i>
                     Sezóna: {getSeasonDisplayName(selectedSeason)}
                   </h5>
-                  {seasonResults[selectedSeason] && (
+                  {seasonResults[selectedSeason] ? (
                     <a
                       href={`${API_BASE}/${seasonResults[selectedSeason].document_file_path}`}
                       target="_blank"
@@ -155,6 +166,19 @@ export default function RaceCalendar() {
                       <i className="bi bi-trophy-fill me-2"></i>
                       {seasonResults[selectedSeason].final_results === 1 ? 'Celkové výsledky' : 'Průběžné výsledky'}
                     </a>
+                  ) : (
+                    // Sezóna bez zveřejněných výsledků: tlačítko zůstává, ale nejde
+                    // stisknout. Popisek nese obal - vypnuté tlačítko myš ignoruje
+                    // (Bootstrap mu dává pointer-events: none), takže by se nezobrazil.
+                    <span
+                      className="d-inline-block"
+                      title={`${isFinishedSeason(selectedSeason) ? 'Celkové' : 'Průběžné'} výsledky zatím nejsou k dispozici`}
+                    >
+                      <button type="button" className="btn btn-success" disabled>
+                        <i className="bi bi-trophy-fill me-2"></i>
+                        {isFinishedSeason(selectedSeason) ? 'Celkové výsledky' : 'Průběžné výsledky'}
+                      </button>
+                    </span>
                   )}
                 </div>
 
