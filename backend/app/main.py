@@ -129,6 +129,10 @@ async def serve_document(filename: str, db: Session = Depends(get_db)):
         path=file_path,
         media_type=(file_record.mime_type if file_record else None) or "application/octet-stream",
         filename=file_record.original_filename if file_record else file_path.name,
+        # Soubor pod UUID se nepřepisuje - nová verze dokumentu dostane nový
+        # název, takže ho prohlížeč smí držet natrvalo. Service worker soubory
+        # schválně nekešuje (viz frontend/public/sw.js).
+        headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )
 
 @app.get("/")

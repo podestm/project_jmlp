@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../../config/api.js';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import RegistrationFormFields from '../ui/registration/RegistrationFormFields.jsx';
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
@@ -153,9 +152,12 @@ export default function TimekeeperRacers() {
     }
   };
 
+  // Kluby jdou přes TimekeeperAPI jako zbytek obrazovky, aby byly offline
+  // v IndexedDB. Veřejný klient je dřív měl offline jen díky keši service
+  // workeru, který už data nekešuje (viz public/sw.js).
   const loadClubs = async () => {
     try {
-      const data = await API.get('/clubs/');
+      const data = await TimekeeperAPI.get('/clubs/');
       setClubs(data);
     } catch {
       setClubs([]);

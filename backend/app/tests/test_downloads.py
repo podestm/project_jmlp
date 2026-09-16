@@ -106,6 +106,28 @@ def test_neexistujici_soubor_je_404(client):
     assert client.get("/uploads/documents/neexistuje.pdf").status_code == 404
 
 
+def test_soubor_smi_prohlizec_drzet_natrvalo(client, db):
+    """Soubor pod UUID se nemění - nová verze dokumentu dostane nový název.
+
+    Service worker soubory nekešuje (frontend/public/sw.js), takže bez
+    téhle hlavičky by se PDF stahovalo znovu při každém otevření.
+    """
+    soubor = _soubor(db)
+
+    odpoved = client.get(f"/uploads/documents/{soubor.filename}")
+
+    assert odpoved.status_code == 200
+    assert odpoved.headers["cache-control"] == "public, max-age=31536000, immutable"
+
+
+def test_chybejici_soubor_si_prohlizec_neuklada(client):
+    """404 natrvalo v keši by soubor schoval i poté, co se nahraje."""
+    odpoved = client.get("/uploads/documents/neexistuje.pdf")
+
+    assert odpoved.status_code == 404
+    assert "immutable" not in odpoved.headers.get("cache-control", "")
+
+
 @pytest.mark.parametrize("cesta", [
     "/uploads/documents/..%2F..%2Fetc%2Fpasswd",
     "/uploads/documents/....//....//etc/passwd",
