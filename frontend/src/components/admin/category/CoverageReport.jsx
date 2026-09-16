@@ -87,7 +87,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
                 <div className="card h-100 border-primary" style={{ backgroundColor: 'rgba(13, 110, 253, 0.05)' }}>
                   <div className="card-header bg-primary text-white">
                     <h6 className="mb-0">
-                      <i className={`bi ${sexName === 'Muži' ? 'bi-person-fill' : 'bi-person-dress-fill'} me-2`}></i>
+                      <i className={`bi ${sexName === 'Muži' ? 'bi-gender-male' : 'bi-gender-female'} me-2`}></i>
                       {sexName}
                     </h6>
                   </div>

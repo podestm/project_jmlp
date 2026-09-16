@@ -320,7 +320,7 @@ export default function RacerManagement() {
                 </div>
                 <div className="col-md-3">
                   <label className="form-label small text-muted">
-                    <i className="bi bi-building me-1"></i>
+                    <i className="bi bi-buildings me-1"></i>
                     Klub
                   </label>
                   <SearchableSelect

@@ -82,7 +82,7 @@ export default function AdminLayout({ children }) {
             </Link>
             <Link to="/admin/club-requests" className={`nav-link text-white d-flex align-items-center justify-content-between ${isActive('/admin/club-requests') ? 'active' : ''}`}>
               <span className="d-flex align-items-center">
-                <i className="bi bi-buildings me-2" style={{ fontStyle: 'normal', fontFamily: 'bootstrap-icons' }}></i>
+                <i className="bi bi-buildings me-2"></i>
                 Žádosti o kluby
               </span>
               {pendingClubRequests > 0 && (

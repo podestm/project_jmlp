@@ -133,7 +133,7 @@ export default function RaceRegistrations() {
             <div className="col-md-3">
               <div className="card border-success">
                 <div className="card-body text-center">
-                  <i className="bi bi-building text-success fs-2"></i>
+                  <i className="bi bi-buildings text-success fs-2"></i>
                   <h3 className="mt-2">{new Set(registrations.map(r => r.club_name)).size}</h3>
                   <p className="text-muted mb-0">Klubů</p>
                 </div>

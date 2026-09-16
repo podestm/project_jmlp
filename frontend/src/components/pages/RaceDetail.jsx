@@ -118,7 +118,7 @@ export default function RaceDetail() {
                     </div>
                     {race.organizer_name && (
                       <div className="d-flex align-items-center gap-2">
-                        <i className="bi bi-building" style={{ color: 'var(--sunset-orange)' }}></i>
+                        <i className="bi bi-buildings" style={{ color: 'var(--sunset-orange)' }}></i>
                         <span style={{ color: 'var(--text-secondary)' }}>{fixEncoding(race.organizer_name)}</span>
                       </div>
                     )}

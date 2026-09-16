@@ -169,7 +169,7 @@ export default function AdminDashboard() {
         <div className="card border-warning shadow-sm mb-4">
           <div className="card-body d-flex align-items-center gap-3">
             <div className="dashboard-icon-box" style={{ background: 'rgba(255,193,7,0.15)', color: '#856404' }}>
-              <i className="bi bi-building fs-4"></i>
+              <i className="bi bi-buildings fs-4"></i>
             </div>
             <div className="flex-grow-1">
               <div className="fw-semibold">Nevyřízené žádosti o přiřazení klubu</div>
