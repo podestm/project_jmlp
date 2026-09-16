@@ -9,6 +9,7 @@ from ...database import get_db
 from ... import models, auth
 from ...utils import (
     fix_encoding,
+    category_display_sql,
     convert_utf8_field,
     StandardExceptions,
     get_category_snapshot_for_birth_year,
@@ -55,22 +56,30 @@ def get_categories_for_ordering(
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
     """Get active categories in default order (youngest first, women before men).
-    
+
     Default order: U8 ženy, U8 muži, U10 ženy, U10 muži, ... OPEN ženy, OPEN muži
     (highest min_birth_year first = youngest, women sex=2 before men sex=1)
+
+    Zobrazuje se `display_name` z adminu ("Myšáci dívky"). Kódové označení
+    ("U8") zůstává v `code` jako doplňková informace - nikde se nesmí tisknout
+    místo oficiálního názvu.
     """
     query = text(f"""
-        SELECT id, {convert_utf8_field('name')} as name, 
+        SELECT id, {convert_utf8_field('name')} as name,
+               {category_display_sql('fuj_jmlp_category')} as display_name,
                min_birth_year, max_birth_year, sex, active
         FROM fuj_jmlp_category
         WHERE active = 1
         ORDER BY min_birth_year DESC, sex DESC
     """)
     rows = db.execute(query).fetchall()
-    
+
     return [{
         "id": row.id,
-        "name": fix_encoding(row.name) if row.name else "",
+        "code": fix_encoding(row.name) if row.name else "",
+        "display_name": fix_encoding(row.display_name) if row.display_name else "",
+        # Zpětná kompatibilita: `name` je to, co se zobrazuje.
+        "name": fix_encoding(row.display_name) if row.display_name else "",
         "min_birth_year": row.min_birth_year,
         "max_birth_year": row.max_birth_year,
         "sex": row.sex,
@@ -311,8 +320,13 @@ def clear_start_list(
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
-) -> Dict[str, str]:
-    """Clear entire start list for a race (reset)."""
+) -> Dict[str, Any]:
+    """Clear entire start list for a race (reset).
+
+    Návratový typ musí být Dict[str, Any]: odpověď nese i logické
+    `idempotency_replayed` a se starou anotací Dict[str, str] neprošla
+    kontrolou schématu - časoměřič dostal 500, přestože se startovka smazala.
+    """
     endpoint = f"/api/timekeeper/races/{race_id}/start-list"
     replay = try_get_idempotent_response(
         db=db,

@@ -262,7 +262,12 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
               <ul className="mb-0">
                 {report.inactive_categories.map((cat, idx) => (
                   <li key={idx}>
-                    <strong>{cat.name}</strong>
+                    {/* Stejně jako v tabulce kategorií: hlavní je oficiální
+                        název, kódové označení jen jako doplněk. */}
+                    <strong>{cat.display_name || cat.name}</strong>
+                    {cat.display_name && cat.name && cat.display_name !== cat.name && (
+                      <small className="text-muted ms-2">{cat.name}</small>
+                    )}
                     {cat.sex && (
                       <span className={`badge ms-2 ${
                         cat.sex === 'Mix' ? 'bg-secondary' :

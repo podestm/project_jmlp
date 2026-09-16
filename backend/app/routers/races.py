@@ -166,17 +166,22 @@ def get_live_race(response: Response, db: Session = Depends(get_db)):
     if not live:
         raise HTTPException(status_code=404, detail="No live race")
 
-    entries = db.execute(text("""
+    # Název kategorie živě z adminu; snapshot v listině je jen záloha pro
+    # historická data - jinak by na webu svítil název z doby rozlosování.
+    entries = db.execute(text(f"""
         SELECT sl.id, sl.start_number, sl.race_number_actual, sl.race_number_display,
                sl.racer_name, sl.racer_surname, sl.racer_year,
-               sl.club_name, sl.category_name, sl.category_id,
+               sl.club_name,
+               COALESCE({category_display_sql('cat')}, sl.category_name) as category_name,
+               sl.category_id,
                sl.time1, sl.time2, sl.time_sum,
                sl.dnf+0 as dnf, sl.dns+0 as dns, sl.dsq+0 as dsq,
                COALESCE(rn.set_color, 'rose') as set_color
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
+        LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.race_id = :race_id
-        ORDER BY sl.category_name, sl.start_number ASC
+        ORDER BY category_name, sl.start_number ASC
     """), {"race_id": live.id}).fetchall()
 
     categories: dict = {}
@@ -346,7 +351,10 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             "birthYear": row.birthYear,
             "idSlcr": row.idSlcr,
             "registered_at": row.registered_at,
-            "category_name": (f"{row.category_name} - Ženy" if row.category_sex == 2 else (f"{row.category_name} - Muži" if row.category_sex == 1 else row.category_name)) if row.category_name else None,
+            # Název je už zobrazovaný (category_display_sql doplní pohlaví jen
+            # kategoriím bez vlastního názvu) - přidat ho znovu by dalo
+            # "Myšáci dívky - Ženy".
+            "category_name": row.category_name,
             "category_id": row.category_id
         })
     

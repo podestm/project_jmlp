@@ -5,6 +5,7 @@ from sqlalchemy import desc, text, and_
 
 from ...database import get_db
 from ... import models, schemas, auth
+from ...utils import category_display_name, fix_encoding
 
 router = APIRouter(tags=["admin-categories"])
 
@@ -225,8 +226,11 @@ def check_category_coverage(
             matching_categories = []
             for cat in relevant_categories:
                 if cat.min_birth_year <= year <= cat.max_birth_year:
-                    cat_label = f"{cat.name} ({'Mix' if cat.sex == 0 else sex_name})"
-                    matching_categories.append(cat_label)
+                    # Oficiální název z adminu ("Předžáci"), ne kódové označení.
+                    # Pohlaví se nedolepuje - název ho už nese (a věta začíná
+                    # "Ročník X pro Ženy"); jen u Mix kategorie to jinak není poznat.
+                    label = category_display_name(cat) or fix_encoding(cat.name)
+                    matching_categories.append(f"{label} (Mix)" if cat.sex == 0 else label)
             
             if len(matching_categories) == 0:
                 gap_years.append(year)
@@ -296,9 +300,15 @@ def check_category_coverage(
         models.Category.active == False
     ).all()
     
+    # `name` je legacy sloupec, proto fix_encoding; `display_name` je oficiální
+    # název z adminu a zobrazuje se přednostně. Pohlaví se nepřidává - jde
+    # vedle jako samostatný odznak.
     inactive_list = [{
         "id": cat.id,
-        "name": cat.name,
+        "name": fix_encoding(cat.name),
+        "display_name": (
+            fix_encoding(cat.display_name) if (cat.display_name or "").strip() else None
+        ),
         "sex": "Mix" if cat.sex == 0 else "Muži" if cat.sex == 1 else "Ženy",
         "range": f"{cat.min_birth_year}-{cat.max_birth_year}"
     } for cat in inactive_categories]

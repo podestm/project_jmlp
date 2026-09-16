@@ -560,3 +560,74 @@ def test_live_status_vrati_bezici_zavod_a_zakaze_kesovani(client, db):
         "areal_name": "Přelouč",
     }
     assert odpoved.headers["cache-control"] == "no-store"
+
+
+# --------------------------------------------------------------------------
+# Názvy kategorií na webu - oficiální název z adminu, nikde skládaný podruhé
+# --------------------------------------------------------------------------
+def _kategorie(db, name, min_year, max_year, sex, display_name=None) -> models.Category:
+    kategorie = models.Category(
+        name=name,
+        display_name=display_name,
+        min_birth_year=min_year,
+        max_birth_year=max_year,
+        sex=sex,
+        active=True,
+    )
+    db.add(kategorie)
+    db.commit()
+    db.refresh(kategorie)
+    return kategorie
+
+
+def _zavodnik(db, name, surname, year, sex, club_id=None) -> models.Racer:
+    zavodnik = models.Racer(name=name, surname=surname, year=year, sex=sex, club_id=club_id)
+    db.add(zavodnik)
+    db.commit()
+    db.refresh(zavodnik)
+    return zavodnik
+
+
+def test_seznam_prihlasenych_nepridava_pohlavi_k_nazvu_kategorie(client, db):
+    """Název z adminu už pohlaví obsahuje - jinak vznikne "Myšáci dívky - Ženy"."""
+    kategorie = _kategorie(db, "U10", 2016, 2018, 2, display_name="Myšáci dívky")
+    klub = _klub(db, "SK Pardubice")
+    zavod = _zavod(db)
+    zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2, club_id=klub.id)
+    db.add(models.Registration(
+        race_id=zavod.id, racer_id=zavodnice.id, category_id=kategorie.id))
+    db.commit()
+
+    odpoved = client.get(f"/races/{zavod.id}/registrations")
+
+    assert odpoved.status_code == 200, odpoved.text
+    zavodnici = odpoved.json()["clubs"][0]["racers"]
+    assert zavodnici[0]["category_name"] == "Myšáci dívky"
+    assert odpoved.json()["categories"] == [{"id": kategorie.id, "name": "Myšáci dívky"}]
+
+
+def test_live_prenos_ukazuje_prejmenovanou_kategorii(client, db):
+    """Startovka drží název z doby rozlosování; na webu musí být ten současný."""
+    kategorie = _kategorie(db, "U10", 2016, 2018, 2, display_name="U10 dívky")
+    zavod = _zavod(db, is_live=True)
+    zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
+    db.add(models.StartListEntry(
+        race_id=zavod.id,
+        racer_id=zavodnice.id,
+        category_id=kategorie.id,
+        start_number=1,
+        racer_name="Anna",
+        racer_surname="Holcicka",
+        racer_year=2017,
+        racer_sex=2,
+        category_name="U10 - Ženy",
+    ))
+    db.commit()
+
+    kategorie.display_name = "Myšáci dívky"
+    db.commit()
+
+    odpoved = client.get("/races/live")
+
+    assert odpoved.status_code == 200, odpoved.text
+    assert [k["category_name"] for k in odpoved.json()["categories"]] == ["Myšáci dívky"]

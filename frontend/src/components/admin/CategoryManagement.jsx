@@ -112,7 +112,7 @@ export default function CategoryManagement() {
     // proto patří název i rozsah ročníků, ať je jasné, co zmizí.
     const confirmed = await confirm({
       title: 'Smazat kategorii?',
-      message: `Opravdu chcete smazat kategorii „${category.name}" (ročníky ${category.min_birth_year}–${category.max_birth_year})? Tuto akci nelze vrátit zpět.`,
+      message: `Opravdu chcete smazat kategorii „${category.display_name || category.name}" (ročníky ${category.min_birth_year}–${category.max_birth_year})? Tuto akci nelze vrátit zpět.`,
       confirmLabel: 'Smazat',
       variant: 'danger',
       icon: 'bi-trash'

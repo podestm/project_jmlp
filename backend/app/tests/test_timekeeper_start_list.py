@@ -547,6 +547,65 @@ def test_ceska_jmena_projdou_snapshotem_bez_poskozeni(client, db, zavod, kategor
 
 
 # --------------------------------------------------------------------------
+# Názvy kategorií - všude oficiální název z adminu, kód jen jako doplněk
+# --------------------------------------------------------------------------
+
+def test_seznam_kategorii_k_rozlosovani_nese_nazev_z_adminu(client, kategorie,
+                                                            timekeeper_headers):
+    odpoved = client.get("/api/timekeeper/categories", headers=timekeeper_headers)
+
+    assert odpoved.status_code == 200, odpoved.text
+    podle_id = {radek["id"]: radek for radek in odpoved.json()}
+    divky = podle_id[kategorie["u10_zeny"].id]
+    # Zobrazuje se oficiální název, kódové označení jen jako doplňková informace.
+    assert divky["display_name"] == "U10 dívky"
+    assert divky["name"] == "U10 dívky"
+    assert divky["code"] == "U10"
+
+
+def test_kategorie_bez_nazvu_se_slozi_z_kodu_a_pohlavi(client, db, timekeeper_headers):
+    bez_nazvu = _kategorie(db, "U8", 2019, 2020, 2)
+
+    odpoved = client.get("/api/timekeeper/categories", headers=timekeeper_headers)
+
+    radek = next(r for r in odpoved.json() if r["id"] == bez_nazvu.id)
+    assert radek["display_name"] == "U8 - Ženy"
+
+
+def test_vypis_startovky_ukazuje_prejmenovanou_kategorii(client, db, zavod, kategorie,
+                                                         timekeeper_headers):
+    """Snapshot v listině je jen záloha - název se bere živě z adminu.
+
+    Kategorie se dá v adminu přejmenovat i po rozlosování a od té chvíle musí
+    být všude vidět nový název, ne ten, který platil při generování listiny.
+    """
+    zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
+    _polozka(db, zavod, zavodnice, start_number=1,
+             category_id=kategorie["u10_zeny"].id, nazev_kategorie="U10 - Ženy")
+
+    kategorie["u10_zeny"].display_name = "Myšáci dívky"
+    db.commit()
+
+    radek = _startovka(client, zavod, timekeeper_headers)[0]
+    assert radek["category_name"] == "Myšáci dívky"
+
+
+def test_vysledky_ukazuji_stejny_nazev_kategorie_jako_startovka(
+        client, db, zavod, kategorie, timekeeper_headers):
+    zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
+    _polozka(db, zavod, zavodnice, start_number=1,
+             category_id=kategorie["u10_zeny"].id, nazev_kategorie="U10 - Ženy")
+
+    odpoved = client.get(f"/api/timekeeper/races/{zavod.id}/results",
+                         headers=timekeeper_headers)
+
+    assert odpoved.status_code == 200, odpoved.text
+    nazvy = [skupina["category_name"] for skupina in odpoved.json()["categories"]]
+    assert nazvy == ["U10 dívky"]
+    assert nazvy[0] == _startovka(client, zavod, timekeeper_headers)[0]["category_name"]
+
+
+# --------------------------------------------------------------------------
 # Ruční přidání závodníka
 # --------------------------------------------------------------------------
 
@@ -1178,13 +1237,12 @@ def test_smazani_neexistujici_polozky_vrati_404(client, timekeeper_headers):
     assert odpoved.json()["detail"] == "Záznam na startovní listině nenalezen"
 
 
-def test_CHYBA_smazani_cele_startovky_odpovi_500_i_kdyz_smazalo(
+def test_smazani_cele_startovky_odpovi_200_a_smaze_jen_svuj_zavod(
         client, klient_jako_v_provozu, db, zavod, kategorie, ctyri_prihlaseni,
         timekeeper_headers):
-    """CHYBA: obsluha je deklarovaná jako Dict[str, str], ale do odpovědi dává
-    i logickou hodnotu idempotency_replayed. Odpověď proto neprojde kontrolou
-    schématu a časoměřič dostane 500 - přestože se startovka opravdu smazala.
-    Vyprázdnit startovku tak přes API nelze udělat "úspěšně" vůbec."""
+    """Dřív tenhle endpoint vracel 500 vždycky: obsluha byla deklarovaná jako
+    Dict[str, str], ale do odpovědi dávala i logické idempotency_replayed.
+    Startovka se smazala, časoměřič ale viděl chybu a nevěděl, na čem je."""
     _cisla(db)
     client.post(f"/api/timekeeper/races/{zavod.id}/start-list/generate",
                 json={}, headers=timekeeper_headers)
@@ -1195,10 +1253,34 @@ def test_CHYBA_smazani_cele_startovky_odpovi_500_i_kdyz_smazalo(
     odpoved = klient_jako_v_provozu.delete(f"/api/timekeeper/races/{zavod.id}/start-list",
                                            headers=timekeeper_headers)
 
-    assert odpoved.status_code == 500
+    assert odpoved.status_code == 200, odpoved.text
+    assert odpoved.json()["message"] == "Smazáno 4 záznamů ze startovní listiny"
+    assert odpoved.json()["idempotency_replayed"] is False
     assert _startovka(client, zavod, timekeeper_headers) == []
     # Jiný závod zůstal nedotčený.
     assert len(_startovka(client, jiny, timekeeper_headers)) == 1
+
+
+def test_dvoji_odeslani_smazani_startovky_se_neprovede_dvakrat(
+        client, db, zavod, kategorie, ctyri_prihlaseni, timekeeper_headers):
+    """Přehrávka z offline fronty nesmí smazat startovku vygenerovanou mezitím."""
+    _cisla(db)
+    hlavicky = {**timekeeper_headers, "X-Idempotency-Key": "smazat-startovku-1"}
+    client.post(f"/api/timekeeper/races/{zavod.id}/start-list/generate",
+                json={}, headers=timekeeper_headers)
+
+    prvni = client.delete(f"/api/timekeeper/races/{zavod.id}/start-list", headers=hlavicky)
+    assert prvni.status_code == 200, prvni.text
+
+    # Startovka se mezitím vygeneruje znovu.
+    client.post(f"/api/timekeeper/races/{zavod.id}/start-list/generate",
+                json={}, headers=timekeeper_headers)
+
+    druhy = client.delete(f"/api/timekeeper/races/{zavod.id}/start-list", headers=hlavicky)
+
+    assert druhy.status_code == 200
+    assert druhy.json()["idempotency_replayed"] is True
+    assert len(_startovka(client, zavod, timekeeper_headers)) == 4
 
 
 def test_smazani_startovky_nechava_prihlasky_beze_zmeny(

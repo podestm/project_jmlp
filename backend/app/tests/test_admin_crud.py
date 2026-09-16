@@ -989,6 +989,30 @@ def test_kontrola_pokryti_najde_mezeru_i_prekryv(client, admin_headers, db):
     assert [k["name"] for k in vysledek["inactive_categories"]] == ["Neaktivni"]
 
 
+def test_kontrola_pokryti_pojmenovava_kategorie_nazvem_z_adminu(client, admin_headers, db):
+    """Kód ("U12 Předžactvo") je jen doplňková informace - v hláškách i v seznamu
+    neaktivních kategorií patří oficiální název nastavený v adminu."""
+    _kategorie(db, name="U12 Predzactvo", sex=2, min_year=2014, max_year=2015,
+               display_name="Předžačky")
+    _kategorie(db, name="OPEN", sex=0, min_year=2014, max_year=2015,
+               display_name="OPEN")
+    _kategorie(db, name="U8 Mysaci", sex=2, min_year=2018, max_year=2019,
+               display_name="Myšáci dívky", active=False)
+
+    vysledek = client.get("/api/admin/categories/check/coverage", headers=admin_headers).json()
+
+    prekryv = vysledek["results_by_sex"]["Ženy"]["overlap_details"][0]
+    assert "Předžačky" in prekryv["message"]
+    assert "U12 Predzactvo" not in prekryv["message"]
+    # Pohlaví se nedolepuje - věta ho už jednou má; u Mix kategorie ano.
+    assert "Předžačky (Ženy)" not in prekryv["message"]
+    assert "OPEN (Mix)" in prekryv["message"]
+
+    neaktivni = vysledek["inactive_categories"][0]
+    assert neaktivni["display_name"] == "Myšáci dívky"
+    assert neaktivni["name"] == "U8 Mysaci"
+
+
 # ===========================================================================
 # Příspěvky (posts.py)
 # ===========================================================================

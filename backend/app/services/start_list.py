@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..utils import (
+    category_display_sql,
     convert_utf8_field,
     fix_encoding,
     get_category_snapshot_for_birth_year,
@@ -312,6 +313,19 @@ def _apply_race_number_snapshot(entry: models.StartListEntry, race_number: model
     entry.race_number_display = race_number.display_number
 
 
+def _category_name(row: Any) -> str | None:
+    """Oficiální název kategorie z adminu, snapshot jako záloha.
+
+    Kódové označení ("U10") je jen doplňková informace - všude, kde je název
+    vidět, patří `display_name` nastavený v adminu. Snapshot uložený v listině
+    mohl vzniknout před přejmenováním, proto má přednost živá hodnota.
+    """
+    live = getattr(row, "category_display_name", None)
+    if live:
+        return fix_encoding(live)
+    return fix_encoding(row.category_name) if row.category_name else None
+
+
 def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None = None) -> Dict[str, Any]:
     category_rank = None
     if category_rank_map is not None:
@@ -337,7 +351,9 @@ def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None
         "racer_year": row.racer_year,
         "racer_sex": row.racer_sex,
         "club_name": fix_encoding(row.club_name) if row.club_name else None,
-        "category_name": fix_encoding(row.category_name) if row.category_name else None,
+        # Název kategorie se bere živě z adminu; snapshot v listině je jen
+        # záloha pro historická data (a pro řádky bez kategorie).
+        "category_name": _category_name(row),
         "category_sex": row.category_sex,
         "race_number_actual": row.race_number_actual,
         "race_number_display": row.race_number_display,
@@ -361,34 +377,38 @@ def _sort_start_list_rows(rows: list[Any], category_rank_map: dict[int, int]) ->
 
 
 def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
-    query = text("""
+    query = text(f"""
         SELECT sl.id, sl.race_id, sl.racer_id, sl.category_id,
                sl.start_number, sl.race_number_id,
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
+               {category_display_sql('cat')} as category_display_name,
                sl.race_number_actual, sl.race_number_display,
                rn.set_color,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
                sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+        LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.race_id = :race_id
     """)
     return db.execute(query, {"race_id": race_id}).fetchall()
 
 
 def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
-    query = text("""
+    query = text(f"""
         SELECT sl.id, sl.race_id, sl.racer_id, sl.category_id,
                sl.start_number, sl.race_number_id,
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
+               {category_display_sql('cat')} as category_display_name,
                sl.race_number_actual, sl.race_number_display,
                rn.set_color,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
                sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+        LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.id = :entry_id
     """)
     row = db.execute(query, {"entry_id": entry_id}).first()

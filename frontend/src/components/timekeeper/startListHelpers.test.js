@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  categoryLabel,
   findRaceNumberOption,
   getRaceNumberValidationError,
+  groupEntriesByCategory,
   resolveCategoryPreview,
   sortStartListEntries
 } from './startListHelpers.js';
@@ -130,5 +132,50 @@ describe('resolveCategoryPreview', () => {
 
   it('nečíselný ročník nespadne', () => {
     expect(resolveCategoryPreview(CATEGORIES, 'abc', 1, 'čeká')).toBe('čeká');
+  });
+});
+
+describe('categoryLabel', () => {
+  it('používá oficiální název z adminu, ne kódové označení', () => {
+    expect(categoryLabel({
+      code: 'U10', display_name: 'Myšáci dívky', sex_label: 'Ženy'
+    })).toBe('Myšáci dívky');
+  });
+
+  it('bez názvu se složí kód a pohlaví', () => {
+    expect(categoryLabel({ code: 'U10', name: 'U10', sex_label: 'Ženy' })).toBe('U10 - Ženy');
+    expect(categoryLabel({ code: 'OPEN', name: 'OPEN', sex_label: 'Mix' })).toBe('OPEN');
+  });
+
+  it('prázdný vstup nespadne', () => {
+    expect(categoryLabel(null)).toBe('');
+    expect(categoryLabel({})).toBe('');
+  });
+});
+
+describe('groupEntriesByCategory', () => {
+  it('seskupí po kategoriích v pořadí startu', () => {
+    const groups = groupEntriesByCategory([
+      entry({ id: 3, category_id: 2, category_name: 'OPEN muži', category_rank: 3, start_number: 9 }),
+      entry({ id: 2, category_id: 1, category_name: 'U10 dívky', category_rank: 0, start_number: 2 }),
+      entry({ id: 1, category_id: 1, category_name: 'U10 dívky', category_rank: 0, start_number: 1 })
+    ]);
+
+    expect(groups.map((group) => group.category_name)).toEqual(['U10 dívky', 'OPEN muži']);
+    expect(groups[0].entries.map((e) => e.id)).toEqual([1, 2]);
+    expect(groups[1].entries).toHaveLength(1);
+  });
+
+  it('řádek bez kategorie skončí ve vlastní skupině na konci', () => {
+    const groups = groupEntriesByCategory([
+      entry({ id: 1, category_id: null, category_name: null, category_rank: null }),
+      entry({ id: 2, category_id: 1, category_name: 'U10 dívky', category_rank: 0 })
+    ]);
+
+    expect(groups.map((group) => group.category_name)).toEqual(['U10 dívky', 'Bez kategorie']);
+  });
+
+  it('prázdná listina dá prázdný seznam', () => {
+    expect(groupEntriesByCategory([])).toEqual([]);
   });
 });

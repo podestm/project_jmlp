@@ -62,6 +62,23 @@ export const getRaceNumberValidationError = (displayNumber, { options = [], entr
 };
 
 /**
+ * Oficiální název kategorie tak, jak je nastavený v adminu.
+ *
+ * Kódové označení ("U10") je jen doplňková informace, nikdy náhrada názvu.
+ * Fallback skládá název z kódu a pohlaví - stejně jako compose_category_name
+ * na serveru - pro kategorie, které zatím nemají vyplněný display_name.
+ */
+export const categoryLabel = (category) => {
+  if (!category) return '';
+  if (category.display_name) return category.display_name;
+  const code = category.name || category.code || '';
+  if (!code) return '';
+  return category.sex_label && category.sex_label !== 'Mix'
+    ? `${code} - ${category.sex_label}`
+    : code;
+};
+
+/**
  * Which category a racer will land in once saved. The server recomputes this,
  * so it is only a preview.
  *
@@ -86,7 +103,35 @@ export const resolveCategoryPreview = (categories, year, sex, pendingLabel, noMa
   ));
 
   if (!match) return noMatchLabel;
-  return match.sex_label === 'Mix' ? match.name : `${match.name} - ${match.sex_label}`;
+  return categoryLabel(match);
+};
+
+/**
+ * Seskupí řádky startovní listiny po kategoriích v pořadí startu.
+ *
+ * Tvar odpovídá tomu, co vrací /results (a co čeká generátor listiny), takže
+ * se z rozpracované startovky dá tisknout stejná sestava jako z Výsledků.
+ */
+export const groupEntriesByCategory = (entries) => {
+  const groups = [];
+  const indexByKey = new Map();
+
+  for (const entry of sortStartListEntries(entries)) {
+    const key = entry.category_id || `none-${entry.category_name || ''}`;
+    if (!indexByKey.has(key)) {
+      indexByKey.set(key, groups.length);
+      groups.push({
+        key,
+        category_id: entry.category_id ?? null,
+        category_name: entry.category_name || 'Bez kategorie',
+        rank: entry.category_rank ?? Number.MAX_SAFE_INTEGER,
+        entries: []
+      });
+    }
+    groups[indexByKey.get(key)].entries.push(entry);
+  }
+
+  return groups.sort((a, b) => a.rank - b.rank);
 };
 
 /**
