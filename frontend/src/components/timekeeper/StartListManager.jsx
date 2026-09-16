@@ -21,6 +21,9 @@ import {
   sortStartListEntries,
 } from './startListHelpers.js';
 
+/** Stejné pro všechny tabulky kategorií, aby sloupce seděly pod sebou. */
+const START_LIST_TABLE_STYLE = Object.freeze({ fontSize: '0.82rem', tableLayout: 'fixed', minWidth: '860px' });
+
 /**
  * Generování a ruční správa startovní listiny.
  *
@@ -510,18 +513,22 @@ export default function StartListManager() {
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
-                  <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.82rem' }}>
+                  {/* Každá kategorie je samostatná tabulka. Pevné rozložení se
+                      stejnými šířkami drží sloupce pod sebou napříč kategoriemi -
+                      automatické by je rozpočítalo podle obsahu každé tabulky
+                      zvlášť. Šířky počítají i s poli při úpravě řádku. */}
+                  <table className="table table-sm table-hover mb-0 align-middle" style={START_LIST_TABLE_STYLE}>
                     <thead className="table-light">
                       <tr>
-                        <th style={{ width: '85px', padding: '4px 8px' }}>Pořadí</th>
-                        <th style={{ width: '125px', padding: '4px 8px' }}>St. číslo</th>
+                        <th style={{ width: '64px', padding: '4px 8px' }}>Pořadí</th>
+                        <th style={{ width: '104px', padding: '4px 8px' }}>St. číslo</th>
                         <th style={{ padding: '4px 8px' }}>Závodník</th>
-                        <th style={{ width: '55px', padding: '4px 8px' }}>Roč.</th>
-                        <th style={{ padding: '4px 8px' }}>Klub</th>
-                        <th style={{ width: '70px', padding: '4px 8px' }}>Čas 1</th>
-                        <th style={{ width: '70px', padding: '4px 8px' }}>Čas 2</th>
-                        <th style={{ width: '70px', padding: '4px 8px' }}>Součet</th>
-                        <th style={{ width: '85px', padding: '4px 8px' }}>Akce</th>
+                        <th style={{ width: '72px', padding: '4px 8px' }}>Roč.</th>
+                        <th style={{ width: '22%', padding: '4px 8px' }}>Klub</th>
+                        <th style={{ width: '68px', padding: '4px 8px' }}>Čas 1</th>
+                        <th style={{ width: '68px', padding: '4px 8px' }}>Čas 2</th>
+                        <th style={{ width: '68px', padding: '4px 8px' }}>Součet</th>
+                        <th style={{ width: '72px', padding: '4px 8px' }}>Akce</th>
                       </tr>
                     </thead>
                     <tbody>

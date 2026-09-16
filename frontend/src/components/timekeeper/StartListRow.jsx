@@ -20,10 +20,8 @@ const StartListRow = React.memo(function StartListRow({ entry, onEdit, onDelete 
           setColor={entry.set_color}
         />
       </td>
-      <td style={{ padding: '4px 8px' }}>
-        <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
-        <small className="text-muted ms-1">| {entry.category_name || 'Bez kategorie'}</small>
-      </td>
+      {/* Kategorie se neopakuje - řádek je v tabulce své kategorie */}
+      <td className="fw-semibold" style={{ padding: '4px 8px' }}>{entry.racer_surname} {entry.racer_name}</td>
       <td style={{ padding: '4px 8px' }}>{entry.racer_year}</td>
       <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || '—'}</td>
       <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
