@@ -3,6 +3,7 @@ import { API } from '../../config/api.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { formatFileSize } from '../../utils/files.js';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 
 /**
  * Veřejný seznam dokumentů.
@@ -83,6 +84,11 @@ export default function Documents() {
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+
+  // Obnova na pozadí: seznam, který už na obrazovce je, se jen potichu vymění.
+  useRevalidateOnFocus(() => {
+    API.get('/documents').then(setData).catch(() => {});
+  });
 
   if (loading) return <LoadingState variant="page" label="Načítám dokumenty…" />;
 

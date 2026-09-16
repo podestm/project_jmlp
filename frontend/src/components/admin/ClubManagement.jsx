@@ -6,6 +6,7 @@ import ClubDeleteDialog from './ClubDeleteDialog.jsx';
 import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 
 const CLUB_ROLES = [ROLE.logo];
 
@@ -27,18 +28,22 @@ export default function ClubManagement() {
   const [expandedClub, setExpandedClub] = useState(null);
   const [mazanyKlub, setMazanyKlub] = useState(null);
 
-  const load = useCallback(async () => {
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes seznam,
+  // který už na obrazovce je
+  const load = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setClubs(await AdminAPI.get('/api/admin/clubs/overview'));
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message });
+      if (!silent) setMessage({ type: 'danger', text: err.message });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Při otevřeném dialogu mazání se seznam pod ním neobnovuje
+  useRevalidateOnFocus(() => load({ silent: true }), { enabled: !mazanyKlub });
 
   const smazatKlub = useCallback(async (club, cilId) => {
     try {

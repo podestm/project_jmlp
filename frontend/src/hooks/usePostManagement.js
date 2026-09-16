@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AdminAPI } from '../config/api.js';
 import { MONTH_NAMES } from '../config/constants.js';
+import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 export const usePostManagement = () => {
     // State management
@@ -45,17 +46,22 @@ export const usePostManagement = () => {
     }, [posts, searchTerm, statusFilter, selectedYear, selectedMonth]);
 
     // Data loading functions
-    const loadPosts = async () => {
+    // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes
+    // seznam, který už na obrazovce je
+    const loadPosts = async ({ silent = false } = {}) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const data = await AdminAPI.get('/api/admin/posts');
             setPosts(data);
         } catch {
-            setError('Chyba při načítání postů');
+            if (!silent) setError('Chyba při načítání postů');
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
+
+    // Při otevřeném formuláři se seznam pod ním neobnovuje
+    useRevalidateOnFocus(() => loadPosts({ silent: true }), { enabled: !showForm });
 
     const loadAvailableFiles = async () => {
         try {

@@ -87,7 +87,8 @@ export default function RegisteredRacersCard({ registrations, loading, className
 
 /**
  * Fetch the registration list for a race, re-fetching whenever `refreshToken`
- * changes (both pages bump it after a successful registration).
+ * changes (both pages bump it after a successful registration and when the
+ * user comes back to the tab).
  *
  * @returns {{registrations: Object|null, loading: boolean}}
  */

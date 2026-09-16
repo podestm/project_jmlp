@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { formatDate } from '../../utils/date.js';
 import { fixEncoding } from '../../utils/text.js';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 import RegistrationForm from '../ui/RegistrationForm.jsx';
 import RegisteredRacersCard, { useRaceRegistrations } from './RegisteredRacersCard.jsx';
 
@@ -14,27 +15,39 @@ export default function RaceDetail() {
   const [error, setError] = useState(null);
   const [successCount, setSuccessCount] = useState(0);
   const [successMsg, setSuccessMsg] = useState('');
+  const [revalidateCount, setRevalidateCount] = useState(0);
 
-  // successCount je refresh token - po každé registraci se seznam natáhne znovu
-  const { registrations, loading: loadingRegs } = useRaceRegistrations(raceId, successCount);
+  // successCount a revalidateCount jsou refresh tokeny - seznam se natáhne
+  // znovu po každé registraci i po návratu do záložky
+  const { registrations, loading: loadingRegs } = useRaceRegistrations(
+    raceId, `${successCount}-${revalidateCount}`
+  );
+
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes detail,
+  // který už na obrazovce je
+  const fetchRace = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    try {
+      const data = await fetch(`/races/${raceId}`).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      });
+      setRace(data);
+    } catch (err) {
+      if (!silent) setError(err.message);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [raceId]);
 
   useEffect(() => {
-    const fetchRace = async () => {
-      setLoading(true);
-      try {
-        const data = await fetch(`/races/${raceId}`).then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        });
-        setRace(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchRace();
-  }, [raceId]);
+  }, [fetchRace]);
+
+  useRevalidateOnFocus(() => {
+    fetchRace({ silent: true });
+    setRevalidateCount(count => count + 1);
+  });
 
   if (loading) {
     return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import API, { API_CONFIG } from '../config/api.js';
 import { MONTH_NAMES } from '../config/constants.js';
+import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 export const useNewsArchive = () => {
     // State management
@@ -29,17 +30,21 @@ export const useNewsArchive = () => {
     }, [searchTerm, selectedYear, selectedMonth]);
 
     // Data fetching
-    const fetchPosts = async () => {
+    // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes
+    // aktuality, které už na obrazovce jsou
+    const fetchPosts = async ({ silent = false } = {}) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const data = await API.get(API_CONFIG.ENDPOINTS.POSTS);
             setPosts(data);
         } catch (err) {
-            setError(err.message);
+            if (!silent) setError(err.message);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
+
+    useRevalidateOnFocus(() => fetchPosts({ silent: true }));
 
     // Filtering logic
     const filterPosts = () => {

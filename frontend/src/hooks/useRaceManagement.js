@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AdminAPI } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
+import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 export const useRaceManagement = () => {
     // Refs for debouncing
@@ -39,9 +40,10 @@ export const useRaceManagement = () => {
     const [seasonFilter, setSeasonFilter] = useState('');
     const [availableSeasons, setAvailableSeasons] = useState([]);
 
-    const loadRaces = async () => {
+    // silent: obnova na pozadí - nesahá na hlášky nad seznamem
+    const loadRaces = async ({ silent = false } = {}) => {
         try {
-            setError(null);
+            if (!silent) setError(null);
             const data = await AdminAPI.get('/api/admin/races');
             setRaces(data);
             
@@ -49,7 +51,7 @@ export const useRaceManagement = () => {
             setAvailableSeasons(seasons.sort((a, b) => b - a));
         } catch (err) {
             console.error('Error loading races:', err);
-            setError('Chyba při načítání závodů');
+            if (!silent) setError('Chyba při načítání závodů');
         }
     };
 
@@ -315,6 +317,10 @@ export const useRaceManagement = () => {
     useEffect(() => {
         loadRaces();
     }, []);
+
+    // Při otevřeném formuláři ne: změna počtu závodů by přegenerovala číslo
+    // závodu v rozepsaném formuláři (viz efekt níž).
+    useRevalidateOnFocus(() => loadRaces({ silent: true }), { enabled: !showForm });
 
     useEffect(() => {
         filterRaces();

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import VisitsChart from './VisitsChart.jsx';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -13,18 +14,22 @@ export default function AdminDashboard() {
     loadDashboardData();
   }, []);
 
-  const loadDashboardData = async () => {
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes čísla,
+  // která už na obrazovce jsou
+  const loadDashboardData = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const result = await AdminAPI.get('/api/admin/dashboard/stats');
       setData(result);
     } catch (err) {
       console.error('Error loading dashboard:', err);
-      setError(err.message);
+      if (!silent) setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  useRevalidateOnFocus(() => loadDashboardData({ silent: true }));
 
   if (loading) {
     return (

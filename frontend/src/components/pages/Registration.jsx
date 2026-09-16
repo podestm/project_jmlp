@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API, { API_CONFIG } from '../../config/api.js';
 import { fixEncoding } from '../../utils/text.js';
 import { formatDate } from '../../utils/date.js';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 import RegistrationForm from '../ui/RegistrationForm.jsx';
 import RegisteredRacersCard, { useRaceRegistrations } from './RegisteredRacersCard.jsx';
 
@@ -12,28 +13,40 @@ function Registration() {
   const [loading, setLoading] = useState(true);
   const [successCount, setSuccessCount] = useState(0);
   const [successMsg, setSuccessMsg] = useState('');
+  const [revalidateCount, setRevalidateCount] = useState(0);
 
-  // successCount je refresh token - po každé registraci se seznam natáhne znovu
-  const { registrations, loading: loadingRegistrations } = useRaceRegistrations(selectedRaceId, successCount);
+  // successCount a revalidateCount jsou refresh tokeny - seznam se natáhne
+  // znovu po každé registraci i po návratu do záložky
+  const { registrations, loading: loadingRegistrations } = useRaceRegistrations(
+    selectedRaceId, `${successCount}-${revalidateCount}`
+  );
+
+  // silent: obnova na pozadí - bez spinneru a bez automatického výběru závodu,
+  // který by přepsal, co si člověk mezitím vybral
+  const fetchRaces = useCallback(async ({ silent = false } = {}) => {
+    try {
+      const allRaces = await API.get(API_CONFIG.ENDPOINTS.RACES, { current_season: true });
+      const open = allRaces
+        .filter(r => r.registration)
+        .map(r => ({ ...r, areal_name: fixEncoding(r.areal_name) }))
+        .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+      setRaces(open);
+      if (!silent && open.length === 1) setSelectedRaceId(open[0].id);
+    } catch (err) {
+      console.error('Chyba pri nacitani zavodu:', err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchRaces = async () => {
-      try {
-        const allRaces = await API.get(API_CONFIG.ENDPOINTS.RACES, { current_season: true });
-        const open = allRaces
-          .filter(r => r.registration)
-          .map(r => ({ ...r, areal_name: fixEncoding(r.areal_name) }))
-          .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-        setRaces(open);
-        if (open.length === 1) setSelectedRaceId(open[0].id);
-      } catch (err) {
-        console.error('Chyba pri nacitani zavodu:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchRaces();
-  }, []);
+  }, [fetchRaces]);
+
+  useRevalidateOnFocus(() => {
+    fetchRaces({ silent: true });
+    setRevalidateCount(count => count + 1);
+  });
 
   const selectedRace = races.find(r => r.id === selectedRaceId);
 

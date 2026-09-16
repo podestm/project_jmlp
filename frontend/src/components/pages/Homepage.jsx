@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/date.js';
 import jmlpLogo from '../../assets/images/jmlp_logo.png';
 import slcrLogo from '../../assets/images/czech_ski_snowboard-logo.png';
 import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
+import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 
 
 function Homepage() {
@@ -20,15 +21,17 @@ function Homepage() {
     fetchUpcomingRaces();
   }, []);
 
-  const fetchPosts = async () => {
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes obsah,
+  // který už na obrazovce je
+  const fetchPosts = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await API.get(API_CONFIG.ENDPOINTS.POSTS, { limit: 3 });
       setPosts(data);
     } catch (err) {
-      setError(err.message);
+      if (!silent) setError(err.message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -55,6 +58,11 @@ function Homepage() {
       console.error('Chyba při načítání závodů:', err);
     }
   };
+
+  useRevalidateOnFocus(() => {
+    fetchPosts({ silent: true });
+    fetchUpcomingRaces();
+  });
 
   if (loading) {
     return (
