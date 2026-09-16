@@ -4,12 +4,19 @@ import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
+import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { dropRaceSnapshot } from '../../offline/startListCache.js';
+import { clearTimingDrafts } from '../../offline/timingDrafts.js';
+import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
 import {
   OFFLINE_QUEUED_TEXT,
+  categoryLabel,
   findRaceNumberOption,
   getRaceNumberValidationError,
+  groupEntriesByCategory,
   resolveCategoryPreview,
   sortStartListEntries,
 } from './startListHelpers.js';
@@ -26,6 +33,7 @@ const CATEGORY_PENDING_TEXT = 'Kategorie se dopočítá při uložení';
 
 export default function StartListManager() {
   const { confirm, confirmElement } = useConfirm();
+  const { isOnline, queueStats } = useSyncStatus();
   const [races, setRaces] = useState([]);
   const [selectedRaceId] = useState(
     localStorage.getItem(SELECTED_RACE_KEY) || ''
@@ -48,6 +56,8 @@ export default function StartListManager() {
   const [editValidationError, setEditValidationError] = useState('');
 
   const [raceNumberOptions, setRaceNumberOptions] = useState([]);
+
+  const pdf = useRacePdf(selectedRaceId);
 
   // Drží aktuální loadStartList, aby mazání závodníka nemuselo být závislé
   // na startList - jinak by se při každém úhozu měnila identita callbacku
@@ -134,22 +144,60 @@ export default function StartListManager() {
     }
   };
 
+  /**
+   * Smazání celé startovní listiny.
+   *
+   * Jen online a jen s prázdnou frontou: offline by se smazání přehrálo se
+   * zpožděním a vzalo s sebou i to, co mezitím vzniklo, a čekající zápis času
+   * by po smazání skončil chybou.
+   */
   const clearStartList = async () => {
     if (!selectedRaceId) return;
+
+    if (!isOnline) {
+      setMessage({
+        type: 'warning',
+        text: 'Mazání startovní listiny vyžaduje připojení k internetu - offline by se smazání přehrálo až později.'
+      });
+      return;
+    }
+    if (queueStats.total > 0) {
+      setMessage({
+        type: 'warning',
+        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nechte je nejdřív odeslat (Sync centrum).`
+      });
+      return;
+    }
+
+    const measured = startList.filter(
+      (entry) => entry.time1 != null || entry.time2 != null || entry.dnf || entry.dns || entry.dsq
+    ).length;
+
     const confirmed = await confirm({
       title: 'Smazat celou startovní listinu?',
-      message: 'Tato akce je nevratná.',
+      message: `Smaže se všech ${startList.length} závodníků včetně přidělených startovních čísel a dresů`
+        + (measured > 0 ? ` a naměřených časů (${measured} závodníků už má výsledek)` : '')
+        + '. Listinu půjde znovu vygenerovat z přihlášek. Akce je nevratná.',
       confirmLabel: 'Smazat vše',
       variant: 'danger',
       icon: 'bi-trash',
     });
     if (!confirmed) return;
     try {
-      const result = await TimekeeperAPI.delete(`/api/timekeeper/races/${selectedRaceId}/start-list`);
+      const result = await TimekeeperAPI.deleteOnline(
+        `/api/timekeeper/races/${selectedRaceId}/start-list`
+      );
+      // Nakešovaná startovka i rozepsané časy musí zmizet s ní - jinak si je
+      // obrazovka Zadávání časů offline načte jako platné.
+      await dropRaceSnapshot(selectedRaceId);
+      await clearTimingDrafts(selectedRaceId);
       setMessage({ type: 'info', text: result.message });
       setStartList([]);
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se smazat startovní listinu' });
+    } catch (err) {
+      setMessage({
+        type: 'danger',
+        text: err.message || 'Nepodařilo se smazat startovní listinu'
+      });
     }
   };
 
@@ -278,24 +326,17 @@ export default function StartListManager() {
   const selectedRace = races.find(r => String(r.id) === String(selectedRaceId));
 
   // Group by category — use array to preserve start_number order
-  const groupedByCategory = useMemo(() => {
-    const groups = [];
-    const indexMap = new Map();
-    for (const entry of sortStartListEntries(startList)) {
-      const catKey = entry.category_id || 'none';
-      if (!indexMap.has(catKey)) {
-        indexMap.set(catKey, groups.length);
-        groups.push({
-          key: catKey,
-          name: entry.category_name || 'Bez kategorie',
-          rank: entry.category_rank ?? Number.MAX_SAFE_INTEGER,
-          entries: [],
-        });
-      }
-      groups[indexMap.get(catKey)].entries.push(entry);
+  const groupedByCategory = useMemo(() => groupEntriesByCategory(startList), [startList]);
+
+  /** Celková startovní listina do PDF - všechny kategorie v pořadí startu. */
+  const printStartList = async () => {
+    if (startList.length === 0) return;
+    try {
+      await pdf.generateStartList({ categories: groupedByCategory });
+    } catch {
+      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
-    return groups.sort((a, b) => a.rank - b.rank);
-  }, [startList]);
+  };
 
   return (
     <div>
@@ -338,6 +379,16 @@ export default function StartListManager() {
                   </button>
                   {startList.length > 0 && (
                     <>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        style={{ borderRadius: '8px' }}
+                        onClick={printStartList}
+                        disabled={pdf.generating}
+                        title="Celková startovní listina všech kategorií - funguje i offline"
+                      >
+                        {pdf.generating ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
+                        Tisk startovky
+                      </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
                         style={{ borderRadius: '8px' }}
@@ -390,7 +441,10 @@ export default function StartListManager() {
                             >
                               <i className="bi bi-grip-vertical text-muted me-2"></i>
                               <span className="badge me-2" style={{ background: '#e94560', minWidth: '22px', fontSize: '0.7rem' }}>{index + 1}</span>
-                              <span className="fw-semibold flex-grow-1">{cat.name}</span>
+                              <span className="fw-semibold flex-grow-1">{categoryLabel(cat)}</span>
+                              {cat.code && (
+                                <small className="text-muted me-2" title="Kódové označení kategorie">{cat.code}</small>
+                              )}
                               <small className="text-muted me-2">{cat.sex === 2 ? '♀' : '♂'}</small>
                               <div className="btn-group btn-group-sm">
                                 <button className="btn btn-outline-secondary py-0 px-1" style={{ fontSize: '0.7rem' }}
@@ -450,7 +504,7 @@ export default function StartListManager() {
               <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
                 <small className="fw-bold">
                   <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
-                  {group.name}
+                  {group.category_name}
                   <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.entries.length}</span>
                 </small>
               </div>
@@ -569,6 +623,17 @@ export default function StartListManager() {
       )}
 
       {!selectedRaceId && <EmptyState icon="bi-hand-index" title="Vyberte závod" />}
+
+      {pdf.objectUrl && (
+        <PdfPreviewModal
+          objectUrl={pdf.objectUrl}
+          title={pdf.previewTitle}
+          canPublish={false}
+          publishing={false}
+          onDownload={pdf.download}
+          onClose={pdf.closePreview}
+        />
+      )}
 
       {confirmElement}
     </div>

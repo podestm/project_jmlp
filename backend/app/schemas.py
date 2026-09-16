@@ -160,12 +160,16 @@ class RaceRunOut(RaceRunIn):
 
 
 class RaceDetailUpdate(BaseModel):
-    """Hlavičkové údaje závodu zadávané v timekeeper sekci."""
+    """Hlavičkové údaje závodu zadávané v timekeeper sekci.
+
+    Počet kol se nenastavuje - kategorie můžou jet různý počet kol, takže
+    listina se řídí naměřenými daty. Údaje o kolech se ukládají pro obě kola
+    a do hlavičky se tiskne jen to kolo, které je vyplněné.
+    """
     model_config = ConfigDict(extra='ignore')
     race_director: Optional[str] = None
     technical_delegate: Optional[str] = None
     chief_timekeeper: Optional[str] = None
-    run_count: Optional[int] = None
     runs: Optional[list[RaceRunIn]] = None
 
 
@@ -186,7 +190,6 @@ class RaceDetail(BaseModel):
     race_director: Optional[str] = None
     technical_delegate: Optional[str] = None
     chief_timekeeper: Optional[str] = None
-    run_count: int = 1
     runs: list[RaceRunOut] = []
 
 

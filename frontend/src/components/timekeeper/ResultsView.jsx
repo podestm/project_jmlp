@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
-import { useResultsPdf } from '../../hooks/useResultsPdf.js';
+import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { dropRaceSnapshot } from '../../offline/startListCache.js';
+import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
-import ResultsPdfPreviewModal from './ResultsPdfPreviewModal.jsx';
+import PdfPreviewModal from './PdfPreviewModal.jsx';
+import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
 
 export default function ResultsView() {
@@ -19,8 +22,9 @@ export default function ResultsView() {
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
   const { confirm, confirmElement } = useConfirm();
-  const { isOnline } = useSyncStatus();
-  const pdf = useResultsPdf(selectedRaceId);
+  const { isOnline, queueStats } = useSyncStatus();
+  const pdf = useRacePdf(selectedRaceId);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => { loadRaces(); }, []);
 
@@ -89,10 +93,19 @@ export default function ResultsView() {
   ) || null;
 
   /** Průběžné pořadí jedné kategorie - bez hlavičky, takže funguje i offline. */
-  const printCategory = async () => {
+  const printCategory = async (runMode) => {
     if (!selectedCategory) return;
     try {
-      await pdf.generate({ categories: [selectedCategory], interim: true });
+      await pdf.generate({ categories: [selectedCategory], interim: true, runMode });
+    } catch {
+      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    }
+  };
+
+  /** Všechny kategorie ve stejném formátu jako průběžné - celkově nebo po kolech. */
+  const printAllInterim = async (runMode) => {
+    try {
+      await pdf.generate({ categories: categoryList, interim: true, runMode });
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
@@ -103,6 +116,67 @@ export default function ResultsView() {
       await pdf.generate({ categories: categoryList, interim: false, publishable });
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    }
+  };
+
+  /**
+   * Smazání naměřených výsledků.
+   *
+   * Záměrně jen online: kdyby se tahle operace uložila do offline fronty,
+   * přehrála by se třeba za hodinu a smazala i časy naměřené mezitím.
+   * Ze stejného důvodu se nepustí, dokud fronta není prázdná - čekající zápis
+   * času by se po smazání přehrál a část výsledků vrátil zpátky.
+   */
+  const clearResults = async () => {
+    if (!selectedRaceId) return;
+
+    if (!isOnline) {
+      setMessage({
+        type: 'warning',
+        text: 'Mazání výsledků vyžaduje připojení k internetu - offline by se smazání přehrálo až později a vzalo s sebou i mezitím naměřené časy.'
+      });
+      return;
+    }
+    if (queueStats.total > 0) {
+      setMessage({
+        type: 'warning',
+        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nejdřív je nechte odeslat (Sync centrum), jinak by se po smazání přehrály zpátky.`
+      });
+      return;
+    }
+
+    const choice = await confirm({
+      title: 'Smazat naměřené výsledky závodu?',
+      message: 'Smažou se časy obou kol, příznaky DNF/DNS/DSQ i body u všech závodníků. '
+        + 'Startovní listina zůstane, závod se dá měřit znovu bez opakovaného losování. Akce je nevratná.',
+      cancelLabel: 'Zrušit',
+      choices: [
+        { value: 'times', label: 'Smazat naměřené časy', variant: 'danger', icon: 'bi-trash' },
+        {
+          value: 'all',
+          label: 'Smazat časy i publikovanou listinu',
+          variant: 'danger',
+          icon: 'bi-trash'
+        }
+      ]
+    });
+    if (!choice) return;
+
+    try {
+      setClearing(true);
+      const result = await TimekeeperAPI.deleteOnline(
+        `/api/timekeeper/races/${selectedRaceId}/results?published=${choice === 'all'}`
+      );
+      // Lokální stopy po naměřených časech musí zmizet taky: nakešovaná
+      // startovka i rozepsané drafty by je jinak vrátily do hry.
+      await dropRaceSnapshot(selectedRaceId);
+      await clearTimingDrafts(selectedRaceId);
+      setMessage({ type: 'info', text: result.message });
+      loadResults();
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message || 'Výsledky se nepodařilo smazat' });
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -139,15 +213,19 @@ export default function ResultsView() {
         </div>
         {results && results.total_entries > 0 && (
           <div className="d-flex gap-2 flex-wrap">
-            <button
-              className="btn btn-sm btn-outline-secondary"
-              onClick={printCategory}
-              disabled={pdf.generating || !selectedCategory}
+            <ResultsPrintButtons
+              label="Tisk kategorie"
               title="Průběžné výsledky vybrané kategorie - funguje i offline"
-            >
-              {pdf.generating ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
-              Tisk kategorie
-            </button>
+              busy={pdf.generating}
+              disabled={!selectedCategory}
+              onPrint={printCategory}
+            />
+            <ResultsPrintButtons
+              label="Všechny kategorie"
+              title="Průběžné výsledky všech kategorií - funguje i offline"
+              busy={pdf.generating}
+              onPrint={printAllInterim}
+            />
             <button
               className="btn btn-sm btn-outline-secondary"
               onClick={() => printFinal(false)}
@@ -178,6 +256,15 @@ export default function ResultsView() {
               ) : (
                 <><i className="bi bi-calculator me-1"></i>Vypočítat body</>
               )}
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger"
+              onClick={clearResults}
+              disabled={clearing}
+              title="Smaže naměřené časy, příznaky a body; startovní listina zůstane"
+            >
+              {clearing ? <ButtonSpinner /> : <i className="bi bi-trash me-1"></i>}
+              Smazat výsledky
             </button>
           </div>
         )}
@@ -263,7 +350,7 @@ export default function ResultsView() {
       )}
 
       {pdf.objectUrl && (
-        <ResultsPdfPreviewModal
+        <PdfPreviewModal
           objectUrl={pdf.objectUrl}
           title={pdf.previewTitle}
           canPublish={pdf.canPublish}

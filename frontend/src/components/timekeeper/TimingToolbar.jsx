@@ -1,5 +1,6 @@
 import { formatDateLong } from '../../utils/date.js';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
+import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import SerialStatusBar from './SerialStatusBar.jsx';
 import { TimekeeperMessage } from './TimekeeperChrome.jsx';
 
@@ -38,6 +39,8 @@ export default function TimingToolbar({
   resolvedInboxCount,
   unassignedInboxCount,
   unparsedStreakAlert,
+  onPrintResults,
+  printBusy,
 }) {
   return (
     <>
@@ -206,6 +209,26 @@ export default function TimingToolbar({
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Tisk rovnou od časomíry - stejný formát jako průběžné výsledky */}
+          <div className="d-flex align-items-center gap-2 flex-wrap mt-2 pt-2 border-top">
+            <small className="fw-semibold" style={{ color: '#e94560' }}>
+              <i className="bi bi-printer me-1"></i>Tisk:
+            </small>
+            <ResultsPrintButtons
+              label={selectedCategory === 'all' ? 'Vybraná kategorie' : selectedCategory}
+              title="Průběžné výsledky vybrané kategorie"
+              busy={printBusy}
+              disabled={selectedCategory === 'all'}
+              onPrint={(runMode) => onPrintResults(runMode, 'category')}
+            />
+            <ResultsPrintButtons
+              label="Všechny kategorie"
+              title="Průběžné výsledky všech kategorií"
+              busy={printBusy}
+              onPrint={(runMode) => onPrintResults(runMode, 'all')}
+            />
           </div>
         </div>
       </div>

@@ -167,11 +167,17 @@ class Race(Base):
         String(120, collation='utf8mb4_unicode_ci'), nullable=True)
     chief_timekeeper: Mapped[str | None] = mapped_column(
         String(120, collation='utf8mb4_unicode_ci'), nullable=True)
+    # Nepoužívá se: počet kol není vlastnost závodu (jedna kategorie může jet
+    # obě kola a jiná jen jedno), listina se řídí naměřenými daty. Sloupec je
+    # v databázi NOT NULL, proto tu zůstává namapovaný.
     run_count: Mapped[int] = mapped_column(SmallInteger, default=1)
 
 
 class RaceRun(Base):
-    """Údaje o jednom kole závodu - blok 1.KOLO / 2.KOLO ve výsledkové listině."""
+    """Údaje o jednom kole závodu - blok 1.KOLO / 2.KOLO ve výsledkové listině.
+
+    Ukládají se obě kola; do hlavičky listiny se tiskne jen to vyplněné.
+    """
     __tablename__ = "fuj_jmlp_race_run"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     race_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)

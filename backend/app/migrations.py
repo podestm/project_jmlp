@@ -343,9 +343,13 @@ def _m_race_header(conn):
           ADD COLUMN run_count          TINYINT NOT NULL DEFAULT 1
     """))
 
-    # Jednorázový backfill z naměřených dat. Dál je run_count autoritativní -
-    # odvozovat ho za běhu z time2 by přehodilo sloupec uprostřed závodu,
-    # jakmile dorazí první čas druhého kola.
+    # Jednorázový backfill z naměřených dat.
+    #
+    # Sloupec se dnes už nepoužívá a nikde se nenastavuje: ukázalo se, že počet
+    # kol není vlastnost závodu - jedna kategorie může jet obě kola a jiná jen
+    # jedno. Listina se řídí naměřenými daty každé kategorie zvlášť
+    # (frontend/src/pdf/resultsPdf.js). Zůstává jen proto, že je NOT NULL
+    # a mazat sloupec v ostré databázi kvůli tomu nemá cenu.
     conn.execute(text("""
         UPDATE fuj_jmlp_race r
         SET r.run_count = 2

@@ -42,6 +42,13 @@ export const CELL_PADDING_X = 2;
 export const COLUMNS_ONE_RUN = [30, 115, 26, 30, 110, 26, 42, 44, 40, 24];
 //                                 Poř  Jméno st.č roč  Klub  Stát 1.k  2.k  Souč DIF  PT = 475
 export const COLUMNS_TWO_RUNS = [28, 100, 24, 28, 95, 24, 38, 38, 40, 38, 22];
+// Výsledky jednoho konkrétního kola - bez sloupce Součet, protože sčítat není co.
+//                                 Poř  Jméno st.č roč  Klub  Stát kolo DIF  PT       = 491
+export const COLUMNS_SINGLE_RUN = [30, 125, 26, 30, 120, 26, 50, 50, 34];
+// Startovní listina - žádné časy, zato dvě čísla: startovní a číslo dresu.
+// 5 sloupců -> 527 - 5*2*CELL_PADDING_X = 507 bodů k dispozici.
+//                                 St.č Dres Jméno roč  Klub                          = 507
+export const COLUMNS_START_LIST = [45, 45, 170, 45, 202];
 
 export const PAGE_MARGINS = [34, 28, 34, 34]; // vlevo, nahoře, vpravo, dole
 

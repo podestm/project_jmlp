@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ResultsTable, { formatResultTime, rankEntriesByTime } from './ResultsTable.jsx';
+import ResultsTable, { formatResultTime, rankEntriesByTime, resultStatus } from './ResultsTable.jsx';
 
 /**
  * Pořadí je jediná věc, kterou počítá klient i server (rank_category
@@ -97,6 +97,53 @@ describe('rankEntriesByTime - body a ztráta', () => {
 
   it('prázdná kategorie nic neshodí', () => {
     expect(rankEntriesByTime([])).toEqual([]);
+  });
+});
+
+describe('rankEntriesByTime - pořadí jednoho kola', () => {
+  it('podle 1. kola se řadí jinak než podle součtu', () => {
+    const ranked = rankEntriesByTime([
+      entry({ id: 1, start_number: 1, time1: 62, time2: 58, time_sum: 120 }),
+      entry({ id: 2, start_number: 2, time1: 60, time2: 65, time_sum: 125 })
+    ], { timeField: 'time1' });
+
+    expect(ranked.map((e) => e.id)).toEqual([2, 1]);
+    expect(ranked[0].display_points).toBe(100);
+    expect(ranked[1].display_diff).toBeCloseTo(2);
+  });
+
+  it('kdo druhé kolo nejel, je v jeho listině bez pořadí', () => {
+    const ranked = rankEntriesByTime([
+      entry({ id: 1, start_number: 1, time1: 60, time2: null, time_sum: 60 }),
+      entry({ id: 2, start_number: 2, time1: 61, time2: 59, time_sum: 120 })
+    ], { timeField: 'time2' });
+
+    expect(ranked.map((e) => e.id)).toEqual([2, 1]);
+    expect(ranked[0].display_rank).toBe(1);
+    expect(ranked[1].display_rank).toBeNull();
+  });
+});
+
+describe('resultStatus', () => {
+  it('startovní listina má příznaky, výsledky hotový stav', () => {
+    expect(resultStatus({ dnf: true })).toBe('DNF');
+    expect(resultStatus({ dns: true })).toBe('DNS');
+    expect(resultStatus({ dsq: true })).toBe('DSQ');
+    expect(resultStatus({ dnf: false, dns: false, dsq: false })).toBeNull();
+    expect(resultStatus({ status: 'DSQ' })).toBe('DSQ');
+    expect(resultStatus({ status: null, dnf: true })).toBeNull();
+  });
+
+  it('řádek startovky se dá seřadit bez převodu na výsledek', () => {
+    const ranked = rankEntriesByTime([
+      { id: 1, start_number: 1, time_sum: 60, dnf: true, dns: false, dsq: false },
+      { id: 2, start_number: 2, time_sum: 61, dnf: false, dns: false, dsq: false }
+    ]);
+
+    expect(ranked.map((e) => e.id)).toEqual([2, 1]);
+    expect(ranked[0].display_rank).toBe(1);
+    expect(ranked[1].status).toBe('DNF');
+    expect(ranked[1].display_rank).toBeNull();
   });
 });
 

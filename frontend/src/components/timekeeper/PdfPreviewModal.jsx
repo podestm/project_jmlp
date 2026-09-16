@@ -2,12 +2,13 @@ import { useEffect } from 'react';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
 
 /**
- * Náhled vygenerované listiny a druhé potvrzení před publikací.
+ * Náhled vygenerované listiny (startovní i výsledkové) a druhé potvrzení
+ * před publikací.
  *
  * Modál, ne window.open: blob vzniká asynchronně až po kliknutí, takže
  * nové okno by prohlížeč spolehlivě zablokoval jako popup.
  */
-export default function ResultsPdfPreviewModal({
+export default function PdfPreviewModal({
   objectUrl,
   title,
   canPublish = false,

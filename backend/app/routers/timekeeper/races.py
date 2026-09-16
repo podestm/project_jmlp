@@ -119,7 +119,8 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
         "race_director": race.race_director,
         "technical_delegate": race.technical_delegate,
         "chief_timekeeper": race.chief_timekeeper,
-        "run_count": race.run_count or 1,
+        # Počet kol se závodu nenastavuje: každá kategorie může jet jiný počet
+        # kol, takže listina se řídí naměřenými daty (viz resultsPdf.js).
         "runs": [{
             "run_number": run.run_number,
             "course_setter": run.course_setter,
@@ -159,12 +160,6 @@ def update_race_detail(
     data = payload.dict(exclude_unset=True)
     runs = data.pop("runs", None)
 
-    if "run_count" in data:
-        run_count = int(data["run_count"] or 1)
-        if run_count not in (1, 2):
-            raise HTTPException(status_code=400, detail="Závod se jede na jedno nebo dvě kola")
-        data["run_count"] = run_count
-
     for field, value in data.items():
         setattr(race, field, value)
     db.commit()
@@ -183,13 +178,6 @@ def update_race_detail(
             else:
                 db.add(models.RaceRun(race_id=race_id, **run_data))
         db.commit()
-
-    # Kola nad rámec počtu kol se smažou, ať v listině nezůstane osiřelý blok.
-    db.query(models.RaceRun).filter(
-        models.RaceRun.race_id == race_id,
-        models.RaceRun.run_number > (race.run_count or 1),
-    ).delete(synchronize_session=False)
-    db.commit()
 
     db.refresh(race)
     return _race_detail_payload(race, db)

@@ -9,7 +9,14 @@ import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './Timekee
  *
  * Vyplňují se před závodem. GET se ukládá do IndexedDB, takže hlavička je
  * k dispozici i při tisku bez připojení.
+ *
+ * Počet kol se tady nenastavuje: jedna kategorie může jet obě kola a jiná jen
+ * jedno, takže by to byl údaj, který za celý závod nemůže platit. Listina se
+ * řídí naměřenými daty a do hlavičky se tiskne jen to kolo, které je vyplněné.
  */
+
+/** Obě kola se nabízejí vždy; nevyplněné se do listiny netiskne. */
+const RUN_NUMBERS = [1, 2];
 
 const emptyRun = (runNumber) => ({
   run_number: runNumber,
@@ -52,17 +59,14 @@ export default function RaceHeaderForm() {
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/detail`);
       setDetail(data);
 
-      const runCount = data.run_count || 1;
-      const runs = [];
-      for (let i = 1; i <= runCount; i += 1) {
-        const existing = data.runs.find((run) => run.run_number === i);
-        runs.push(existing ? toFormRun(existing) : emptyRun(i));
-      }
+      const runs = RUN_NUMBERS.map((runNumber) => {
+        const existing = data.runs.find((run) => run.run_number === runNumber);
+        return existing ? toFormRun(existing) : emptyRun(runNumber);
+      });
       setForm({
         race_director: data.race_director ?? '',
         technical_delegate: data.technical_delegate ?? '',
         chief_timekeeper: data.chief_timekeeper ?? '',
-        run_count: runCount,
         runs
       });
     } catch {
@@ -73,16 +77,6 @@ export default function RaceHeaderForm() {
   }, [selectedRaceId]);
 
   useEffect(() => { loadDetail(); }, [loadDetail]);
-
-  const setRunCount = (runCount) => {
-    setForm((prev) => {
-      const runs = [];
-      for (let i = 1; i <= runCount; i += 1) {
-        runs.push(prev.runs.find((run) => run.run_number === i) || emptyRun(i));
-      }
-      return { ...prev, run_count: runCount, runs };
-    });
-  };
 
   const updateRun = (runNumber, field, value) => {
     setForm((prev) => ({
@@ -100,7 +94,6 @@ export default function RaceHeaderForm() {
         race_director: form.race_director.trim() || null,
         technical_delegate: form.technical_delegate.trim() || null,
         chief_timekeeper: form.chief_timekeeper.trim() || null,
-        run_count: form.run_count,
         runs: form.runs.map((run) => ({
           run_number: run.run_number,
           course_setter: String(run.course_setter).trim() || null,
@@ -199,31 +192,14 @@ export default function RaceHeaderForm() {
                 </div>
               </div>
 
-              <div className="mb-0">
-                <label className="form-label d-block">Počet kol</label>
-                {[1, 2].map((count) => (
-                  <div className="form-check form-check-inline" key={count}>
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="run_count"
-                      id={`run-count-${count}`}
-                      checked={form.run_count === count}
-                      onChange={() => setRunCount(count)}
-                    />
-                    <label className="form-check-label" htmlFor={`run-count-${count}`}>
-                      {count === 1 ? 'Jedno kolo' : 'Dvě kola'}
-                    </label>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
 
           {form.runs.map((run) => (
             <div className="card mb-3" key={run.run_number}>
-              <div className="card-header">
-                <i className="bi bi-flag me-2" />{run.run_number}. KOLO
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <span><i className="bi bi-flag me-2" />{run.run_number}. KOLO</span>
+                <small className="text-muted">Nevyplněné kolo se do hlavičky netiskne</small>
               </div>
               <div className="card-body">
                 <div className="row">

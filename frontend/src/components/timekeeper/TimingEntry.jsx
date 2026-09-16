@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
+import { useRacePdf } from '../../hooks/useRacePdf.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { SELECTED_RACE_KEY } from './TimekeeperChrome.jsx';
@@ -19,6 +20,8 @@ import {
   markWriterAlive,
   WRITER_HEARTBEAT_MS,
 } from './writerPresence.js';
+import { groupEntriesByCategory } from './startListHelpers.js';
+import PdfPreviewModal from './PdfPreviewModal.jsx';
 import SerialInboxPanel from './SerialInboxPanel.jsx';
 import TimingTable from './TimingTable.jsx';
 import TimingToolbar from './TimingToolbar.jsx';
@@ -63,6 +66,8 @@ export default function TimingEntry() {
     localStorage.getItem('timekeeper_bridge_target_round') || '1'
   );
   const [inboxEvents, setInboxEvents] = useState([]);
+
+  const pdf = useRacePdf(selectedRaceId);
 
   const editedTimesRef = useRef({});
   const originalTimesRef = useRef({});
@@ -318,6 +323,30 @@ export default function TimingEntry() {
 
   useEffect(() => { filteredListRef.current = filteredList; }, [filteredList]);
 
+  /**
+   * Tisk průběžných výsledků rovnou od časomíry.
+   *
+   * Tiskne se z toho, co je na obrazovce (včetně už uložených časů, které se
+   * ještě nesynchronizovaly), takže to funguje i offline. Kolo se vybírá
+   * zvlášť - každá kategorie může jet jiný počet kol.
+   *
+   * @param {string} runMode 'sum' | '1' | '2'
+   * @param {string} scope   'category' = vybraná kategorie, 'all' = všechny
+   */
+  const printResults = useCallback(async (runMode, scope) => {
+    const source = scope === 'category' ? categoryFiltered : startList;
+    const categories = groupEntriesByCategory(source);
+    if (categories.length === 0) {
+      setMessage({ type: 'warning', text: 'Není co tisknout - startovní listina je prázdná.' });
+      return;
+    }
+    try {
+      await pdf.generate({ categories, interim: true, runMode });
+    } catch {
+      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    }
+  }, [categoryFiltered, startList, pdf]);
+
   const completedCount = useMemo(() => (
     categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length
   ), [categoryFiltered]);
@@ -390,6 +419,8 @@ export default function TimingEntry() {
         resolvedInboxCount={resolvedInboxCount}
         unassignedInboxCount={unassignedInboxCount}
         unparsedStreakAlert={UNPARSED_STREAK_ALERT}
+        onPrintResults={printResults}
+        printBusy={pdf.generating}
       />
 
       {loading && <LoadingState variant="timekeeper" />}
@@ -443,6 +474,17 @@ export default function TimingEntry() {
           )}
           <EmptyState icon="bi-hand-index" title="Vyberte závod pro zadávání časů" />
         </>
+      )}
+
+      {pdf.objectUrl && (
+        <PdfPreviewModal
+          objectUrl={pdf.objectUrl}
+          title={pdf.previewTitle}
+          canPublish={false}
+          publishing={false}
+          onDownload={pdf.download}
+          onClose={pdf.closePreview}
+        />
       )}
 
       {confirmElement}
