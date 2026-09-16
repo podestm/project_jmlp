@@ -20,25 +20,20 @@ export const usePostManagement = () => {
     const [selectedMonth, setSelectedMonth] = useState('');
     
     // Form data
+    // Obrázek a dokument tu záměrně nejsou: připojuje je AttachmentManager
+    // rovnou přes /api/admin/attachments. Kdyby je formulář posílal s sebou,
+    // uložení příspěvku by přílohu připojenou mezitím zase odpojilo (backend
+    // bere image_file_id: null jako "odpojit").
     const [formData, setFormData] = useState({
         title: '',
         content: '',
         published: false,
-        image_file_id: '',
-        image_position: 'right',
-        document_file_id: ''
-    });
-    
-    // Available files
-    const [availableFiles, setAvailableFiles] = useState({
-        images: [],
-        documents: []
+        image_position: 'right'
     });
 
     // Effects
     useEffect(() => {
         loadPosts();
-        loadAvailableFiles();
     }, []);
 
     useEffect(() => {
@@ -62,43 +57,6 @@ export const usePostManagement = () => {
 
     // Při otevřeném formuláři se seznam pod ním neobnovuje
     useRevalidateOnFocus(() => loadPosts({ silent: true }), { enabled: !showForm });
-
-    const loadAvailableFiles = async () => {
-        try {
-            // Load all files and filter client-side
-            const allFiles = await AdminAPI.get('/api/admin/files');
-            
-            // Filter images strictly - only files that are definitely images
-            const images = allFiles.filter(file => 
-                file.file_type === 'image' || 
-                (file.mime_type && file.mime_type.startsWith('image/'))
-            );
-            
-            // Filter documents strictly - exclude anything that is an image
-            const documents = allFiles.filter(file => {
-                // Exclude if it's marked as image type
-                if (file.file_type === 'image') return false;
-                
-                // Exclude if mime_type indicates it's an image
-                if (file.mime_type && file.mime_type.startsWith('image/')) return false;
-                
-                // Include everything else (documents, PDFs, etc.)
-                return true;
-            });
-            
-            setAvailableFiles({
-                images: images,
-                documents: documents
-            });
-        } catch (err) {
-            console.error('Chyba při načítání dostupných souborů:', err);
-            // Set empty arrays on error to prevent crashes
-            setAvailableFiles({
-                images: [],
-                documents: []
-            });
-        }
-    };
 
     // Filter and utility functions
     const filterPosts = () => {
@@ -165,6 +123,8 @@ export const usePostManagement = () => {
 
     const handleAdd = () => {
         resetForm();
+        setError('');
+        setSuccess('');
         setShowForm(true);
     };
 
@@ -174,17 +134,23 @@ export const usePostManagement = () => {
             title: '',
             content: '',
             published: false,
-            image_file_id: '',
-            image_position: 'right',
-            document_file_id: ''
+            image_position: 'right'
         });
         setEditingPost(null);
         setShowForm(false);
     };
 
+    // Přílohy se v otevřeném formuláři ukládají hned, takže seznam pod ním
+    // se po zavření obnoví - jinak by odznaky Obrázek/Dokument v tabulce
+    // ukazovaly stav z doby před otevřením.
+    const closeForm = () => {
+        resetForm();
+        loadPosts({ silent: true });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         try {
             setError('');
             setSuccess('');
@@ -193,23 +159,23 @@ export const usePostManagement = () => {
                 title: formData.title,
                 content: formData.content,
                 published: formData.published,
-                image_file_id: formData.image_file_id || null,
-                image_position: formData.image_position,
-                document_file_id: formData.document_file_id || null
+                image_position: formData.image_position
             };
 
             if (editingPost) {
                 await AdminAPI.put(`/api/admin/posts/${editingPost.id}`, payload);
                 setSuccess('Post byl úspěšně aktualizován');
+                closeForm();
             } else {
-                await AdminAPI.post('/api/admin/posts', payload);
-                setSuccess('Post byl úspěšně vytvořen');
+                // Obrázek a dokument jde připojit jen k uloženému příspěvku,
+                // proto formulář zůstane otevřený už jako úprava nového postu.
+                const created = await AdminAPI.post('/api/admin/posts', payload);
+                setEditingPost(created);
+                setSuccess('Post je uložený, teď k němu můžete připojit obrázek nebo dokument');
+                loadPosts({ silent: true });
             }
-
-            loadPosts();
-            resetForm();
         } catch (err) {
-            setError(err.response?.data?.detail || 'Chyba při ukládání postu');
+            setError(err.message || 'Chyba při ukládání postu');
         }
     };
 
@@ -218,11 +184,11 @@ export const usePostManagement = () => {
             title: post.title || '',
             content: post.content || '',
             published: post.published || false,
-            image_file_id: post.image_file_id || '',
-            image_position: post.image_position || 'right',
-            document_file_id: post.document_file_id || ''
+            image_position: post.image_position || 'right'
         });
         setEditingPost(post);
+        setError('');
+        setSuccess('');
         setShowForm(true);
     };
 
@@ -241,12 +207,6 @@ export const usePostManagement = () => {
     };
 
     // Utility functions
-    const getFileName = (fileId, type) => {
-        const files = type === 'image' ? availableFiles.images : availableFiles.documents;
-        const file = files.find(f => f.id === parseInt(fileId));
-        return file ? file.original_filename : 'Neznámý soubor';
-    };
-
     const formatContent = (content) => {
         if (!content) return '';
         
@@ -282,7 +242,6 @@ export const usePostManagement = () => {
         selectedYear,
         selectedMonth,
         formData,
-        availableFiles,
         
         // Computed values
         availableYears: getAvailableYears(),
@@ -301,17 +260,16 @@ export const usePostManagement = () => {
         
         // Functions
         loadPosts,
-        loadAvailableFiles,
         filterPosts,
         getAvailableYears,
         getAvailableMonths,
         clearFilters,
         resetForm,
+        closeForm,
         handleAdd,
         handleSubmit,
         handleEdit,
         handleDelete,
-        getFileName,
         formatContent,
         formatDate,
         formatDateTime

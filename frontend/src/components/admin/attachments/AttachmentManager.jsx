@@ -45,12 +45,16 @@ const SLOT_CONFIG = {
  *
  * `ownerId` může být zpočátku null (nový, dosud neuložený závod) - komponenta
  * pak jen vysvětlí, že je potřeba věc nejdřív uložit.
+ *
+ * `stacked` dá sloty pod sebe i na širokém displeji - pro úzký sloupec
+ * formuláře, kde by se dva sloty vedle sebe nevešly.
  */
 export default function AttachmentManager({
   ownerType,
   ownerId,
   roles,
   title = 'Dokumenty',
+  stacked = false,
   onChange
 }) {
   const [attachments, setAttachments] = useState([]);
@@ -210,7 +214,7 @@ export default function AttachmentManager({
             const config = SLOT_CONFIG[activeRole] || { accept: DOCUMENT_ACCEPT, hint: '' };
             const isGroup = groupRoles.length > 1;
             return (
-              <div className={slots.length > 1 ? 'col-md-6' : 'col-12'} key={key}>
+              <div className={slots.length > 1 && !stacked ? 'col-md-6' : 'col-12'} key={key}>
                 <AttachmentSlot
                   label={isGroup ? GROUP_LABELS[key] || ROLE_LABELS[activeRole] : ROLE_LABELS[activeRole]}
                   hint={config.hint}

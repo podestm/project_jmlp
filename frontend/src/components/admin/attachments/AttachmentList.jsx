@@ -61,7 +61,7 @@ export default function AttachmentList({
                 {getExtensionLabel(attachment.original_filename)}
               </span>
 
-              <div className="flex-grow-1 min-width-0">
+              <div className="flex-grow-1" style={{ minWidth: 0 }}>
                 {editingId === attachment.id ? (
                   <input
                     type="text"

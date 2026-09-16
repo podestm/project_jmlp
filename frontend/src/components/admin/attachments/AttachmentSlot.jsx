@@ -90,7 +90,7 @@ export default function AttachmentSlot({
           <span className={`badge ${getExtensionBadgeClass(attachment.original_filename)}`}>
             {getExtensionLabel(attachment.original_filename)}
           </span>
-          <div className="flex-grow-1 min-width-0">
+          <div className="flex-grow-1" style={{ minWidth: 0 }}>
             <a
               href={attachment.download_url}
               target="_blank"

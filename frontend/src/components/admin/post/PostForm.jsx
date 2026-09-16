@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { OWNER, ROLE } from '../../../config/attachmentsApi.js';
 import AttachmentManager from '../attachments/AttachmentManager.jsx';
+import Alert from '../../ui/Alert.jsx';
 
 // Příspěvek má nejvýše jeden obrázek a nejvýše jeden dokument - obojí řeší
 // jeden AttachmentManager, backend stejné omezení hlídá taky.
@@ -8,12 +9,15 @@ const POST_ROLES = [ROLE.image, ROLE.document];
 
 const PostForm = ({
     showForm,
-    setShowForm,
     editingPost,
     formData,
     setFormData,
     handleSubmit,
-    resetForm
+    closeForm,
+    error,
+    setError,
+    success,
+    setSuccess
 }) => {
     // Pozice obrázku má smysl jen když nějaký obrázek připojený je. Stav
     // příloh zná AttachmentManager, proto si ho posílá zpátky přes onChange.
@@ -32,16 +36,22 @@ const PostForm = ({
                         <button
                             type="button"
                             className="btn-close"
-                            onClick={() => {
-                                setShowForm(false);
-                                resetForm();
-                            }}
+                            aria-label="Zavřít"
+                            onClick={closeForm}
                         ></button>
                     </div>
                     <form onSubmit={handleSubmit}>
                         <div className="modal-body">
+                            {/* Hlášky stránky jsou pod oknem schované, proto se
+                                výsledek uložení ukazuje i tady. */}
+                            {error && (
+                                <Alert type="danger" message={error} onDismiss={() => setError('')} />
+                            )}
+                            {success && (
+                                <Alert key={success} type="success" message={success} onDismiss={() => setSuccess('')} />
+                            )}
                             <div className="row">
-                                <div className="col-md-8">
+                                <div className="col-lg-8">
                                     <div className="mb-3">
                                         <label className="form-label">Nadpis *</label>
                                         <input
@@ -70,7 +80,7 @@ const PostForm = ({
                                     </div>
                                 </div>
 
-                                <div className="col-md-4">
+                                <div className="col-lg-4">
                                     <div className="mb-3">
                                         <div className="form-check">
                                             <input
@@ -94,6 +104,7 @@ const PostForm = ({
                                         ownerId={editingPost?.id || null}
                                         roles={POST_ROLES}
                                         title="Obrázek a dokument"
+                                        stacked
                                         onChange={(items) => setHasImage(items.some((item) => item.role === ROLE.image))}
                                     />
 
@@ -119,10 +130,7 @@ const PostForm = ({
                             <button
                                 type="button"
                                 className="btn btn-secondary"
-                                onClick={() => {
-                                    setShowForm(false);
-                                    resetForm();
-                                }}
+                                onClick={closeForm}
                             >
                                 Zrušit
                             </button>
