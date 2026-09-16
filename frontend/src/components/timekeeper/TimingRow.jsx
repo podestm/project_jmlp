@@ -20,6 +20,8 @@ import RaceNumberBadge from './RaceNumberBadge.jsx';
  */
 const LOCKED_INPUT_STYLE = Object.freeze({ background: '#e9ecef', opacity: 0.8 });
 
+const NAME_CELL_STYLE = Object.freeze({ padding: '3px 6px', maxWidth: 0, width: '100%' });
+
 const TimingRow = React.memo(function TimingRow({
   entry,
   times,
@@ -50,8 +52,13 @@ const TimingRow = React.memo(function TimingRow({
           setColor={entry.set_color}
         />
       </td>
-      <td style={{ padding: '3px 6px' }}>
-        <div className="fw-semibold text-truncate">{entry.racer_surname} {entry.racer_name}</div>
+      {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů -
+          maxWidth 0 dovolí buňce jít pod šířku textu, jinak by text-truncate
+          nezabral a tabulka by přetekla do strany. */}
+      <td style={NAME_CELL_STYLE}>
+        <div className="fw-semibold text-truncate" title={`${entry.racer_surname} ${entry.racer_name}`}>
+          {entry.racer_surname} {entry.racer_name}
+        </div>
         <small className="text-muted d-block text-truncate">
           {entry.club_name || 'Bez klubu'}{showCategory ? ` | ${entry.category_name || '?'}` : ''} ({entry.racer_year})
         </small>
@@ -60,7 +67,7 @@ const TimingRow = React.memo(function TimingRow({
         <input
           ref={refTime1}
           type="number" step="0.01" min="0"
-          className="form-control form-control-sm"
+          className="form-control form-control-sm timing-time-input"
           style={{
             borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', padding: '2px 4px',
             ...(activeRound === '2' ? LOCKED_INPUT_STYLE : {})
@@ -77,7 +84,7 @@ const TimingRow = React.memo(function TimingRow({
         <input
           ref={refTime2}
           type="number" step="0.01" min="0"
-          className="form-control form-control-sm"
+          className="form-control form-control-sm timing-time-input"
           style={{
             borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', padding: '2px 4px',
             ...(activeRound === '1' ? LOCKED_INPUT_STYLE : {})

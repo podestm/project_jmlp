@@ -15,7 +15,7 @@ export default function RaceNumberBadge({
       <span className="badge" style={getRaceNumberBadgeStyle(setColor)}>
         {actualNumber ?? displayNumber}
       </span>
-      <small className={`text-muted d-block${smallTopMargin ? ' mt-1' : ' mt-0'}`}>
+      <small className={`text-muted d-block text-nowrap${smallTopMargin ? ' mt-1' : ' mt-0'}`}>
         {formatSystemRaceNumber(displayNumber)}
       </small>
     </>

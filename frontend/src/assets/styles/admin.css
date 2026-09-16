@@ -766,6 +766,22 @@ body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(1
    jen pro .timekeeper-section (s .text-warning #ffc107 na bílé 1.6:1
    a vynuceně tmavým textem i na tmavých prvcích). */
 
+/* Pole časů K1/K2 při zadávání. Pole nemělo minimální šířku, takže při užší
+   tabulce (notebook 1366 px, tablet) ustupovalo jako první a z času "38.42"
+   zbylo "38." - na 1280 px měl sloupec 23 px. Šipky pro krokování čísla
+   zabíraly další místo a při zapisování časů nejsou k ničemu. */
+.timekeeper-section .timing-time-input {
+  min-width: calc(6ch + 14px);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.timekeeper-section .timing-time-input::-webkit-outer-spin-button,
+.timekeeper-section .timing-time-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Timekeeper overview dashboard */
 .timekeeper-section .timekeeper-overview-panel {
   border-top: 3px solid #e94560 !important;
