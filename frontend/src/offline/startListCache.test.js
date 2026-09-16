@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { timekeeperDb } from './db.js';
-import { buildCacheKey, cacheGetResponse, readCachedResponse } from './startListCache.js';
+import { buildCacheKey, cacheGetResponse, dropRaceSnapshot, readCachedResponse } from './startListCache.js';
 import { enqueueMutation } from './syncQueue.js';
 import { resetTimekeeperDb, startListEntry } from '../test/helpers.js';
 
@@ -83,5 +83,30 @@ describe('cacheGetResponse', () => {
 describe('readCachedResponse', () => {
   it('pro neuložený dotaz vrací null', async () => {
     expect(await readCachedResponse('/api/timekeeper/races', null)).toBeNull();
+  });
+});
+
+describe('dropRaceSnapshot', () => {
+  it('zahodí nakešované odpovědi i řádky startovky daného závodu', async () => {
+    await cacheGetResponse(START_LIST, null, [startListEntry({ id: 1, time1: 30 })]);
+
+    const dropped = await dropRaceSnapshot(10);
+
+    expect(dropped.cache).toBeGreaterThan(0);
+    expect(await readCachedResponse(START_LIST, null)).toBeNull();
+    expect(await timekeeperDb.startList.count()).toBe(0);
+  });
+
+  it('cizí závod nechá být', async () => {
+    await cacheGetResponse(START_LIST, null, [startListEntry({ id: 1 })]);
+    await timekeeperDb.startList.put(startListEntry({ id: 99, race_id: 2 }));
+
+    await dropRaceSnapshot(10);
+
+    expect(await timekeeperDb.startList.get(99)).toBeTruthy();
+  });
+
+  it('závod bez lokálních dat nic neshodí', async () => {
+    expect(await dropRaceSnapshot(42)).toEqual({ cache: 0, entries: 0 });
   });
 });

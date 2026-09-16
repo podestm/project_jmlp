@@ -93,6 +93,33 @@ const overlayUnsyncedEdits = async (rows) => {
 };
 
 /**
+ * Zahodí lokální snímek závodu - nakešované odpovědi i řádky startovky.
+ *
+ * Volá se po nevratném smazání na serveru. Bez toho zůstane v IndexedDB
+ * startovka i s časy, které už na serveru nejsou: stačí, aby tablet ztratil
+ * signál, obrazovka Zadávání časů si je načte z cache jako platné a další
+ * uložení je pošle zpátky na server.
+ *
+ * @param {number|string} raceId
+ * @returns {Promise<{cache: number, entries: number}>} co se zahodilo
+ */
+export const dropRaceSnapshot = async (raceId) => {
+  const numericId = Number(raceId);
+  const prefix = `/api/timekeeper/races/${raceId}/`;
+
+  const keys = await timekeeperDb.cache
+    .filter((row) => typeof row.key === 'string' && row.key.startsWith(prefix))
+    .primaryKeys();
+  if (keys.length) await timekeeperDb.cache.bulkDelete(keys);
+
+  const entries = Number.isFinite(numericId)
+    ? await timekeeperDb.startList.where('race_id').equals(numericId).delete()
+    : 0;
+
+  return { cache: keys.length, entries };
+};
+
+/**
  * Uloží odpověď na GET a vrátí to, co se SKUTEČNĚ uložilo.
  *
  * Volající vrací tuhle návratovou hodnotu dál místo syrové odpovědi serveru -

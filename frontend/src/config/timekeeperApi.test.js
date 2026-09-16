@@ -177,3 +177,86 @@ describe('čtení online', () => {
     await expect(TimekeeperAPI.get('/api/timekeeper/races')).rejects.toThrow(/401/);
   });
 });
+
+/**
+ * Nevratné mazání (startovka, naměřené výsledky) se od ostatních zápisů liší:
+ * odložit ho na později znamená smazat i to, co mezitím vzniklo. Proto nikdy
+ * nesmí skončit ve frontě - ani při výpadku, ani při 5xx.
+ */
+describe('mazání, které se nesmí odložit', () => {
+  it('online pošle požadavek rovnou i s klíčem idempotence', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ message: 'Smazáno' }));
+
+    const result = await TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/results');
+
+    expect(result).toEqual({ message: 'Smazáno' });
+    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE');
+    expect(fetchMock.mock.calls[0][1].headers['X-Idempotency-Key']).toBeTruthy();
+    expect(await timekeeperDb.syncQueue.count()).toBe(0);
+  });
+
+  it('offline se ani nepokusí odeslat a chybu řekne volajícímu', async () => {
+    setOnline(false);
+
+    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/results'))
+      .rejects.toThrow(/připojení/);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await timekeeperDb.syncQueue.count()).toBe(0);
+  });
+
+  it('výpadek sítě uprostřed požadavku do fronty nespadne', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/results')).rejects.toThrow();
+    expect(await timekeeperDb.syncQueue.count()).toBe(0);
+  });
+
+  it('chyba 5xx se nevydává za "uloženo lokálně"', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ detail: 'Server error' }, 500));
+
+    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/start-list')).rejects.toThrow();
+    expect(await timekeeperDb.syncQueue.count()).toBe(0);
+  });
+});
+
+/**
+ * Kluby do formuláře závodníka (TimekeeperRacers) jsou veřejný endpoint, ale
+ * časoměřič je musí mít i offline. Dřív je držela jen keš service workeru,
+ * který data už nekešuje (public/sw.js) - teď jdou do IndexedDB jako zbytek
+ * obrazovky.
+ */
+describe('kluby pro časoměřiče', () => {
+  const KLUBY = [{ id: 1, name: 'SK Olešnice' }, { id: 2, name: 'Ski Klub Brno' }];
+
+  it('kluby načtené online jsou k dispozici i offline', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(KLUBY));
+    await TimekeeperAPI.get('/clubs/');
+
+    setOnline(false);
+    fetchMock.mockClear();
+
+    expect(await TimekeeperAPI.get('/clubs/')).toEqual(KLUBY);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('když prohlížeč hlásí připojení, ale síť nejede, vrátí kluby z cache', async () => {
+    // Captive portal na závodišti: navigator.onLine lže
+    fetchMock.mockResolvedValueOnce(jsonResponse(KLUBY));
+    await TimekeeperAPI.get('/clubs/');
+
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    expect(await TimekeeperAPI.get('/clubs/')).toEqual(KLUBY);
+  });
+
+  it('čerstvá data ze serveru cache přepíší', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(KLUBY));
+    await TimekeeperAPI.get('/clubs/');
+    fetchMock.mockResolvedValueOnce(jsonResponse([...KLUBY, { id: 3, name: 'Nový klub' }]));
+    await TimekeeperAPI.get('/clubs/');
+
+    setOnline(false);
+
+    expect(await TimekeeperAPI.get('/clubs/')).toHaveLength(3);
+  });
+});

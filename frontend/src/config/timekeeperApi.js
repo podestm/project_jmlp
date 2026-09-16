@@ -243,6 +243,24 @@ export const TimekeeperAPI = {
   put: async (endpoint, data = {}) => mutate('PUT', endpoint, data),
   delete: async (endpoint) => mutate('DELETE', endpoint, null),
 
+  /**
+   * Nevratné hromadné mazání (startovka, naměřené výsledky) - NIKDY do fronty.
+   *
+   * `delete` výše při výpadku nebo 5xx požadavek zařadí do fronty a vrátí
+   * "uloženo lokálně a čeká na synchronizaci". U mazání jsou obě části špatně:
+   * volající by hlásil úspěch, který se nestal, a odložené smazání by se
+   * přehrálo klidně o hodinu později - proti datům, která mezitím vznikla.
+   * Tady se proto chyba vrací volajícímu a nic se neodkládá.
+   */
+  deleteOnline: async (endpoint) => {
+    if (!isOnline()) {
+      throw new Error('Mazání vyžaduje připojení k internetu.');
+    }
+    return TimekeeperAPIOnline.delete(endpoint, {
+      headers: { 'X-Idempotency-Key': generateOpId() }
+    });
+  },
+
   flushQueue: async () => {
     await processSyncQueue(syncExecutor);
   }

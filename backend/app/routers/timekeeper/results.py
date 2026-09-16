@@ -5,7 +5,7 @@ uložené body i tištěná listina nemohly rozejít.
 """
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Header, Query, UploadFile
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -23,6 +23,7 @@ from ...utils import (
     convert_utf8_field,
     fix_encoding,
 )
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-results"])
 
@@ -155,6 +156,113 @@ def get_race_results(
     for group in _group_by_category(entries, race, db):
         flat.extend(_format_entry(item) for item in results_service.rank_category(group["rows"]))
     return {**base, "grouped": False, "entries": flat}
+
+
+def _remove_published_results(db: Session, race_id: int) -> bool:
+    """Odpojí publikovanou výsledkovou listinu závodu; vygenerovanou i smaže.
+
+    Ručně nahranou listinu z knihovny nemažeme - to je vždycky vědomá akce
+    v knihovně dokumentů, ne vedlejší efekt mazání výsledků.
+    """
+    attachment = db.query(models.Attachment).filter(
+        models.Attachment.owner_type == AttachmentOwner.race.value,
+        models.Attachment.owner_id == race_id,
+        models.Attachment.role == AttachmentRole.vysledky.value,
+    ).first()
+    if not attachment:
+        return False
+
+    file_id = attachment.file_id
+    was_generated = bool(attachment.is_generated)
+
+    attachment_service.sync_single(
+        db,
+        owner_type=AttachmentOwner.race.value,
+        owner_id=race_id,
+        role=AttachmentRole.vysledky.value,
+        file_id=None,
+    )
+
+    if file_id and was_generated:
+        still_used = db.query(models.Attachment).filter(
+            models.Attachment.file_id == file_id
+        ).count()
+        if still_used == 0:
+            file_record = db.query(models.File).filter(models.File.id == file_id).first()
+            if file_record:
+                file_service.delete_file_from_disk(file_record)
+                db.delete(file_record)
+                db.commit()
+
+    return True
+
+
+@router.delete("/races/{race_id}/results")
+def clear_race_results(
+    race_id: int,
+    published: bool = Query(
+        default=False,
+        description="Smazat i publikovanou výsledkovou listinu závodu",
+    ),
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Smaže naměřené výsledky závodu - časy, příznaky i body.
+
+    Startovní listina zůstává, maže se jen to, co se naměřilo: závod se dá
+    rozjet znovu bez opakovaného losování. S `published=true` se navíc odebere
+    výsledková listina publikovaná na webu.
+    """
+    # Query parametr patří do klíče: "smazat i listinu" a "smazat jen časy"
+    # jsou dvě různé operace a nesmí se navzájem přehrát z fronty.
+    endpoint = f"/api/timekeeper/races/{race_id}/results?published={int(published)}"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="DELETE",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
+    _race_or_404(db, race_id)
+
+    cleared = db.query(models.StartListEntry).filter(
+        models.StartListEntry.race_id == race_id
+    ).update({
+        "time1": None,
+        "time2": None,
+        "time_sum": None,
+        "dnf": False,
+        "dns": False,
+        "dsq": False,
+        "points": None,
+    }, synchronize_session=False)
+    db.commit()
+
+    published_removed = _remove_published_results(db, race_id) if published else False
+
+    message = f"Smazány naměřené výsledky u {cleared} závodníků"
+    if published_removed:
+        message += ", publikovaná listina odebrána"
+
+    response_payload = {
+        "message": message,
+        "cleared": cleared,
+        "published_removed": published_removed,
+        "idempotency_replayed": False,
+    }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="DELETE",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
 
 
 @router.post("/races/{race_id}/results/calculate-points")
