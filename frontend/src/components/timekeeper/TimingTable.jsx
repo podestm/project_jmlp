@@ -5,6 +5,12 @@ import TimingRow from './TimingRow.jsx';
 const EMPTY_TIMES = Object.freeze({});
 
 /**
+ * Hlavička zamčeného kola. Zašedlá, ale čitelná: při opacity 0.5 vycházel
+ * kontrast 3.12:1, teď 4.9:1. Že je kolo zamčené, říká hlavně ikona zámku.
+ */
+const LOCKED_HEADER_STYLE = Object.freeze({ opacity: 0.65 });
+
+/**
  * Tabulka pro zadávání časů.
  *
  * Řádek je memoizovaný v TimingRow.jsx, proto sem chodí handlery, které si
@@ -37,10 +43,10 @@ export default function TimingTable({
                     <th style={{ width: '60px', padding: '5px 6px', borderRadius: '10px 0 0 0' }}>Poř.</th>
                     <th style={{ width: '96px', padding: '5px 6px' }}>Dres</th>
                     <th style={{ minWidth: '170px', padding: '5px 6px' }}>Závodník</th>
-                    <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '2' ? { opacity: 0.5 } : {}) }}>
+                    <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '2' ? LOCKED_HEADER_STYLE : {}) }}>
                       J1 {activeRound === '2' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
                     </th>
-                    <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '1' ? { opacity: 0.5 } : {}) }}>
+                    <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '1' ? LOCKED_HEADER_STYLE : {}) }}>
                       J2 {activeRound === '1' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
                     </th>
                     <th style={{ width: '72px', padding: '5px 6px' }}>Součet</th>

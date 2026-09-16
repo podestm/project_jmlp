@@ -10,6 +10,16 @@ import RaceNumberBadge from './RaceNumberBadge.jsx';
  * row only - every other row bails out. That only holds while the handler props
  * keep stable identities, which is why TimingEntry pins them with useCallback.
  */
+
+/**
+ * Pole zamčeného kola - vypnuté, ale čitelné.
+ *
+ * Dřív tu bylo opacity 0.6, při kterém měl už naměřený čas kontrast 3.87:1;
+ * na slunci na břehu se nedal přečíst. Zašedlé to zůstává, jen ne na úkor
+ * čitelnosti - stejný důvod jako u neaktivních sad dresů v admin.css.
+ */
+const LOCKED_INPUT_STYLE = Object.freeze({ background: '#e9ecef', opacity: 0.8 });
+
 const TimingRow = React.memo(function TimingRow({
   entry,
   times,
@@ -53,7 +63,7 @@ const TimingRow = React.memo(function TimingRow({
           className="form-control form-control-sm"
           style={{
             borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', padding: '2px 4px',
-            ...(activeRound === '2' ? { background: '#f0f0f0', opacity: 0.6 } : {})
+            ...(activeRound === '2' ? LOCKED_INPUT_STYLE : {})
           }}
           value={times.time1 || ''}
           onChange={(e) => onTimeChange(entryId, 'time1', e.target.value)}
@@ -70,7 +80,7 @@ const TimingRow = React.memo(function TimingRow({
           className="form-control form-control-sm"
           style={{
             borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.82rem', padding: '2px 4px',
-            ...(activeRound === '1' ? { background: '#f0f0f0', opacity: 0.6 } : {})
+            ...(activeRound === '1' ? LOCKED_INPUT_STYLE : {})
           }}
           value={times.time2 || ''}
           onChange={(e) => onTimeChange(entryId, 'time2', e.target.value)}

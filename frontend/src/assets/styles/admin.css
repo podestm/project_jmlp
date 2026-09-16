@@ -175,15 +175,41 @@
   color: var(--adm-text-muted) !important;
 }
 
-.admin-section .badge {
-  color: white !important;
+/* Barva textu v odznacích.
+ *
+ * Dřív tu stálo plošné `.badge { color: white !important }`. To je past:
+ * !important ve stylopisu přebije i inline style, takže bílý text dostal
+ * i odznak se světlým pozadím (třídy text-bg-*, bg-white) nebo s vlastní
+ * barvou zadanou inline (medailové pozice) - a zmizel. Bílá na #f8f9fa má
+ * kontrast 1.05:1, tedy nečitelno.
+ *
+ * Proto se bílá vnucuje jen tam, kde je pozadí prokazatelně tmavé, a světlé
+ * varianty mají naopak vynucený tmavý text. Odznak s vlastní inline barvou si
+ * ji díky tomu uhájí. */
+.admin-section .badge.bg-primary,
+.admin-section .badge.bg-secondary,
+.admin-section .badge.bg-success,
+.admin-section .badge.bg-danger,
+.admin-section .badge.bg-dark,
+.admin-section .badge.text-bg-primary,
+.admin-section .badge.text-bg-secondary,
+.admin-section .badge.text-bg-success,
+.admin-section .badge.text-bg-danger,
+.admin-section .badge.text-bg-dark {
+  color: #fff !important;
 }
 
-.admin-section .badge.bg-warning {
+.admin-section .badge.bg-warning,
+.admin-section .badge.text-bg-warning,
+.admin-section .badge.bg-info,
+.admin-section .badge.text-bg-info {
   color: #000 !important;
 }
 
-.admin-section .badge.bg-light {
+.admin-section .badge.bg-light,
+.admin-section .badge.text-bg-light,
+.admin-section .badge.bg-white,
+.admin-section .badge.text-bg-white {
   color: #212529 !important;
 }
 
@@ -663,17 +689,34 @@
   color: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Badge text stays white */
-.timekeeper-section .badge {
-  color: white !important;
+/* Bílý text jen na tmavém pozadí - viz vysvětlení u .admin-section .badge výše.
+ * Odznaky "Port vybrán", "Nevyřízeno", "Vyřízeno" v liště časomíry i medailové
+ * pozice ve výsledcích byly kvůli plošnému pravidlu prakticky neviditelné. */
+.timekeeper-section .badge.bg-primary,
+.timekeeper-section .badge.bg-secondary,
+.timekeeper-section .badge.bg-success,
+.timekeeper-section .badge.bg-danger,
+.timekeeper-section .badge.bg-dark,
+.timekeeper-section .badge.text-bg-primary,
+.timekeeper-section .badge.text-bg-secondary,
+.timekeeper-section .badge.text-bg-success,
+.timekeeper-section .badge.text-bg-danger,
+.timekeeper-section .badge.text-bg-dark {
+  color: #fff !important;
 }
 
-.timekeeper-section .badge.bg-light {
-  color: #212529 !important;
-}
-
-.timekeeper-section .badge.bg-warning {
+.timekeeper-section .badge.bg-warning,
+.timekeeper-section .badge.text-bg-warning,
+.timekeeper-section .badge.bg-info,
+.timekeeper-section .badge.text-bg-info {
   color: #000 !important;
+}
+
+.timekeeper-section .badge.bg-light,
+.timekeeper-section .badge.text-bg-light,
+.timekeeper-section .badge.bg-white,
+.timekeeper-section .badge.text-bg-white {
+  color: #212529 !important;
 }
 
 /* Solid buttons - ensure white text */
@@ -858,7 +901,9 @@
 }
 
 .timekeeper-section .timekeeper-race-number-item.is-inactive {
-  opacity: 0.55;
+  /* Neaktivní sada má být zašedlá, ale pořád čitelná: při 0.55 vycházel
+     kontrast 3.56:1, což je pod hranicí čitelnosti. 0.7 dává 5.5:1. */
+  opacity: 0.7;
   border-color: #e9ecef;
   background: #f8f9fa !important;
 }

@@ -151,8 +151,12 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
         <div className="text-truncate" style={{ fontSize: '0.68rem' }} title={racerLabel}>
           <i className="bi bi-person me-1"></i>
           {racerLabel || 'Bez jména'}
-          {candidateCount > 1 && selectedEntry.category_name ? ` · ${selectedEntry.category_name}` : ''}
-          {candidateCount > 1 && selectedEntry.start_number != null ? ` · st. č. ${selectedEntry.start_number}` : ''}
+          {/* Kategorie a startovní číslo se ukazují vždycky, ne jen když má
+              dres víc kandidátů: obsluha podle nich kontroluje, že impulz
+              patří tomu, kdo právě jel, a při jednom kandidátovi je ta
+              kontrola stejně potřebná jako při dvou. */}
+          {selectedEntry.category_name ? ` · ${selectedEntry.category_name}` : ''}
+          {selectedEntry.start_number != null ? ` · st. č. ${selectedEntry.start_number}` : ''}
         </div>
       )}
       {(isUnparsed || isUnsupportedType) && (
