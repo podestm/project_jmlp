@@ -10,6 +10,17 @@ import {
 } from './timingRules.js';
 
 /**
+ * Volby dialogu při konfliktu 409. ConfirmDialog dává fokus první volbě, takže
+ * Enter zvolí ji - a Enter mačká časoměřič při zápisu pořád. Dřív byla první
+ * "Přepsat mojí hodnotou" a jeden stisk ve chvíli, kdy dialog vyskočil, tiše
+ * přepsal čas uložený z jiného zařízení. Bezpečná volba proto musí zůstat první.
+ */
+export const CONFLICT_CHOICES = [
+  { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary', icon: 'bi-cloud-arrow-down' },
+  { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger', icon: 'bi-pencil-square' },
+];
+
+/**
  * Ukládání naměřených časů.
  *
  * Tři věci, které se sem nevešly náhodou a musí zůstat pohromadě:
@@ -169,10 +180,7 @@ export function useTimeSaving({
       choice = await confirm({
         title: 'Záznam byl mezitím změněn',
         message: <ConflictDialogMessage racerLabel={racerLabel} mine={mine} fresh={fresh} />,
-        choices: [
-          { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger', icon: 'bi-pencil-square' },
-          { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary', icon: 'bi-cloud-arrow-down' },
-        ],
+        choices: CONFLICT_CHOICES,
       });
     } finally {
       conflictOpenRef.current = false;
