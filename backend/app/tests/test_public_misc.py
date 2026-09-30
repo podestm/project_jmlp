@@ -448,18 +448,14 @@ def test_detail_neexistujici_aktuality_vraci_404(client):
     assert client.get("/posts/999999").status_code == 404
 
 
-def test_seznam_aktualit_zverejni_koncepty_na_pozadani(client, db):
-    """CHYBA: published_only je volitelný parametr veřejného endpointu.
-
-    Kdokoli si může zavolat /posts/?published_only=false a přečíst si
-    nepublikované koncepty. Test drží současné (chybné) chování, aby bylo vidět.
-    """
+def test_seznam_aktualit_nezverejni_koncepty_ani_na_pozadani(client, db):
+    """Dřív šlo koncepty přečíst přes /posts/?published_only=false."""
+    _aktualita(db, "Zverejnena zprava")
     _aktualita(db, "Rozepsany koncept", published=False)
 
     data = client.get("/posts/", params={"published_only": "false"}).json()
 
-    assert [p["title"] for p in data] == ["Rozepsany koncept"]
-    assert data[0]["published"] is False
+    assert [p["title"] for p in data] == ["Zverejnena zprava"]
 
 
 # --------------------------------------------------------------------------
@@ -542,36 +538,33 @@ def test_obrazek_aktuality_bez_prilohy_vraci_404(client, db):
     assert "obrázek" in response.json()["detail"]
 
 
-def test_prilohu_nepublikovane_aktuality_lze_stahnout(client, db, tmp_path):
-    """CHYBA: stahování přílohy nekontroluje, jestli je příspěvek publikovaný.
-
-    Detail /posts/{id} koncept schová (404), ale kdo uhodne ID, stáhne si
-    jeho dokument i obrázek. Test drží současné chování.
-    """
+def test_prilohy_nepublikovane_aktuality_nejdou_stahnout(client, db, tmp_path):
+    """Dřív si kdo uhodl ID konceptu, stáhl jeho dokument i obrázek."""
     post = _aktualita(db, "Koncept s prilohou", published=False)
-    na_disku = tmp_path / "tajne.pdf"
-    na_disku.write_bytes(b"TAJNY OBSAH")
-    soubor = _soubor(db, "tajne.pdf", file_path=str(na_disku))
-    _priloha(db, soubor.id, "post", post.id, "document")
+    dokument = tmp_path / "tajne.pdf"
+    dokument.write_bytes(b"TAJNY OBSAH")
+    obrazek = tmp_path / "tajne.jpg"
+    obrazek.write_bytes(b"TAJNY OBRAZEK")
+    _priloha(db, _soubor(db, "tajne.pdf", file_path=str(dokument)).id, "post", post.id, "document")
+    _priloha(db, _soubor(db, "tajne.jpg", file_path=str(obrazek)).id, "post", post.id, "image")
 
-    assert client.get(f"/posts/{post.id}").status_code == 404
-    assert client.get(f"/posts/{post.id}/document/download").content == b"TAJNY OBSAH"
+    for url in (f"/posts/{post.id}/document/download", f"/posts/{post.id}/image"):
+        response = client.get(url)
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Příspěvek nenalezen"
 
 
-def test_nezverejnena_priloha_aktuality_se_presto_vraci(client, db, tmp_path):
-    """CHYBA: u aktualit se příznak published na příloze ignoruje.
-
-    Sezónní dokumenty se filtrují (published_only=True), příspěvky ne -
-    ani ve výpisu (document_file_id), ani při stahování.
-    """
+def test_nezverejnena_priloha_aktuality_se_nevraci(client, db, tmp_path):
+    """Skrytá příloha publikovaného příspěvku se nesmí objevit ve výpisu ani jít stáhnout."""
     post = _aktualita(db, "Publikovana zprava")
     na_disku = tmp_path / "skryty.pdf"
     na_disku.write_bytes(b"NEZVEREJNENO")
     soubor = _soubor(db, "skryty.pdf", file_path=str(na_disku))
     _priloha(db, soubor.id, "post", post.id, "document", published=False)
 
-    assert client.get(f"/posts/{post.id}").json()["document_file_id"] == soubor.id
-    assert client.get(f"/posts/{post.id}/document/download").content == b"NEZVEREJNENO"
+    assert client.get(f"/posts/{post.id}").json()["document_file_id"] is None
+    assert client.get("/posts/").json()[0]["document_file_id"] is None
+    assert client.get(f"/posts/{post.id}/document/download").status_code == 404
 
 
 # ==========================================================================

@@ -17,15 +17,15 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 def get_posts(
     skip: int = Query(0, description="Počet příspěvků k přeskočení"),
     limit: int = Query(10, description="Maximální počet příspěvků"),
-    published_only: bool = Query(True, description="Zobrazit pouze publikované"),
     db: Session = Depends(get_db)
 ):
-    """Získat seznam aktualit/příspěvků"""
-    query = db.query(Post)
-    
-    if published_only:
-        query = query.filter(Post.published == True)
-    
+    """Získat seznam publikovaných aktualit/příspěvků.
+
+    Koncepty jsou jen v adminu (viz backend/app/routers/admin/posts.py) - dřív
+    je šlo přečíst i tady přes ?published_only=false.
+    """
+    query = db.query(Post).filter(Post.published == True)
+
     posts = query.order_by(desc(Post.created_at)).offset(skip).limit(limit).all()
     
     # Fix encoding issues in posts
@@ -33,7 +33,7 @@ def get_posts(
         post.title = fix_encoding(post.title)
         post.content = fix_encoding(post.content)
 
-    attachment_service.apply_post_documents(db, posts)
+    attachment_service.apply_post_documents(db, posts, published_only=True)
     return posts
 
 
@@ -43,14 +43,14 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
-    attachment_service.apply_post_documents(db, [post])
+    attachment_service.apply_post_documents(db, [post], published_only=True)
     return post
 
 
 @router.get("/{post_id}/document/download")
 def download_post_document(post_id: int, db: Session = Depends(get_db)):
     """Stáhnout dokument připojený k příspěvku (veřejný přístup)."""
-    post = db.query(Post).filter(Post.id == post_id).first()
+    post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
     
@@ -73,7 +73,7 @@ def download_post_document(post_id: int, db: Session = Depends(get_db)):
 @router.get("/{post_id}/image")
 def get_post_image(post_id: int, db: Session = Depends(get_db)):
     """Získat obrázek příspěvku (veřejný přístup)."""
-    post = db.query(Post).filter(Post.id == post_id).first()
+    post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
     

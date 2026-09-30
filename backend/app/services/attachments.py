@@ -92,7 +92,7 @@ def race_document_file(db: Session, race_id: int, role: str) -> Optional[models.
     return row
 
 
-def apply_post_documents(db: Session, posts: Iterable[Any]) -> None:
+def apply_post_documents(db: Session, posts: Iterable[Any], published_only: bool = False) -> None:
     """Doplní příspěvkům image_file_id / document_file_id z příloh.
 
     Příspěvek má stejně jako dřív nejvýše jeden obrázek a jeden dokument, jen
@@ -102,12 +102,14 @@ def apply_post_documents(db: Session, posts: Iterable[Any]) -> None:
     obrázek existuje, prohlížeč si ho vyžádal a dostal 404 - u příspěvku pak
     zůstalo prázdné místo po obrázku, který nikde není. Radši žádný obrázek
     než rozbitý.
+
+    `published_only` patří veřejnému webu - admin má vidět i skryté přílohy.
     """
     posts = list(posts)
     if not posts:
         return
 
-    rows = (
+    query = (
         db.query(models.Attachment, models.File)
         .join(models.File, models.File.id == models.Attachment.file_id)
         .filter(
@@ -115,8 +117,10 @@ def apply_post_documents(db: Session, posts: Iterable[Any]) -> None:
             models.Attachment.owner_id.in_([p.id for p in posts]),
             models.Attachment.role.in_([AttachmentRole.image.value, AttachmentRole.document.value]),
         )
-        .all()
     )
+    if published_only:
+        query = query.filter(models.Attachment.published.is_(True))
+    rows = query.all()
 
     by_post: Dict[int, Dict[str, int]] = defaultdict(dict)
     for row, file_obj in rows:
@@ -132,7 +136,7 @@ def apply_post_documents(db: Session, posts: Iterable[Any]) -> None:
 
 
 def post_document_file(db: Session, post_id: int, role: str) -> Optional[models.File]:
-    """Soubor připojený k příspěvku v dané roli."""
+    """Zveřejněný soubor připojený k příspěvku v dané roli (pro veřejné stažení)."""
     return (
         db.query(models.File)
         .join(models.Attachment, models.Attachment.file_id == models.File.id)
@@ -140,6 +144,7 @@ def post_document_file(db: Session, post_id: int, role: str) -> Optional[models.
             models.Attachment.owner_type == AttachmentOwner.post.value,
             models.Attachment.owner_id == post_id,
             models.Attachment.role == role,
+            models.Attachment.published.is_(True),
         )
         .first()
     )
