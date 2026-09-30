@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-JMLP (Jezerní Motolodní Liga Pardubice) — a Czech motorboat racing league management system. Handles race scheduling, participant registration, race timing with offline support, and results tracking.
+JMLP (Jihomoravský lyžařský pohár) — management system for a Czech series of alpine ski races. Handles race scheduling, participant registration, race timing with offline support, and results tracking.
 
-**Production URL**: https://podm12.com
+**Production URL**: https://jmlp.cz (server 178.105.133.222, code in `/opt/jmlp`)
+**Test URL**: https://podm12.com — test replica (clone) of production, code and data; server 178.105.130.22, this checkout `/opt/jmlp_web_v1`
 
 ## Stack
 
@@ -82,7 +83,7 @@ Frontend (React + Nginx)  ←→  Backend (FastAPI)  ←→  MySQL 8.0
 
 **MyISAM + no FK constraints**: All tables use MyISAM engine. Do not add `ForeignKey` constraints to models — they won't be enforced and can cause migration issues.
 
-**Season logic**: Seasons run Aug 1 – Jul 31. Use `get_current_season_id(date)` from `utils.py`. If date >= Aug 1: season = current_year + 1; otherwise season = current_year.
+**Season logic**: Seasons run Aug 1 – Jul 31. Use `get_current_season_id(date)` from `utils.py`. `season_id` is the season's **starting** year: if date >= Aug 1, season = current_year; otherwise season = current_year - 1 (e.g. season 2025 = 1. 8. 2025 – 31. 7. 2026). Season metadata (edition, name) lives in `fuj_jmlp_season`.
 
 **`fix_encoding()` utility**: Legacy data may have double-encoded UTF-8. Use this helper when reading racer names, club names, etc. from older records.
 
