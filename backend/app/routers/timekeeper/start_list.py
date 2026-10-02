@@ -169,7 +169,13 @@ def generate_start_list(
         AND rr.racer_id NOT IN (
             SELECT sl.racer_id FROM fuj_jmlp_race_start_list sl WHERE sl.race_id = :race_id
         )
+        ORDER BY rr.registered_at, rr.id
     """)
+    # Pořadí přihlášení do závodu je pořadí startu v kategorii - u prvních
+    # závodů sezóny (včetně suchých) a všude, kde není podle čeho rozhodnout.
+    # Bez ORDER BY vracela MyISAM řádky v pořadí, v jakém leží v tabulce,
+    # a startovka pak neodpovídala ničemu. Řazení podle kategorií níže je
+    # stabilní, takže tohle pořadí uvnitř kategorie zachová.
     new_racers_raw = db.execute(new_racers_query, {"race_id": race_id}).fetchall()
     
     if not new_racers_raw:

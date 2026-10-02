@@ -12,7 +12,7 @@ Tabulky jsou MyISAM, takže neúspěšný požadavek po sobě neuklidí - testy,
 drží současné (chybné) chování, jsou označené slovem CHYBA.
 """
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import pytest
 
@@ -76,8 +76,10 @@ def _zavodnik(db, name, surname, year, sex, club_id=None, slcr_id=None, category
     return zavodnik
 
 
-def _prihlaska(db, zavod, zavodnik):
+def _prihlaska(db, zavod, zavodnik, registered_at=None):
     registrace = models.Registration(race_id=zavod.id, racer_id=zavodnik.id)
+    if registered_at is not None:
+        registrace.registered_at = registered_at
     db.add(registrace)
     db.commit()
     db.refresh(registrace)
@@ -1796,3 +1798,27 @@ def test_startovka_nese_registracni_cislo_a_sadu(client, db, zavod, kategorie, t
     # "-" v datech znamená, že registrační číslo nemá.
     assert radky["Bezcisla"]["slcr_id"] is None
     assert radky["Bezcisla"]["set_number"] is None
+
+
+def test_generovani_radi_kategorii_podle_poradi_prihlaseni(client, db, zavod, kategorie,
+                                                          timekeeper_headers):
+    """V kategorii startuje dřív, kdo se dřív přihlásil - ne podle toho, v jakém
+    pořadí leží přihlášky v tabulce. Při stejném čase rozhodne pořadí záznamu."""
+    _cisla(db)
+    zaklad = datetime(2026, 9, 20, 10, 0, 0)
+    pozdni = _zavodnik(db, "Anna", "Pozdni", 2017, 2)
+    prvni = _zavodnik(db, "Bara", "Prvni", 2017, 2)
+    druha = _zavodnik(db, "Cecilie", "Druha", 2017, 2)
+    stejna_a = _zavodnik(db, "Dana", "StejnaA", 2017, 2)
+    stejna_b = _zavodnik(db, "Eva", "StejnaB", 2017, 2)
+    _prihlaska(db, zavod, pozdni, registered_at=zaklad + timedelta(hours=5))
+    _prihlaska(db, zavod, prvni, registered_at=zaklad)
+    _prihlaska(db, zavod, druha, registered_at=zaklad + timedelta(minutes=1))
+    _prihlaska(db, zavod, stejna_a, registered_at=zaklad + timedelta(hours=2))
+    _prihlaska(db, zavod, stejna_b, registered_at=zaklad + timedelta(hours=2))
+
+    client.post(f"/api/timekeeper/races/{zavod.id}/start-list/generate",
+                json={}, headers=timekeeper_headers)
+
+    radky = sorted(_startovka(client, zavod, timekeeper_headers), key=lambda r: r["start_number"])
+    assert [r["racer_surname"] for r in radky] == ["Prvni", "Druha", "StejnaA", "StejnaB", "Pozdni"]
