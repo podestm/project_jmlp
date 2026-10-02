@@ -30,16 +30,21 @@ export const canUseWebSerial = () => typeof location !== 'undefined' && (
  *   │        └──────── line sequence number
  *   └───────────────── device uptime (not a wall clock, ignored)
  *
+ * The uptime column is optional. The timing device connected on 2. 10. 2026 sent
+ * "11  65  5.16" (sequence, bib, seconds; 19200 baud) and every such line
+ * ended up in the inbox as unrecognised.
+ *
  * The device emits no event type - every such line is a finish time. Its boot
  * banner ("(c)LIP", "Ver: 3.01 ...", rows of asterisks) must not match.
  */
-const LIP_LINE = /^(\d{1,2}:\d{2}:\d{2})\s+(\d+)\s+(\d+)\s+(\d+(?:[.,]\d+)?)$/;
+const LIP_LINE = /^(?:(\d{1,2}:\d{2}:\d{2})\s+)?(\d+)\s+(\d+)\s+(\d+(?:[.,]\d+)?)$/;
 
 /**
  * Parse one line coming from the timing device.
  *
  * Accepted forms:
  *   00:03:07 16 213 188.19                      (LIP TIMER, space separated)
+ *   16  213  188.19                             (LIP TIMER without uptime)
  *   TIME;DRES;MM:SS.hh   DNS;DRES   DNF;DRES   DSQ;DRES   (tools/ simulator)
  *   {"type":"TIME","bib":12,"time":"1:02.34"}   (raw JSON passthrough)
  *
@@ -69,7 +74,7 @@ export const parseTimingDeviceLine = (line) => {
       bib: Number(bib),
       time: time.replace(',', '.'),
       seq: Number(seq),
-      uptime,
+      uptime: uptime ?? null,
       raw: trimmed,
       ts: Date.now() / 1000,
     };

@@ -1,0 +1,45 @@
+import { describe, expect, it } from 'vitest';
+import { parseIncomingTime, parseTimingDeviceLine } from './serial.js';
+
+/**
+ * Řádky z časomíry. Co parser nepozná, skončí v inboxu jako nerozpoznané a
+ * čas se musí zadat ručně - proto se tu testují přesně ty řádky, které
+ * časomíra skutečně posílá.
+ */
+describe('parseTimingDeviceLine', () => {
+  it('přečte LIP řádek s časem od zapnutí', () => {
+    expect(parseTimingDeviceLine('00:03:07 16 213 188.19')).toMatchObject({
+      type: 'TIME', seq: 16, bib: 213, time: '188.19', uptime: '00:03:07',
+    });
+  });
+
+  // Skutečné řádky z časomíry připojené 2. 10. 2026 (19200 baud, dresy 65 a 192).
+  it.each([
+    ['11  65  5.16', 11, 65, '5.16'],
+    ['12  192  3.64', 12, 192, '3.64'],
+    ['12 192 3.64', 12, 192, '3.64'],
+  ])('přečte LIP řádek bez času od zapnutí: %s', (line, seq, bib, time) => {
+    const parsed = parseTimingDeviceLine(line);
+
+    expect(parsed).toMatchObject({ type: 'TIME', seq, bib, time, uptime: null });
+    expect(parseIncomingTime(parsed.time)).toBeCloseTo(Number(time));
+  });
+
+  it('přijme desetinnou čárku', () => {
+    expect(parseTimingDeviceLine('11  65  5,16').time).toBe('5.16');
+  });
+
+  it.each([
+    '(c)LIP',
+    'Ver: 3.01 LIP TIMER',
+    '****************',
+    '65  5.16',
+    '00:03:07 213 188.19',
+  ])('nepovažuje za čas řádek „%s“', (line) => {
+    expect(parseTimingDeviceLine(line)).toBeNull();
+  });
+
+  it('dál čte formát simulátoru TIME;DRES;ČAS', () => {
+    expect(parseTimingDeviceLine('TIME;12;1:02.34')).toMatchObject({ type: 'TIME', bib: 12, time: '1:02.34' });
+  });
+});
