@@ -183,6 +183,7 @@ class RaceDetail(BaseModel):
     organizer_id: Optional[int] = None
     organizer_name: Optional[str] = None
     organizer_logo_url: Optional[str] = None
+    sponsors_url: Optional[str] = None      # pruh sponzorů pod výsledkovou listinou
     season_id: int
     season_name: Optional[str] = None
     edition: Optional[int] = None

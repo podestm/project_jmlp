@@ -24,6 +24,7 @@ export const ROLE = {
   image: 'image',
   document: 'document',
   logo: 'logo',
+  sponzori: 'sponzori',
   other: 'other'
 };
 
@@ -32,10 +33,10 @@ export const ROLE = {
  * v backend/app/models.py. Backend jiné role odmítne s 400, tohle je jen
  * proto, aby je UI vůbec nenabízelo.
  *
- * Závod má záměrně jen propozice a výsledky, od každé nejvýše jednu.
+ * Závod má propozice, výsledky a pruh sponzorů, od každého nejvýše jeden soubor.
  */
 export const ROLES_BY_OWNER = {
-  [OWNER.race]: [ROLE.propozice, ROLE.vysledky],
+  [OWNER.race]: [ROLE.propozice, ROLE.vysledky, ROLE.sponzori],
   [OWNER.post]: [ROLE.image, ROLE.document],
   [OWNER.season]: [ROLE.vysledky, ROLE.prubezne, ROLE.document],
   [OWNER.club]: [ROLE.logo],
@@ -51,7 +52,7 @@ export const ROLES_BY_OWNER = {
  * z podstaty věci neexistuje.
  */
 export const EXCLUSIVE_GROUPS = {
-  [OWNER.race]: [[ROLE.propozice], [ROLE.vysledky]],
+  [OWNER.race]: [[ROLE.propozice], [ROLE.vysledky], [ROLE.sponzori]],
   [OWNER.post]: [[ROLE.image], [ROLE.document]],
   [OWNER.season]: [[ROLE.vysledky, ROLE.prubezne]],
   [OWNER.club]: [[ROLE.logo]]
@@ -64,6 +65,7 @@ export const ROLE_LABELS = {
   [ROLE.image]: 'Obrázek',
   [ROLE.document]: 'Dokument',
   [ROLE.logo]: 'Logo',
+  [ROLE.sponzori]: 'Sponzoři',
   [ROLE.other]: 'Ostatní'
 };
 

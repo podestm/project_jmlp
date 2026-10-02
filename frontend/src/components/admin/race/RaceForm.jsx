@@ -3,7 +3,7 @@ import AttachmentManager from '../attachments/AttachmentManager.jsx';
 
 // Závod má právě dvě role dokumentů, od každé nejvýše jeden - hlídá to
 // i backend (ATTACHMENT_ROLES_BY_OWNER / ATTACHMENT_EXCLUSIVE_GROUPS).
-const RACE_ROLES = [ROLE.propozice, ROLE.vysledky];
+const RACE_ROLES = [ROLE.propozice, ROLE.vysledky, ROLE.sponzori];
 
 const RaceForm = ({
     showForm,

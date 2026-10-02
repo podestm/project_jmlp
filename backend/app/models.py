@@ -32,6 +32,7 @@ class AttachmentRole(str, enum.Enum):
     image = "image"
     document = "document"
     logo = "logo"
+    sponzori = "sponzori"
     other = "other"
 
 
@@ -43,13 +44,15 @@ ATTACHMENT_ROLE_LABELS = {
     AttachmentRole.image: "Obrázek",
     AttachmentRole.document: "Dokument",
     AttachmentRole.logo: "Logo",
+    AttachmentRole.sponzori: "Sponzoři",
     AttachmentRole.other: "Ostatní",
 }
 
 # Které role smí mít který vlastník.
-# Závod má záměrně jen propozice a výsledky - vždy nejvýše jeden soubor od každé.
+# Závod má propozice, výsledky a pruh s logy sponzorů pod výsledkovou listinou -
+# vždy nejvýše jeden soubor od každé.
 ATTACHMENT_ROLES_BY_OWNER = {
-    AttachmentOwner.race: (AttachmentRole.propozice, AttachmentRole.vysledky),
+    AttachmentOwner.race: (AttachmentRole.propozice, AttachmentRole.vysledky, AttachmentRole.sponzori),
     AttachmentOwner.post: (AttachmentRole.image, AttachmentRole.document),
     AttachmentOwner.season: (AttachmentRole.vysledky, AttachmentRole.prubezne, AttachmentRole.document),
     AttachmentOwner.club: (AttachmentRole.logo,),
@@ -66,6 +69,7 @@ ATTACHMENT_EXCLUSIVE_GROUPS = {
     AttachmentOwner.race: (
         (AttachmentRole.propozice,),
         (AttachmentRole.vysledky,),
+        (AttachmentRole.sponzori,),
     ),
     AttachmentOwner.post: (
         (AttachmentRole.image,),

@@ -96,6 +96,11 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
         )
         organizer_logo_url = logo["download_url"] if logo else None
 
+    # Pruh s logy sponzorů pod výsledkovou listinou (Admin → Závody → Sponzoři).
+    sponsors = attachment_service.first_for_owner(
+        db, AttachmentOwner.race.value, race.id, AttachmentRole.sponzori.value
+    )
+
     season = db.query(models.Season).filter(models.Season.year_start == race.season_id).first()
 
     runs = db.query(models.RaceRun).filter(
@@ -112,6 +117,7 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
         "organizer_id": race.organizer_id,
         "organizer_name": organizer_name,
         "organizer_logo_url": organizer_logo_url,
+        "sponsors_url": sponsors["download_url"] if sponsors else None,
         "season_id": race.season_id,
         "season_name": season.name if season else None,
         "edition": season.edition if season else None,

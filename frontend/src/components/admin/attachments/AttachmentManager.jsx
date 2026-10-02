@@ -25,7 +25,11 @@ const SLOT_CONFIG = {
     hint: 'Zveřejní se na /dokumenty, název souboru je zároveň popiskem odkazu'
   },
   [ROLE.image]: { accept: IMAGE_ACCEPT, hint: 'Obrázek zobrazený u příspěvku' },
-  [ROLE.logo]: { accept: IMAGE_ACCEPT, hint: 'Logo klubu, použije se v hlavičce výsledkové listiny' }
+  [ROLE.logo]: { accept: IMAGE_ACCEPT, hint: 'Logo klubu, použije se v hlavičce výsledkové listiny' },
+  [ROLE.sponzori]: {
+    accept: IMAGE_ACCEPT,
+    hint: 'Pruh s logy sponzorů - tiskne se pod výsledkovou listinou závodu (široký obrázek, cca 7 : 1)'
+  }
 };
 
 /**
