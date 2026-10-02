@@ -37,7 +37,7 @@ export default function TimingTable({
         <div className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
           <div className="card-body p-0">
             <div className="table-responsive">
-              <table className="table table-sm table-hover mb-0 align-middle" style={{ fontSize: '0.8rem' }}>
+              <table className="table table-sm table-hover mb-0 align-middle timing-table" style={{ fontSize: '0.8rem' }}>
                 <thead style={{ background: '#1a1a2e', color: '#fff' }}>
                   <tr>
                     <th style={{ width: '60px', padding: '5px 6px', borderRadius: '10px 0 0 0' }}>Poř.</th>

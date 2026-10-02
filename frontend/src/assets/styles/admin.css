@@ -776,6 +776,24 @@ body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(1
   appearance: textfield;
 }
 
+/* Zadávání časů: nižší řádky, ať se na obrazovku vejde víc závodníků.
+   Výšku řádku určovala pole časů (min-height z .form-control-sm) a dva
+   řádky textu se standardním řádkováním ve jméně i u dresu. */
+.timekeeper-section .timing-table .timing-time-input {
+  min-height: 0;
+  height: 24px;
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+.timekeeper-section .timing-table td {
+  line-height: 1.15;
+}
+
+.timekeeper-section .timing-table td small {
+  font-size: 0.7rem;
+}
+
 .timekeeper-section .timing-time-input::-webkit-outer-spin-button,
 .timekeeper-section .timing-time-input::-webkit-inner-spin-button {
   -webkit-appearance: none;

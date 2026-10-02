@@ -359,6 +359,8 @@ export default function TimingEntry() {
     unparsedInboxCount,
     visibleInboxEvents,
     hiddenInboxCount,
+    showAllInbox,
+    setShowAllInbox,
     inboxResolutions,
     cycleBridgeCandidate,
     confirmBridgeEvent,
@@ -448,6 +450,8 @@ export default function TimingEntry() {
               events={inboxEvents}
               visibleEvents={visibleInboxEvents}
               hiddenCount={hiddenInboxCount}
+              showAll={showAllInbox}
+              onShowAllChange={setShowAllInbox}
               resolutions={inboxResolutions}
               targetRound={bridgeTargetRound}
               unparsedCount={unparsedInboxCount}

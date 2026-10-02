@@ -1,6 +1,7 @@
 import BridgeEventRow from './BridgeEventRow.jsx';
 import { EMPTY_RESOLUTION } from './inboxMatching.js';
 import { TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import { INBOX_RENDER_LIMIT } from './useInboxEvents.js';
 
 /**
  * Schránka impulzů z časomíry.
@@ -12,6 +13,8 @@ import { TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
  * @param {Array}  events            všechny uložené události závodu
  * @param {Array}  visibleEvents     ty, které se opravdu vykreslí
  * @param {number} hiddenCount       kolik jich je skrytých (jen vyřízené)
+ * @param {boolean} showAll          vykreslují se všechny uložené události
+ * @param {function} onShowAllChange přepne mezi posledními a všemi
  * @param {Map}    resolutions       id události -> {entry, count, index}
  * @param {number} unparsedCount     nerozpoznané řádky ze zařízení
  * @param {number} resolvedCount     vyřízené řádky (potvrzené / zamítnuté / chybové)
@@ -20,6 +23,8 @@ export default function SerialInboxPanel({
   events,
   visibleEvents,
   hiddenCount,
+  showAll,
+  onShowAllChange,
   resolutions,
   targetRound,
   unparsedCount,
@@ -88,9 +93,32 @@ export default function SerialInboxPanel({
           ) : (
             <div className="p-2">
               {hiddenCount > 0 && (
-                <div className="text-muted small px-1 pb-1">
-                  Zobrazeno {visibleEvents.length} z {events.length} uložených událostí
-                  (starší vyřízené jsou skryté, ale nejsou smazané).
+                <div className="d-flex align-items-center justify-content-between gap-2 text-muted small px-1 pb-1">
+                  <span>
+                    Zobrazeno {visibleEvents.length} z {events.length} uložených událostí
+                    (starší vyřízené jsou skryté, ale nejsou smazané).
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary py-0 px-2 text-nowrap"
+                    style={{ fontSize: '0.72rem' }}
+                    onClick={() => onShowAllChange(true)}
+                  >
+                    Zobrazit všech {events.length}
+                  </button>
+                </div>
+              )}
+              {showAll && events.length > INBOX_RENDER_LIMIT && (
+                <div className="d-flex align-items-center justify-content-between gap-2 text-muted small px-1 pb-1">
+                  <span>Zobrazeny všechny uložené události ({events.length}).</span>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary py-0 px-2 text-nowrap"
+                    style={{ fontSize: '0.72rem' }}
+                    onClick={() => onShowAllChange(false)}
+                  >
+                    Jen posledních {INBOX_RENDER_LIMIT}
+                  </button>
                 </div>
               )}
               {visibleEvents.map((evt) => {

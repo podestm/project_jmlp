@@ -20,7 +20,7 @@ import RaceNumberBadge from './RaceNumberBadge.jsx';
  */
 const LOCKED_INPUT_STYLE = Object.freeze({ background: '#e9ecef', opacity: 0.8 });
 
-const NAME_CELL_STYLE = Object.freeze({ padding: '3px 6px', maxWidth: 0, width: '100%' });
+const NAME_CELL_STYLE = Object.freeze({ padding: '1px 6px', maxWidth: 0, width: '100%' });
 
 const TimingRow = React.memo(function TimingRow({
   entry,
@@ -44,12 +44,13 @@ const TimingRow = React.memo(function TimingRow({
 
   return (
     <tr className={hasFlag ? 'table-light' : ''}>
-      <td className="fw-bold text-center" style={{ padding: '3px 6px' }}>{entry.start_number || '—'}</td>
-      <td style={{ padding: '3px 6px' }}>
+      <td className="fw-bold text-center" style={{ padding: '1px 6px' }}>{entry.start_number || '—'}</td>
+      <td style={{ padding: '1px 6px' }}>
         <RaceNumberBadge
           actualNumber={entry.race_number_actual}
           displayNumber={entry.race_number_display}
           setColor={entry.set_color}
+          smallTopMargin={false}
         />
       </td>
       {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů -
@@ -63,7 +64,7 @@ const TimingRow = React.memo(function TimingRow({
           {entry.club_name || 'Bez klubu'}{showCategory ? ` | ${entry.category_name || '?'}` : ''} ({entry.racer_year})
         </small>
       </td>
-      <td style={{ padding: '3px 4px' }}>
+      <td style={{ padding: '1px 4px' }}>
         <input
           ref={refTime1}
           type="number" step="0.01" min="0"
@@ -80,7 +81,7 @@ const TimingRow = React.memo(function TimingRow({
           disabled={hasFlag || activeRound === '2' || !hasWriteLock}
         />
       </td>
-      <td style={{ padding: '3px 4px' }}>
+      <td style={{ padding: '1px 4px' }}>
         <input
           ref={refTime2}
           type="number" step="0.01" min="0"
@@ -97,14 +98,14 @@ const TimingRow = React.memo(function TimingRow({
           disabled={hasFlag || activeRound === '1' || !hasWriteLock}
         />
       </td>
-      <td className="fw-bold text-center" style={{ padding: '3px 6px', fontFamily: 'monospace', fontSize: '0.86rem' }}>
+      <td className="fw-bold text-center" style={{ padding: '1px 6px', fontFamily: 'monospace', fontSize: '0.86rem' }}>
         {hasFlag
           ? (times.dnf ? <span className="badge bg-warning text-dark" style={{ fontSize: '0.68rem' }}>DNF</span>
             : times.dns ? <span className="badge bg-secondary" style={{ fontSize: '0.68rem' }}>DNS</span>
             : <span className="badge bg-danger" style={{ fontSize: '0.68rem' }}>DSQ</span>)
           : (entry.time_sum != null ? entry.time_sum.toFixed(2) : '—')}
       </td>
-      <td style={{ padding: '3px 4px' }}>
+      <td style={{ padding: '1px 4px' }}>
         <div className="btn-group btn-group-sm">
           <button className={`btn py-0 px-1 ${times.dnf ? 'btn-warning' : 'btn-outline-warning'}`}
             style={{ fontSize: '0.68rem', borderRadius: '6px 0 0 6px' }}

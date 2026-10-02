@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SYNC_QUEUE_EVENT } from '../../offline/syncQueue.js';
 import {
   applyMatchPatches,
@@ -18,8 +18,11 @@ import { parseIncomingTime } from '../../utils/serial.js';
 import { compareCandidates, matchesBib, normalizeBib, resolveInboxEvent } from './inboxMatching.js';
 import { liveWriterIds } from './writerPresence.js';
 
-/** Kolik řádků inboxu se vykresluje. Zbytek zůstává uložený, jen se nezobrazí. */
-const INBOX_RENDER_LIMIT = 100;
+/**
+ * Kolik řádků inboxu se vykresluje, dokud si obsluha nevyžádá všechny. Zbytek
+ * zůstává uložený, jen se nezobrazí.
+ */
+export const INBOX_RENDER_LIMIT = 100;
 
 /** Změny inboxu chodí po dávkách; jedno čtení tabulky na dávku stačí. */
 const INBOX_REFRESH_DEBOUNCE_MS = 120;
@@ -156,16 +159,19 @@ export function useInboxEvents({
     inboxEvents.filter((row) => row.reason === 'unparsed' && row.status === 'warning').length
   ), [inboxEvents]);
 
+  // Celý log závodu musí jít kdykoli projít, proto jde limit vypnout.
+  const [showAllInbox, setShowAllInbox] = useState(false);
+
   // Skrývají se jen vyřízené řádky. Nevyřízený řádek je naměřený čas, který
   // nikde jinde není, takže ten se nesmí ztratit ani z pohledu.
   const visibleInboxEvents = useMemo(() => {
-    if (inboxEvents.length <= INBOX_RENDER_LIMIT) return inboxEvents;
+    if (showAllInbox || inboxEvents.length <= INBOX_RENDER_LIMIT) return inboxEvents;
     const live = inboxEvents.filter(isLiveInboxEvent);
     const resolved = inboxEvents
       .filter((row) => !isLiveInboxEvent(row))
       .slice(0, Math.max(INBOX_RENDER_LIMIT - live.length, 0));
     return [...live, ...resolved];
-  }, [inboxEvents]);
+  }, [inboxEvents, showAllInbox]);
 
   const hiddenInboxCount = inboxEvents.length - visibleInboxEvents.length;
 
@@ -519,6 +525,8 @@ export function useInboxEvents({
     unparsedInboxCount,
     visibleInboxEvents,
     hiddenInboxCount,
+    showAllInbox,
+    setShowAllInbox,
     inboxResolutions,
     cycleBridgeCandidate,
     confirmBridgeEvent,
