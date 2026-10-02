@@ -41,6 +41,8 @@ export function secondRunEntries(entries, order = SECOND_RUN_SAME) {
 
 const startListEntry = (entry) => ({
   number: bibOf(entry),
+  // Body pro nasazení na start; dokud se nelosuje podle bodů, zůstanou prázdné.
+  points: entry.draw_points ?? null,
   slcrId: entry.slcr_id || null,
   surname: entry.racer_surname || '',
   firstName: entry.racer_name || '',

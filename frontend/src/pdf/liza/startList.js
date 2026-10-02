@@ -25,6 +25,9 @@ const FIRST_BAND_TOP = 126.0;
 const NEXT_BAND_TOP = 5.76;
 
 const BOLD8 = { size: 8.04, bold: true };
+/** Sloupec "ID závodníka" - za ročníkem, kde má řádek startovky volné místo. */
+const REG_X = 507.0;
+const REG_HEADER_X = 499.5;
 const BOLD10 = { size: 9.96, bold: true };
 const REGULAR8 = { size: 8.04 };
 
@@ -62,6 +65,11 @@ function drawTitleBand(canvas, top, title) {
   canvas.text('Startuje za', 257.78, headerBase, BOLD10);
   canvas.text('Stát', 414.22, headerBase, BOLD10);
   canvas.text('Ročník', 460.0, headerBase, BOLD10);
+  // Vlastní sloupec registračního čísla SLČR - v LiZe sedí ve sloupci Body
+  // a plete se s body. Název jako v registračním formuláři, malým písmem
+  // jako hlavička "Pořadí/st.číslo"; začíná o kus vlevo od čísel, aby se
+  // vešel do modrého pásu.
+  canvas.text('ID závodníka', REG_HEADER_X, top + 54.6, BOLD8);
 
   canvas.line(10.8, top + 60.48, 550.8, top + 60.48, { width: 2.16 });
   return top + 62.64;
@@ -81,20 +89,22 @@ function drawEntry(canvas, entry, bottom) {
     // LiZa číslo odsazuje čtyřmi mezerami a celé to centruje.
     canvas.text(`    ${entry.number}`, 36.35, bottom - 6.96, { ...BOLD8, align: 'center' });
   }
-  canvas.text(entry.slcrId || '', 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
+  // Sloupec Body patří bodům (nasazení na start); registrační číslo má svůj sloupec.
+  if (entry.points != null) canvas.text(String(entry.points), 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
   canvas.text(entry.surname || '', 126.72, bottom - 10.92, { ...BOLD10, maxWidth: 128 });
   canvas.text(entry.firstName || '', 126.72, bottom - 2.04, { ...REGULAR8, maxWidth: 128 });
   canvas.text(entry.club || '', 257.76, bottom - 7.44, { ...REGULAR8, maxWidth: 154 });
   drawFlag(canvas, 414.0, bottom - 15.84, 432.72, bottom - 5.76);
   canvas.text(entry.nation || 'CZE', 435.6, bottom - 8.16, REGULAR8);
   canvas.text(entry.year != null ? String(entry.year) : '', 495.39, bottom - 8.16, { ...REGULAR8, align: 'right' });
+  canvas.text(entry.slcrId || '', REG_X, bottom - 8.16, { ...REGULAR8, maxWidth: 542 - REG_X });
 }
 
 /**
  * @param {object} options
  * @param {object} options.header      hlavička závodu (viz useRacePdf)
  * @param {number} [options.round=1]   kolo - jen do nadpisu
- * @param {Array}  options.categories  [{ name, entries: [{ number, slcrId, surname,
+ * @param {Array}  options.categories  [{ name, entries: [{ number, points, slcrId, surname,
  *                                      firstName, club, nation, year }] }] v pořadí startu
  */
 export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
