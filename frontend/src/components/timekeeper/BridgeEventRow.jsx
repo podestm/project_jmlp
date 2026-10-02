@@ -27,6 +27,16 @@ export const formatBridgeReason = (reason) => {
   return reason in REASON_LABELS ? REASON_LABELS[reason] : reason;
 };
 
+/**
+ * DNF/DNS/DSQ z časomíry nenesou čas. Řádek je dřív popsal jako "bez času" a
+ * obsluha nepoznala, že potvrzením zapíše DNF. Barvy jako ve sloupci Stav.
+ */
+const FLAG_BADGES = {
+  DNF: 'bg-warning text-dark',
+  DNS: 'bg-secondary',
+  DSQ: 'bg-danger',
+};
+
 const STATUS_CLASSES = {
   saved: 'success',
   queued: 'info',
@@ -63,6 +73,7 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
   const bib = event.bib == null ? null : Number(event.bib);
   const selectedEntry = resolvedEntry || null;
   const statusClass = STATUS_CLASSES[event.status] || 'light';
+  const flagBadge = FLAG_BADGES[String(event.type || '').toUpperCase()];
 
   // 'saving' is locked only while it is genuinely in flight - a row orphaned by
   // a crash is demoted back to 'pending' by the periodic recovery pass, so it
@@ -118,7 +129,9 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
               </span>
             </button>
             <small className="text-muted text-truncate" style={{ flex: 1, minWidth: 0, fontSize: '0.73rem' }}>
-              {event.time ? `${event.time}` : 'bez času'} | K{event.targetRound || fallbackTargetRound}
+              {flagBadge ? (
+                <span className={`badge ${flagBadge}`} style={{ fontSize: '0.68rem' }}>{String(event.type).toUpperCase()}</span>
+              ) : (event.time ? `${event.time}` : 'bez času')} | K{event.targetRound || fallbackTargetRound}
               {candidateCount > 1 ? ` | ${Math.max(candidateIndex, 0) + 1}/${candidateCount}` : ''}
               {event.reason && event.reason !== 'ready' && event.reason !== 'multiple_matches' ? ` | ${formatBridgeReason(event.reason)}` : ''}
             </small>

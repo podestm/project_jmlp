@@ -69,6 +69,19 @@ describe('BridgeEventRow', () => {
     expect(screen.queryByText(/st\. č\./)).not.toBeInTheDocument();
   });
 
+  it.each(['DNF', 'DNS', 'DSQ'])('%s z časomíry ukáže stav, ne "bez času"', (type) => {
+    renderRow({ event: event({ type, time: null, raw: `18 23 ${type}` }) });
+
+    expect(screen.getByText(type)).toBeInTheDocument();
+    expect(screen.queryByText(/bez času/)).not.toBeInTheDocument();
+  });
+
+  it('čas bez hodnoty dál hlásí "bez času"', () => {
+    renderRow({ event: event({ type: 'TIME', time: null }) });
+
+    expect(screen.getByText(/bez času/)).toBeInTheDocument();
+  });
+
   it('nerozpoznaný řádek ukazuje syrový text a nemá koho přiřadit', () => {
     renderRow({
       event: event({ reason: 'unparsed', raw: 'ABC;;;' }),
