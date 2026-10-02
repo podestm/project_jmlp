@@ -1,5 +1,5 @@
 import { timekeeperDb } from './db.js';
-import { affectedEntryIds } from './entryTargets.js';
+import { affectedEntryIds, excludedEntryId } from './entryTargets.js';
 
 const nowIso = () => new Date().toISOString();
 
@@ -141,6 +141,20 @@ export const applyLocalMutation = async (
       await writeThroughStartListCache(updated.race_id, new Map([[entryId, updated]]));
     }
   };
+
+  // Vyřazení ze startky mění jen příznak, a to offline i online - jinak by
+  // obrazovky bez signálu vyřazeného dál ukazovaly. Revizi ani časy z odpovědi
+  // do snímku nepouštíme: server revizi vyřazením neposouvá a časy v odpovědi
+  // můžou být novější než ty, ke kterým zařízení revizi drží.
+  const excludedId = excludedEntryId(method, endpoint);
+  if (excludedId != null) {
+    const excluded = Boolean(serverEntry ? serverEntry.excluded : payload?.excluded);
+    const updated = await updateStartListEntry(excludedId, (entry) => ({ ...entry, excluded }));
+    if (updated) {
+      await writeThroughStartListCache(updated.race_id, new Map([[excludedId, { excluded }]]));
+    }
+    return;
+  }
 
   if (method === 'PUT') {
     const timeMatch = endpoint.match(/^\/api\/timekeeper\/start-list\/(\d+)\/time$/);

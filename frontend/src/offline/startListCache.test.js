@@ -80,6 +80,40 @@ describe('cacheGetResponse', () => {
   });
 });
 
+describe('cacheGetResponse - vyřazení ze startky', () => {
+  it('nepřepíše vyřazení, které ještě čeká ve frontě', async () => {
+    await timekeeperDb.startList.put(startListEntry({ excluded: true }));
+    await enqueueMutation('PUT', '/api/timekeeper/start-list/1/excluded', { excluded: true });
+
+    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ excluded: false, time1: 31 })]);
+
+    expect(stored[0].excluded).toBe(true);
+    // Časy čekající vyřazení nepřebíjí - ty platí ze serveru.
+    expect(stored[0].time1).toBe(31);
+    expect(stored[0].updated_local_only).toBeUndefined();
+    expect((await timekeeperDb.startList.get(1)).excluded).toBe(true);
+  });
+
+  it('čekající čas nevrací lokální stav vyřazení', async () => {
+    // Vyřazení přišlo z jiného zařízení; tady čeká jen zápis času.
+    await timekeeperDb.startList.put(startListEntry({ time1: 25.5, excluded: false }));
+    await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 25.5 });
+
+    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ time1: null, excluded: true })]);
+
+    expect(stored[0].excluded).toBe(true);
+    expect(stored[0].time1).toBe(25.5);
+  });
+
+  it('bez čekajících zápisů platí vyřazení ze serveru', async () => {
+    await timekeeperDb.startList.put(startListEntry({ excluded: true }));
+
+    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ excluded: false })]);
+
+    expect(stored[0].excluded).toBe(false);
+  });
+});
+
 describe('readCachedResponse', () => {
   it('pro neuložený dotaz vrací null', async () => {
     expect(await readCachedResponse('/api/timekeeper/races', null)).toBeNull();

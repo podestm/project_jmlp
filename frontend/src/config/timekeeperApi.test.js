@@ -260,3 +260,82 @@ describe('kluby pro časoměřiče', () => {
     expect(await TimekeeperAPI.get('/clubs/')).toHaveLength(3);
   });
 });
+
+/**
+ * Vyřazení ze startky (nedorazil) jde stejnou cestou jako ostatní úpravy
+ * startovky - ale se svým vlastním pořadím: "Vrátit" nesmí předběhnout starší
+ * "Vyřadit", jinak by se to pak přehrálo navrch a závodník zůstal vyřazený.
+ */
+describe('vyřazení ze startky', () => {
+  const START_LIST = '/api/timekeeper/races/10/start-list';
+  const EXCLUDE = '/api/timekeeper/start-list/1/excluded';
+
+  it('online pošle cílový stav a snímek převezme odpověď', async () => {
+    await seedCache(START_LIST, [startListEntry({ id: 1 })]);
+    fetchMock.mockResolvedValue(jsonResponse({ entry: startListEntry({ id: 1, excluded: true }) }));
+
+    const result = await TimekeeperAPI.put(EXCLUDE, { excluded: true });
+
+    expect(result.entry.excluded).toBe(true);
+    expect(fetchMock.mock.calls[0][1].method).toBe('PUT');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ excluded: true });
+    expect((await timekeeperDb.startList.get(1)).excluded).toBe(true);
+  });
+
+  it('offline se zařadí do fronty a nakešovaná startovka ho hned vidí', async () => {
+    await seedCache(START_LIST, [startListEntry({ id: 1 })]);
+    setOnline(false);
+
+    const result = await TimekeeperAPI.put(EXCLUDE, { excluded: true });
+
+    expect(result.queued).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+    const rows = await TimekeeperAPI.get(START_LIST);
+    expect(rows[0].excluded).toBe(true);
+  });
+
+  it('čerstvé načtení startovky nepřebije vyřazení, které čeká ve frontě', async () => {
+    await seedCache(START_LIST, [startListEntry({ id: 1 })]);
+    setOnline(false);
+    await TimekeeperAPI.put(EXCLUDE, { excluded: true });
+
+    setOnline(true);
+    fetchMock.mockResolvedValue(jsonResponse([startListEntry({ id: 1, excluded: false })]));
+
+    const rows = await TimekeeperAPI.get(START_LIST);
+    expect(rows[0].excluded).toBe(true);
+  });
+
+  it('vrácení po offline vyřazení jde do fronty za ním a server je dostane v pořadí', async () => {
+    await seedCache(START_LIST, [startListEntry({ id: 1 })]);
+    setOnline(false);
+    await TimekeeperAPI.put(EXCLUDE, { excluded: true });
+
+    setOnline(true);
+    fetchMock.mockResolvedValue(jsonResponse({}));
+    const result = await TimekeeperAPI.put(EXCLUDE, { excluded: false });
+
+    expect(result.queued).toBe(true);
+    // Fronta se po zařazení rovnou rozjede; obě položky musí dojet v pořadí vzniku.
+    await vi.waitFor(async () => {
+      expect(await timekeeperDb.syncQueue.where('status').equals('done').count()).toBe(2);
+    });
+    const sent = fetchMock.mock.calls
+      .filter(([, options]) => options?.method === 'PUT')
+      .map(([, options]) => JSON.parse(options.body).excluded);
+    expect(sent).toEqual([true, false]);
+    expect((await timekeeperDb.startList.get(1)).excluded).toBe(false);
+  });
+
+  it('čekající zápis času vyřazení nezdrží', async () => {
+    setOnline(false);
+    await TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 10 });
+
+    setOnline(true);
+    fetchMock.mockResolvedValue(jsonResponse({ entry: startListEntry({ id: 1, excluded: true }) }));
+    const result = await TimekeeperAPI.put(EXCLUDE, { excluded: true });
+
+    expect(result.queued).toBeUndefined();
+    expect(result.entry.excluded).toBe(true);
+  });
+});

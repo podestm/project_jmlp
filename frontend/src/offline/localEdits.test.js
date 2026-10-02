@@ -185,6 +185,49 @@ describe('applyLocalMutation - přečíslování dresu', () => {
   });
 });
 
+describe('applyLocalMutation - vyřazení ze startky', () => {
+  const EXCLUDE = '/api/timekeeper/start-list/1/excluded';
+
+  it('offline promítne vyřazení do snímku i do nakešované startovky', async () => {
+    await seedEntry({ time1: 30, updated_at: 'revize-ze-serveru' });
+
+    await applyLocalMutation('PUT', EXCLUDE, { excluded: true });
+
+    const snapshot = await timekeeperDb.startList.get(1);
+    expect(snapshot.excluded).toBe(true);
+    // Časy ani revize se nemění - vyřazení se dá vrátit i s nimi.
+    expect(snapshot.time1).toBe(30);
+    expect(snapshot.updated_at).toBe('revize-ze-serveru');
+    // Obrazovka Časy čte offline z cache; bez zápisu by ho dál ukazovala.
+    expect((await cachedEntry()).excluded).toBe(true);
+    expect((await cachedEntry()).time1).toBe(30);
+  });
+
+  it('vrácení příznak zase shodí', async () => {
+    await seedEntry({ excluded: true });
+
+    await applyLocalMutation('PUT', EXCLUDE, { excluded: false });
+
+    expect((await timekeeperDb.startList.get(1)).excluded).toBe(false);
+    expect((await cachedEntry()).excluded).toBe(false);
+  });
+
+  it('online vezme stav ze serveru, ale ne jeho revizi ani časy', async () => {
+    await seedEntry({ time1: 30, updated_at: 'moje' });
+
+    await applyLocalMutation('PUT', EXCLUDE, { excluded: true }, {
+      syncedRemote: true,
+      serverEntry: { id: 1, excluded: true, time1: 99, updated_at: 'cizí' },
+      serverRevision: 'cizí'
+    });
+
+    const snapshot = await timekeeperDb.startList.get(1);
+    expect(snapshot.excluded).toBe(true);
+    expect(snapshot.time1).toBe(30);
+    expect(snapshot.updated_at).toBe('moje');
+  });
+});
+
 describe('applySyncedRevisions', () => {
   it('po synchronizaci zapíše revizi a zruší příznak lokální změny', async () => {
     await seedEntry({ updated_local_only: true, updated_at: 'stará' });

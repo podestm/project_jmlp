@@ -1,5 +1,10 @@
 import { timekeeperDb } from './db.js';
-import { affectedEntryIds, getQueuedEntryIds, stripSupersededRevisions } from './entryTargets.js';
+import {
+  excludedEntryId,
+  getQueuedMutationKeys,
+  mutationKeys,
+  stripSupersededRevisions
+} from './entryTargets.js';
 
 export const MAX_RETRIES = 8;
 // Požadavek, který visí v 'processing' déle, osiřel po obnovení stránky nebo
@@ -50,13 +55,15 @@ export const enqueueMutation = async (method, endpoint, payload = null, opId = n
  *
  * Když ano, musí i tenhle zápis do fronty za něj. Poslaný rovnou by dorazil
  * první a starší přehrávka by pak novější naměřený čas přepsala.
+ *
+ * Porovnává se podle mutationKeys: čas čeká za časem, vyřazení za vyřazením.
  */
 export const hasUnsyncedMutationFor = async (method, endpoint, payload) => {
-  const { ids } = affectedEntryIds((method || '').toUpperCase(), endpoint, payload);
-  if (!ids.length) return false;
+  const keys = mutationKeys(method, endpoint, payload);
+  if (!keys.length) return false;
 
-  const queuedIds = await getQueuedEntryIds();
-  return queuedIds.size ? ids.some((id) => queuedIds.has(id)) : false;
+  const queuedKeys = await getQueuedMutationKeys();
+  return queuedKeys.size ? keys.some((key) => queuedKeys.has(key)) : false;
 };
 
 /**
@@ -65,22 +72,25 @@ export const hasUnsyncedMutationFor = async (method, endpoint, payload) => {
  * Bez toho by pozdější „Vynutit" v Centru synchronizace přehrálo starou dávku
  * rovnou přes hodnotu, která už je zapsaná.
  *
+ * Překonává se jen stejný druh zápisu (mutationKeys): vyřazení ze startky
+ * neruší zaparkovaný čas téhož závodníka a zápis času neruší vyřazení.
+ *
  * @param {string|null} [createdBefore] parkovat jen zápisy starší než tenhle
  *   okamžik - při přehrávání fronty je to čas vzniku právě odeslané položky,
  *   aby se nesmazalo něco, co vzniklo až po ní.
  * @returns {number} kolik položek bylo označeno
  */
 export const supersedeParkedOpsFor = async (method, endpoint, payload, createdBefore = null) => {
-  const { ids } = affectedEntryIds((method || '').toUpperCase(), endpoint, payload);
-  if (!ids.length) return 0;
+  const keys = mutationKeys(method, endpoint, payload);
+  if (!keys.length) return 0;
 
-  const targetIds = new Set(ids);
+  const targetKeys = new Set(keys);
   const parked = await timekeeperDb.syncQueue.where('status').anyOf('conflict', 'dead').toArray();
   const cutoff = createdBefore ? Date.parse(createdBefore) : Number.POSITIVE_INFINITY;
 
   const superseded = parked.filter((row) => {
-    const rowIds = affectedEntryIds((row.method || '').toUpperCase(), row.endpoint, row.payload).ids;
-    if (!rowIds.some((id) => targetIds.has(id))) return false;
+    const rowKeys = mutationKeys(row.method, row.endpoint, row.payload);
+    if (!rowKeys.some((key) => targetKeys.has(key))) return false;
     if (!Number.isFinite(cutoff)) return true;
     const createdAt = Date.parse(row.created_at || '');
     return Number.isFinite(createdAt) && createdAt < cutoff;
@@ -88,11 +98,15 @@ export const supersedeParkedOpsFor = async (method, endpoint, payload, createdBe
 
   if (!superseded.length) return 0;
 
+  const reason = excludedEntryId(method, endpoint) != null
+    ? 'Nahrazeno novějším vyřazením či vrácením téhož závodníka.'
+    : 'Nahrazeno novějším zápisem téhož času.';
+
   await Promise.all(superseded.map(async (row) => {
     await timekeeperDb.syncQueue.update(row.id, {
       status: 'superseded',
       updated_at: nowIso(),
-      last_error: 'Nahrazeno novějším zápisem téhož času.'
+      last_error: reason
     });
 
     const open = await timekeeperDb.conflicts
