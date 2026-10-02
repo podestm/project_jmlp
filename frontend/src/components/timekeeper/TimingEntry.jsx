@@ -20,7 +20,7 @@ import {
   markWriterAlive,
   WRITER_HEARTBEAT_MS,
 } from './writerPresence.js';
-import { groupEntriesByCategory } from './startListHelpers.js';
+import { activeEntries, groupEntriesByCategory } from './startListHelpers.js';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import SerialInboxPanel from './SerialInboxPanel.jsx';
 import TimingTable from './TimingTable.jsx';
@@ -281,9 +281,16 @@ export default function TimingEntry() {
     readOnlyMessage: READ_ONLY_MESSAGE,
     hasWriteLock,
   });
+
+  // Vyřazení ze startky (isExcluded) se v tabulce, filtrech, počtech ani
+  // v tisku neukazují. `startList` je ale drží dál: rozepsané časy se jim
+  // nesmí ztratit a inbox časomíry podle nich pozná, proč dres nikomu nepatří.
+  const activeStartList = useMemo(() => activeEntries(startList), [startList]);
+  const excludedCount = startList.length - activeStartList.length;
+
   const categoryList = useMemo(() => {
     const cats = new Map();
-    startList.forEach((entry) => {
+    activeStartList.forEach((entry) => {
       const catName = entry.category_name || 'Bez kategorie';
       if (!cats.has(catName)) {
         cats.set(catName, { name: catName, count: 0 });
@@ -291,7 +298,7 @@ export default function TimingEntry() {
       cats.get(catName).count++;
     });
     return [...cats.values()];
-  }, [startList]);
+  }, [activeStartList]);
 
   const startListById = useMemo(() => {
     const byId = {};
@@ -305,9 +312,9 @@ export default function TimingEntry() {
 
   const categoryFiltered = useMemo(() => (
     selectedCategory === 'all'
-      ? startList
-      : startList.filter((e) => (e.category_name || 'Bez kategorie') === selectedCategory)
-  ), [startList, selectedCategory]);
+      ? activeStartList
+      : activeStartList.filter((e) => (e.category_name || 'Bez kategorie') === selectedCategory)
+  ), [activeStartList, selectedCategory]);
 
   const filteredList = useMemo(() => (
     categoryFiltered.filter((entry) => {
@@ -334,7 +341,7 @@ export default function TimingEntry() {
    * @param {string} scope   'category' = vybraná kategorie, 'all' = všechny
    */
   const printResults = useCallback(async (runMode, scope) => {
-    const source = scope === 'category' ? categoryFiltered : startList;
+    const source = scope === 'category' ? categoryFiltered : activeStartList;
     const categories = groupEntriesByCategory(source);
     if (categories.length === 0) {
       setMessage({ type: 'warning', text: 'Není co tisknout - startovní listina je prázdná.' });
@@ -345,7 +352,7 @@ export default function TimingEntry() {
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
-  }, [categoryFiltered, startList, pdf]);
+  }, [categoryFiltered, activeStartList, pdf]);
 
   const completedCount = useMemo(() => (
     categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length
@@ -398,7 +405,7 @@ export default function TimingEntry() {
         selectedRace={selectedRace}
         selectedRaceId={selectedRaceId}
         setSelectedRaceId={setSelectedRaceId}
-        startListLength={startList.length}
+        startListLength={activeStartList.length}
         categoryList={categoryList}
         categoryFilteredLength={categoryFiltered.length}
         completedCount={completedCount}
@@ -430,6 +437,12 @@ export default function TimingEntry() {
       {!loading && selectedRaceId && (
         <div className="row g-3 align-items-start">
           <div className="col-12 col-xl-7">
+            {excludedCount > 0 && (
+              <div className="small text-muted mb-1">
+                <i className="bi bi-person-dash me-1"></i>
+                Vyřazení ze startovní listiny ({excludedCount}) se tu nezobrazují – vrátit je jde v Listině.
+              </div>
+            )}
             <TimingTable
               entries={filteredList}
               editedTimes={editedTimes}
@@ -441,7 +454,7 @@ export default function TimingEntry() {
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}
               onToggleFlag={toggleFlag}
-              startListEmpty={startList.length === 0}
+              startListEmpty={activeStartList.length === 0}
             />
           </div>
 

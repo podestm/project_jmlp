@@ -1,5 +1,6 @@
 import React from 'react';
 import RaceNumberBadge from './RaceNumberBadge.jsx';
+import { isExcluded } from './startListHelpers.js';
 
 export const getSexLabel = (sex) => {
   if (Number(sex) === 1) return 'Muž';
@@ -12,10 +13,15 @@ export const getSexLabel = (sex) => {
  *
  * Memoised so that typing in the "Přidat závodníka" form above no longer
  * rebuilds the whole table below it on every character.
+ *
+ * Vyřazený ze startky je pořád přihlášený závodník, proto tu je - jen
+ * označený stejně jako v Listině, kde se dá vrátit.
  */
 const TimekeeperRacerRow = React.memo(function TimekeeperRacerRow({ entry, onEdit }) {
+  const excluded = isExcluded(entry);
+
   return (
-    <tr>
+    <tr className={excluded ? 'tk-row-excluded' : undefined}>
       <td className="fw-bold">{entry.start_number || '—'}</td>
       <td>
         <RaceNumberBadge
@@ -26,7 +32,13 @@ const TimekeeperRacerRow = React.memo(function TimekeeperRacerRow({ entry, onEdi
         />
       </td>
       <td>
-        <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
+        <span className={`fw-semibold${excluded ? ' tk-excluded-name' : ''}`}>{entry.racer_surname} {entry.racer_name}</span>
+        {excluded && (
+          <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}
+            title="Vyřazen ze startovní listiny - vrátit jde v Listině">
+            vyřazen
+          </span>
+        )}
       </td>
       <td>{entry.racer_year}</td>
       <td>{getSexLabel(entry.racer_sex)}</td>

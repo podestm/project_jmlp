@@ -15,7 +15,7 @@ import { INBOX_RENDER_LIMIT } from './useInboxEvents.js';
  * @param {number} hiddenCount       kolik jich je skrytých (jen vyřízené)
  * @param {boolean} showAll          vykreslují se všechny uložené události
  * @param {function} onShowAllChange přepne mezi posledními a všemi
- * @param {Map}    resolutions       id události -> {entry, count, index}
+ * @param {Map}    resolutions       id události -> {entry, count, index, excluded}
  * @param {number} unparsedCount     nerozpoznané řádky ze zařízení
  * @param {number} resolvedCount     vyřízené řádky (potvrzené / zamítnuté / chybové)
  */
@@ -130,6 +130,7 @@ export default function SerialInboxPanel({
                     resolvedEntry={resolution.entry}
                     candidateCount={resolution.count}
                     candidateIndex={resolution.index}
+                    excludedMatch={Boolean(resolution.excluded)}
                     fallbackTargetRound={targetRound}
                     onCycle={onCycle}
                     onConfirm={onConfirm}

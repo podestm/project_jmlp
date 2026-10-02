@@ -9,6 +9,7 @@ const REASON_LABELS = {
   unsupported_type: 'Nepodporovaný typ události',
   unparsed: 'Řádek se nepodařilo rozpoznat',
   bib_not_found: 'Číslo dresu není ve startovní listině',
+  bib_excluded: 'Závodník je vyřazený ze startky – vraťte ho v Listině',
   multiple_matches: 'Nalezeno více kandidátů se stejným číslem',
   save_failed: 'Uložení selhalo',
   saving_interrupted: 'Ukládání bylo přerušeno – potvrďte znovu',
@@ -59,12 +60,16 @@ const STATUS_CLASSES = {
  * @param {Object|null} resolvedEntry the start-list entry this row belongs to
  * @param {number} candidateCount how many entries carry this bib
  * @param {number} candidateIndex position of resolvedEntry among them, -1 if none
+ * @param {boolean} excludedMatch nikdo nezbyl, protože dres patří závodníkovi
+ *   vyřazenému ze startky - řádek to řekne místo obecného "dres není ve
+ *   startovní listině", ať obsluha ví, kde ho vrátit
  */
 const BridgeEventRow = React.memo(function BridgeEventRow({
   event,
   resolvedEntry,
   candidateCount = 0,
   candidateIndex = -1,
+  excludedMatch = false,
   fallbackTargetRound,
   onCycle,
   onConfirm,
@@ -82,6 +87,9 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
     || event.status === 'saving'
     || event.status === 'queued'
     || event.status === 'rejected';
+  // Uložený důvod vzniká jednou, vyřazení se ale může změnit kdykoli -
+  // proto se o něm rozhoduje až tady, z aktuální startovky.
+  const reason = excludedMatch && !isLockedRow ? 'bib_excluded' : event.reason;
   const canChangeCandidate = candidateCount > 1 && !isLockedRow;
   const isUnparsed = event.reason === 'unparsed';
   // An event whose type is none of TIME/DNS/DNF/DSQ cannot be written anywhere:
@@ -133,7 +141,7 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
                 <span className={`badge ${flagBadge}`} style={{ fontSize: '0.68rem' }}>{String(event.type).toUpperCase()}</span>
               ) : (event.time ? `${event.time}` : 'bez času')} | K{event.targetRound || fallbackTargetRound}
               {candidateCount > 1 ? ` | ${Math.max(candidateIndex, 0) + 1}/${candidateCount}` : ''}
-              {event.reason && event.reason !== 'ready' && event.reason !== 'multiple_matches' ? ` | ${formatBridgeReason(event.reason)}` : ''}
+              {reason && reason !== 'ready' && reason !== 'multiple_matches' ? ` | ${formatBridgeReason(reason)}` : ''}
             </small>
           </>
         )}

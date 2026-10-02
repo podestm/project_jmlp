@@ -349,7 +349,10 @@ export default function TimekeeperRacers() {
       resetForm(updatedEntries);
       setMessage({ type: 'success', text: result.message });
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se přidat závodníka do závodu' });
+      // Server říká česky, co je špatně (např. že závodník už na startovce je,
+      // jen vyřazený, a má se vrátit v Listině) - to je užitečnější než kód chyby.
+      const detail = typeof err?.detail === 'string' ? err.detail : null;
+      setMessage({ type: 'danger', text: detail || err.message || 'Nepodařilo se přidat závodníka do závodu' });
     } finally {
       setSubmitting(false);
     }
