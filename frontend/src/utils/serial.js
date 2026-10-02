@@ -34,10 +34,14 @@ export const canUseWebSerial = () => typeof location !== 'undefined' && (
  * "11  65  5.16" (sequence, bib, seconds; 19200 baud) and every such line
  * ended up in the inbox as unrecognised.
  *
- * The device emits no event type - every such line is a finish time. Its boot
- * banner ("(c)LIP", "Ver: 3.01 ...", rows of asterisks) must not match.
+ * In place of the time the device can send a status: "18 12 DNF". DNS and DSQ
+ * are accepted the same way.
+ *
+ * Apart from those statuses the device emits no event type - a number in the
+ * last column is a finish time. Its boot banner ("(c)LIP", "Ver: 3.01 ...",
+ * rows of asterisks) must not match.
  */
-const LIP_LINE = /^(?:(\d{1,2}:\d{2}:\d{2})\s+)?(\d+)\s+(\d+)\s+(\d+(?:[.,]\d+)?)$/;
+const LIP_LINE = /^(?:(\d{1,2}:\d{2}:\d{2})\s+)?(\d+)\s+(\d+)\s+(\d+(?:[.,]\d+)?|DNF|DNS|DSQ)$/i;
 
 /**
  * Parse one line coming from the timing device.
@@ -45,6 +49,7 @@ const LIP_LINE = /^(?:(\d{1,2}:\d{2}:\d{2})\s+)?(\d+)\s+(\d+)\s+(\d+(?:[.,]\d+)?
  * Accepted forms:
  *   00:03:07 16 213 188.19                      (LIP TIMER, space separated)
  *   16  213  188.19                             (LIP TIMER without uptime)
+ *   18  12  DNF                                 (LIP TIMER status instead of time)
  *   TIME;DRES;MM:SS.hh   DNS;DRES   DNF;DRES   DSQ;DRES   (tools/ simulator)
  *   {"type":"TIME","bib":12,"time":"1:02.34"}   (raw JSON passthrough)
  *
@@ -68,16 +73,17 @@ export const parseTimingDeviceLine = (line) => {
 
   const lip = trimmed.match(LIP_LINE);
   if (lip) {
-    const [, uptime, seq, bib, time] = lip;
-    return {
-      type: 'TIME',
+    const [, uptime, seq, bib, value] = lip;
+    const status = value.toUpperCase();
+    const common = {
       bib: Number(bib),
-      time: time.replace(',', '.'),
       seq: Number(seq),
       uptime: uptime ?? null,
       raw: trimmed,
       ts: Date.now() / 1000,
     };
+    if (ACCEPTED_TYPES.includes(status)) return { type: status, ...common };
+    return { type: 'TIME', time: value.replace(',', '.'), ...common };
   }
 
   const parts = trimmed.replace(',', '.').split(';').map((item) => item.trim());

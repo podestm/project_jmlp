@@ -25,6 +25,19 @@ describe('parseTimingDeviceLine', () => {
     expect(parseIncomingTime(parsed.time)).toBeCloseTo(Number(time));
   });
 
+  // Časomíra posílá DNF místo času: "18 12 DNF" (pořadí, dres, stav).
+  it.each([
+    ['18 12 DNF', 'DNF', 18, 12, null],
+    ['18  12  DNF', 'DNF', 18, 12, null],
+    ['00:03:07 19 213 DNS', 'DNS', 19, 213, '00:03:07'],
+    ['20 7 dsq', 'DSQ', 20, 7, null],
+  ])('přečte stav místo času: %s', (line, type, seq, bib, uptime) => {
+    const parsed = parseTimingDeviceLine(line);
+
+    expect(parsed).toMatchObject({ type, seq, bib, uptime });
+    expect(parsed.time).toBeUndefined();
+  });
+
   it('přijme desetinnou čárku', () => {
     expect(parseTimingDeviceLine('11  65  5,16').time).toBe('5.16');
   });
@@ -35,6 +48,8 @@ describe('parseTimingDeviceLine', () => {
     '****************',
     '65  5.16',
     '00:03:07 213 188.19',
+    '18 12 ABC',
+    '18 12 DNFX',
   ])('nepovažuje za čas řádek „%s“', (line) => {
     expect(parseTimingDeviceLine(line)).toBeNull();
   });
