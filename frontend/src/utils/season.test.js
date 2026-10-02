@@ -67,8 +67,13 @@ describe('pointsForRank', () => {
     expect(pointsForRank(30)).toBe(1);
   });
 
-  it('od 31. místa a bez pořadí je nula', () => {
-    expect(pointsForRank(31)).toBe(0);
+  it('od 30. místa má každý, kdo dojel, bod (soutěžní řád JmLP)', () => {
+    expect(pointsForRank(31)).toBe(1);
+    expect(pointsForRank(35)).toBe(1);
+    expect(pointsForRank(120)).toBe(1);
+  });
+
+  it('bez pořadí je nula', () => {
     expect(pointsForRank(null)).toBe(0);
     expect(pointsForRank(0)).toBe(0);
   });

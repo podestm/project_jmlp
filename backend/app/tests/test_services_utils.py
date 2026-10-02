@@ -118,8 +118,11 @@ def test_body_odpovidaji_tabulce():
     assert results_service.points_for_rank(1) == 100
     assert results_service.points_for_rank(2) == 80
     assert results_service.points_for_rank(30) == 1
-    assert results_service.points_for_rank(31) == 0
+    # Soutěžní řád JmLP: od 30. místa za každé umístění po 1 bodu.
+    assert results_service.points_for_rank(31) == 1
+    assert results_service.points_for_rank(35) == 1
     assert results_service.points_for_rank(None) == 0
+    assert results_service.points_for_rank(0) == 0
 
 
 def test_tabulka_bodu_ma_30_mist():

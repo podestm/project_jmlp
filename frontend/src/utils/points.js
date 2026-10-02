@@ -17,10 +17,15 @@ export const POINTS_TABLE = [
 ];
 
 /**
- * Body za umístění v kategorii. Od 31. místa a pro nedokončivší 0 bodů.
- * Při shodě času dostanou oba závodníci stejné pořadí, a tedy i stejné body.
+ * Body za umístění v kategorii.
+ *
+ * Soutěžní řád JmLP: "Od 30. místa za každé umístění po 1 bodu" - každý, kdo
+ * dojel, má aspoň bod (LiZa tak počítá: v závodě 2025-07 dostala místa 31-35
+ * po bodu). Nedokončivší 0 bodů. Při shodě času dostanou oba závodníci stejné
+ * pořadí, a tedy i stejné body.
  */
 export const pointsForRank = (rank) => {
-  if (!rank || rank < 1 || rank > POINTS_TABLE.length) return 0;
+  if (!rank || rank < 1) return 0;
+  if (rank > POINTS_TABLE.length) return 1;
   return POINTS_TABLE[rank - 1];
 };

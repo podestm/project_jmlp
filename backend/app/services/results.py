@@ -62,8 +62,11 @@ def compute_time_sum(time1, time2, dnf: bool, dns: bool, dsq: bool) -> Optional[
 
 
 def points_for_rank(rank: Optional[int]) -> int:
-    if not rank or rank < 1 or rank > len(POINTS_TABLE):
+    """Body za umístění. Soutěžní řád: od 30. místa za každé umístění po 1 bodu."""
+    if not rank or rank < 1:
         return 0
+    if rank > len(POINTS_TABLE):
+        return 1
     return POINTS_TABLE[rank - 1]
 
 
