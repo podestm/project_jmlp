@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
+import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function AdminLayout({ children }) {
   const { admin, logout } = useAuth();
@@ -111,19 +112,19 @@ export default function AdminLayout({ children }) {
             </Link>
             
             <hr className="border-secondary my-3" />
-
-            {/* Časomíra má vlastní přihlášení - bez něj se otevře její přihlašovací obrazovka. */}
-            <Link to="/timekeeper" className="nav-link text-white">
-              <i className="bi bi-stopwatch me-2"></i>
-              Přepnout do časomíry
-            </Link>
-            <Link to="/admin/register"className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
+            
+            <Link to="/admin/register" className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
               <i className="bi bi-person-plus me-2"></i>
               Nový administrátor
             </Link>
           </div>
         </nav>
         
+        {/* Přepnutí do časomíry - stejný přepínač je dole i v menu časomíry */}
+        <div className="px-3 pb-3">
+          <SectionSwitch current="admin" />
+        </div>
+
         {/* User info at bottom */}
         <div className="p-3 border-top border-secondary" style={{ marginTop: 'auto', background: 'rgba(0,0,0,0.2)' }}>
           <div className="d-flex align-items-center mb-2">

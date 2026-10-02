@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../pdf/pdfmake.js';
+import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
@@ -150,6 +151,20 @@ export default function TimekeeperLayout({ children }) {
             padding-left: 0.25rem;
             padding-right: 0.25rem;
           }
+          .timekeeper-sidebar-switch {
+            padding: 0 0.6rem 0.6rem !important;
+          }
+          /* Úzké menu: polovinu pod polovinu, ikona nad popiskem jako odkazy
+             menu. Selektor s body.theme-backoffice, aby přebil admin.css. */
+          body.theme-backoffice .timekeeper-sidebar .section-switch {
+            flex-direction: column;
+          }
+          body.theme-backoffice .timekeeper-sidebar .section-switch-option {
+            flex-direction: column;
+            gap: 0.15rem;
+            padding: 0.4rem 0.2rem;
+            font-size: 0.68rem;
+          }
         }
       `}</style>
       {/* Sidebar */}
@@ -282,6 +297,13 @@ export default function TimekeeperLayout({ children }) {
           </div>
         </nav>
         
+        {/* Přepnutí do administrace - jen pro správce, časoměřič se do ní nepřihlásí */}
+        {user?.role === 'admin' && (
+          <div className="px-3 pb-3 timekeeper-sidebar-switch">
+            <SectionSwitch current="timekeeper" />
+          </div>
+        )}
+
         {/* User info at bottom */}
         <div className="p-3 timekeeper-sidebar-user" style={{ marginTop: 'auto', background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <div className="d-flex align-items-center mb-2 timekeeper-sidebar-user-row">
