@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activeEntries,
   categoryLabel,
   findRaceNumberOption,
   getRaceNumberValidationError,
   groupEntriesByCategory,
+  isExcluded,
   resolveCategoryPreview,
-  sortStartListEntries
+  sortStartListEntries,
+  withoutExcluded
 } from './startListHelpers.js';
 
 const entry = (overrides) => ({
@@ -177,5 +180,46 @@ describe('groupEntriesByCategory', () => {
 
   it('prázdná listina dá prázdný seznam', () => {
     expect(groupEntriesByCategory([])).toEqual([]);
+  });
+});
+
+describe('vyřazení ze startky', () => {
+  it('isExcluded pozná vyřazeného, cokoli jiného bere jako na startovce', () => {
+    expect(isExcluded(entry({ excluded: true }))).toBe(true);
+    expect(isExcluded(entry({ excluded: false }))).toBe(false);
+    // Řádek ze starší cache příznak vůbec nemá - musí zůstat na startovce.
+    expect(isExcluded(entry())).toBe(false);
+    expect(isExcluded(null)).toBe(false);
+  });
+
+  it('activeEntries vynechá vyřazené a pořadí ostatních nechá', () => {
+    const entries = [
+      entry({ id: 1 }),
+      entry({ id: 2, excluded: true }),
+      entry({ id: 3, excluded: false })
+    ];
+
+    expect(activeEntries(entries).map((e) => e.id)).toEqual([1, 3]);
+    // Vstup se nemění - Listina vyřazené dál ukazuje.
+    expect(entries).toHaveLength(3);
+  });
+
+  it('activeEntries snese chybějící seznam', () => {
+    expect(activeEntries(undefined)).toEqual([]);
+    expect(activeEntries(null)).toEqual([]);
+  });
+
+  it('withoutExcluded vyřadí závodníky z tisku a prázdnou kategorii zahodí celou', () => {
+    const categories = [
+      { category_name: 'U10 dívky', entries: [entry({ id: 1 }), entry({ id: 2, excluded: true })] },
+      { category_name: 'OPEN muži', entries: [entry({ id: 3, excluded: true })] }
+    ];
+
+    const printed = withoutExcluded(categories);
+
+    expect(printed.map((category) => category.category_name)).toEqual(['U10 dívky']);
+    expect(printed[0].entries.map((e) => e.id)).toEqual([1]);
+    // Původní skupiny zůstávají, jak byly.
+    expect(categories[0].entries).toHaveLength(2);
   });
 });

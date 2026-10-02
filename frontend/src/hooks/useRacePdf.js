@@ -14,6 +14,7 @@ import {
 import { buildStartListDoc, startListFileName } from '../pdf/startListPdf.js';
 import { loadHeaderLogos } from '../pdf/assets.js';
 import { rankEntriesByTime } from '../components/timekeeper/ResultsTable.jsx';
+import { withoutExcluded } from '../components/timekeeper/startListHelpers.js';
 
 /**
  * Tištěné listiny závodu - startovní i výsledková: generování, náhled,
@@ -140,7 +141,9 @@ export function useRacePdf(raceId) {
     setGenerating(true);
     try {
       const header = await loadHeader();
-      const blob = await createPdfBlob(buildStartListDoc({ header, categories }));
+      // Vyřazení ze startky na tištěnou startovku nepatří (výsledkové listiny
+      // hlídá rankEntriesByTime).
+      const blob = await createPdfBlob(buildStartListDoc({ header, categories: withoutExcluded(categories) }));
 
       showPreview(blob, {
         fileName: startListFileName(header?.raceNumberLabel),

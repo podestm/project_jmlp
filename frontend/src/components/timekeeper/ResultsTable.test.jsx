@@ -124,6 +124,41 @@ describe('rankEntriesByTime - pořadí jednoho kola', () => {
   });
 });
 
+describe('rankEntriesByTime - vyřazení ze startky', () => {
+  it('vyřazený do pořadí nepatří, ani když má nejlepší čas', () => {
+    const ranked = rankEntriesByTime([
+      entry({ id: 1, start_number: 1, time_sum: 58, excluded: true }),
+      entry({ id: 2, start_number: 2, time_sum: 60 }),
+      entry({ id: 3, start_number: 3, time_sum: 61 })
+    ]);
+
+    expect(ranked.map((e) => e.id)).toEqual([2, 3]);
+  });
+
+  it('pořadí, body i ztráta ostatních vyjdou, jako by nestartoval', () => {
+    const ranked = rankEntriesByTime([
+      entry({ id: 1, start_number: 1, time_sum: 58, excluded: true }),
+      entry({ id: 2, start_number: 2, time_sum: 60 }),
+      entry({ id: 3, start_number: 3, time_sum: 61.5 })
+    ]);
+
+    expect(ranked.map((e) => e.display_rank)).toEqual([1, 2]);
+    expect(ranked.map((e) => e.display_points)).toEqual([100, 80]);
+    expect(ranked[0].display_diff).toBeNull();
+    expect(ranked[1].display_diff).toBeCloseTo(1.5);
+  });
+
+  it('platí i pro pořadí jednoho kola', () => {
+    const ranked = rankEntriesByTime([
+      entry({ id: 1, start_number: 1, time1: 29, excluded: true }),
+      entry({ id: 2, start_number: 2, time1: 30 })
+    ], { timeField: 'time1' });
+
+    expect(ranked.map((e) => e.id)).toEqual([2]);
+    expect(ranked[0].display_rank).toBe(1);
+  });
+});
+
 describe('resultStatus', () => {
   it('startovní listina má příznaky, výsledky hotový stav', () => {
     expect(resultStatus({ dnf: true })).toBe('DNF');
@@ -179,5 +214,17 @@ describe('ResultsTable', () => {
 
     render(<ResultsTable entries={entries} showPoints />);
     expect(screen.getByText('Body')).toBeInTheDocument();
+  });
+
+  it('vyřazeného ze startky nevykreslí', () => {
+    render(<ResultsTable entries={[
+      entry({ id: 1, start_number: 1, time_sum: 58, racer_surname: 'Vyřazený', excluded: true }),
+      entry({ id: 2, start_number: 2, time_sum: 60, racer_surname: 'Startující' })
+    ]} showPoints />);
+
+    expect(screen.queryByText(/Vyřazený/)).not.toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent('Startující');
   });
 });

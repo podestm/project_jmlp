@@ -4,6 +4,32 @@
 // exist in three near-identical copies; keeping one implementation is the point
 // of this module. Everything here is pure - no React, no fetching.
 
+/**
+ * Vyřazený ze startky - nedorazil nebo nestihl start.
+ *
+ * Řádek se nemaže, aby šel kdykoli vrátit i se vším, co u něj bylo zapsané
+ * (dres, startovní číslo, časy). Dokud je vyřazený, pro startovku, zadávání
+ * časů, výsledky ani body neexistuje; vidět je jen v Listině, kde se vrací.
+ *
+ * Tohle je jediné místo, kde se o vyřazení rozhoduje - obrazovky, inbox
+ * časomíry i řazení výsledků volají isExcluded / activeEntries. Server drží
+ * totéž pravidlo podmínkou `excluded = 0` (veřejný web, výsledky, body).
+ */
+export const isExcluded = (entry) => Boolean(entry?.excluded);
+
+/** Řádky, které na startovce opravdu jsou - bez vyřazených. */
+export const activeEntries = (entries) => (entries || []).filter((entry) => !isExcluded(entry));
+
+/**
+ * Kategorie k tisku bez vyřazených závodníků. Kategorie, ve které nikdo
+ * nezůstal, vypadne celá - jinak by se tiskla prázdná hlavička.
+ *
+ * @param {Array} categories [{ ..., entries }]
+ */
+export const withoutExcluded = (categories) => (categories || [])
+  .map((category) => ({ ...category, entries: activeEntries(category.entries) }))
+  .filter((category) => category.entries.length > 0);
+
 /** Start-list order: category rank, then start number, then id. */
 export const sortStartListEntries = (entries) => [...entries].sort((a, b) => {
   const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
