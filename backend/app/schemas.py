@@ -298,6 +298,9 @@ class AdminUserCreate(AdminUserBase):
 
 class AdminUser(AdminUserBase):
     id: int
+    # Role přihlášeného: časomíra podle ní ukazuje "Admin"/"Časoměřič"
+    # a přepínač do administrace (ten dostanou jen správci).
+    role: Optional[str] = None
     last_login: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
