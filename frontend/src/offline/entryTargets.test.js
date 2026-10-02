@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { timekeeperDb } from './db.js';
-import { affectedEntryIds, getQueuedEntryIds, stripSupersededRevisions } from './entryTargets.js';
+import {
+  affectedEntryIds,
+  excludedEntryId,
+  getQueuedEntryIds,
+  getQueuedExcludedEntryIds,
+  getQueuedMutationKeys,
+  mutationKeys,
+  stripSupersededRevisions
+} from './entryTargets.js';
 import { resetTimekeeperDb } from '../test/helpers.js';
 
 beforeEach(resetTimekeeperDb);
@@ -103,5 +111,45 @@ describe('stripSupersededRevisions', () => {
     await resetTimekeeperDb();
     const payload = { time1: 1, base_revision: 'platná' };
     expect(await stripSupersededRevisions('/api/timekeeper/start-list/1/time', payload)).toBe(payload);
+  });
+});
+
+describe('vyřazení ze startky jako samostatná řada zápisů', () => {
+  const EXCLUDE = '/api/timekeeper/start-list/42/excluded';
+
+  it('excludedEntryId pozná zápis vyřazení, nic jiného', () => {
+    expect(excludedEntryId('PUT', EXCLUDE)).toBe(42);
+    expect(excludedEntryId('put', EXCLUDE)).toBe(42);
+    expect(excludedEntryId('GET', EXCLUDE)).toBeNull();
+    expect(excludedEntryId('PUT', '/api/timekeeper/start-list/42/time')).toBeNull();
+    expect(excludedEntryId('PUT', '/api/timekeeper/start-list/42')).toBeNull();
+  });
+
+  it('affectedEntryIds vyřazení nevrací - s časy se nemíchá', () => {
+    // Jinak by úspěšné vyřazení "překonalo" zaparkovaný čas téhož závodníka
+    // a po přehrání by se do snímku zapsala revize, ke které zařízení nemá časy.
+    expect(affectedEntryIds('PUT', EXCLUDE, { excluded: true })).toEqual({ ids: [], batch: false });
+  });
+
+  it('mutationKeys oddělí časy od vyřazení', () => {
+    expect(mutationKeys('PUT', EXCLUDE, { excluded: true })).toEqual(['excluded:42']);
+    expect(mutationKeys('PUT', '/api/timekeeper/start-list/42/time', {})).toEqual(['entry:42']);
+    expect(mutationKeys('post', '/api/timekeeper/races/10/times', {
+      entries: [{ entry_id: 1 }, { entry_id: 2 }]
+    })).toEqual(['entry:1', 'entry:2']);
+    expect(mutationKeys('POST', '/api/timekeeper/races/10/results/calculate-points', {})).toEqual([]);
+  });
+
+  it('nevyřízené zápisy se sbírají po klíčích i po vyřazených řádcích', async () => {
+    await timekeeperDb.syncQueue.bulkAdd([
+      { status: 'pending', method: 'PUT', endpoint: EXCLUDE, payload: { excluded: true }, created_at: 'a' },
+      { status: 'failed', method: 'PUT', endpoint: '/api/timekeeper/start-list/7/time', payload: {}, created_at: 'b' },
+      { status: 'done', method: 'PUT', endpoint: '/api/timekeeper/start-list/8/excluded', payload: {}, created_at: 'c' }
+    ]);
+
+    expect([...(await getQueuedMutationKeys())].sort()).toEqual(['entry:7', 'excluded:42']);
+    expect([...(await getQueuedExcludedEntryIds())]).toEqual([42]);
+    // Čekající vyřazení nesebere base_revision zápisu času téhož řádku.
+    expect([...(await getQueuedEntryIds())]).toEqual([7]);
   });
 });

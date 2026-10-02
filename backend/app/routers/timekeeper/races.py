@@ -18,12 +18,17 @@ def get_races_for_timekeeper(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
-    """Get all races with registration counts, ordered by date desc."""
+    """Get all races with registration counts, ordered by date desc.
+
+    `start_list_count` počítá jen závodníky, kteří na startovce opravdu jsou -
+    vyřazení ze startky (nedorazili) se do něj nezapočítávají.
+    """
     query = text(f"""
         SELECT r.id, r.race_nr, r.datum, r.closed, r.registration, r.season_id, r.is_live,
                {convert_utf8_field('a.name')} as areal_name,
                (SELECT COUNT(*) FROM fuj_jmlp_race_registration rr WHERE rr.race_id = r.id) as reg_count,
-               (SELECT COUNT(*) FROM fuj_jmlp_race_start_list sl WHERE sl.race_id = r.id) as start_list_count
+               (SELECT COUNT(*) FROM fuj_jmlp_race_start_list sl
+                WHERE sl.race_id = r.id AND sl.excluded = 0) as start_list_count
         FROM fuj_jmlp_race r
         LEFT JOIN fuj_jmlp_areal a ON r.areal_id = a.id
         ORDER BY r.datum DESC

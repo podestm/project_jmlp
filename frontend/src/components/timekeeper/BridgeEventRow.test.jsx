@@ -93,4 +93,30 @@ describe('BridgeEventRow', () => {
     expect(screen.getByText('ABC;;;')).toBeInTheDocument();
     expect(screen.queryByText(/Předžačky/)).not.toBeInTheDocument();
   });
+
+  it('dres vyřazeného ze startky to řekne místo obecného "není ve startovní listině"', () => {
+    renderRow({
+      event: event({ status: 'warning', reason: 'bib_not_found' }),
+      resolvedEntry: null,
+      candidateCount: 0,
+      candidateIndex: -1,
+      excludedMatch: true
+    });
+
+    expect(screen.getByText(/vyřazený ze startky – vraťte ho v Listině/)).toBeInTheDocument();
+    expect(screen.queryByText(/není ve startovní listině/)).not.toBeInTheDocument();
+    // Komu by se čas zapsal, není - potvrdit nejde.
+    expect(screen.getByTitle('Přiřadit a uložit')).toBeDisabled();
+  });
+
+  it('bez vyřazení zůstává obecné hlášení', () => {
+    renderRow({
+      event: event({ status: 'warning', reason: 'bib_not_found' }),
+      resolvedEntry: null,
+      candidateCount: 0,
+      candidateIndex: -1
+    });
+
+    expect(screen.getByText(/Číslo dresu není ve startovní listině/)).toBeInTheDocument();
+  });
 });

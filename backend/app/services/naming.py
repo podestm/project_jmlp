@@ -23,6 +23,7 @@ ROLE_SUFFIX = {
     AttachmentRole.image: "obrazek",
     AttachmentRole.document: "dokument",
     AttachmentRole.logo: "logo",
+    AttachmentRole.sponzori: "sponzori",
     AttachmentRole.other: "soubor",
 }
 

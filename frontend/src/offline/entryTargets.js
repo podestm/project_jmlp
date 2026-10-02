@@ -36,9 +36,67 @@ export const affectedEntryIds = (method, endpoint = '', payload = null) => {
   return { ids: [], batch: false };
 };
 
+const EXCLUDED_ENDPOINT = /^\/api\/timekeeper\/start-list\/(\d+)\/excluded$/;
+
+/**
+ * Řádek, kterému zápis mění vyřazení ze startky, jinak null.
+ *
+ * Vyřazení je samostatná řada zápisů, a proto ho affectedEntryIds nevrací:
+ * časy nemění a revizi řádku server neposouvá (viz start_list.py), takže se
+ * se zápisy časů navzájem nečekají, nepřekonávají a po přehrání se do snímku
+ * nezapisuje revize - ta z odpovědi na vyřazení nepatří k časům, které
+ * zařízení zná. Mezi sebou ale pořadí držet musí: "Vyřadit" přehrané až po
+ * "Vrátit" by závodníka vyřadilo natrvalo.
+ */
+export const excludedEntryId = (method, endpoint = '') => {
+  if ((method || '').toUpperCase() !== 'PUT') return null;
+  const match = (endpoint || '').match(EXCLUDED_ENDPOINT);
+  return match ? Number(match[1]) : null;
+};
+
+/**
+ * Klíče, podle kterých se zápisy řadí za sebe a navzájem překonávají.
+ *
+ * Časy (i úprava řádku) jednoho řádku sdílejí klíč `entry:<id>`, vyřazení
+ * má vlastní `excluded:<id>` - viz excludedEntryId.
+ */
+export const mutationKeys = (method, endpoint = '', payload = null) => {
+  const excludedId = excludedEntryId(method, endpoint);
+  if (excludedId != null) return [`excluded:${excludedId}`];
+  return affectedEntryIds((method || '').toUpperCase(), endpoint || '', payload)
+    .ids.map((id) => `entry:${id}`);
+};
+
 // 'processing' patří mezi nesynchronizované záměrně: požadavek je sice na cestě,
 // ale ještě nedoběhl, takže jeho revize na serveru zatím neplatí.
 const UNSYNCED_STATUSES = ['pending', 'failed', 'processing'];
+
+const getUnsyncedRows = () => timekeeperDb.syncQueue
+  .where('status')
+  .anyOf(UNSYNCED_STATUSES)
+  .toArray();
+
+/** Klíče (viz mutationKeys) všech zápisů, které ve frontě ještě čekají. */
+export const getQueuedMutationKeys = async () => {
+  const keys = new Set();
+  for (const row of await getUnsyncedRows()) {
+    mutationKeys(row.method, row.endpoint, row.payload).forEach((key) => keys.add(key));
+  }
+  return keys;
+};
+
+/**
+ * Řádky, jejichž vyřazení nebo vrácení ve frontě ještě čeká. Čerstvá
+ * odpověď serveru o nich zatím neví, takže platí lokální stav.
+ */
+export const getQueuedExcludedEntryIds = async () => {
+  const ids = new Set();
+  for (const row of await getUnsyncedRows()) {
+    const id = excludedEntryId(row.method, row.endpoint);
+    if (id != null) ids.add(id);
+  }
+  return ids;
+};
 
 /**
  * Řádky, které mají ve frontě nevyřízený zápis.

@@ -1701,6 +1701,7 @@ ZAPISOVE_ENDPOINTY = [
     ("post", "/api/timekeeper/races/1/start-list/generate"),
     ("post", "/api/timekeeper/races/1/start-list/entry"),
     ("put", "/api/timekeeper/start-list/1"),
+    ("put", "/api/timekeeper/start-list/1/excluded"),
     ("delete", "/api/timekeeper/start-list/1"),
     ("delete", "/api/timekeeper/races/1/start-list"),
     ("post", "/api/timekeeper/race-number-sets"),
@@ -1773,3 +1774,25 @@ def test_bez_opravneni_se_startovka_nezmeni(client, db, zavod, kategorie):
     assert odpoved.status_code == 401
     _obnov(db)
     assert db.query(models.StartListEntry).count() == 0
+
+
+# --------------------------------------------------------------------------
+# Údaje pro listiny v podobě z LiZy
+# --------------------------------------------------------------------------
+
+def test_startovka_nese_registracni_cislo_a_sadu(client, db, zavod, kategorie, timekeeper_headers):
+    """Startovka tiskne registrační číslo SLČR ve sloupci "Body" a rozpis po klubech
+    číslo sady před startovním číslem - obojí musí přijít v řádku startovky."""
+    cislo = _cisla(db, set_number=2, actual_from=5, actual_to=5)[0]
+    s_cislem = _zavodnik(db, "Anna", "Registrovana", 2018, 2, slcr_id="891586")
+    bez_cisla = _zavodnik(db, "Bara", "Bezcisla", 2018, 2, slcr_id="-")
+    _polozka(db, zavod, s_cislem, start_number=1, cislo=cislo)
+    _polozka(db, zavod, bez_cisla, start_number=2)
+
+    radky = _podle_prijmeni(_startovka(client, zavod, timekeeper_headers))
+
+    assert radky["Registrovana"]["slcr_id"] == "891586"
+    assert radky["Registrovana"]["set_number"] == 2
+    # "-" v datech znamená, že registrační číslo nemá.
+    assert radky["Bezcisla"]["slcr_id"] is None
+    assert radky["Bezcisla"]["set_number"] is None

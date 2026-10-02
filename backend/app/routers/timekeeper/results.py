@@ -24,12 +24,18 @@ from ...utils import (
     fix_encoding,
 )
 from .idempotency import store_idempotent_response, try_get_idempotent_response
+from ...services.start_list import _slcr_id
 
 router = APIRouter(tags=["timekeeper-results"])
 
 
 def _load_entries(db: Session, race_id: int) -> List[Any]:
-    """Řádky startovní listiny závodu i s údaji potřebnými pro listinu."""
+    """Řádky startovní listiny závodu i s údaji potřebnými pro listinu.
+
+    Bez vyřazených ze startky: do výsledků nepatří a pořadí i body ostatních
+    se počítají, jako by nestartovali. Odsud čte výpis výsledků, výpočet bodů
+    i publikace listiny, takže to stačí pohlídat tady.
+    """
     query = text(f"""
         SELECT sl.id, sl.racer_id, sl.category_id, sl.start_number,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
@@ -42,13 +48,30 @@ def _load_entries(db: Session, race_id: int) -> List[Any]:
                sl.category_sex,
                sl.race_number_actual,
                sl.race_number_display,
-               rn.set_color
+               rn.set_color,
+               rac.slcr_id
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_category cat ON sl.category_id = cat.id
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+        LEFT JOIN fuj_jmlp_racer rac ON rac.id = sl.racer_id
         WHERE sl.race_id = :race_id
+          AND sl.excluded = 0
     """)
     return list(db.execute(query, {"race_id": race_id}).fetchall())
+
+
+def _clear_points_of_excluded(db: Session, race_id: int) -> None:
+    """Vyřazený ze startky nemá umístění, a tedy ani body.
+
+    Body se mu mohly uložit ještě předtím, než ho někdo vyřadil. Nechat je ve
+    sloupci points by znamenalo, že uložené body tvrdí něco jiného než
+    výsledky. Po vrácení je dostane zpátky při dalším výpočtu.
+    """
+    db.query(models.StartListEntry).filter(
+        models.StartListEntry.race_id == race_id,
+        models.StartListEntry.excluded.is_(True),
+        models.StartListEntry.points.isnot(None),
+    ).update({"points": None}, synchronize_session=False)
 
 
 def _group_by_category(
@@ -86,6 +109,8 @@ def _format_entry(ranked: results_service.RankedEntry) -> Dict[str, Any]:
         "race_number_display": row.race_number_display,
         "race_number_actual": row.race_number_actual,
         "set_color": row.set_color or "rose",
+        # Registrační číslo SLČR - výsledková listina ho tiskne pod klubem jako LiZa.
+        "slcr_id": _slcr_id(getattr(row, "slcr_id", None)),
         "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
         "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
         "racer_year": row.racer_year,
@@ -283,6 +308,7 @@ def calculate_points(
                 models.StartListEntry.id == item.row.id
             ).update({"points": item.points}, synchronize_session=False)
             updated += 1
+    _clear_points_of_excluded(db, race_id)
 
     db.commit()
     return {
@@ -317,6 +343,7 @@ async def publish_results(
             db.query(models.StartListEntry).filter(
                 models.StartListEntry.id == item.row.id
             ).update({"points": item.points}, synchronize_session=False)
+    _clear_points_of_excluded(db, race_id)
     db.commit()
 
     # 2) Uložit PDF do knihovny

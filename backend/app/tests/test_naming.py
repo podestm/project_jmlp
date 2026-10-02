@@ -17,6 +17,7 @@ def test_role_suffix_is_ascii_and_known():
     assert role_suffix("image") == "obrazek"
     assert role_suffix("document") == "dokument"
     assert role_suffix("logo") == "logo"
+    assert role_suffix("sponzori") == "sponzori"
     assert role_suffix("neco-jineho") == "soubor"
 
 

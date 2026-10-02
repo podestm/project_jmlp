@@ -194,3 +194,53 @@ describe('processSyncQueue - překonané zápisy', () => {
     expect((await timekeeperDb.syncQueue.get(parked)).status).toBe('superseded');
   });
 });
+
+describe('processSyncQueue - vyřazení ze startky', () => {
+  const EXCLUDE = '/api/timekeeper/start-list/1/excluded';
+
+  it('vyřazení drží pořadí za starším vyřazením, které čeká na odklad', async () => {
+    const future = new Date(Date.now() + 60000).toISOString();
+    await timekeeperDb.syncQueue.add(queueRow({
+      status: 'failed', created_at: '2026-01-01T10:00:00.000Z', next_retry_at: future,
+      endpoint: EXCLUDE, payload: { excluded: true }
+    }));
+    await timekeeperDb.syncQueue.add(queueRow({
+      created_at: '2026-01-01T11:00:00.000Z', endpoint: EXCLUDE, payload: { excluded: false }
+    }));
+
+    const executor = vi.fn().mockResolvedValue({});
+    await processSyncQueue(executor);
+
+    // "Vrátit" nesmí předběhnout "Vyřadit" - to by se pak přehrálo navrch.
+    expect(executor).not.toHaveBeenCalled();
+  });
+
+  it('čas téhož závodníka za odloženým vyřazením nečeká', async () => {
+    const future = new Date(Date.now() + 60000).toISOString();
+    await timekeeperDb.syncQueue.add(queueRow({
+      status: 'failed', created_at: '2026-01-01T10:00:00.000Z', next_retry_at: future,
+      endpoint: EXCLUDE, payload: { excluded: true }
+    }));
+    await timekeeperDb.syncQueue.add(queueRow({ created_at: '2026-01-01T11:00:00.000Z' }));
+
+    const executor = vi.fn().mockResolvedValue({ revision: 'r' });
+    await processSyncQueue(executor);
+
+    expect(executor).toHaveBeenCalledTimes(1);
+    expect(executor.mock.calls[0][0].endpoint).toBe('/api/timekeeper/start-list/1/time');
+  });
+
+  it('přehrané vyřazení nezapíše do snímku revizi z odpovědi', async () => {
+    await timekeeperDb.startList.put(startListEntry({ updated_at: 'moje', excluded: true }));
+    await timekeeperDb.syncQueue.add(queueRow({ endpoint: EXCLUDE, payload: { excluded: true } }));
+
+    await processSyncQueue(vi.fn().mockResolvedValue({
+      entry: { id: 1, excluded: true, updated_at: 'cizí' }
+    }));
+
+    // Revize v odpovědi může patřit časům z jiného zařízení, které tu nejsou.
+    const entry = await timekeeperDb.startList.get(1);
+    expect(entry.updated_at).toBe('moje');
+    expect(entry.excluded).toBe(true);
+  });
+});

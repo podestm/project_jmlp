@@ -326,6 +326,12 @@ def _category_name(row: Any) -> str | None:
     return fix_encoding(row.category_name) if row.category_name else None
 
 
+def _slcr_id(value: Any) -> str | None:
+    """Registrační číslo SLČR; v datech bývá i "-" nebo prázdný řetězec."""
+    text_value = str(value).strip() if value is not None else ""
+    return text_value if text_value and text_value != "-" else None
+
+
 def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None = None) -> Dict[str, Any]:
     category_rank = None
     if category_rank_map is not None:
@@ -346,6 +352,9 @@ def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None
         "dns": bool(row.dns),
         "dsq": bool(row.dsq),
         "points": row.points,
+        # Vyřazený ze startky - časoměřič ho v Listině vidí (aby ho mohl
+        # vrátit), všude jinde ho klient vynechá (isExcluded na klientovi).
+        "excluded": bool(row.excluded),
         "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
         "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
         "racer_year": row.racer_year,
@@ -358,6 +367,10 @@ def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None
         "race_number_actual": row.race_number_actual,
         "race_number_display": row.race_number_display,
         "set_color": row.set_color or "rose",
+        # Sada startovních čísel a registrační číslo SLČR - tisknou se v rozpisu
+        # po klubech a ve sloupci "Body" startovky jako v LiZe.
+        "set_number": row.set_number,
+        "slcr_id": _slcr_id(row.slcr_id),
         "display_number": row.race_number_display,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
         "has_override": False,
@@ -384,11 +397,12 @@ def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
                sl.club_name, sl.category_name, sl.category_sex,
                {category_display_sql('cat')} as category_display_name,
                sl.race_number_actual, sl.race_number_display,
-               rn.set_color,
+               rn.set_color, rn.set_number, rac.slcr_id,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
-               sl.updated_at
+               sl.excluded, sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+        LEFT JOIN fuj_jmlp_racer rac ON rac.id = sl.racer_id
         LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.race_id = :race_id
     """)
@@ -403,11 +417,12 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
                sl.club_name, sl.category_name, sl.category_sex,
                {category_display_sql('cat')} as category_display_name,
                sl.race_number_actual, sl.race_number_display,
-               rn.set_color,
+               rn.set_color, rn.set_number, rac.slcr_id,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
-               sl.updated_at
+               sl.excluded, sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+        LEFT JOIN fuj_jmlp_racer rac ON rac.id = sl.racer_id
         LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.id = :entry_id
     """)

@@ -1,5 +1,5 @@
 import { timekeeperDb } from './db.js';
-import { getQueuedEntryIds } from './entryTargets.js';
+import { getQueuedEntryIds, getQueuedExcludedEntryIds } from './entryTargets.js';
 import { computeTimeSum } from './localEdits.js';
 
 const nowIso = () => new Date().toISOString();
@@ -57,15 +57,22 @@ const persistStartListSnapshot = async (raceId, data) => {
  *
  * Bez tohohle stačí, aby GET vyhrál závod se synchronizací fronty, a čas,
  * který rozhodčí právě zadal, zmizí z obrazovky - server o něm ještě neví.
+ *
+ * Totéž platí pro vyřazení ze startky. Přebíjí se ale jen to, co ve frontě
+ * opravdu čeká: čekající čas nevrací lokální vyřazení a naopak, jinak by
+ * starý lokální stav přepsal čerstvou změnu z jiného zařízení.
  */
 const overlayUnsyncedEdits = async (rows) => {
   const queuedIds = await getQueuedEntryIds();
-  if (!queuedIds.size) return rows;
+  const queuedExcludedIds = await getQueuedExcludedEntryIds();
+  if (!queuedIds.size && !queuedExcludedIds.size) return rows;
 
   const merged = [];
   for (const row of rows) {
     const id = Number(row?.id);
-    if (!Number.isFinite(id) || !queuedIds.has(id)) {
+    const timesQueued = Number.isFinite(id) && queuedIds.has(id);
+    const excludedQueued = Number.isFinite(id) && queuedExcludedIds.has(id);
+    if (!timesQueued && !excludedQueued) {
       merged.push(row);
       continue;
     }
@@ -76,17 +83,23 @@ const overlayUnsyncedEdits = async (rows) => {
       continue;
     }
 
-    const entry = {
-      ...row,
-      time1: local.time1 ?? null,
-      time2: local.time2 ?? null,
-      dnf: Boolean(local.dnf),
-      dns: Boolean(local.dns),
-      dsq: Boolean(local.dsq),
-      updated_local_at: local.updated_local_at ?? null,
-      updated_local_only: true
-    };
-    entry.time_sum = computeTimeSum(entry);
+    let entry = row;
+    if (timesQueued) {
+      entry = {
+        ...entry,
+        time1: local.time1 ?? null,
+        time2: local.time2 ?? null,
+        dnf: Boolean(local.dnf),
+        dns: Boolean(local.dns),
+        dsq: Boolean(local.dsq),
+        updated_local_at: local.updated_local_at ?? null,
+        updated_local_only: true
+      };
+      entry.time_sum = computeTimeSum(entry);
+    }
+    if (excludedQueued) {
+      entry = { ...entry, excluded: Boolean(local.excluded) };
+    }
     merged.push(entry);
   }
   return merged;

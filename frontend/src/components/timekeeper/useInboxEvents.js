@@ -15,7 +15,14 @@ import {
   updateInboxEvent,
 } from '../../offline/bridgeInbox.js';
 import { parseIncomingTime } from '../../utils/serial.js';
-import { compareCandidates, matchesBib, normalizeBib, resolveInboxEvent } from './inboxMatching.js';
+import {
+  compareCandidates,
+  isBibCandidate,
+  matchesBib,
+  normalizeBib,
+  resolveInboxEvent,
+} from './inboxMatching.js';
+import { isExcluded } from './startListHelpers.js';
 import { liveWriterIds } from './writerPresence.js';
 
 /**
@@ -186,11 +193,13 @@ export function useInboxEvents({
   const inboxResolutionsRef = useRef(inboxResolutions);
   useEffect(() => { inboxResolutionsRef.current = inboxResolutions; }, [inboxResolutions]);
 
+  // Vyřazení ze startky kandidáty nejsou (isBibCandidate). Řádek, jehož dres
+  // patří jen vyřazenému, zůstane "nenalezený" a vysvětlí to resolveInboxEvent.
   const candidateIdsForBib = useCallback((bib) => {
     const value = normalizeBib(bib);
     if (value == null) return [];
     return startListRef.current
-      .filter((row) => matchesBib(row, value))
+      .filter((row) => isBibCandidate(row, value))
       .sort(compareCandidates)
       .map((row) => row.id);
   }, []);
@@ -228,7 +237,8 @@ export function useInboxEvents({
     const bib = normalizeBib(event.bib);
     const stillValid = candidateIds.filter((id) => {
       const entry = startListByIdRef.current[id];
-      return entry ? (bib == null || matchesBib(entry, bib)) : false;
+      if (!entry || isExcluded(entry)) return false;
+      return bib == null || matchesBib(entry, bib);
     });
 
     if (stillValid.length === 0 && event.bib != null) {
@@ -351,7 +361,9 @@ export function useInboxEvents({
       return;
     }
 
-    const entry = (entryIdHint != null ? startListByIdRef.current[entryIdHint] : null) || resolveEntryForEvent(event);
+    // Vyřazenému ze startky se čas nezapisuje, ani když na něj ukazuje nápověda.
+    const hinted = entryIdHint != null ? startListByIdRef.current[entryIdHint] : null;
+    const entry = (hinted && !isExcluded(hinted) ? hinted : null) || resolveEntryForEvent(event);
     if (!entry) {
       await patchInboxRow(eventId, { status: 'warning', level: 'warning', reason: 'bib_not_found' });
       return;

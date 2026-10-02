@@ -1,5 +1,6 @@
 import { getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
 import { pointsForRank } from '../../utils/points.js';
+import { activeEntries } from './startListHelpers.js';
 import { TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 /**
@@ -45,12 +46,16 @@ export const resultStatus = (entry) => {
  * `timeField` přepíná, podle čeho se řadí: 'time_sum' je celkový výsledek,
  * 'time1'/'time2' je pořadí jednoho kola. Kola se tisknou zvlášť, protože
  * jedna kategorie může jet obě kola a jiná jen jedno.
+ *
+ * Vyřazení ze startky (isExcluded) do pořadí nepatří a vypadnou tady, ať
+ * přijdou odkudkoli - pořadí i body ostatních se počítají, jako by
+ * nestartovali. Tudy jde tabulka výsledků i každá tištěná výsledková listina.
  */
 export const rankEntriesByTime = (entries, { timeField = 'time_sum' } = {}) => {
   const timeOf = (entry) => entry[timeField] ?? null;
   const hasTimeOf = (entry) => resultStatus(entry) == null && timeOf(entry) != null;
 
-  const sortable = [...entries].sort((a, b) => {
+  const sortable = activeEntries(entries).sort((a, b) => {
     const aHasTime = hasTimeOf(a);
     const bHasTime = hasTimeOf(b);
     if (aHasTime && !bHasTime) return -1;

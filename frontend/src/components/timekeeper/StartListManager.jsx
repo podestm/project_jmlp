@@ -14,16 +14,18 @@ import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
 import {
   OFFLINE_QUEUED_TEXT,
+  activeEntries,
   categoryLabel,
   findRaceNumberOption,
   getRaceNumberValidationError,
   groupEntriesByCategory,
+  isExcluded,
   resolveCategoryPreview,
   sortStartListEntries,
 } from './startListHelpers.js';
 
 /** Stejné pro všechny tabulky kategorií, aby sloupce seděly pod sebou. */
-const START_LIST_TABLE_STYLE = Object.freeze({ fontSize: '0.82rem', tableLayout: 'fixed', minWidth: '860px' });
+const START_LIST_TABLE_STYLE = Object.freeze({ fontSize: '0.82rem', tableLayout: 'fixed', minWidth: '920px' });
 
 /**
  * Generování a ruční správa startovní listiny.
@@ -296,6 +298,41 @@ export default function StartListManager() {
     }
   }, [confirm]);
 
+  /**
+   * Vyřazení ze startky / vrácení zpět (nedorazil, nestihl start).
+   *
+   * Jde přes offline frontu jako každá jiná úprava startovky: bez signálu se
+   * změna uloží v zařízení a obrazovky (Časy, tisk) ji vidí hned. Posílá se
+   * cílový stav, ne přepínač, takže opakovaná přehrávka nic neotočí.
+   */
+  const toggleExcluded = useCallback(async (entry) => {
+    const excluded = !isExcluded(entry);
+    const name = `${entry.racer_surname} ${entry.racer_name}`.trim();
+    try {
+      const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${entry.id}/excluded`, { excluded });
+      if (result?.entry) {
+        setStartList(prev => prev.map(item => (item.id === entry.id ? result.entry : item)));
+        setMessage({
+          type: 'info',
+          text: excluded
+            ? `${name} vyřazen/a ze startovní listiny. Vrátit jde tlačítkem Vrátit.`
+            : `${name} vrácen/a na startovní listinu.`
+        });
+      } else {
+        // Offline: zápis čeká ve frontě a řádek se upraví podle odeslaného stavu.
+        setStartList(prev => prev.map(item => (
+          item.id === entry.id ? { ...item, excluded, pending_sync: true } : item
+        )));
+        setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
+      }
+    } catch {
+      setMessage({
+        type: 'danger',
+        text: excluded ? `Nepodařilo se vyřadit ${name}` : `Nepodařilo se vrátit ${name}`
+      });
+    }
+  }, []);
+
   const liveEditRaceNumberError = useMemo(() => (
     editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''
   ), [editingId, editForm.race_number_display, validateRaceNumber]);
@@ -329,28 +366,51 @@ export default function StartListManager() {
   const getCategoryById = (id) => categories.find(c => c.id === id);
   const selectedRace = races.find(r => String(r.id) === String(selectedRaceId));
 
-  // Group by category — use array to preserve start_number order
-  const groupedByCategory = useMemo(() => groupEntriesByCategory(startList), [startList]);
+  // Group by category — use array to preserve start_number order.
+  // Vyřazení zůstávají v tabulce své kategorie - jen tady se dají vrátit.
+  // Počty jsou za ty, kdo na startovce opravdu jsou; vyřazení se hlásí zvlášť.
+  const groupedByCategory = useMemo(() => groupEntriesByCategory(startList).map((group) => {
+    const groupActiveCount = activeEntries(group.entries).length;
+    return { ...group, activeCount: groupActiveCount, excludedCount: group.entries.length - groupActiveCount };
+  }), [startList]);
+  const activeCount = useMemo(() => activeEntries(startList).length, [startList]);
+  const excludedCount = startList.length - activeCount;
+
+  /** Kategorie k tisku v pořadí startu - bez vyřazených závodníků. */
+  const printableCategories = () => groupEntriesByCategory(activeEntries(startList));
+
+  const warnNobodyLeft = () => setMessage({
+    type: 'warning',
+    text: 'Na startovní listině nikdo není - všichni závodníci jsou vyřazení.'
+  });
 
   /**
-   * Startovní listina kola do PDF - všechny kategorie v pořadí startu.
-   * Do 2. kola jdou jen ti, kdo 1. kolo dokončili; pořadí buď stejné jako
-   * v 1. kole, nebo podle výsledků 1. kola (nejrychlejší první).
+   * Startovní listina kola do PDF - všechny kategorie v pořadí startu, bez
+   * vyřazených. Do 2. kola jdou jen ti, kdo 1. kolo dokončili; pořadí buď
+   * stejné jako v 1. kole, nebo podle výsledků 1. kola (nejrychlejší první).
    */
   const printStartList = async (round = 1, order = SECOND_RUN_SAME) => {
-    if (startList.length === 0) return;
+    const categories = printableCategories();
+    if (categories.length === 0) {
+      warnNobodyLeft();
+      return;
+    }
     try {
-      await pdf.generateStartList({ categories: groupedByCategory, round, order });
+      await pdf.generateStartList({ categories, round, order });
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
   };
 
-  /** Rozpis startujících po klubech - podklad pro vedoucí oddílů. */
+  /** Rozpis startujících po klubech - podklad pro vedoucí oddílů, bez vyřazených. */
   const printClubList = async () => {
-    if (startList.length === 0) return;
+    const categories = printableCategories();
+    if (categories.length === 0) {
+      warnNobodyLeft();
+      return;
+    }
     try {
-      await pdf.generateClubList({ categories: groupedByCategory });
+      await pdf.generateClubList({ categories });
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
@@ -535,7 +595,10 @@ export default function StartListManager() {
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <small className="fw-semibold">
-              Závodníků: <span style={{ color: TK_ACCENT_TEXT }}>{startList.length}</span>
+              Závodníků: <span style={{ color: TK_ACCENT_TEXT }}>{activeCount}</span>
+              {excludedCount > 0 && (
+                <span className="text-muted fw-normal ms-2">(vyřazeno: {excludedCount})</span>
+              )}
             </small>
             <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
               onClick={() => navigate('/timekeeper/timing')}>
@@ -549,7 +612,10 @@ export default function StartListManager() {
                 <small className="fw-bold">
                   <i className="bi bi-tag-fill me-1" style={{ color: TK_ACCENT }}></i>
                   {group.category_name}
-                  <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.entries.length}</span>
+                  <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.activeCount}</span>
+                  {group.excludedCount > 0 && (
+                    <span className="text-muted fw-normal ms-2">vyřazeno: {group.excludedCount}</span>
+                  )}
                 </small>
               </div>
               <div className="card-body p-0">
@@ -569,7 +635,7 @@ export default function StartListManager() {
                         <th style={{ width: '68px', padding: '4px 8px' }}>Čas 1</th>
                         <th style={{ width: '68px', padding: '4px 8px' }}>Čas 2</th>
                         <th style={{ width: '68px', padding: '4px 8px' }}>Součet</th>
-                        <th style={{ width: '72px', padding: '4px 8px' }}>Akce</th>
+                        <th style={{ width: '136px', padding: '4px 8px' }}>Akce</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -650,6 +716,7 @@ export default function StartListManager() {
                             entry={entry}
                             onEdit={startEditing}
                             onDelete={deleteEntry}
+                            onToggleExcluded={toggleExcluded}
                           />
                         )
                       ))}

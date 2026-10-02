@@ -555,6 +555,20 @@ body.theme-backoffice .table > tbody > tr > :is(th, td) {
 /* Veřejný web podbarvuje řádek pod myší oranžově */
 body.theme-backoffice .table-hover tbody tr:hover { background-color: transparent !important; }
 
+/* Časoměřič: závodník vyřazený ze startky (Listina). Zůstává vidět, aby šel
+   vrátit, ale nesmí se plést se závodníky na startovce - šedé pozadí,
+   přeškrtnuté jméno a štítek. Šedý text na tomhle pozadí má 6.1:1. */
+body.theme-backoffice tr.tk-row-excluded > :is(th, td) {
+  --bs-table-bg: var(--adm-secondary-subtle);
+  --bs-table-hover-bg: var(--adm-secondary-subtle);
+  background-color: var(--adm-secondary-subtle) !important;
+  color: var(--adm-text-muted) !important;
+}
+
+body.theme-backoffice tr.tk-row-excluded .tk-excluded-name {
+  text-decoration: line-through;
+}
+
 body.theme-backoffice .table-light,
 body.theme-backoffice .table-light > :is(th, td),
 body.theme-backoffice tr.table-light > :is(th, td) {

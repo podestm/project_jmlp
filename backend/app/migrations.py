@@ -858,6 +858,29 @@ def _rename_file(conn, file_id: int, new_name: str) -> None:
     )
 
 
+# --------------------------------------------------------------------------
+# 009 - vyřazení ze startovky
+#
+# Závodník, který nedorazil nebo nestihl start, se ze startovky nemaže -
+# když pak přece jen dorazí, musel by ho časoměřič zakládat znovu a přišel by
+# o startovní číslo i dres. Místo toho dostane příznak `excluded`: zmizí ze
+# startovky, ze zadávání časů, z výsledků i z bodů, ale tlačítkem "Vrátit" se
+# obnoví i se vším, co u něj bylo zapsané.
+#
+# Výchozí 0 znamená, že dosavadní řádky zůstávají tam, kde byly.
+# --------------------------------------------------------------------------
+def _m_start_list_excluded(conn):
+    if not _table_exists(conn, "fuj_jmlp_race_start_list"):
+        return
+    if _column_exists(conn, "fuj_jmlp_race_start_list", "excluded"):
+        return
+    conn.execute(text(
+        "ALTER TABLE fuj_jmlp_race_start_list "
+        "ADD COLUMN excluded TINYINT(1) NOT NULL DEFAULT 0"
+    ))
+    logger.info("Migrace: fuj_jmlp_race_start_list.excluded")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -869,6 +892,7 @@ MIGRATIONS = (
     _m_drop_legacy_file_links,
     _m_library_tree,
     _m_flat_library,
+    _m_start_list_excluded,
 )
 
 

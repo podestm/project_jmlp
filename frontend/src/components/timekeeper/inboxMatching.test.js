@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { candidatesForEvent, resolveInboxEvent } from './inboxMatching.js';
+import { candidatesForEvent, EMPTY_RESOLUTION, resolveInboxEvent } from './inboxMatching.js';
 
 const entry = (id, bib, startNumber = id) => ({
   id,
@@ -73,5 +73,66 @@ describe('resolveInboxEvent', () => {
     expect(result.entry).toBeNull();
     expect(result.count).toBe(0);
     expect(result.index).toBe(-1);
+  });
+});
+
+describe('vyřazení ze startky', () => {
+  // Dres 12 má závodník 2 (vyřazený) i závodník 3 z jiné sady; dres 14 jen vyřazený 4.
+  const LIST = [
+    entry(1, 11),
+    { ...entry(2, 12), excluded: true },
+    entry(3, 12, 5),
+    { ...entry(4, 14), excluded: true }
+  ];
+  const listById = Object.fromEntries(LIST.map((e) => [e.id, e]));
+
+  it('vyřazený není kandidátem, i když dres sedí', () => {
+    expect(candidatesForEvent({ bib: 12 }, LIST, listById).map((e) => e.id)).toEqual([3]);
+  });
+
+  it('dřív uložený kandidát po vyřazení přestane platit', () => {
+    // Impulz se spároval, než závodníka někdo vyřadil - ✓ mu teď nesmí zapsat čas.
+    const event = { bib: 14, candidateEntryIds: [4], selectedEntryId: 4, status: 'pending' };
+
+    const result = resolveInboxEvent(event, LIST, listById);
+
+    expect(result.entry).toBeNull();
+    expect(result.count).toBe(0);
+  });
+
+  it('dres jen vyřazeného řekne, že nikdo nezbyl kvůli vyřazení', () => {
+    const result = resolveInboxEvent({ bib: 14 }, LIST, listById);
+
+    expect(result.entry).toBeNull();
+    expect(result.excluded).toBe(true);
+  });
+
+  it('úplně neznámý dres za vyřazení nevydává', () => {
+    expect(resolveInboxEvent({ bib: 99 }, LIST, listById).excluded).toBe(false);
+  });
+
+  it('když dres má i někdo na startovce, vyřazení se nehlásí', () => {
+    const result = resolveInboxEvent({ bib: 12 }, LIST, listById);
+
+    expect(result.entry.id).toBe(3);
+    expect(result.excluded).toBe(false);
+  });
+
+  it('bez dresu rozhodne ručně vybraný kandidát', () => {
+    const result = resolveInboxEvent({ candidateEntryIds: [4] }, LIST, listById);
+
+    expect(result.entry).toBeNull();
+    expect(result.excluded).toBe(true);
+  });
+
+  it('zapsaná událost zůstává u svého závodníka i po jeho vyřazení', () => {
+    const result = resolveInboxEvent({ bib: 14, selectedEntryId: 4, status: 'saved' }, LIST, listById);
+
+    expect(result.entry.id).toBe(4);
+    expect(result.excluded).toBe(false);
+  });
+
+  it('prázdný výsledek nese stejný tvar', () => {
+    expect(EMPTY_RESOLUTION.excluded).toBe(false);
   });
 });

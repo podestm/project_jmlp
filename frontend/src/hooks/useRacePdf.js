@@ -13,6 +13,7 @@ import {
   SECOND_RUN_SAME
 } from '../pdf/liza/adapters.js';
 import { loadHeaderLogos } from '../pdf/assets.js';
+import { withoutExcluded } from '../components/timekeeper/startListHelpers.js';
 
 /**
  * Tištěné listiny závodu - startovní listina, rozpis po klubech a výsledková
@@ -143,10 +144,12 @@ export function useRacePdf(raceId) {
     setGenerating(true);
     try {
       const header = await loadHeader();
+      // Vyřazení ze startky na tištěnou startovku nepatří (výsledkové listiny
+      // hlídá rankEntriesByTime).
       const blob = await createPdfBlob(buildStartListDoc({
         header: header || {},
         round,
-        categories: startListCategories(categories, round, order)
+        categories: startListCategories(withoutExcluded(categories), round, order)
       }));
 
       showPreview(blob, {
@@ -169,7 +172,7 @@ export function useRacePdf(raceId) {
       const header = await loadHeader();
       const blob = await createPdfBlob(buildClubListDoc({
         header: header || {},
-        ...clubListInput(categories)
+        ...clubListInput(withoutExcluded(categories))
       }));
 
       showPreview(blob, {

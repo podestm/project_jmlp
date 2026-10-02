@@ -225,3 +225,54 @@ describe('resolveConflict', () => {
     await expect(resolveConflict(9999, 'drop')).resolves.toBeUndefined();
   });
 });
+
+describe('vyřazení ze startky ve frontě', () => {
+  const EXCLUDE = '/api/timekeeper/start-list/1/excluded';
+
+  it('vyřazení čeká za starším vyřazením téhož závodníka', async () => {
+    await enqueueMutation('PUT', EXCLUDE, { excluded: true });
+
+    // "Vrátit" poslané rovnou by dorazilo první a starší "Vyřadit" by ho přepsalo.
+    expect(await hasUnsyncedMutationFor('PUT', EXCLUDE, { excluded: false })).toBe(true);
+    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/2/excluded', {})).toBe(false);
+  });
+
+  it('vyřazení a zápis času na sebe nečekají', async () => {
+    await enqueueMutation('PUT', EXCLUDE, { excluded: true });
+    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(false);
+
+    await resetTimekeeperDb();
+    await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10 });
+    expect(await hasUnsyncedMutationFor('PUT', EXCLUDE, { excluded: true })).toBe(false);
+  });
+
+  it('čekající vyřazení nesebere base_revision zápisu času', async () => {
+    await enqueueMutation('PUT', EXCLUDE, { excluded: true });
+    const time = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10, base_revision: 'r1' });
+
+    expect(time.payload).toEqual({ time1: 10, base_revision: 'r1' });
+  });
+
+  it('úspěšné vyřazení překoná jen zaparkované vyřazení, ne čas', async () => {
+    const parkedTime = await timekeeperDb.syncQueue.add(queueRow({ status: 'conflict' }));
+    const parkedExclusion = await timekeeperDb.syncQueue.add(queueRow({
+      status: 'dead', endpoint: EXCLUDE, payload: { excluded: true }
+    }));
+
+    const count = await supersedeParkedOpsFor('PUT', EXCLUDE, { excluded: false });
+
+    expect(count).toBe(1);
+    expect((await timekeeperDb.syncQueue.get(parkedExclusion)).status).toBe('superseded');
+    // Zaparkovaný naměřený čas musí dál čekat na rozhodnutí obsluhy.
+    expect((await timekeeperDb.syncQueue.get(parkedTime)).status).toBe('conflict');
+  });
+
+  it('úspěšný zápis času nepřekoná zaparkované vyřazení', async () => {
+    const parkedExclusion = await timekeeperDb.syncQueue.add(queueRow({
+      status: 'dead', endpoint: EXCLUDE, payload: { excluded: true }
+    }));
+
+    expect(await supersedeParkedOpsFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(0);
+    expect((await timekeeperDb.syncQueue.get(parkedExclusion)).status).toBe('dead');
+  });
+});

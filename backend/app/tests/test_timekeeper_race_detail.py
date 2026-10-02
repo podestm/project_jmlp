@@ -87,3 +87,23 @@ def test_detail_neexistujiciho_zavodu_vrati_404(client, timekeeper_headers):
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Závod nenalezen"
+
+
+def test_detail_nese_obrazek_sponzoru(client, db, zavod, timekeeper_headers):
+    """Výsledková listina tiskne pod posledním řádkem pruh sponzorů nahraný u závodu."""
+    bez = client.get(f"/api/timekeeper/races/{zavod.id}/detail", headers=timekeeper_headers).json()
+    assert bez["sponsors_url"] is None
+
+    soubor = models.File(
+        filename="sponzori-abc.png", original_filename="sponzori.png",
+        file_path="uploads/documents/sponzori-abc.png", file_size=10,
+        mime_type="image/png", file_type=models.FileTypeEnum.image,
+    )
+    db.add(soubor)
+    db.commit()
+    db.add(models.Attachment(file_id=soubor.id, owner_type="race", owner_id=zavod.id,
+                             role="sponzori", published=True, sort_order=0))
+    db.commit()
+
+    detail = client.get(f"/api/timekeeper/races/{zavod.id}/detail", headers=timekeeper_headers).json()
+    assert detail["sponsors_url"] == "/uploads/documents/sponzori-abc.png"

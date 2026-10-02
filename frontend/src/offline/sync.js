@@ -1,5 +1,5 @@
 import { timekeeperDb } from './db.js';
-import { affectedEntryIds } from './entryTargets.js';
+import { mutationKeys } from './entryTargets.js';
 import { applySyncedRevisions } from './localEdits.js';
 import {
   getQueueCandidates,
@@ -40,6 +40,9 @@ const extractStatusCode = (error) => {
  * zasekne (čeká na odklad, spadl do konfliktu, došly pokusy), musí se všechny
  * pozdější zápisy pro tentýž řádek zastavit za ním - jinak by novější hodnota
  * dorazila první a starší přehrávka by ji přepsala zpátky.
+ *
+ * "Tentýž řádek" se posuzuje podle mutationKeys: časy drží pořadí mezi
+ * sebou, vyřazení ze startky taky, ale navzájem se nezdržují.
  */
 export const processSyncQueue = async (executor) => {
   if (syncInProgress) return;
@@ -51,10 +54,10 @@ export const processSyncQueue = async (executor) => {
     const candidates = await getQueueCandidates();
     let changed = recovered > 0;
 
-    const blockedIds = new Set();
-    const idsOf = (row) => affectedEntryIds((row.method || '').toUpperCase(), row.endpoint, row.payload).ids;
-    const isBlocked = (row) => idsOf(row).some((id) => blockedIds.has(id));
-    const block = (row) => idsOf(row).forEach((id) => blockedIds.add(id));
+    const blockedKeys = new Set();
+    const keysOf = (row) => mutationKeys(row.method, row.endpoint, row.payload);
+    const isBlocked = (row) => keysOf(row).some((key) => blockedKeys.has(key));
+    const block = (row) => keysOf(row).forEach((key) => blockedKeys.add(key));
 
     for (const { row, ready } of candidates) {
       if (isBlocked(row)) continue;
