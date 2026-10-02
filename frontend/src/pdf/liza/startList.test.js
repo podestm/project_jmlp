@@ -11,7 +11,7 @@ const header = {
 };
 
 const entry = (n, overrides = {}) => ({
-  number: n, points: n % 2 ? null : 100 + n, slcrId: '891586', surname: `Příjmení${n}`,
+  number: n, slcrId: n % 2 ? null : `89${String(n).padStart(4, '0')}`, surname: `Příjmení${n}`,
   firstName: 'Jméno', club: 'Ski team Victoria Brno', nation: 'CZE', year: 2019, ...overrides
 });
 
@@ -29,7 +29,7 @@ describe('startovní listina jako z LiZy', () => {
     expect(pages[0].find((t) => t.text === '03.10.2026')).toBeTruthy();
   });
 
-  it('řádky po 20,16 b, číslo odsazené čtyřmi mezerami, ve sloupci Body body - ne registrační číslo', () => {
+  it('řádky po 20,16 b, číslo odsazené čtyřmi mezerami, registrační číslo ve sloupci Body', () => {
     const doc = buildStartListDoc({ header, categories: [{ name: 'Myšáci dívky', entries: [entry(1), entry(2)] }] });
     const page = pagesOf(doc)[0];
     const first = page.find((t) => t.text === 'Příjmení1');
@@ -38,8 +38,7 @@ describe('startovní listina jako z LiZy', () => {
     expect(first.base).toBeCloseTo(211.56, 2);
     expect(second.base - first.base).toBeCloseTo(20.16, 2);
     expect(page.map((t) => t.text)).toContain('    2');
-    expect(page.find((t) => t.text === '102').x).toBeCloseTo(79.2, 2);
-    expect(page.map((t) => t.text)).not.toContain('891586');
+    expect(page.find((t) => t.text === '890002').x).toBeCloseTo(79.2, 2);
   });
 
   it('nadpis 2. kola a patička na každé stránce', () => {

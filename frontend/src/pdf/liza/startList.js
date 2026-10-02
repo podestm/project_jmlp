@@ -81,9 +81,7 @@ function drawEntry(canvas, entry, bottom) {
     // LiZa číslo odsazuje čtyřmi mezerami a celé to centruje.
     canvas.text(`    ${entry.number}`, 36.35, bottom - 6.96, { ...BOLD8, align: 'center' });
   }
-  // Sloupec Body patří bodům, podle kterých se losovalo pořadí startu - ne
-  // registračnímu číslu SLČR (LiZa ho tam tiskla, uživatel to nechce).
-  if (entry.points != null) canvas.text(String(entry.points), 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
+  canvas.text(entry.slcrId || '', 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
   canvas.text(entry.surname || '', 126.72, bottom - 10.92, { ...BOLD10, maxWidth: 128 });
   canvas.text(entry.firstName || '', 126.72, bottom - 2.04, { ...REGULAR8, maxWidth: 128 });
   canvas.text(entry.club || '', 257.76, bottom - 7.44, { ...REGULAR8, maxWidth: 154 });
@@ -96,7 +94,7 @@ function drawEntry(canvas, entry, bottom) {
  * @param {object} options
  * @param {object} options.header      hlavička závodu (viz useRacePdf)
  * @param {number} [options.round=1]   kolo - jen do nadpisu
- * @param {Array}  options.categories  [{ name, entries: [{ number, points, surname,
+ * @param {Array}  options.categories  [{ name, entries: [{ number, slcrId, surname,
  *                                      firstName, club, nation, year }] }] v pořadí startu
  */
 export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
