@@ -12,11 +12,14 @@ import LiveTiming from './components/pages/LiveTiming.jsx';
 import Registration from './components/pages/Registration.jsx';
 import RaceDetail from './components/pages/RaceDetail.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
+import { loadSection } from './utils/moduleLoad.js';
 
 // Admin and timekeeper are whole sections a public visitor never reaches, so
 // they load on demand - together with their auth contexts, chart.js and Dexie.
-const AdminRoutes = lazy(() => import('./components/admin/AdminRoutes.jsx'));
-const TimekeeperRoutes = lazy(() => import('./components/timekeeper/TimekeeperRoutes.jsx'));
+// loadSection reloads the page once when a tab opened before a deploy asks
+// for a section file the server no longer has (see utils/moduleLoad.js).
+const AdminRoutes = lazy(() => loadSection(() => import('./components/admin/AdminRoutes.jsx')));
+const TimekeeperRoutes = lazy(() => loadSection(() => import('./components/timekeeper/TimekeeperRoutes.jsx')));
 
 const NotFound = () => (
   <Layout>

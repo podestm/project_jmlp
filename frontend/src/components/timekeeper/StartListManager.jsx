@@ -5,6 +5,7 @@ import { useConfirm } from '../../hooks/useConfirm.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { pdfErrorMessage } from '../../pdf/pdfmake.js';
 import { SECOND_RUN_BY_RESULTS, SECOND_RUN_SAME } from '../../pdf/liza/adapters.js';
 import { dropRaceSnapshot } from '../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../offline/timingDrafts.js';
@@ -397,8 +398,9 @@ export default function StartListManager() {
     }
     try {
       await pdf.generateStartList({ categories, round, order });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   };
 
@@ -411,8 +413,9 @@ export default function StartListManager() {
     }
     try {
       await pdf.generateClubList({ categories });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   };
 

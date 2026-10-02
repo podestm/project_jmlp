@@ -1,11 +1,21 @@
+import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
+import { preloadPdfMake } from '../../pdf/pdfmake.js';
 
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
   const location = useLocation();
   const { syncState, queueStats } = useSyncStatus();
+
+  // Tiskové balíky (pdfmake, písma) se načtou na pozadí hned po přihlášení:
+  // první tisk je pak okamžitý a funguje i po výpadku sítě (service worker
+  // je má v keši). Zpoždění, ať nebrzdí první vykreslení obrazovky.
+  useEffect(() => {
+    const timer = setTimeout(preloadPdfMake, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const syncMeta = (() => {
     if (syncState === 'offline') {

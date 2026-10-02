@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { pdfErrorMessage } from '../../pdf/pdfmake.js';
 import { dropRaceSnapshot } from '../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
@@ -98,8 +99,9 @@ export default function ResultsView() {
     if (!selectedCategory) return;
     try {
       await pdf.generate({ categories: [selectedCategory], interim: true, runMode });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   };
 
@@ -107,16 +109,18 @@ export default function ResultsView() {
   const printAllInterim = async (runMode) => {
     try {
       await pdf.generate({ categories: categoryList, interim: true, runMode });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   };
 
   const printFinal = async (publishable) => {
     try {
       await pdf.generate({ categories: categoryList, interim: false, publishable });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   };
 

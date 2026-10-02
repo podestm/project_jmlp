@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { pdfErrorMessage } from '../../pdf/pdfmake.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { SELECTED_RACE_KEY } from './TimekeeperChrome.jsx';
@@ -349,8 +350,9 @@ export default function TimingEntry() {
     }
     try {
       await pdf.generate({ categories, interim: true, runMode });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
   }, [categoryFiltered, activeStartList, pdf]);
 
