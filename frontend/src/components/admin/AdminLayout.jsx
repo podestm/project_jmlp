@@ -111,8 +111,13 @@ export default function AdminLayout({ children }) {
             </Link>
             
             <hr className="border-secondary my-3" />
-            
-            <Link to="/admin/register" className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
+
+            {/* Časomíra má vlastní přihlášení - bez něj se otevře její přihlašovací obrazovka. */}
+            <Link to="/timekeeper" className="nav-link text-white">
+              <i className="bi bi-stopwatch me-2"></i>
+              Přepnout do časomíry
+            </Link>
+            <Link to="/admin/register"className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
               <i className="bi bi-person-plus me-2"></i>
               Nový administrátor
             </Link>
