@@ -1,5 +1,5 @@
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
-import { RUN_MODE_SUM } from '../../pdf/resultsPdf.js';
+import { RUN_MODE_SUM } from '../../pdf/liza/results.js';
 
 /**
  * Trojice tlačítek pro tisk: celkově, 1. kolo, 2. kolo.

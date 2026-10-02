@@ -3,24 +3,24 @@ import { downloadBlob } from '../config/api.js';
 import { timekeeperAuthHeaders } from '../config/api.js';
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
 import { createPdfBlob } from '../pdf/pdfmake.js';
+import { buildResultsDoc, resultsFileName, RUN_MODE_SUM } from '../pdf/liza/results.js';
+import { buildStartListDoc, startListFileName } from '../pdf/liza/startList.js';
+import { buildClubListDoc, clubListFileName } from '../pdf/liza/clubList.js';
 import {
-  buildResultsDoc,
-  resultsFileName,
-  titleForRun,
-  RUN_MODE_SUM,
-  TITLE_FINAL,
-  TITLE_INTERIM
-} from '../pdf/resultsPdf.js';
-import { buildStartListDoc, startListFileName } from '../pdf/startListPdf.js';
+  clubListInput,
+  resultCategories,
+  startListCategories,
+  SECOND_RUN_SAME
+} from '../pdf/liza/adapters.js';
 import { loadHeaderLogos } from '../pdf/assets.js';
-import { rankEntriesByTime } from '../components/timekeeper/ResultsTable.jsx';
 
 /**
- * Tištěné listiny závodu - startovní i výsledková: generování, náhled,
- * stažení a publikace.
+ * Tištěné listiny závodu - startovní listina, rozpis po klubech a výsledková
+ * listina: generování, náhled, stažení a publikace.
  *
- * PDF vzniká v prohlížeči, takže tisk na závodišti funguje i offline - data
- * jsou nakešovaná v IndexedDB a pořadí i body se počítají lokálně
+ * Listiny mají podobu výstupů z LiZy 1:1 (viz pdf/liza/). PDF vzniká
+ * v prohlížeči, takže tisk na závodišti funguje i offline - data jsou
+ * nakešovaná v IndexedDB a pořadí i body se počítají lokálně
  * (rankEntriesByTime + utils/points.js).
  *
  * Publikace naopak online být musí a nikdy nesmí do offline fronty: vyřízená
@@ -50,12 +50,12 @@ export function useRacePdf(raceId) {
   const loadHeader = useCallback(async () => {
     try {
       const detail = await TimekeeperAPI.get(`/api/timekeeper/races/${raceId}/detail`);
-      const logos = await loadHeaderLogos(detail.organizer_logo_url);
+      const images = await loadHeaderLogos(detail.organizer_logo_url, detail.sponsors_url);
       return {
-        ...logos,
-        raceNumberLabel: detail.race_number_label,
-        seasonName: detail.season_name,
+        ...images,
+        cupName: detail.season_name,
         editionLabel: detail.edition_label,
+        raceNumberLabel: detail.race_number_label,
         raceDirector: detail.race_director,
         technicalDelegate: detail.technical_delegate,
         chiefTimekeeper: detail.chief_timekeeper,
@@ -82,9 +82,13 @@ export function useRacePdf(raceId) {
   /**
    * Výsledková listina.
    *
+   * Počet kol se řídí naměřenými daty - jedna kategorie může jet obě kola
+   * a jiná jen jedno, takže sloupec 2. kola se tiskne, jakmile má čas
+   * kdokoli z tištěných kategorií.
+   *
    * @param {object}  options
    * @param {Array}   options.categories  kategorie k vytištění
-   * @param {boolean} options.interim     true = bez hlavičky (průběžné)
+   * @param {boolean} options.interim     true = průběžná listina bez hlavičky
    * @param {boolean} options.publishable povolit tlačítko Publikovat
    * @param {string}  options.runMode     'sum' (celkově) | '1' | '2'
    */
@@ -97,30 +101,27 @@ export function useRacePdf(raceId) {
     setGenerating(true);
     try {
       const header = interim ? null : await loadHeader();
-      const timeField = runMode === RUN_MODE_SUM ? 'time_sum' : `time${runMode}`;
+      const run = runMode === RUN_MODE_SUM ? null : Number(runMode);
+      const mode = run ? 'run' : (interim ? 'interim' : 'final');
+      const runCount = (categories || []).some((category) => (
+        (category.entries || []).some((entry) => entry.time2 != null)
+      )) || run === 2 ? 2 : 1;
 
-      // Pořadí a body se dopočítají lokálně, ať sedí i pro dosud
-      // nesynchronizované časy.
-      const ranked = categories.map((category) => ({
-        ...category,
-        entries: rankEntriesByTime(category.entries, { timeField })
+      const blob = await createPdfBlob(buildResultsDoc({
+        header,
+        runCount,
+        mode,
+        run: run || 1,
+        categories: resultCategories(categories, mode === 'run' ? 'run' : 'final', run || 1)
       }));
 
-      const title = runMode !== RUN_MODE_SUM
-        ? titleForRun(runMode)
-        : (interim ? TITLE_INTERIM : TITLE_FINAL);
-
-      const blob = await createPdfBlob(
-        buildResultsDoc({ header, categories: ranked, title, runMode })
-      );
-
       showPreview(blob, {
-        fileName: resultsFileName(header?.raceNumberLabel, interim, runMode),
-        title: runMode !== RUN_MODE_SUM
-          ? `Výsledky ${runMode}. kola`
+        fileName: resultsFileName(header?.raceNumberLabel, mode, run || 1),
+        title: run
+          ? `Výsledky ${run}. kola`
           : (interim ? 'Průběžné výsledky' : 'Celková výsledková listina'),
         // Publikuje se jen celková listina - jednotlivá kola jsou podklad pro tisk.
-        publishable: publishable && !interim && runMode === RUN_MODE_SUM,
+        publishable: publishable && mode === 'final',
       });
     } finally {
       setGenerating(false);
@@ -128,23 +129,52 @@ export function useRacePdf(raceId) {
   }, [loadHeader, showPreview]);
 
   /**
-   * Startovní listina - celý závod v pořadí startu.
+   * Startovní listina kola.
    *
    * Hlavička se zkusí načíst vždycky; když se nepovede (offline a nic
    * v cache), vytiskne se listina bez ní, ať tisk na závodišti neselže.
    *
    * @param {object} options
    * @param {Array}  options.categories  [{ category_name, entries }] v pořadí startu
+   * @param {number} [options.round=1]   1 nebo 2
+   * @param {string} [options.order]     2. kolo: SECOND_RUN_SAME | SECOND_RUN_BY_RESULTS
    */
-  const generateStartList = useCallback(async ({ categories }) => {
+  const generateStartList = useCallback(async ({ categories, round = 1, order = SECOND_RUN_SAME }) => {
     setGenerating(true);
     try {
       const header = await loadHeader();
-      const blob = await createPdfBlob(buildStartListDoc({ header, categories }));
+      const blob = await createPdfBlob(buildStartListDoc({
+        header: header || {},
+        round,
+        categories: startListCategories(categories, round, order)
+      }));
 
       showPreview(blob, {
-        fileName: startListFileName(header?.raceNumberLabel),
-        title: 'Startovní listina',
+        fileName: startListFileName(header?.raceNumberLabel, round),
+        title: `Startovní listina ${round}. kola`,
+      });
+    } finally {
+      setGenerating(false);
+    }
+  }, [loadHeader, showPreview]);
+
+  /**
+   * Rozpis startujících po klubech.
+   * @param {object} options
+   * @param {Array}  options.categories  [{ category_name, entries }] v pořadí kategorií
+   */
+  const generateClubList = useCallback(async ({ categories }) => {
+    setGenerating(true);
+    try {
+      const header = await loadHeader();
+      const blob = await createPdfBlob(buildClubListDoc({
+        header: header || {},
+        ...clubListInput(categories)
+      }));
+
+      showPreview(blob, {
+        fileName: clubListFileName(header?.raceNumberLabel),
+        title: 'Rozpis po klubech',
       });
     } finally {
       setGenerating(false);
@@ -186,6 +216,7 @@ export function useRacePdf(raceId) {
     publishing,
     generate,
     generateStartList,
+    generateClubList,
     download,
     publish,
     closePreview

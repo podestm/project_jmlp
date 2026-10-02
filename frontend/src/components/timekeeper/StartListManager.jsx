@@ -5,6 +5,7 @@ import { useConfirm } from '../../hooks/useConfirm.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
+import { SECOND_RUN_BY_RESULTS, SECOND_RUN_SAME } from '../../pdf/liza/adapters.js';
 import { dropRaceSnapshot } from '../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
@@ -331,11 +332,25 @@ export default function StartListManager() {
   // Group by category — use array to preserve start_number order
   const groupedByCategory = useMemo(() => groupEntriesByCategory(startList), [startList]);
 
-  /** Celková startovní listina do PDF - všechny kategorie v pořadí startu. */
-  const printStartList = async () => {
+  /**
+   * Startovní listina kola do PDF - všechny kategorie v pořadí startu.
+   * Do 2. kola jdou jen ti, kdo 1. kolo dokončili; pořadí buď stejné jako
+   * v 1. kole, nebo podle výsledků 1. kola (nejrychlejší první).
+   */
+  const printStartList = async (round = 1, order = SECOND_RUN_SAME) => {
     if (startList.length === 0) return;
     try {
-      await pdf.generateStartList({ categories: groupedByCategory });
+      await pdf.generateStartList({ categories: groupedByCategory, round, order });
+    } catch {
+      setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
+    }
+  };
+
+  /** Rozpis startujících po klubech - podklad pro vedoucí oddílů. */
+  const printClubList = async () => {
+    if (startList.length === 0) return;
+    try {
+      await pdf.generateClubList({ categories: groupedByCategory });
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se vytvořit PDF' });
     }
@@ -382,15 +397,41 @@ export default function StartListManager() {
                   </button>
                   {startList.length > 0 && (
                     <>
+                      <div className="btn-group btn-group-sm" role="group" aria-label="Tisk startovní listiny">
+                        <button
+                          className="btn btn-outline-secondary"
+                          onClick={() => printStartList(1)}
+                          disabled={pdf.generating}
+                          title="Startovní listina 1. kola všech kategorií - funguje i offline"
+                        >
+                          {pdf.generating ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
+                          Startovka 1. kola
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary"
+                          onClick={() => printStartList(2, SECOND_RUN_SAME)}
+                          disabled={pdf.generating}
+                          title="2. kolo ve stejném pořadí jako 1. kolo; bez těch, kdo měli v 1. kole DSQ/DNF/DNS"
+                        >
+                          2. kolo
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary"
+                          onClick={() => printStartList(2, SECOND_RUN_BY_RESULTS)}
+                          disabled={pdf.generating}
+                          title="2. kolo podle výsledků 1. kola - nejrychlejší startuje první; bez DSQ/DNF/DNS"
+                        >
+                          2. kolo podle výsledků
+                        </button>
+                      </div>
                       <button
                         className="btn btn-sm btn-outline-secondary"
                         style={{ borderRadius: '8px' }}
-                        onClick={printStartList}
+                        onClick={printClubList}
                         disabled={pdf.generating}
-                        title="Celková startovní listina všech kategorií - funguje i offline"
+                        title="Seznam startujících podle oddílu - funguje i offline"
                       >
-                        {pdf.generating ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
-                        Tisk startovky
+                        <i className="bi bi-people me-1"></i>Rozpis po klubech
                       </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
