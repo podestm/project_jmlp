@@ -168,6 +168,8 @@ def get_live_race(response: Response, db: Session = Depends(get_db)):
 
     # Název kategorie živě z adminu; snapshot v listině je jen záloha pro
     # historická data - jinak by na webu svítil název z doby rozlosování.
+    # Vyřazení ze startky (nedorazili) na web nepatří - ani do startovky, ani
+    # do pořadí, které si stránka počítá z těchhle řádků.
     entries = db.execute(text(f"""
         SELECT sl.id, sl.start_number, sl.race_number_actual, sl.race_number_display,
                sl.racer_name, sl.racer_surname, sl.racer_year,
@@ -181,6 +183,7 @@ def get_live_race(response: Response, db: Session = Depends(get_db)):
         LEFT JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
         LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
         WHERE sl.race_id = :race_id
+          AND sl.excluded = 0
         ORDER BY category_name, sl.start_number ASC
     """), {"race_id": live.id}).fetchall()
 

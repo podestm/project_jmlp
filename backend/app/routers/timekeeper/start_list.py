@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 
 from ...database import get_db
-from ... import models, auth
+from ... import models, schemas, auth
 from ...utils import (
     fix_encoding,
     category_display_sql,
@@ -445,6 +445,77 @@ def update_start_list_entry(
     }
 
 
+@router.put("/start-list/{entry_id}/excluded")
+def set_start_list_entry_excluded(
+    entry_id: int,
+    data: schemas.StartListExcludedUpdate,
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Vyřadí závodníka ze startovky, nebo ho do ní vrátí.
+
+    Pro závodníka, který nedorazil nebo nestihl start. Řádek se NEMAŽE:
+    startovní číslo, dres i naměřené časy mu zůstanou, takže "Vrátit" ho
+    obnoví přesně v té podobě, v jaké byl. Dokud je vyřazený, není na
+    startovce, v zadávání časů, ve výsledcích ani v bodech - pořadí ostatních
+    se počítá, jako by vůbec nestartoval. Když ho nikdo nevrátí, je to
+    v podstatě odhlášení a nic dalšího se dělat nemusí.
+
+    Tělo nese cílový stav ({"excluded": true|false}), ne přepínač: zápis
+    přehraný z offline fronty pak nemůže stav otočit podruhé.
+
+    Revize řádku (updated_at) se schválně nemění. Hlídá souběžné zápisy ČASŮ
+    (base_revision v timing.py) a vyřazení časy nemění - posunutá revize by
+    zařízení, které zrovna zapisuje čas, vyrobila konflikt 409 o ničem.
+    """
+    endpoint = f"/api/timekeeper/start-list/{entry_id}/excluded"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="PUT",
+        endpoint=endpoint,
+    )
+    if replay:
+        return replay
+
+    exists = db.execute(
+        text("SELECT id FROM fuj_jmlp_race_start_list WHERE id = :entry_id"),
+        {"entry_id": entry_id},
+    ).first()
+    if not exists:
+        raise StandardExceptions.not_found("Záznam na startovní listině nenalezen")
+
+    # Raw SQL kvůli revizi: ORM by updated_at přepsal sám (onupdate v modelu)
+    # a MySQL taky (ON UPDATE CURRENT_TIMESTAMP), proto se výslovně ponechá.
+    db.execute(text("""
+        UPDATE fuj_jmlp_race_start_list
+        SET excluded = :excluded, updated_at = updated_at
+        WHERE id = :entry_id
+    """), {"excluded": 1 if data.excluded else 0, "entry_id": entry_id})
+    db.commit()
+
+    response_payload = {
+        "message": (
+            "Závodník vyřazen ze startovní listiny"
+            if data.excluded
+            else "Závodník vrácen na startovní listinu"
+        ),
+        "entry": _get_start_list_entry_payload(entry_id, db),
+        "idempotency_replayed": False,
+    }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="PUT",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload
+
+
 @router.delete("/start-list/{entry_id}")
 def delete_start_list_entry(
     entry_id: int,
@@ -536,6 +607,12 @@ def add_manual_start_list_entry(
         models.StartListEntry.racer_id == racer_id
     ).first()
     if existing_entry:
+        if existing_entry.excluded:
+            # Pozdě dorazivšího závodníka časoměřič zkusí přidat znovu - řádek
+            # ale pořád existuje, jen vyřazený, a vrátit ho jde i s dresem.
+            raise StandardExceptions.bad_request(
+                "Závodník je na startovní listině vyřazený - vraťte ho v Listině tlačítkem Vrátit"
+            )
         raise StandardExceptions.bad_request("Závodník je již na startovní listině")
 
     # Auto-assign start_number if not provided

@@ -460,6 +460,10 @@ class StartListEntryUpdate(BaseModel):
     dsq: Optional[bool] = None
     points: Optional[int] = None
 
+class StartListExcludedUpdate(BaseModel):
+    """Vyřazení ze startovky - cílový stav, ne přepínač (viz start_list.py)."""
+    excluded: bool
+
 class StartListEntry(StartListEntryBase):
     id: int
     category_rank: Optional[int] = None
@@ -470,6 +474,7 @@ class StartListEntry(StartListEntryBase):
     dns: bool = False
     dsq: bool = False
     points: Optional[int] = None
+    excluded: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     racer_name: Optional[str] = None

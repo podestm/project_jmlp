@@ -346,6 +346,9 @@ def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None
         "dns": bool(row.dns),
         "dsq": bool(row.dsq),
         "points": row.points,
+        # Vyřazený ze startky - časoměřič ho v Listině vidí (aby ho mohl
+        # vrátit), všude jinde ho klient vynechá (isExcluded na klientovi).
+        "excluded": bool(row.excluded),
         "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
         "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
         "racer_year": row.racer_year,
@@ -386,7 +389,7 @@ def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
                sl.race_number_actual, sl.race_number_display,
                rn.set_color,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
-               sl.updated_at
+               sl.excluded, sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
         LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id
@@ -405,7 +408,7 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
                sl.race_number_actual, sl.race_number_display,
                rn.set_color,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
-               sl.updated_at
+               sl.excluded, sl.updated_at
         FROM fuj_jmlp_race_start_list sl
         LEFT JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
         LEFT JOIN fuj_jmlp_category cat ON cat.id = sl.category_id

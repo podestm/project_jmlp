@@ -1701,6 +1701,7 @@ ZAPISOVE_ENDPOINTY = [
     ("post", "/api/timekeeper/races/1/start-list/generate"),
     ("post", "/api/timekeeper/races/1/start-list/entry"),
     ("put", "/api/timekeeper/start-list/1"),
+    ("put", "/api/timekeeper/start-list/1/excluded"),
     ("delete", "/api/timekeeper/start-list/1"),
     ("delete", "/api/timekeeper/races/1/start-list"),
     ("post", "/api/timekeeper/race-number-sets"),

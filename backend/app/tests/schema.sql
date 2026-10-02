@@ -215,6 +215,7 @@ CREATE TABLE `fuj_jmlp_race_start_list` (
   `name_override` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `surname_override` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `year_override` int DEFAULT NULL,
+  `excluded` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_race_racer_startlist` (`race_id`,`racer_id`),
   UNIQUE KEY `uq_start_list_race_number` (`race_id`,`race_number_id`),
