@@ -1099,3 +1099,73 @@ def test_prihlaska_s_poznamkou_projde_celou_cestu_az_k_priradenemu_klubu(client,
     seznam = client.get(f"/api/admin/races/{zavod.id}/registrations",
                         headers=admin_headers).json()
     assert [(r["lastName"], r["club_name"]) for r in seznam] == [("Zadatel", "Kanoe Brno")]
+
+
+# ==========================================================================
+# Oprava pohlaví přihláškou - identitu tvoří jméno, příjmení a ročník
+# ==========================================================================
+
+def test_prihlaska_opravi_pohlavi_existujiciho_zavodnika(client, db):
+    """Kdo u existujícího závodníka opraví pohlaví, opraví evidenci i kategorii.
+    Dřív se oprava tiše zahodila a dívka zůstala mezi chlapci."""
+    zavod = _zavod(db)
+    klub = _klub(db, "Klub A")
+    zavodnik = _zavodnik(db, name="Edita", surname="Kelblova", year=2016, sex=1)
+
+    odpoved = client.post("/registrations/", json=_telo(
+        zavod.id, racer_id=zavodnik.id,
+        racer_name="Edita", racer_surname="Kelblova", racer_year=2016, racer_sex=2,
+        club_id=klub.id))
+
+    assert odpoved.status_code == 200, odpoved.text
+    _obnov(db)
+    assert db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().sex == 2
+
+
+def test_oprava_pohlavi_bez_shody_identity_neprojde(client, db):
+    """Jiný ročník je jiný závodník - podle něj se cizí záznam opravit nedá."""
+    zavod = _zavod(db)
+    klub = _klub(db, "Klub A")
+    zavodnik = _zavodnik(db, name="Edita", surname="Kelblova", year=2016, sex=1)
+
+    odpoved = client.post("/registrations/", json=_telo(
+        zavod.id, racer_id=zavodnik.id,
+        racer_name="Edita", racer_surname="Kelblova", racer_year=2015, racer_sex=2,
+        club_id=klub.id))
+
+    assert odpoved.status_code == 400
+    assert odpoved.json()["detail"] == "Údaje závodníka nesouhlasí"
+    _obnov(db)
+    assert db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().sex == 1
+
+
+def test_nova_prihlaska_s_jinym_pohlavim_nezalozi_duplicitu(client, db):
+    """Bez racer_id se existující závodník hledá podle jména, příjmení a ročníku.
+    Jiné pohlaví je oprava, ne nový člověk - nevznikne druhý záznam."""
+    zavod = _zavod(db)
+    klub = _klub(db, "Klub A")
+    zavodnik = _zavodnik(db, name="Mariana", surname="Junova", year=2016, sex=1)
+
+    odpoved = client.post("/registrations/", json=_telo(
+        zavod.id, racer_name="Mariana", racer_surname="Junova", racer_year=2016,
+        racer_sex=2, club_id=klub.id))
+
+    assert odpoved.status_code == 200, odpoved.text
+    _obnov(db)
+    zaznamy = db.query(models.Racer).filter(models.Racer.surname == "Junova").all()
+    assert [(z.id, z.sex) for z in zaznamy] == [(zavodnik.id, 2)]
+
+
+def test_jiny_rocnik_zalozi_noveho_zavodnika(client, db):
+    """Jméno, příjmení a ročník jsou identifikační kombinace - jiný ročník je nový záznam."""
+    zavod = _zavod(db)
+    klub = _klub(db, "Klub A")
+    _zavodnik(db, name="Mariana", surname="Junova", year=2022, sex=2)
+
+    odpoved = client.post("/registrations/", json=_telo(
+        zavod.id, racer_name="Mariana", racer_surname="Junova", racer_year=2016,
+        racer_sex=2, club_id=klub.id))
+
+    assert odpoved.status_code == 200, odpoved.text
+    _obnov(db)
+    assert sorted(z.year for z in db.query(models.Racer).filter(models.Racer.surname == "Junova")) == [2016, 2022]

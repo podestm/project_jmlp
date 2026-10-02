@@ -113,15 +113,20 @@ const RegistrationFormFields = ({
                         Pohlaví <span className="text-danger">*</span>
                     </label>
                     <select
-                        className="form-select registration-select"
+                        className={`form-select registration-select${fieldErrors.sex ? ' is-invalid' : ''}`}
                         value={formData.sex}
                         onChange={e => updateField('sex', e.target.value === '' ? '' : Number(e.target.value))}
-                        style={getInputStyle(formData.sex)}
+                        style={getInputStyle(formData.sex, !!fieldErrors.sex)}
                     >
                         <option value="" disabled>Vyberte pohlaví</option>
                         <option value={1}>Muž</option>
                         <option value={2}>Žena</option>
                     </select>
+                    {fieldErrors.sex && (
+                        <div className="invalid-feedback d-block" style={{ color: '#f87171' }}>
+                            {fieldErrors.sex}
+                        </div>
+                    )}
                 </div>
             </div>
 

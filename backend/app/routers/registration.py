@@ -23,16 +23,32 @@ def _ensure_not_registered(db: Session, race_id: int, racer_id: int) -> None:
 
 
 def _identity_matches(racer: models.Racer, payload: schemas.RegistrationCreate) -> bool:
-    """Ověří, že volající zná identitu závodníka (jméno, příjmení, ročník, pohlaví)."""
-    if not all([payload.racer_name, payload.racer_surname,
-                payload.racer_year, payload.racer_sex is not None]):
+    """Ověří, že volající zná identitu závodníka.
+
+    Identitu tvoří jméno, příjmení a ročník - jiný ročník je jiný závodník
+    (nový záznam). Pohlaví do ní nepatří: je to údaj, který se přihláškou
+    opravuje (viz _apply_sex_correction).
+    """
+    if not all([payload.racer_name, payload.racer_surname, payload.racer_year]):
         return False
     return (
         (racer.name or '').strip().lower() == payload.racer_name.strip().lower()
         and (racer.surname or '').strip().lower() == payload.racer_surname.strip().lower()
         and racer.year == payload.racer_year
-        and racer.sex == payload.racer_sex
     )
+
+
+def _apply_sex_correction(racer: models.Racer, sex: int | None) -> None:
+    """Pohlaví z přihlášky přepíše evidenci.
+
+    Kdo přihlašuje existujícího závodníka a opraví mu pohlaví, chce ho mít
+    v evidenci správně - jinak závodník zůstane ve špatné kategorii. Dřív se
+    oprava tiše zahodila. Kategorie se přepočítá u přihlášky níže.
+    """
+    if sex is None or racer.sex == sex:
+        return
+    logger.info("Přihláška opravila pohlaví závodníka %s: %s -> %s", racer.id, racer.sex, sex)
+    racer.sex = sex
 
 
 @router.post("/", response_model=schemas.Registration)
@@ -53,14 +69,15 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
 
         _ensure_not_registered(db, payload.race_id, racer.id)
 
-        # Kontaktní údaje přepíšeme jen tomu, kdo prokáže znalost identity závodníka
-        # (jméno, příjmení, ročník, pohlaví). Samotné racer_id není důkaz totožnosti.
+        # Kontakty a pohlaví přepíšeme jen tomu, kdo prokáže znalost identity
+        # závodníka (jméno, příjmení, ročník). Samotné racer_id není důkaz totožnosti.
         has_contact_update = any([
             payload.racer_telefon and payload.racer_telefon.strip(),
             payload.racer_email and payload.racer_email.strip(),
             payload.racer_slcr_id and payload.racer_slcr_id.strip(),
         ])
-        if has_contact_update:
+        has_sex_correction = payload.racer_sex is not None and payload.racer_sex != racer.sex
+        if has_contact_update or has_sex_correction:
             identity_supplied = any([
                 payload.racer_name, payload.racer_surname,
                 payload.racer_year, payload.racer_sex is not None,
@@ -74,6 +91,7 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
                     racer.email = payload.racer_email.strip()
                 if payload.racer_slcr_id and payload.racer_slcr_id.strip():
                     racer.slcr_id = payload.racer_slcr_id.strip()
+                _apply_sex_correction(racer, payload.racer_sex)
 
         # Trim name and surname if they have trailing spaces
         if racer.name:
@@ -95,17 +113,24 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         racer_email = payload.racer_email.strip() if payload.racer_email else None
         racer_slcr_id = payload.racer_slcr_id.strip() if payload.racer_slcr_id else None
         
-        # check if racer already exists (unique constraint: name, surname, year, sex)
-        existing_racer = db.query(models.Racer).filter(
+        # Existující závodník podle identity - jméno, příjmení a ročník. Dřív se
+        # hledalo i podle pohlaví, takže přihláška s opraveným pohlavím založila
+        # duplicitní záznam místo opravy. Kdyby už takové duplicity existovaly,
+        # přednost má záznam se shodným pohlavím.
+        candidates = db.query(models.Racer).filter(
             models.Racer.name == racer_name,
             models.Racer.surname == racer_surname,
             models.Racer.year == payload.racer_year,
-            models.Racer.sex == payload.racer_sex
-        ).first()
-        
+        ).all()
+        existing_racer = next(
+            (candidate for candidate in candidates if candidate.sex == payload.racer_sex),
+            candidates[0] if candidates else None,
+        )
+
         if existing_racer:
             racer = existing_racer
             _ensure_not_registered(db, payload.race_id, racer.id)
+            _apply_sex_correction(racer, payload.racer_sex)
             # Aktualizujeme kategorii i pro existujícího závodníka
             racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
             # Aktualizujeme telefon, email a SLCR ID pokud jsou vyplněné

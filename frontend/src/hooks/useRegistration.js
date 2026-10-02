@@ -1,19 +1,31 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
+/**
+ * Prázdný formulář - i po úspěšné registraci a resetu.
+ *
+ * Ročník ani pohlaví se záměrně nepředvyplňují. Reset dřív nastavoval
+ * "Muž" a letošní rok minus deset, a kdo přihlašoval víc dětí za sebou,
+ * poslal další dívku jako chlapce (2. 10. 2026 takhle v evidenci skončila
+ * řada závodnic). Pohlaví je povinné a vybírá se pokaždé.
+ */
+const EMPTY_FORM = Object.freeze({
+    name: '',
+    surname: '',
+    year: '',
+    sex: '', // 1 = muž, 2 = žena
+    clubId: null,
+    clubNoteMode: false,
+    clubNote: '',
+    telefon: '',
+    email: '',
+    slcr_id: ''
+});
+
+const NO_ERRORS = Object.freeze({ name: '', surname: '', year: '', sex: '', club: '' });
+
 export const useRegistration = (raceId, onSuccess) => {
     // Formulářová data
-    const [formData, setFormData] = useState({
-        name: '',
-        surname: '',
-        year: '',
-        sex: '', // 1 = muž, 2 = žena
-        clubId: null,
-        clubNoteMode: false,
-        clubNote: '',
-        telefon: '',
-        email: '',
-        slcr_id: ''
-    });
+    const [formData, setFormData] = useState({ ...EMPTY_FORM });
 
     // Seznam vyfiltrovaných závodníků
     const [filteredRacers, setFilteredRacers] = useState([]);
@@ -27,7 +39,7 @@ export const useRegistration = (raceId, onSuccess) => {
     // UI state
     const [msg, setMsg] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [fieldErrors, setFieldErrors] = useState({ name: '', surname: '', year: '', club: '' });
+    const [fieldErrors, setFieldErrors] = useState({ ...NO_ERRORS });
     const [clubNoteMode, setClubNoteMode] = useState(false);
 
     // Načtení klubů
@@ -74,7 +86,7 @@ export const useRegistration = (raceId, onSuccess) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setSelectedRacer(null);
         setMsg('');
-        if (['name', 'surname', 'year', 'club', 'clubId', 'clubNote'].includes(field)) {
+        if (['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote'].includes(field)) {
             setFieldErrors(prev => ({ ...prev, [field === 'clubId' || field === 'clubNote' ? 'club' : field]: '' }));
         }
 
@@ -108,7 +120,7 @@ export const useRegistration = (raceId, onSuccess) => {
         setClubNoteMode(false);
         setSelectedRacer(racer);
         setMsg(`Vybrán existující závodník: ${racer.name} ${racer.surname}`);
-        setFieldErrors({ name: '', surname: '', year: '', club: '' });
+        setFieldErrors({ ...NO_ERRORS });
     };
 
     // Submit registration
@@ -121,6 +133,7 @@ export const useRegistration = (raceId, onSuccess) => {
         if (!formData.name.trim()) errors.name = 'Jméno je povinné';
         if (!formData.surname.trim()) errors.surname = 'Příjmení je povinné';
         if (!formData.year) errors.year = 'Rok narození je povinný';
+        if (![1, 2].includes(Number(formData.sex))) errors.sex = 'Vyberte pohlaví';
         if (!formData.clubId && !(formData.clubNote && formData.clubNote.trim())) {
             errors.club = 'Vyberte klub nebo zadejte poznámku';
         } else if (!formData.clubId && formData.clubNote) {
@@ -164,8 +177,15 @@ export const useRegistration = (raceId, onSuccess) => {
         };
 
         if (exactMatch) {
-            // Použít existujícího závodníka ale aktualizovat telefon, email a SLCR ID pouze pokud jsou vyplněné
+            // Existující závodník. Jméno, příjmení a ročník jdou s přihláškou jako
+            // důkaz totožnosti - backend podle nich smí opravit pohlaví (když ho
+            // uživatel ve formuláři změnil) a přepsat kontakty. Bez nich se oprava
+            // pohlaví tiše zahodila a závodník zůstal ve špatné kategorii.
             payload.racer_id = exactMatch.id;
+            payload.racer_name = formData.name.trim();
+            payload.racer_surname = formData.surname.trim();
+            payload.racer_year = parseInt(formData.year, 10);
+            payload.racer_sex = Number(formData.sex);
             if (formData.telefon.trim()) {
                 payload.racer_telefon = formData.telefon.trim();
             }
@@ -180,7 +200,7 @@ export const useRegistration = (raceId, onSuccess) => {
             payload.racer_name = formData.name.trim();
             payload.racer_surname = formData.surname.trim();
             payload.racer_year = formData.year;
-            payload.racer_sex = formData.sex;
+            payload.racer_sex = Number(formData.sex);
             payload.racer_telefon = formData.telefon.trim();
             payload.racer_email = formData.email.trim();
             payload.racer_slcr_id = formData.slcr_id.trim();
@@ -198,22 +218,11 @@ export const useRegistration = (raceId, onSuccess) => {
                 setMsg(`✅ Registrace úspěšná! ${result.message || ''}`);
 
                 // Reset formuláře
-                setFormData({
-                    name: '',
-                    surname: '',
-                    year: new Date().getFullYear() - 10,
-                    sex: 1,
-                    clubId: null,
-                    clubNoteMode: false,
-                    clubNote: '',
-                    telefon: '',
-                    email: '',
-                    slcr_id: ''
-                });
+                setFormData({ ...EMPTY_FORM });
                 setClubNoteMode(false);
                 setFilteredRacers([]);
                 setSelectedRacer(null);
-                setFieldErrors({ name: '', surname: '', year: '', club: '' });
+                setFieldErrors({ ...NO_ERRORS });
                 
                 if (onSuccess) onSuccess(result);
             } else {
@@ -228,23 +237,12 @@ export const useRegistration = (raceId, onSuccess) => {
 
     // Reset formuláře
     const resetForm = () => {
-        setFormData({
-            name: '',
-            surname: '',
-            year: new Date().getFullYear() - 10,
-            sex: 1,
-            clubId: null,
-            clubNoteMode: false,
-            clubNote: '',
-            telefon: '',
-            email: '',
-            slcr_id: ''
-        });
+        setFormData({ ...EMPTY_FORM });
         setClubNoteMode(false);
         setFilteredRacers([]);
         setSelectedRacer(null);
         setMsg('');
-        setFieldErrors({ name: '', surname: '', year: '', club: '' });
+        setFieldErrors({ ...NO_ERRORS });
     };
 
     // Utility funkce
