@@ -3,7 +3,7 @@ import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { BAUD_OPTIONS, describeSerialPort, parseTimingDeviceLine } from '../../utils/serial.js';
 import { isCleanDeviceLine } from './baudDetection.js';
 import { useSerialSession } from './SerialSessionProvider.jsx';
-import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import { TK_ACCENT } from './TimekeeperChrome.jsx';
 
 const LOG_LIMIT = 200;
 
@@ -208,7 +208,7 @@ export default function TimingDeviceSettings() {
               ))
             )}
           </div>
-          <div className="form-text" style={{ color: TK_ACCENT_TEXT }}>
+          <div className="form-text">
             ✓ čas nebo stav (např. <code>11 65 5.16</code>, <code>00:03:07 16 213 188.19</code>, <code>18 12 DNF</code>),
             {' '}i hlášení časomíry, ? nerozpoznaný řádek. Časy se zapisují na obrazovce Časy.
           </div>

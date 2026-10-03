@@ -51,16 +51,10 @@ export default function PdfPreviewModal({
                 style={{ width: '100%', height: '100%', border: 0 }}
               />
             </div>
-            <div className="modal-footer py-2">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={onClose}
-                disabled={publishing}
-              >
-                Zavřít
-              </button>
-              {canPublish && (
+            {/* Stažení i tisk má vestavěný prohlížeč PDF, zavírá křížek nahoře -
+                dole zůstává jen to, co prohlížeč neumí: publikace. */}
+            {canPublish && (
+              <div className="modal-footer py-2">
                 <button
                   type="button"
                   className="btn btn-success"
@@ -70,8 +64,8 @@ export default function PdfPreviewModal({
                   {publishing ? <ButtonSpinner /> : <i className="bi bi-upload me-1" />}
                   {publishLabel}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
