@@ -70,11 +70,17 @@ export function useRacePdf(raceId) {
     }
   }, [raceId]);
 
-  /** Společný konec generování: blob -> náhled. */
+  /**
+   * Společný konec generování: blob -> náhled.
+   *
+   * Předchozí náhled se zavře PŘED uložením nového blobu - closePreview blob
+   * maže, takže v opačném pořadí by Publikovat i Stáhnout neměly co poslat
+   * ("Nejdřív vygenerujte listinu").
+   */
   const showPreview = useCallback((blob, { fileName, title, publishable = false }) => {
+    closePreview();
     blobRef.current = blob;
     fileNameRef.current = fileName;
-    closePreview();
     setObjectUrl(URL.createObjectURL(blob));
     setPreviewTitle(title);
     setCanPublish(publishable);
