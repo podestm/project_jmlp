@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseIncomingTime, parseTimingDeviceLine } from './serial.js';
+import { isLineSettingsError, openSerialReader, parseIncomingTime, parseTimingDeviceLine } from './serial.js';
 
 /**
  * Řádky z časomíry. Co parser nepozná, skončí v inboxu jako nerozpoznané a
@@ -56,5 +56,51 @@ describe('parseTimingDeviceLine', () => {
 
   it('dál čte formát simulátoru TIME;DRES;ČAS', () => {
     expect(parseTimingDeviceLine('TIME;12;1:02.34')).toMatchObject({ type: 'TIME', bib: 12, time: '1:02.34' });
+  });
+});
+
+
+/**
+ * Proč čtení z časomíry skončilo. Dřív se chyba spolkla a obrazovka hlásila
+ * jen "Spojení se přerušilo" - i když časomíra vysílala jinou rychlostí
+ * (FramingError) a žádné obnovení spojení to spravit nemohlo.
+ */
+describe('openSerialReader hlásí důvod konce čtení', () => {
+  const portWith = (start) => ({ readable: new ReadableStream({ start }), open: async () => {} });
+
+  it('chybu přenosu (FramingError) předá i s názvem', async () => {
+    const lines = [];
+    let closedWith;
+    const port = portWith((controller) => {
+      controller.enqueue(new TextEncoder().encode('11 65 5.16\n'));
+      // Chyba přenosu přijde chvíli po posledním čitelném řádku.
+      setTimeout(() => controller.error(new DOMException('Framing error', 'FramingError')), 20);
+    });
+
+    const reader = await openSerialReader(port, {
+      onLine: (line) => { lines.push(line); },
+      onClose: (error) => { closedWith = error; },
+    });
+    await reader.done;
+
+    expect(lines).toEqual(['11 65 5.16']);
+    expect(closedWith?.name).toBe('FramingError');
+    expect(isLineSettingsError(closedWith)).toBe(true);
+  });
+
+  it('zavření aplikací není chyba', async () => {
+    let closedWith = 'nezavolano';
+    const port = portWith(() => {});
+
+    const reader = await openSerialReader(port, { onLine: () => {}, onClose: (error) => { closedWith = error; } });
+    await reader.close();
+
+    expect(closedWith).toBeNull();
+  });
+
+  it('chyby přenosu jsou jen ty, které znamenají špatné nastavení linky', () => {
+    expect(isLineSettingsError({ name: 'ParityError' })).toBe(true);
+    expect(isLineSettingsError({ name: 'NetworkError' })).toBe(false);
+    expect(isLineSettingsError(null)).toBe(false);
   });
 });

@@ -11,6 +11,15 @@ export const BAUD_OPTIONS = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
 
 const ACCEPTED_TYPES = ['TIME', 'DNS', 'DNF', 'DSQ'];
 
+/**
+ * Chyby přenosu, které Web Serial hlásí při čtení (FramingError, ParityError,
+ * BreakError, BufferOverrunError). Jedna z nich může být šum na kabelu,
+ * opakované skoro jistě znamenají jinou rychlost (baud), než na jakou je
+ * nastavená časomíra.
+ */
+const LINE_SETTINGS_ERRORS = ['FramingError', 'ParityError', 'BreakError', 'BufferOverrunError'];
+export const isLineSettingsError = (error) => LINE_SETTINGS_ERRORS.includes(error?.name);
+
 /** True when the browser exposes the Web Serial API at all. */
 export const hasWebSerial = () => typeof navigator !== 'undefined' && 'serial' in navigator;
 
@@ -232,7 +241,9 @@ export const releaseLockedPortReader = async (port, timeoutMs = RELEASE_TIMEOUT_
  * @param {Object} options
  * @param {number} options.baudRate
  * @param {(line: string) => void|Promise<void>} options.onLine - every non-empty line
- * @param {() => void} [options.onClose] - fired once the loop has finished
+ * @param {(error: Error|null) => void} [options.onClose] - fired once the loop has
+ *   finished; with the read error when the loop died on one (FramingError, a
+ *   pulled cable...), null when it was cancelled or the stream simply ended
  * @returns {Promise<{close: (opts?: {closePort?: boolean}) => Promise<void>, done: Promise<void>}>}
  */
 export const openSerialReader = async (port, { baudRate = 9600, onLine, onClose } = {}) => {
@@ -279,6 +290,7 @@ export const openSerialReader = async (port, { baudRate = 9600, onLine, onClose 
 
   const done = (async () => {
     let buffer = '';
+    let failure = null;
     try {
       while (true) {
         const { value, done: finished } = await reader.read();
@@ -293,8 +305,10 @@ export const openSerialReader = async (port, { baudRate = 9600, onLine, onClose 
           await onLine?.(line);
         }
       }
-    } catch {
-      // reader canceled or device disconnected
+    } catch (error) {
+      // Reader cancelled, device disconnected - or a transmission error, which
+      // the session needs to tell apart (wrong baud vs. pulled cable).
+      if (!closing) failure = error;
     } finally {
       try {
         reader.releaseLock();
@@ -305,13 +319,15 @@ export const openSerialReader = async (port, { baudRate = 9600, onLine, onClose 
       // until this settles. Awaiting it here is what stops the port leaking.
       try {
         await pipePromise;
-      } catch {
-        // ignore canceled pipe
+      } catch (error) {
+        // The pipe carries the port's own error (FramingError...) even when
+        // the decoder side reported something less specific.
+        if (!closing && (!failure || isLineSettingsError(error))) failure = error;
       }
       if (activePortReaders.get(port) === releaseHandle) {
         activePortReaders.delete(port);
       }
-      onClose?.();
+      onClose?.(failure);
     }
   })();
 

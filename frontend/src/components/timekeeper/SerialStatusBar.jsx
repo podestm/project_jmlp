@@ -64,6 +64,32 @@ export default function SerialStatusBar({
       </div>
     )}
 
+    {serial.detection && (
+      <div className="alert alert-info py-2 d-flex align-items-center flex-wrap gap-2 small" role="status">
+        <i className="bi bi-search me-1"></i>
+        <span>
+          Hledám rychlost časomíry: {serial.detection.baud} ({serial.detection.index + 1} z {serial.detection.total}).
+          Posílejte z časomíry časy (nebo ji vypněte a zapněte), dokud se rychlost nenajde.
+        </span>
+        <button type="button" className="btn btn-sm btn-outline-danger py-0 px-2 ms-auto" onClick={() => serial.cancelDetection()}>
+          Zastavit
+        </button>
+      </div>
+    )}
+
+    {serial.baudHint && !serial.detection && (
+      <div className="alert alert-warning py-2 d-flex align-items-center flex-wrap gap-2 small" role="alert">
+        <i className="bi bi-exclamation-triangle-fill me-1"></i>
+        <span>
+          Časomíra posílá data, kterým aplikace nerozumí – nejspíš vysílá jinou rychlostí než {serial.baud}.
+          Rychlost se sama nepřepíná, zjistěte ji tlačítkem.
+        </span>
+        <button type="button" className="btn btn-sm btn-outline-primary py-0 px-2 ms-auto" onClick={serial.detectBaud}>
+          Zjistit rychlost
+        </button>
+      </div>
+    )}
+
     {serial.heldByOtherTab && (
       <div className="alert alert-info py-2 d-flex align-items-center flex-wrap gap-2 small" role="alert">
         <i className="bi bi-usb-symbol me-1"></i>
@@ -196,8 +222,9 @@ export default function SerialStatusBar({
             </div>
           </div>
           <small className="text-muted d-block mt-2">
-            Formát: TIME;DRES;MM:SS.hh | DNS;DRES | DNF;DRES | DSQ;DRES. Připojení zůstává aktivní i při přepnutí
-            na jinou obrazovku a po obnovení stránky se obnoví samo.
+            LIP TIMER posílá řádky typu <code>11 65 5.16</code> (pořadí, dres, čas) nebo <code>18 12 DNF</code>.
+            Připojení zůstává aktivní i při přepnutí na jinou obrazovku a po obnovení stránky se obnoví samo.
+            Rychlost a záznam řádků: Nastavení → Časomíra.
           </small>
         </div>
       </div>

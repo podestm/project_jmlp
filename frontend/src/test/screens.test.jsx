@@ -12,6 +12,7 @@ import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard.js
 import TimekeeperLayout from '../components/timekeeper/TimekeeperLayout.jsx';
 import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers.jsx';
 import TimingEntry from '../components/timekeeper/TimingEntry.jsx';
+import TimingDeviceSettings from '../components/timekeeper/TimingDeviceSettings.jsx';
 import { resetTimekeeperDb } from './helpers.js';
 
 /**
@@ -56,6 +57,7 @@ const OBRAZOVKY = [
   ['startovní čísla', RaceNumbersManager],
   ['centrum synchronizace', SyncCenter],
   ['přehled závodů', TimekeeperDashboard],
+  ['připojení časomíry', TimingDeviceSettings],
 ];
 
 describe('obrazovky časoměřiče se vykreslí', () => {

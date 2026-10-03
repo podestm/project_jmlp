@@ -52,10 +52,18 @@ import {
 } from './serialSessionHelpers.js';
 import { DB_STATE_EVENT, DB_STATE_TEXT, getDbState } from '../../offline/db.js';
 import {
+  BAUD_LOCK_KEY,
+  DETECTION_WINDOW_MS,
+  detectionCandidates,
+  isCleanDeviceLine,
+  runBaudDetection,
+} from './baudDetection.js';
+import {
   SERIAL_BAUD_KEY,
   canUseWebSerial,
   closeSerialPortSafely,
   hasWebSerial,
+  isLineSettingsError,
   openSerialReader,
   parseIncomingTime,
   parseTimingDeviceLine,
@@ -99,10 +107,31 @@ export function SerialSessionProvider({ children }) {
       return '9600';
     }
   });
+  /** Rychlost, na které už přišel platný řádek (ověřená); null = zatím žádná. */
+  const [lockedBaud, setLockedBaud] = useState(() => {
+    try {
+      return localStorage.getItem(BAUD_LOCK_KEY);
+    } catch {
+      return null;
+    }
+  });
+  /** Chyby přenosu na neověřené rychlosti - obrazovka nabídne "Zjistit rychlost". */
+  const [baudHint, setBaudHint] = useState(false);
+  /** Běžící hledání rychlosti: { baud, index, total } pro obrazovku, jinak null. */
+  const [detection, setDetection] = useState(null);
 
   const readerRef = useRef(null);
   const portRef = useRef(null);
   const baudRef = useRef(baud);
+  const lockedBaudRef = useRef(lockedBaud);
+  const baudHintRef = useRef(false);
+  /** Chyby přenosu za sebou bez jediného platného řádku. */
+  const lineErrorStreakRef = useRef(0);
+  /**
+   * Běžící hledání rychlosti. Dokud trvá, řídí připojení ono: automatické
+   * obnovování spojení stojí a nečitelné řádky nejdou do inboxu.
+   */
+  const detectRef = useRef(null);
   const connectingRef = useRef(false);
   /** Set while a close is draining; connect() awaits it instead of racing it. */
   const teardownRef = useRef(null);
@@ -174,6 +203,29 @@ export function SerialSessionProvider({ children }) {
 
   const setBaud = useCallback((value) => {
     setBaudState(String(value));
+    // Ručně zvolená rychlost začíná s čistým štítem.
+    lineErrorStreakRef.current = 0;
+    baudHintRef.current = false;
+    setBaudHint(false);
+  }, []);
+
+  /** Platný řádek z časomíry: rychlost je ověřená a chyby na ní jsou už jen šum. */
+  const markBaudVerified = useCallback(() => {
+    lineErrorStreakRef.current = 0;
+    const current = String(baudRef.current);
+    if (lockedBaudRef.current !== current) {
+      lockedBaudRef.current = current;
+      try {
+        localStorage.setItem(BAUD_LOCK_KEY, current);
+      } catch {
+        // ignore
+      }
+      setLockedBaud(current);
+    }
+    if (baudHintRef.current) {
+      baudHintRef.current = false;
+      setBaudHint(false);
+    }
   }, []);
 
   /** Raw-line feed for the diagnostics screen; returns an unsubscribe. */
@@ -298,6 +350,14 @@ export function SerialSessionProvider({ children }) {
     const raw = String(line ?? '').trim();
     if (!raw) return;
 
+    // Hledání rychlosti: první čitelný řádek ho ukončí. Nečitelné řádky
+    // z cizí rychlosti do inboxu nepatří - zaplevelily by ho nesmysly.
+    const detecting = detectRef.current;
+    if (detecting) {
+      if (isCleanDeviceLine(raw)) detecting.listener?.clean();
+      if (!parseTimingDeviceLine(raw)) return;
+    }
+
     const store = (event) => persistEvent({ ...event, op_key: buildOpKey(event) });
 
     const parsed = parseTimingDeviceLine(raw);
@@ -330,6 +390,7 @@ export function SerialSessionProvider({ children }) {
       healthRef.current.unparsedStreak = 0;
       scheduleHealthFlush();
     }
+    markBaudVerified();
 
     const base = {
       raw: parsed.raw || raw,
@@ -389,7 +450,7 @@ export function SerialSessionProvider({ children }) {
       selectedEntryId: null,
       reason: null,
     });
-  }, [persistEvent, isRecentDuplicate, scheduleHealthFlush]);
+  }, [persistEvent, isRecentDuplicate, scheduleHealthFlush, markBaudVerified]);
 
   // --- port ownership -------------------------------------------------------
 
@@ -431,7 +492,7 @@ export function SerialSessionProvider({ children }) {
   }, [supported]);
 
   const scheduleReconnect = useCallback(() => {
-    if (manualDisconnectRef.current || unmountedRef.current) return;
+    if (manualDisconnectRef.current || unmountedRef.current || detectRef.current) return;
     const attempt = reconnectAttemptRef.current;
     if (attempt >= RECONNECT_DELAYS_MS.length) {
       setStatus('Zařízení se nepodařilo obnovit – klikněte na „Obnovit připojení“');
@@ -724,7 +785,7 @@ export function SerialSessionProvider({ children }) {
         const reader = await withTimeout(openSerialReader(target, {
           baudRate,
           onLine: handleLine,
-          onClose: () => {
+          onClose: (error) => {
             holder.closed = true;
             const wasPublished = holder.reader != null && readerRef.current === holder.reader;
             if (wasPublished) readerRef.current = null;
@@ -749,11 +810,38 @@ export function SerialSessionProvider({ children }) {
             // and clean up. Doing it here too would double-close.
             if (!wasPublished) return;
 
+            // Hledání rychlosti si připojení řídí samo: chyba přenosu na
+            // zkoušené rychlosti znamená "tahle to není", ne "obnov spojení".
+            if (detectRef.current) {
+              detectRef.current.listener?.error(error);
+              return;
+            }
+
             // The read loop died with no OS-level 'disconnect' event - a driver
             // hiccup, a brown-out, a framing error on a cold cable. Nothing else
             // schedules a retry for this, and the port would stay open with a
             // null readable, so the next connect() would fail on open().
-            setStatus('Spojení s časomírou se přerušilo – zkouším obnovit');
+            if (isLineSettingsError(error)) {
+              lineErrorStreakRef.current += 1;
+              const verified = lockedBaudRef.current === String(baudRef.current);
+              if (!verified) {
+                baudHintRef.current = true;
+                setBaudHint(true);
+              }
+              // Na neověřené rychlosti chyby za sebou neopraví žádné obnovení
+              // spojení - jen by se dokola připojovalo. Rychlost se ale sama
+              // nepřepíná (může to být šum), rozhodne obsluha.
+              if (!verified && lineErrorStreakRef.current >= 3) {
+                setStatus(`Časomíra nejspíš vysílá jinou rychlostí než ${baudRef.current} – klikněte na „Zjistit rychlost“`);
+                window.setTimeout(() => { runTeardown({ closePort: true }); }, 0);
+                return;
+              }
+              setStatus(verified
+                ? `Chyba přenosu z časomíry (${error.name}) – zkouším obnovit; když se to opakuje, zkontrolujte kabel`
+                : `Časomíra posílá data, kterým nerozumím – nejspíš je nastavená jiná rychlost než ${baudRef.current}. Zkouším obnovit…`);
+            } else {
+              setStatus('Spojení s časomírou se přerušilo – zkouším obnovit');
+            }
             window.setTimeout(() => {
               if (unmountedRef.current || manualDisconnectRef.current) return;
               (async () => {
@@ -835,7 +923,23 @@ export function SerialSessionProvider({ children }) {
     refreshPoisonedPort, runTeardown, scheduleReconnect,
   ]);
 
+  /**
+   * Zastaví běžící hledání rychlosti. Tlačítko Zastavit se pak vrátí
+   * k původní rychlosti; Odpojit a Obnovit připojení (resume: false) si
+   * spojení řídí samy, takže se hledání znovu nepřipojuje.
+   */
+  const cancelDetection = useCallback(({ resume = true } = {}) => {
+    const session = detectRef.current;
+    if (!session) return;
+    session.cancelled = true;
+    session.resume = resume;
+    // Odpojit / Obnovit připojení pokračují hned - na původní rychlosti.
+    if (!resume && session.original) baudRef.current = session.original;
+    session.listener?.cancel();
+  }, []);
+
   const disconnect = useCallback(async () => {
+    cancelDetection({ resume: false });
     manualDisconnectRef.current = true;
     reconnectAttemptRef.current = RECONNECT_DELAYS_MS.length;
     abortReconnectLoop();
@@ -844,7 +948,7 @@ export function SerialSessionProvider({ children }) {
     await runTeardown({ closePort: true });
     releaseOwnership();
     setStatus('Odpojeno');
-  }, [runTeardown, releaseOwnership, abortReconnectLoop]);
+  }, [runTeardown, releaseOwnership, abortReconnectLoop, cancelDetection]);
 
   /**
    * "Obnovit připojení": force-close whatever is left and open the port again.
@@ -856,6 +960,7 @@ export function SerialSessionProvider({ children }) {
    * provider that is already gone and claim the device for a dead session.
    */
   const reconnect = useCallback(async () => {
+    cancelDetection({ resume: false });
     abortReconnectLoop();
     const run = reconnectRunRef.current;
     const cancelled = () => reconnectRunRef.current !== run || unmountedRef.current;
@@ -891,7 +996,110 @@ export function SerialSessionProvider({ children }) {
 
     setStatus('Nepodařilo se obnovit připojení – zkuste jiný port nebo přepojit kabel');
     return false;
-  }, [claimOwnership, runTeardown, refreshPorts, connect, waitBeforeRetry, abortReconnectLoop]);
+  }, [claimOwnership, runTeardown, refreshPorts, connect, waitBeforeRetry, abortReconnectLoop, cancelDetection]);
+
+  /**
+   * "Zjistit rychlost": projde rychlosti (baudDetection.js) a nechá tu, na
+   * které přišel čitelný řádek. Obsluha mezitím posílá z časomíry časy nebo
+   * ji vypne a zapne. Spouští se jen tlačítkem - rychlost se sama nepřepíná.
+   *
+   * Nic nenalezeno nebo zastaveno: vrátí se původní rychlost a připojí se
+   * na ni, ať časomíra zůstane v provozu, jak byla.
+   *
+   * @returns {Promise<number|null>} nalezená rychlost
+   */
+  const detectBaud = useCallback(async () => {
+    if (detectRef.current) return null;
+    const original = String(baudRef.current);
+    let target = portRef.current;
+    if (!target) {
+      target = pickAutoPort(await refreshPorts());
+      if (target) {
+        portRef.current = target;
+        setPort(target);
+      }
+    }
+    if (!target) {
+      setStatus('Nejprve vyberte port');
+      return null;
+    }
+
+    abortReconnectLoop();
+    manualDisconnectRef.current = false;
+    setHeldByOtherTab(false);
+    const session = { cancelled: false, listener: null, original };
+    detectRef.current = session;
+    const cancelled = () => session.cancelled || unmountedRef.current;
+    const prompt = (current) => (
+      `Hledám rychlost: ${current.baud} (${current.index + 1}/${current.total}) – pošlete z časomíry čas, nebo ji vypněte a zapněte`
+    );
+    let progress = null;
+
+    try {
+      const found = await runBaudDetection({
+        candidates: detectionCandidates(original),
+        windowMs: DETECTION_WINDOW_MS,
+        cancelled,
+        onProgress: (current) => {
+          progress = current;
+          setDetection(current);
+          setStatus(prompt(current));
+        },
+        open: async (candidate) => {
+          await runTeardown({ closePort: true });
+          if (cancelled()) return false;
+          baudRef.current = String(candidate);
+          const ok = await connect(target, { takeOwnership: true });
+          // connect() hlásí "Připojeno" - během hledání platí výzva obsluze.
+          if (ok && progress && !cancelled()) setStatus(prompt(progress));
+          return ok;
+        },
+        listen: (ms) => new Promise((resolve) => {
+          const finish = (outcome) => {
+            window.clearTimeout(timer);
+            session.listener = null;
+            resolve(outcome);
+          };
+          const timer = window.setTimeout(() => finish('timeout'), ms);
+          session.listener = {
+            clean: () => finish('clean'),
+            error: () => finish('error'),
+            cancel: () => finish('cancelled'),
+          };
+        }),
+      });
+
+      if (found) {
+        // Spojení na nalezené rychlosti už běží - jen ji uložit a ověřit.
+        baudRef.current = String(found);
+        setBaudState(String(found));
+        markBaudVerified();
+        setStatus(`Rychlost ${found} nalezena – časomíra připojena`);
+        return found;
+      }
+
+      if (session.resume === false) {
+        // Odpojit / Obnovit připojení: spojení teď řídí ony.
+        baudRef.current = original;
+        return null;
+      }
+      await runTeardown({ closePort: true });
+      baudRef.current = original;
+      detectRef.current = null;
+      const ok = (unmountedRef.current || manualDisconnectRef.current)
+        ? false
+        : await connect(target, { takeOwnership: true });
+      if (!unmountedRef.current) {
+        setStatus(session.cancelled
+          ? (ok ? `Hledání zastaveno – připojeno na ${original}` : 'Hledání zastaveno')
+          : `Rychlost se nepodařilo zjistit – zkontrolujte kabel a zkuste to znovu (zůstává ${original})`);
+      }
+      return null;
+    } finally {
+      if (detectRef.current === session) detectRef.current = null;
+      if (!unmountedRef.current) setDetection(null);
+    }
+  }, [abortReconnectLoop, connect, markBaudVerified, refreshPorts, runTeardown]);
 
   /** Only ever called from a click - requestPort() throws without a user gesture. */
   const requestPort = useCallback(async () => {
@@ -937,6 +1145,7 @@ export function SerialSessionProvider({ children }) {
     const autoConnect = async () => {
       const list = await refreshPorts();
       if (cancelled || readerRef.current || connectingRef.current || connectPromiseRef.current) return;
+      if (detectRef.current) return;
       if (manualDisconnectRef.current) return;
 
       const lease = readOwnerLease();
@@ -1102,10 +1311,16 @@ export function SerialSessionProvider({ children }) {
     dbState,
     dbStateText,
     retryPersist: flushFallbackBuffer,
+    lockedBaud,
+    baudHint,
+    detection,
+    detectBaud,
+    cancelDetection,
   }), [
     supported, canUse, connected, status, port, baud, setBaud, requestPort, selectPort,
     connect, disconnect, reconnect, knownPorts, refreshPorts, subscribeLines,
     heldByOtherTab, health, dbState, dbStateText, flushFallbackBuffer,
+    lockedBaud, baudHint, detection, detectBaud, cancelDetection,
   ]);
 
   return (
