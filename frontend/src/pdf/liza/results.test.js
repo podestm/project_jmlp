@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildResultsDoc } from './results.js';
+import { buildResultsDoc, postingTime } from './results.js';
 import { imagesOf, pagesOf, textsOf } from './testHelpers.js';
 
 const header = {
@@ -80,6 +80,31 @@ describe('výsledková listina jako z LiZy', () => {
 
     expect(texts).toEqual(expect.arrayContaining(['DSQ', '30,00']));
     expect(texts).not.toContain('40,11');
+  });
+
+  it('listina kola má ve spodní liště čas vyvěšení na každé stránce', () => {
+    const many = Array.from({ length: 40 }, (_, index) => finisher(index + 1, { time1: 30 + index, total: 30 + index }));
+    const pages = pagesOf(buildResultsDoc({
+      header, runCount: 1, mode: 'run', run: 1, posted: '10:44',
+      categories: [{ name: 'Junioři', entries: many }]
+    }));
+
+    expect(pages.length).toBeGreaterThan(1);
+    pages.forEach((page) => {
+      const label = page.find((item) => item.text === 'Čas vyvěšení: 10:44');
+      expect(label).toBeDefined();
+      expect(label.base).toBeCloseTo(823.8, 2);
+    });
+  });
+
+  it('celková listina čas vyvěšení nemá', () => {
+    const texts = textsOf(buildResultsDoc({ header, posted: '10:44', categories: [{ name: 'Junioři', entries: [finisher(1)] }] }));
+    expect(texts.some((text) => text.startsWith('Čas vyvěšení'))).toBe(false);
+  });
+
+  it('čas vyvěšení je 2 minuty po vygenerování', () => {
+    expect(postingTime(new Date(2026, 9, 3, 10, 42, 30))).toBe('10:44');
+    expect(postingTime(new Date(2026, 9, 3, 23, 59, 0))).toBe('00:01');
   });
 
   it('průběžná listina je bez hlavičky závodu', () => {

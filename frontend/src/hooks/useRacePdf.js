@@ -4,7 +4,7 @@ import { TimekeeperAPI } from '../config/timekeeperApi.js';
 import { createPdfBlob } from '../pdf/pdfmake.js';
 import { createPreviewUrl } from '../pdf/previewUrl.js';
 import { DOCUMENT_KIND, documentFileName } from '../pdf/fileNames.js';
-import { buildResultsDoc, RUN_MODE_SUM } from '../pdf/liza/results.js';
+import { buildResultsDoc, postingTime, RUN_MODE_SUM } from '../pdf/liza/results.js';
 import { buildStartListDoc } from '../pdf/liza/startList.js';
 import { buildClubListDoc } from '../pdf/liza/clubList.js';
 import { buildStandingsDoc } from '../pdf/liza/standings.js';
@@ -158,7 +158,9 @@ export function useRacePdf(raceId) {
         runCount,
         mode,
         run: run || 1,
-        categories: resultCategories(categories, mode === 'run' ? 'run' : 'final', run || 1)
+        categories: resultCategories(categories, mode === 'run' ? 'run' : 'final', run || 1),
+        // Listina kola se vyvěšuje 2 minuty po vygenerování.
+        posted: mode === 'run' ? postingTime() : null
       }));
 
       await showPreview(blob, {

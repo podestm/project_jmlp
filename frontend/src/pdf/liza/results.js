@@ -145,10 +145,24 @@ function drawTitleBand(canvas, top, title, { runCount, showPoints }) {
   return top + 62.64;
 }
 
-function drawFooter(canvas) {
+/** Za kolik minut po vygenerování se listina kola vyvěsí (domluveno s provozem). */
+export const POSTING_DELAY_MINUTES = 2;
+
+/**
+ * Čas vyvěšení listiny kola: čas vygenerování + 2 minuty, "10:44".
+ * Od vyvěšení běží lhůta na protesty (Pokyny pro pořadatele), LiZa ho netiskla.
+ */
+export function postingTime(now = new Date()) {
+  const posted = new Date(now.getTime() + POSTING_DELAY_MINUTES * 60 * 1000);
+  return `${String(posted.getHours()).padStart(2, '0')}:${String(posted.getMinutes()).padStart(2, '0')}`;
+}
+
+function drawFooter(canvas, { posted = null } = {}) {
   canvas.line(17.28, 814.32, 537.84, 814.32);
   canvas.line(18.0, 828.0, 538.56, 828.0);
   canvas.text(FOOTER_TEXT, 20.88, 823.8, REGULAR8);
+  // Uprostřed spodní lišty, mezi patičkou a číslem strany.
+  if (posted) canvas.text(`Čas vyvěšení: ${posted}`, 277.56, 823.8, { ...BOLD8, align: 'center' });
   canvas.text('Strana:', 462.96, 823.8, REGULAR8);
   canvas.text(String(canvas.pageNumber), 514.08, 823.8, REGULAR8);
 }
@@ -221,8 +235,9 @@ function drawSponsors(canvas, sponsors, lastRowBottom) {
  * @param {Array}  options.categories   [{ name, entries: [{ rank, status, surname, firstName,
  *                                       bib, year, slcrId, club, nation, time1, time2,
  *                                       total, diff, points }] }] už seřazené
+ * @param {string} [options.posted]     čas vyvěšení ("10:44") - tiskne se ve spodní liště listiny kola
  */
-export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', run = 1, categories = [] }) {
+export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', run = 1, categories = [], posted = null }) {
   const canvas = new PdfCanvas(A4_PORTRAIT);
   const runs = Math.min(Math.max(Number(runCount) || 1, 1), 2);
   const title = mode === 'run' ? titleForRun(run) : (mode === 'interim' ? TITLE_INTERIM : TITLE_FINAL);
@@ -236,8 +251,10 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
     y = drawTitleBand(canvas, NEXT_BAND_TOP, title, options);
   }
 
+  // Čas vyvěšení patří listině kola, od něj běží lhůta na protesty.
+  const footer = { posted: mode === 'run' ? posted : null };
   const nextPage = () => {
-    drawFooter(canvas);
+    drawFooter(canvas, footer);
     canvas.newPage();
     y = drawTitleBand(canvas, NEXT_BAND_TOP, title, options);
   };
@@ -260,7 +277,7 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
 
   if (y + 80.64 > 812) nextPage();
   drawSponsors(canvas, header?.sponsors, y);
-  drawFooter(canvas);
+  drawFooter(canvas, footer);
 
   return canvas.toDocDefinition({ title });
 }
