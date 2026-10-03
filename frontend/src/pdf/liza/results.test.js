@@ -53,6 +53,35 @@ describe('výsledková listina jako z LiZy', () => {
     expect(texts).not.toContain('100');
   });
 
+  it('diskvalifikovanému ani nedokončenému se netiskne čas - jako v LiZe', () => {
+    const doc = buildResultsDoc({
+      header, runCount: 2,
+      categories: [{ name: 'Junioři', entries: [
+        finisher(1, { time1: 30, time2: 31, total: 61 }),
+        { surname: 'Diskvalifikovaný', status: 'DSQ', bib: 7, time1: 40.11, time2: 41.22, total: 81.33, diff: 20.33 },
+        { surname: 'Nedokončil', status: 'DNF', bib: 8, time1: 42.55 }
+      ] }]
+    });
+    const texts = textsOf(doc);
+
+    expect(texts).toEqual(expect.arrayContaining(['DSQ', 'DNF', 'Diskvalifikovaný', 'Nedokončil', '30,00', '31,00', '01:01,00']));
+    ['40,11', '41,22', '01:21,33', '+20,33', '42,55'].forEach((time) => expect(texts).not.toContain(time));
+  });
+
+  it('listina kola: diskvalifikovaný je bez času i tam', () => {
+    const doc = buildResultsDoc({
+      header, runCount: 2, mode: 'run', run: 1,
+      categories: [{ name: 'Junioři', entries: [
+        finisher(1, { time1: 30, total: 30 }),
+        { surname: 'Diskvalifikovaný', status: 'DSQ', bib: 7, time1: 40.11, total: 40.11 }
+      ] }]
+    });
+    const texts = textsOf(doc);
+
+    expect(texts).toEqual(expect.arrayContaining(['DSQ', '30,00']));
+    expect(texts).not.toContain('40,11');
+  });
+
   it('průběžná listina je bez hlavičky závodu', () => {
     const doc = buildResultsDoc({ header: null, mode: 'interim', categories: [{ name: 'Junioři', entries: [finisher(1)] }] });
     const texts = textsOf(doc);

@@ -176,6 +176,10 @@ function drawEntry(canvas, entry, bottom, { runCount, mode, run }) {
   canvas.rect(309.96, bottom - 15.48, 327.84, bottom - 2.64, { stroke: '#000000', width: 0.72 });
   canvas.text(entry.nation || 'CZE', 331.2, bottom - 8.16, REGULAR8);
 
+  // Se stavem (DSQ, DNF, DNS) se netiskne žádný čas - ani z kola, které
+  // závodník dojel. Tak to tiskne LiZa a stejně to ukazuje tabulka výsledků.
+  if (entry.status) return;
+
   const showRun = (number) => mode !== 'run' || run === number;
   if (showRun(1)) canvas.text(formatTime(entry.time1), 384.52, bottom - 8.4, { ...REGULAR8, align: 'right' });
   if (runCount > 1 && showRun(2)) canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
