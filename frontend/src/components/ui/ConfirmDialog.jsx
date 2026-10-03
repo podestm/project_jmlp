@@ -14,7 +14,14 @@ import { useEffect, useRef } from 'react';
  *   waits this way until a club to move its racers to is picked.
  * @param {string} [cancelLabel]
  * @param {function} onResolve - called with the chosen value, or null on cancel
+ *
+ * Fokus (a tedy Enter) dostane první volba, která není nebezpečná (varianta
+ * danger) - když jsou nebezpečné všechny, dostane ho Zrušit. Enter se mačká
+ * ze zvyku, zvlášť v časomíře při zápisu časů, a jeden stisk nesmí nic
+ * smazat ani přepsat. Smazání a podobné kroky jen vědomým kliknutím.
  */
+const isDangerous = (choice) => String(choice.variant || 'primary').includes('danger');
+
 export default function ConfirmDialog({
   title,
   message,
@@ -23,9 +30,11 @@ export default function ConfirmDialog({
   onResolve
 }) {
   const primaryRef = useRef(null);
+  const cancelRef = useRef(null);
+  const focusIndex = choices.findIndex((choice) => !choice.disabled && !isDangerous(choice));
 
   useEffect(() => {
-    primaryRef.current?.focus();
+    (primaryRef.current || cancelRef.current)?.focus();
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onResolve(null);
@@ -67,14 +76,14 @@ export default function ConfirmDialog({
             </div>
             <div className="modal-body">{message}</div>
             <div className="modal-footer flex-wrap gap-2">
-              <button type="button" className="btn btn-outline-secondary" onClick={() => onResolve(null)}>
+              <button type="button" ref={cancelRef} className="btn btn-outline-secondary" onClick={() => onResolve(null)}>
                 {cancelLabel}
               </button>
               {choices.map((choice, index) => (
                 <button
                   key={String(choice.value)}
                   type="button"
-                  ref={index === 0 ? primaryRef : undefined}
+                  ref={index === focusIndex ? primaryRef : undefined}
                   className={`btn btn-${choice.variant || 'primary'}`}
                   disabled={choice.disabled}
                   onClick={() => onResolve(choice.value)}
