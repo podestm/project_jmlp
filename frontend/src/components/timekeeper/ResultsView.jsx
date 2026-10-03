@@ -185,8 +185,39 @@ export default function ResultsView() {
     }
   };
 
+  /**
+   * Pořadí poháru za sezónu vybraného závodu. Počítá ho server ze všech
+   * závodů sezóny; závody bez výsledků v aplikaci (měřené jen v LiZe)
+   * v něm chybí, a to musí obsluha vědět dřív, než pořadí zveřejní.
+   */
+  const printStandings = async (final) => {
+    if (!selectedRace?.season_id) return;
+    try {
+      const standings = await pdf.generateStandings({ seasonId: selectedRace.season_id, final });
+      const missing = standings?.races_without_results || [];
+      if (missing.length) {
+        setMessage({
+          type: 'warning',
+          text: `V pořadí chybí závody bez výsledků v aplikaci: ${missing
+            .map((race) => `${race.race_nr} (${formatDate(race.datum)})`)
+            .join(', ')}.`
+        });
+      }
+    } catch (err) {
+      console.error('PDF se nepodařilo vytvořit:', err);
+      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
+    }
+  };
+
   const publishResults = async () => {
-    const confirmed = await confirm({
+    const target = pdf.publishTarget;
+    const confirmed = await confirm(target?.kind === 'standings' ? {
+      title: target.final ? 'Zveřejnit celkové výsledky poháru?' : 'Zveřejnit průběžné výsledky poháru?',
+      message: `Pořadí se zveřejní na webu u sezóny ${target.seasonLabel || ''} a nahradí dosavadní průběžné nebo celkové výsledky.`,
+      confirmLabel: 'Zveřejnit',
+      variant: 'success',
+      icon: 'bi-upload'
+    } : {
       title: 'Publikovat výsledkovou listinu?',
       message: 'Soubor bude připojen k závodu a zveřejněn na webu. Nahradí dosud publikovanou listinu.',
       confirmLabel: 'Publikovat',
@@ -250,6 +281,29 @@ export default function ResultsView() {
               <i className="bi bi-upload me-1"></i>
               Publikovat
             </button>
+            <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => printStandings(false)}
+                disabled={pdf.generating || !isOnline || !selectedRace?.season_id}
+                title={isOnline
+                  ? 'Průběžné výsledky poháru za sezónu tohoto závodu'
+                  : 'Pořadí poháru vyžaduje připojení k internetu'}
+              >
+                <i className="bi bi-bar-chart-steps me-1"></i>
+                Pohár průběžně
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => printStandings(true)}
+                disabled={pdf.generating || !isOnline || !selectedRace?.season_id}
+                title={isOnline
+                  ? 'Celkové výsledky poháru - po skončení sezóny'
+                  : 'Pořadí poháru vyžaduje připojení k internetu'}
+              >
+                celkově
+              </button>
+            </div>
             <button
               className="btn btn-sm text-white"
               style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
@@ -359,6 +413,7 @@ export default function ResultsView() {
           objectUrl={pdf.objectUrl}
           title={pdf.previewTitle}
           canPublish={pdf.canPublish}
+          publishLabel={pdf.publishTarget?.kind === 'standings' ? 'Zveřejnit u sezóny' : 'Publikovat k závodu'}
           publishing={pdf.publishing}
           onPublish={publishResults}
           onDownload={pdf.download}

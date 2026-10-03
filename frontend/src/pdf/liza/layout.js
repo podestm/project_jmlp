@@ -123,9 +123,17 @@ export class PdfCanvas {
     });
   }
 
-  line(x1, y1, x2, y2, { width = 0.72, color = '#000000' } = {}) {
+  /**
+   * Čára. `dash` = { length, space } pro čárkovanou, `cap` = 'round' pro
+   * zakulacené konce (krátké čárky s nimi vypadají jako tečky).
+   */
+  line(x1, y1, x2, y2, { width = 0.72, color = '#000000', dash = null, cap = null } = {}) {
     this.items.push({
-      canvas: [{ type: 'line', x1, y1, x2, y2, lineWidth: width, lineColor: color }],
+      canvas: [{
+        type: 'line', x1, y1, x2, y2, lineWidth: width, lineColor: color,
+        ...(dash ? { dash } : {}),
+        ...(cap ? { lineCap: cap } : {})
+      }],
       absolutePosition: { x: 0, y: 0 }
     });
   }

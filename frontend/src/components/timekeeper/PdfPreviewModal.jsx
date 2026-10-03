@@ -12,6 +12,7 @@ export default function PdfPreviewModal({
   objectUrl,
   title,
   canPublish = false,
+  publishLabel = 'Publikovat k závodu',
   publishing = false,
   onPublish,
   onDownload,
@@ -76,7 +77,7 @@ export default function PdfPreviewModal({
                   disabled={publishing}
                 >
                   {publishing ? <ButtonSpinner /> : <i className="bi bi-upload me-1" />}
-                  Publikovat k závodu
+                  {publishLabel}
                 </button>
               )}
             </div>

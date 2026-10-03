@@ -6,13 +6,14 @@ import { createPdfBlob } from '../pdf/pdfmake.js';
 import { buildResultsDoc, resultsFileName, RUN_MODE_SUM } from '../pdf/liza/results.js';
 import { buildStartListDoc, startListFileName } from '../pdf/liza/startList.js';
 import { buildClubListDoc, clubListFileName } from '../pdf/liza/clubList.js';
+import { buildStandingsDoc, standingsFileName } from '../pdf/liza/standings.js';
 import {
   clubListInput,
   resultCategories,
   startListCategories,
   SECOND_RUN_SAME
 } from '../pdf/liza/adapters.js';
-import { loadHeaderLogos } from '../pdf/assets.js';
+import { loadHeaderLogos, loadSvazLogo } from '../pdf/assets.js';
 import { withoutExcluded } from '../components/timekeeper/startListHelpers.js';
 
 /**
@@ -31,6 +32,8 @@ export function useRacePdf(raceId) {
   const [objectUrl, setObjectUrl] = useState(null);
   const [previewTitle, setPreviewTitle] = useState('');
   const [canPublish, setCanPublish] = useState(false);
+  // Kam se publikuje: výsledková listina k závodu, pořadí poháru k sezóně.
+  const [publishTarget, setPublishTarget] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const blobRef = useRef(null);
@@ -77,13 +80,14 @@ export function useRacePdf(raceId) {
    * maže, takže v opačném pořadí by Publikovat i Stáhnout neměly co poslat
    * ("Nejdřív vygenerujte listinu").
    */
-  const showPreview = useCallback((blob, { fileName, title, publishable = false }) => {
+  const showPreview = useCallback((blob, { fileName, title, publishable = false, target = null }) => {
     closePreview();
     blobRef.current = blob;
     fileNameRef.current = fileName;
     setObjectUrl(URL.createObjectURL(blob));
     setPreviewTitle(title);
     setCanPublish(publishable);
+    setPublishTarget(publishable ? target : null);
   }, [closePreview]);
 
   /**
@@ -129,11 +133,50 @@ export function useRacePdf(raceId) {
           : (interim ? 'Průběžné výsledky' : 'Celková výsledková listina'),
         // Publikuje se jen celková listina - jednotlivá kola jsou podklad pro tisk.
         publishable: publishable && mode === 'final',
+        target: { kind: 'race', url: `/api/timekeeper/races/${raceId}/results/publish` },
       });
     } finally {
       setGenerating(false);
     }
-  }, [loadHeader, showPreview]);
+  }, [loadHeader, raceId, showPreview]);
+
+  /**
+   * Pořadí poháru za sezónu - průběžné, nebo celkové výsledky.
+   *
+   * Pořadí počítá server ze všech závodů sezóny, takže to chce připojení.
+   * Vrací data pořadí, ať obrazovka může upozornit na závody, které
+   * v aplikaci výsledky nemají (races_without_results).
+   *
+   * @param {object}  options
+   * @param {number}  options.seasonId  sezóna (rok začátku, season_id závodu)
+   * @param {boolean} [options.final]   celkové výsledky místo průběžných
+   */
+  const generateStandings = useCallback(async ({ seasonId, final = false }) => {
+    setGenerating(true);
+    try {
+      const standings = await TimekeeperAPI.get(
+        `/api/timekeeper/seasons/${seasonId}/standings?final=${final}`
+      );
+      // Logo svazu má jen celkové pořadí (stejně jako u LIP).
+      const logo = final ? await loadSvazLogo() : null;
+      const blob = await createPdfBlob(buildStandingsDoc({ standings, printedOn: new Date(), logo }));
+
+      showPreview(blob, {
+        fileName: standingsFileName(standings.season_label, final),
+        title: `${final ? 'Celkové' : 'Průběžné'} výsledky poháru ${standings.season_label || ''}`.trim(),
+        publishable: true,
+        target: {
+          kind: 'standings',
+          final,
+          seasonLabel: standings.season_label,
+          url: `/api/timekeeper/seasons/${seasonId}/standings/publish?final=${final}`,
+        },
+      });
+      return standings;
+    } finally {
+      setGenerating(false);
+    }
+  }, [showPreview]);
 
   /**
    * Startovní listina kola.
@@ -194,7 +237,10 @@ export function useRacePdf(raceId) {
     if (blobRef.current) downloadBlob(blobRef.current, fileNameRef.current);
   }, []);
 
-  /** Nahraje vygenerovanou výsledkovou listinu na server a připojí ji k závodu. */
+  /**
+   * Nahraje vygenerované PDF na server: výsledkovou listinu k závodu,
+   * pořadí poháru k sezóně (podle toho, co je v náhledu).
+   */
   const publish = useCallback(async () => {
     if (!blobRef.current) throw new Error('Nejdřív vygenerujte listinu.');
     setPublishing(true);
@@ -204,7 +250,7 @@ export function useRacePdf(raceId) {
 
       // Záměrně holý fetch - publikace nesmí do offline fronty.
       const response = await fetch(
-        `/api/timekeeper/races/${raceId}/results/publish`,
+        publishTarget?.url || `/api/timekeeper/races/${raceId}/results/publish`,
         { method: 'POST', headers: timekeeperAuthHeaders(), body: formData }
       );
       if (!response.ok) {
@@ -215,17 +261,19 @@ export function useRacePdf(raceId) {
     } finally {
       setPublishing(false);
     }
-  }, [raceId]);
+  }, [publishTarget, raceId]);
 
   return {
     objectUrl,
     previewTitle,
     canPublish,
+    publishTarget,
     generating,
     publishing,
     generate,
     generateStartList,
     generateClubList,
+    generateStandings,
     download,
     publish,
     closePreview

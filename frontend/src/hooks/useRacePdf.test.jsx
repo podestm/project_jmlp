@@ -10,10 +10,15 @@ vi.mock('../pdf/pdfmake.js', () => ({
   createPdfBlob: vi.fn(async () => new Blob(['%PDF-test'], { type: 'application/pdf' }))
 }));
 vi.mock('../pdf/assets.js', () => ({
-  loadHeaderLogos: vi.fn(async () => ({ leftLogo: null, rightLogo: null, sponsors: null }))
+  loadHeaderLogos: vi.fn(async () => ({ leftLogo: null, rightLogo: null, sponsors: null })),
+  loadSvazLogo: vi.fn(async () => null)
 }));
 vi.mock('../config/timekeeperApi.js', () => ({
-  TimekeeperAPI: { get: vi.fn(async () => ({ race_number_label: '2026-01', runs: [] })) }
+  TimekeeperAPI: {
+    get: vi.fn(async (url) => (url.includes('/standings')
+      ? { final: url.endsWith('final=true'), season_label: '2026-27', races: [], categories: [], races_without_results: [] }
+      : { race_number_label: '2026-01', runs: [] }))
+  }
 }));
 vi.mock('../config/api.js', async (importOriginal) => ({
   ...(await importOriginal()),
@@ -68,6 +73,26 @@ describe('výsledková listina z náhledu', () => {
 
     expect(downloadBlob).toHaveBeenCalledTimes(1);
     expect(downloadBlob.mock.calls[0][0]).toBeInstanceOf(Blob);
+  });
+
+  it('pořadí poháru se zveřejní u sezóny, ne u závodu', async () => {
+    const { result } = renderHook(() => useRacePdf(132));
+    await act(async () => { await result.current.generateStandings({ seasonId: 2026, final: false }); });
+
+    expect(result.current.previewTitle).toBe('Průběžné výsledky poháru 2026-27');
+    expect(result.current.publishTarget).toMatchObject({ kind: 'standings', final: false, seasonLabel: '2026-27' });
+
+    await act(async () => { await result.current.publish(); });
+    expect(fetch.mock.calls[0][0]).toBe('/api/timekeeper/seasons/2026/standings/publish?final=false');
+  });
+
+  it('po pořadí poháru jde výsledková listina zase k závodu', async () => {
+    const { result } = renderHook(() => useRacePdf(132));
+    await act(async () => { await result.current.generateStandings({ seasonId: 2026, final: true }); });
+    await generateFinal(result);
+
+    await act(async () => { await result.current.publish(); });
+    expect(fetch.mock.calls[0][0]).toBe('/api/timekeeper/races/132/results/publish');
   });
 
   it('po zavření náhledu už publikovat nejde', async () => {

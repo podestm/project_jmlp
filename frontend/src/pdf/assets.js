@@ -51,6 +51,9 @@ export const loadImage = async (url) => {
   return promise;
 };
 
+/** Logo Svazu lyžařů - samotné, např. do celkových výsledků poháru. */
+export const loadSvazLogo = () => loadImage(svazLogo);
+
 /**
  * Loga pro hlavičku a pruh sponzorů.
  * @param {string?} organizerLogoUrl  URL loga pořádajícího klubu z API
