@@ -20,7 +20,8 @@ export const useRaceManagement = () => {
         areal_id: '',
         organizer_id: '',
         registration: true,
-        race_method_id: 1  // 1 = závod na sněhu (default), 2 = suchý slalom
+        race_method_id: 1,  // 1 = závod na sněhu (default), 2 = suchý slalom
+        is_final: false     // finále poháru - jen závod na sněhu
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -219,7 +220,8 @@ export const useRaceManagement = () => {
             areal_id: '',
             organizer_id: '',
             registration: true,
-            race_method_id: 1
+            race_method_id: 1,
+            is_final: false
         });
         setEditingRace(null);
         setArealSearch('');
@@ -239,7 +241,8 @@ export const useRaceManagement = () => {
             areal_id: race.areal_id,
             organizer_id: race.organizer_id,
             registration: race.registration,
-            race_method_id: race.race_method_id || 1
+            race_method_id: race.race_method_id || 1,
+            is_final: Boolean(race.is_final)
         });
         
         // Set areál and organizer names for autocomplete display

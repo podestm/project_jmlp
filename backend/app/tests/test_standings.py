@@ -274,3 +274,45 @@ def test_zverejneni_nahradi_dosavadni_vysledky_sezony(client, db, timekeeper_hea
     finally:
         for cesta in vytvorene:
             cesta.unlink(missing_ok=True)
+
+
+# --------------------------------------------------------------------------
+# Finálový závod
+# --------------------------------------------------------------------------
+
+def test_finale_se_oznaci_v_administraci_a_v_poradi_je_sloupec_f(client, db, admin_headers, timekeeper_headers, sezona, kategorie):
+    odpoved = client.post("/api/admin/races", headers=admin_headers, json={
+        "datum": "2032-03-01", "race_nr": "JMLP2031-05", "season_id": 2031,
+        "race_method_id": 1, "is_final": True, "registration": False,
+    })
+    assert odpoved.status_code == 200, odpoved.text
+    finale = odpoved.json()
+    assert finale["is_final"] is True
+
+    zavodnik = _zavodnik(db, "Dana", "Dlouhá")
+    zavod = db.query(models.Race).filter(models.Race.id == finale["id"]).one()
+    _start(db, zavod, zavodnik, kategorie, 1, time=50.0)
+
+    data = client.get("/api/timekeeper/seasons/2031/standings", headers=timekeeper_headers).json()
+    assert [race["code"] for race in data["races"]] == ["F01.03"]
+    assert data["categories"][0]["rows"][0]["cells"] == [{"text": "1/100", "counted": True, "kind": "F"}]
+
+    seznam = client.get("/api/admin/races", headers=admin_headers).json()
+    assert next(r for r in seznam if r["id"] == finale["id"])["is_final"] is True
+
+
+def test_suchy_zavod_finalem_byt_nemuze(client, admin_headers, sezona):
+    vytvoreny = client.post("/api/admin/races", headers=admin_headers, json={
+        "datum": "2031-10-04", "race_nr": "JMLP2031-01", "season_id": 2031,
+        "race_method_id": 2, "is_final": True, "registration": False,
+    }).json()
+    assert vytvoreny["is_final"] is False
+
+    na_snehu = client.post("/api/admin/races", headers=admin_headers, json={
+        "datum": "2032-03-01", "race_nr": "JMLP2031-05", "season_id": 2031,
+        "race_method_id": 1, "is_final": True, "registration": False,
+    }).json()
+    # Přepnutí finále na suchý závod finále zruší.
+    upraveny = client.put(f"/api/admin/races/{na_snehu['id']}", headers=admin_headers,
+                          json={"race_method_id": 2}).json()
+    assert upraveny["is_final"] is False

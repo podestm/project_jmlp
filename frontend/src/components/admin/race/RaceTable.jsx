@@ -74,6 +74,9 @@ const RaceTable = ({
                                 <code className="bg-light px-2 py-1 rounded">
                                     {race.race_nr}
                                 </code>
+                                {race.is_final && (
+                                    <span className="badge bg-warning text-dark ms-2" title="Finálový závod poháru">Finále</span>
+                                )}
                             </td>
                             <td>
                                 <span className="badge bg-secondary">

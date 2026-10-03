@@ -8,6 +8,7 @@ from ...database import get_db
 from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
+from ...services.standings import RACE_METHOD_PREP
 from ...utils import fix_encoding
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,7 @@ def get_races(
         SELECT r.id, r.closed+0 as closed, r.datum, r.race_nr,
                r.registration+0 as registration, r.areal_id,
                r.organizer_id, r.race_method_id, r.season_id, r.is_live+0 as is_live,
+               r.is_final+0 as is_final,
                CONVERT(CONVERT(a.name USING binary) USING utf8mb4) as areal_name,
                CONVERT(CONVERT(o.name USING binary) USING utf8mb4) as organizer_name,
                {attachment_service.RACE_DOCUMENT_COLUMNS},
@@ -127,6 +129,7 @@ def get_races(
         "race_nr": row.race_nr,
         "registration": bool(row.registration),
         "is_live": bool(row.is_live),
+        "is_final": bool(row.is_final),
         "proposition_file_id": row.proposition_file_id,
         "results_file_id": row.results_file_id,
         "proposition_file_path": row.proposition_file_path,
@@ -210,6 +213,9 @@ def create_race(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+    # Finále je jen závod na sněhu - suchý (přípravný) závod finálem být nemůže.
+    race_dict['is_final'] = bool(race_dict.get('is_final')) and race_dict.get('race_method_id') != RACE_METHOD_PREP
+
     # Dokumenty se ukládají jako přílohy, ne jako sloupce závodu.
     document_ids = {field: race_dict.pop(field, None) for field in RACE_DOCUMENT_ROLES}
 
@@ -283,6 +289,9 @@ def update_race(
 
     for field, value in update_data.items():
         setattr(race, field, value)
+    # Finále je jen závod na sněhu - i když se závod přepne na suchý.
+    if race.race_method_id == RACE_METHOD_PREP:
+        race.is_final = False
 
     db.commit()
 

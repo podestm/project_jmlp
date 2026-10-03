@@ -211,7 +211,9 @@ const RaceForm = ({
                                                 checked={formData.race_method_id === 2}
                                                 onChange={(e) => setFormData(prev => ({
                                                     ...prev,
-                                                    race_method_id: e.target.checked ? 2 : 1
+                                                    race_method_id: e.target.checked ? 2 : 1,
+                                                    // Suchý závod finálem být nemůže.
+                                                    is_final: e.target.checked ? false : prev.is_final
                                                 }))}
                                             />
                                             <label className="form-check-label" htmlFor="suchySlalom">
@@ -220,6 +222,23 @@ const RaceForm = ({
                                         </div>
                                         <div className="form-text">Pokud nezaškrtnuto = závod na sněhu (default)</div>
                                     </div>
+                                    {formData.race_method_id !== 2 && (
+                                        <div className="mb-3">
+                                            <div className="form-check">
+                                                <input
+                                                    className="form-check-input"
+                                                    type="checkbox"
+                                                    id="finale"
+                                                    checked={Boolean(formData.is_final)}
+                                                    onChange={(e) => setFormData(prev => ({...prev, is_final: e.target.checked}))}
+                                                />
+                                                <label className="form-check-label" htmlFor="finale">
+                                                    Finále poháru
+                                                </label>
+                                            </div>
+                                            <div className="form-text">V pořadí poháru sloupec „F“; při shodě bodů rozhoduje umístění ve finále.</div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

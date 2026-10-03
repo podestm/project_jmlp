@@ -163,6 +163,8 @@ class Race(Base):
     race_method_id: Mapped[int] = mapped_column(BigInteger)
     season_id: Mapped[int] = mapped_column(BigInteger)
     is_live: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Finálový závod poháru (jen na sněhu) - sloupec "F" a poslední pravidlo shody v pořadí.
+    is_final: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Hlavička výsledkové listiny - vyplňuje časoměřič před závodem.
     # Čisté utf8mb4, čte se prostým SELECTem bez fix_encoding.
     race_director: Mapped[str | None] = mapped_column(

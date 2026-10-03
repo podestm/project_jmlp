@@ -136,6 +136,7 @@ class Race(BaseModel):
     season_id: int
     registrations_count: Optional[int] = None
     is_live: bool = False
+    is_final: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -369,6 +370,7 @@ class RaceCreate(BaseModel):
     race_method_id: Optional[int] = 1
     season_id: Optional[int] = None     # Will be auto-generated
     closed: bool = False
+    is_final: bool = False
 
     @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
     @classmethod
@@ -391,6 +393,7 @@ class RaceUpdate(BaseModel):
     race_method_id: Optional[int] = None
     season_id: Optional[int] = None
     closed: Optional[bool] = None
+    is_final: Optional[bool] = None
 
     @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
     @classmethod

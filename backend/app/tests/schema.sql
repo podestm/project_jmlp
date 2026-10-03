@@ -131,6 +131,7 @@ CREATE TABLE `fuj_jmlp_race` (
   `technical_delegate` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `chief_timekeeper` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `run_count` tinyint NOT NULL DEFAULT '1',
+  `is_final` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `FK8F3E0445F42C58AA` (`race_method_id`),
   KEY `FK8F3E0445922922EA` (`season_id`),

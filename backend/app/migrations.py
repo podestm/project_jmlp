@@ -881,6 +881,25 @@ def _m_start_list_excluded(conn):
     logger.info("Migrace: fuj_jmlp_race_start_list.excluded")
 
 
+# --------------------------------------------------------------------------
+# 010 - finálový závod poháru
+#
+# Soutěžní řád: při shodě bodů v pořadí poháru rozhoduje nakonec umístění
+# ve finálovém závodě a pořadí ho vede ve sloupci "F" (F01.03). Závod na
+# sněhu se jako finále označí v administraci.
+# --------------------------------------------------------------------------
+def _m_race_is_final(conn):
+    if not _table_exists(conn, "fuj_jmlp_race"):
+        return
+    if _column_exists(conn, "fuj_jmlp_race", "is_final"):
+        return
+    conn.execute(text(
+        "ALTER TABLE fuj_jmlp_race "
+        "ADD COLUMN is_final TINYINT(1) NOT NULL DEFAULT 0"
+    ))
+    logger.info("Migrace: fuj_jmlp_race.is_final")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -893,6 +912,7 @@ MIGRATIONS = (
     _m_library_tree,
     _m_flat_library,
     _m_start_list_excluded,
+    _m_race_is_final,
 )
 
 

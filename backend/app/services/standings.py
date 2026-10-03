@@ -193,9 +193,9 @@ def rank_rows(rows: Sequence[StandingRow], final: bool = False) -> List[Standing
 # ---------------------------------------------------------------------------
 
 def _race_kind(race: models.Race) -> str:
-    if getattr(race, "is_final", False):
-        return FINAL
-    return PREP if race.race_method_id == RACE_METHOD_PREP else SNOW
+    if race.race_method_id == RACE_METHOD_PREP:
+        return PREP
+    return FINAL if race.is_final else SNOW
 
 
 def _load_race_rows(db: Session, race_id: int) -> List[Any]:
