@@ -2,12 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 
 /**
- * Publikace výsledkové listiny z náhledu. Do 3. 10. 2026 náhled hned po
- * vygenerování zahodil vlastní PDF, takže "Publikovat k závodu" vždy hlásilo
- * "Nejdřív vygenerujte listinu" a "Stáhnout" nedělalo nic.
+ * Náhled a publikace listin. Do 3. 10. 2026 náhled hned po vygenerování
+ * zahodil vlastní PDF, takže "Publikovat k závodu" vždy hlásilo "Nejdřív
+ * vygenerujte listinu". A uložené PDF mělo náhodný název (UUID blobu) -
+ * teď se náhled otevírá pod názvem s datem, závodem a druhem listiny.
  */
 vi.mock('../pdf/pdfmake.js', () => ({
   createPdfBlob: vi.fn(async () => new Blob(['%PDF-test'], { type: 'application/pdf' }))
+}));
+vi.mock('../pdf/previewUrl.js', () => ({
+  createPreviewUrl: vi.fn(async (blob, fileName) => ({ url: `preview:${fileName}`, revoke: vi.fn() }))
 }));
 vi.mock('../pdf/assets.js', () => ({
   loadHeaderLogos: vi.fn(async () => ({ leftLogo: null, rightLogo: null, sponsors: null })),
@@ -17,16 +21,10 @@ vi.mock('../config/timekeeperApi.js', () => ({
   TimekeeperAPI: {
     get: vi.fn(async (url) => (url.includes('/standings')
       ? { final: url.endsWith('final=true'), season_label: '2026-27', races: [], categories: [], races_without_results: [] }
-      : { race_number_label: '2026-01', runs: [] }))
+      : { race_nr: 'JMLP2026-01', race_number_label: '2026-01', datum: '2026-10-03', runs: [] }))
   }
 }));
-vi.mock('../config/api.js', async (importOriginal) => ({
-  ...(await importOriginal()),
-  downloadBlob: vi.fn()
-}));
-
 const { useRacePdf } = await import('./useRacePdf.js');
-const { downloadBlob } = await import('../config/api.js');
 
 const categories = [{
   category_name: 'Myšáci dívky',
@@ -35,8 +33,6 @@ const categories = [{
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ message: 'Publikováno' }) })));
-  URL.createObjectURL = vi.fn(() => 'blob:nahled');
-  URL.revokeObjectURL = vi.fn();
 });
 
 afterEach(() => {
@@ -53,7 +49,7 @@ describe('výsledková listina z náhledu', () => {
     const { result } = renderHook(() => useRacePdf(132));
     await generateFinal(result);
 
-    expect(result.current.objectUrl).toBe('blob:nahled');
+    expect(result.current.objectUrl).toBe('preview:2026-10-03_JMLP2026-01_vysledky.pdf');
     expect(result.current.canPublish).toBe(true);
 
     let response;
@@ -65,14 +61,22 @@ describe('výsledková listina z náhledu', () => {
     expect(options.body.get('file')).toBeInstanceOf(Blob);
   });
 
-  it('Stáhnout stáhne vygenerované PDF', async () => {
+  it('tisk jedné kategorie má kategorii i v názvu souboru', async () => {
     const { result } = renderHook(() => useRacePdf(132));
-    await generateFinal(result);
+    await act(async () => {
+      await result.current.generate({ categories, interim: true, runMode: '1', categoryName: 'Myšáci dívky' });
+    });
 
-    act(() => result.current.download());
+    expect(result.current.objectUrl).toBe('preview:2026-10-03_JMLP2026-01_vysledky-1-kolo_mysaci-divky.pdf');
+  });
 
-    expect(downloadBlob).toHaveBeenCalledTimes(1);
-    expect(downloadBlob.mock.calls[0][0]).toBeInstanceOf(Blob);
+  it('startovka a rozpis mají datum a číslo závodu v názvu', async () => {
+    const { result } = renderHook(() => useRacePdf(132));
+    await act(async () => { await result.current.generateStartList({ categories, round: 2 }); });
+    expect(result.current.objectUrl).toBe('preview:2026-10-03_JMLP2026-01_startovni-listina-2-kolo.pdf');
+
+    await act(async () => { await result.current.generateClubList({ categories }); });
+    expect(result.current.objectUrl).toBe('preview:2026-10-03_JMLP2026-01_rozpis-po-klubech.pdf');
   });
 
   it('pořadí poháru se zveřejní u sezóny, ne u závodu', async () => {
@@ -80,6 +84,7 @@ describe('výsledková listina z náhledu', () => {
     await act(async () => { await result.current.generateStandings({ seasonId: 2026, final: false }); });
 
     expect(result.current.previewTitle).toBe('Průběžné výsledky poháru 2026-27');
+    expect(result.current.objectUrl).toMatch(/^preview:\d{4}-\d{2}-\d{2}_JMLP2026-27_prubezne-vysledky-poharu\.pdf$/);
     expect(result.current.publishTarget).toMatchObject({ kind: 'standings', final: false, seasonLabel: '2026-27' });
 
     await act(async () => { await result.current.publish(); });

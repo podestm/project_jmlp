@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildStandingsDoc, COUNTED_PREP, COUNTED_SNOW, raceColumns, standingsFileName } from './standings.js';
+import { buildStandingsDoc, COUNTED_PREP, COUNTED_SNOW, raceColumns } from './standings.js';
 import { imagesOf, pagesOf, textsOf } from './testHelpers.js';
 
 /*
@@ -126,10 +126,5 @@ describe('pořadí poháru jako od LIP', () => {
     const first = pages[1].filter((item) => /^Závodník/.test(item.text)).sort((a, b) => a.base - b.base)[0];
     expect(first.base).toBeCloseTo(26.4, 2);
     expect(textsOf(buildStandingsDoc({ standings: standings() }))).toContain('Zpracováno systémem jmlp.cz');
-  });
-
-  it('název souboru ke stažení', () => {
-    expect(standingsFileName('2026-27', false)).toBe('Prubezne_vysledky_2026-27.pdf');
-    expect(standingsFileName('2026-27', true)).toBe('Celkove_vysledky_2026-27.pdf');
   });
 });

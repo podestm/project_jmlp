@@ -349,12 +349,18 @@ export default function TimingEntry() {
       return;
     }
     try {
-      await pdf.generate({ categories, interim: true, runMode });
+      await pdf.generate({
+        categories,
+        interim: true,
+        runMode,
+        // Tisk vybrané kategorie má kategorii i v názvu souboru.
+        categoryName: scope === 'category' && selectedCategory !== 'all' ? selectedCategory : null
+      });
     } catch (err) {
       console.error('PDF se nepodařilo vytvořit:', err);
       setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
-  }, [categoryFiltered, activeStartList, pdf]);
+  }, [categoryFiltered, activeStartList, pdf, selectedCategory]);
 
   const completedCount = useMemo(() => (
     categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length
@@ -501,7 +507,6 @@ export default function TimingEntry() {
           title={pdf.previewTitle}
           canPublish={false}
           publishing={false}
-          onDownload={pdf.download}
           onClose={pdf.closePreview}
         />
       )}

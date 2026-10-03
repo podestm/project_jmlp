@@ -256,7 +256,3 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
   });
 }
 
-/** Název souboru ke stažení: Prubezne_vysledky_2026-27.pdf */
-export function standingsFileName(seasonLabel, final) {
-  return `${final ? 'Celkove' : 'Prubezne'}_vysledky_${seasonLabel || 'sezona'}.pdf`;
-}

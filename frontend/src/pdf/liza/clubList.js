@@ -153,5 +153,3 @@ export function buildClubListDoc({ header = {}, entries = [], sets = [], categor
   return canvas.toDocDefinition({ title: 'Seznam startujících podle oddílu' });
 }
 
-export const clubListFileName = (raceNumberLabel) =>
-  `rozpis-po-klubech${raceNumberLabel ? `-${raceNumberLabel}` : ''}.pdf`;

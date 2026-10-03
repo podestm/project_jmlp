@@ -748,7 +748,6 @@ export default function StartListManager() {
           title={pdf.previewTitle}
           canPublish={false}
           publishing={false}
-          onDownload={pdf.download}
           onClose={pdf.closePreview}
         />
       )}

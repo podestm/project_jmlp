@@ -20,6 +20,14 @@
 const CACHE_NAME = 'jmlp-shell-v4';
 const SHELL_URL = '/index.html';
 
+// Náhledy tištěných listin (src/pdf/previewUrl.js). Stránka do téhle keše
+// vloží právě zobrazené PDF a worker ho vydá na adrese
+// /pdf-preview/<token>/<název souboru> - prohlížeč PDF pak soubor při uložení
+// pojmenuje podle ní, ne náhodným UUID blobu. Nejsou to data: po zavření
+// náhledu stránka položku smaže a aktivace nové verze tuhle keš nechává být.
+const PREVIEW_CACHE = 'jmlp-pdf-preview';
+const PREVIEW_PATH = '/pdf-preview/';
+
 /**
  * Kešovat se smí jen obsah, který se pod danou URL už nikdy nezmění:
  * - /assets/* generuje Vite s hashem obsahu (assets/[name]-[hash].[ext]),
@@ -86,7 +94,7 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((keys) => Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key !== CACHE_NAME && key !== PREVIEW_CACHE)
           .map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
@@ -134,12 +142,28 @@ const shellFromNetwork = async (request) => {
   }
 };
 
+/** Náhled PDF z keše náhledů; po zavření náhledu už není co vydat. */
+const previewFromCache = async (request) => {
+  const cache = await caches.open(PREVIEW_CACHE);
+  const hit = await cache.match(request.url);
+  return hit || new Response('Náhled už není k dispozici - vygenerujte listinu znovu.', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
+};
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Náhled se otevírá v iframu, tedy jako navigace - musí přijít dřív než obálka.
+  if (url.pathname.startsWith(PREVIEW_PATH)) {
+    event.respondWith(previewFromCache(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(shellFromNetwork(request));

@@ -98,7 +98,9 @@ export default function ResultsView() {
   const printCategory = async (runMode) => {
     if (!selectedCategory) return;
     try {
-      await pdf.generate({ categories: [selectedCategory], interim: true, runMode });
+      await pdf.generate({
+        categories: [selectedCategory], interim: true, runMode, categoryName: selectedCategory.category_name
+      });
     } catch (err) {
       console.error('PDF se nepodařilo vytvořit:', err);
       setMessage({ type: 'danger', text: pdfErrorMessage(err) });
@@ -416,7 +418,6 @@ export default function ResultsView() {
           publishLabel={pdf.publishTarget?.kind === 'standings' ? 'Zveřejnit u sezóny' : 'Publikovat k závodu'}
           publishing={pdf.publishing}
           onPublish={publishResults}
-          onDownload={pdf.download}
           onClose={pdf.closePreview}
         />
       )}

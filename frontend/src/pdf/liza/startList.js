@@ -142,5 +142,3 @@ export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
   return canvas.toDocDefinition({ title });
 }
 
-export const startListFileName = (raceNumberLabel, round = 1) =>
-  `startovni-listina-${round}-kolo${raceNumberLabel ? `-${raceNumberLabel}` : ''}.pdf`;

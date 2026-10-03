@@ -265,7 +265,3 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
   return canvas.toDocDefinition({ title });
 }
 
-export const resultsFileName = (raceNumberLabel, mode = 'final', run = 1) => {
-  const base = mode === 'run' ? `vysledky-${run}-kolo` : (mode === 'interim' ? 'prubezne-vysledky' : 'vysledky');
-  return `${base}${raceNumberLabel ? `-${raceNumberLabel}` : ''}.pdf`;
-};

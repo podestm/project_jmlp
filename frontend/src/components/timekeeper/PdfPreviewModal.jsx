@@ -15,7 +15,6 @@ export default function PdfPreviewModal({
   publishLabel = 'Publikovat k závodu',
   publishing = false,
   onPublish,
-  onDownload,
   onClose
 }) {
   useEffect(() => {
@@ -53,14 +52,6 @@ export default function PdfPreviewModal({
               />
             </div>
             <div className="modal-footer py-2">
-              <button
-                type="button"
-                className="btn btn-outline-secondary"
-                onClick={onDownload}
-                disabled={publishing}
-              >
-                <i className="bi bi-download me-1" />Stáhnout
-              </button>
               <button
                 type="button"
                 className="btn btn-secondary"

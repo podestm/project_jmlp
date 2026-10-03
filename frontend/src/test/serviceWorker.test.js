@@ -257,6 +257,26 @@ describe('obálka aplikace', () => {
   });
 });
 
+describe('náhled PDF pod názvem souboru', () => {
+  it('náhled z keše náhledů - prohlížeč PDF ho uloží pod názvem z adresy', async () => {
+    const nahledy = await worker.caches.open('jmlp-pdf-preview');
+    await nahledy.put('/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf', response('%PDF', { type: 'application/pdf' }));
+
+    // Iframe náhledu je navigace - nesmí dostat obálku aplikace.
+    const odpoved = await dispatchFetch('/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf', { mode: 'navigate' });
+
+    expect(odpoved.headers.get('content-type')).toBe('application/pdf');
+    expect(worker.fetch).not.toHaveBeenCalled();
+  });
+
+  it('zavřený náhled vrátí 404, ne obálku aplikace', async () => {
+    const odpoved = await dispatchFetch('/pdf-preview/1-a/zavreny.pdf', { mode: 'navigate' });
+
+    expect(odpoved.status).toBe(404);
+    expect(worker.fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('instalace a aktivace', () => {
   const serveShell = ({ failing = [] } = {}) => {
     worker.fetch.mockImplementation(async (request) => {
@@ -306,6 +326,17 @@ describe('instalace a aktivace', () => {
     await expect(lifecycle('install')).rejects.toThrow('503');
   });
 
+  it('aktivace nechá keš náhledů PDF - patří otevřenému náhledu, ne verzi workeru', async () => {
+    const nahledy = await worker.caches.open('jmlp-pdf-preview');
+    await nahledy.put('/pdf-preview/1-a/vysledky.pdf', response('%PDF', { type: 'application/pdf' }));
+    serveShell();
+    await lifecycle('install');
+
+    await lifecycle('activate');
+
+    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v4']);
+  });
+
   it('aktivace smaže starší keše i s daty, která v nich zůstala', async () => {
     const stara = await worker.caches.open('jmlp-timekeeper-v3');
     await stara.put('/races/', response('[]', { type: 'application/json' }));
@@ -333,9 +364,14 @@ describe('časoměřič na keši workeru nestojí', () => {
   });
 
   it('aplikace se Cache Storage nedotýká', () => {
+    // Jediná výjimka: náhled PDF (pdf/previewUrl.js) tam na chvíli odkládá
+    // právě zobrazený soubor, aby ho prohlížeč uložil pod správným názvem.
+    // Nejsou to data a po zavření náhledu se mažou.
+    const ALLOWED = ['pdf/previewUrl.js'];
     const offenders = sourceFiles(SRC)
       .filter((file) => /\bcaches\.(open|match|keys|delete|has)\b/.test(readFileSync(file, 'utf8')))
-      .map((file) => relative(SRC, file));
+      .map((file) => relative(SRC, file))
+      .filter((file) => !ALLOWED.includes(file.split('\\').join('/')));
 
     expect(offenders).toEqual([]);
   });
