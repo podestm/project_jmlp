@@ -8,7 +8,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login } = useAuth();
+  const { login, deniedUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +33,19 @@ export default function AdminLogin() {
               <h4 className="mb-0">Admin přihlášení</h4>
             </div>
             <div className="card-body p-4">
+              {/* Přihlášení je společné s časomírou - účet časoměřiče tam zůstává přihlášený. */}
+              {deniedUser && !error && (
+                <Alert
+                  type="warning"
+                  autoDismissDelay={0}
+                  message={
+                    <>
+                      <i className="bi bi-shield-lock me-2"></i>
+                      Účet {deniedUser.email} smí jen do časomíry. Do administrace se přihlaste účtem správce.
+                    </>
+                  }
+                />
+              )}
               {error && (
                 <Alert 
                   type="danger" 

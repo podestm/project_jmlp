@@ -49,7 +49,7 @@ const jsonResponse = (body) => Promise.resolve({
 
 beforeEach(() => {
   volani = [];
-  localStorage.setItem('admin_token', 'token-pro-test');
+  localStorage.setItem('auth_token', 'token-pro-test');
   vi.stubGlobal('fetch', vi.fn((url, options = {}) => {
     const cesta = String(url);
     const metoda = options.method || 'GET';

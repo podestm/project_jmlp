@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AdminAPI } from '../config/api.js';
+import { AdminAPI, adminAuthHeaders } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
@@ -283,13 +283,10 @@ export const useRaceManagement = () => {
 
     const downloadRegistrationsCsv = async (raceId, race_nr) => {
         try {
-            const token = localStorage.getItem('admin_token');
             const endpoint = `/api/admin/races/${raceId}/export-csv`;
             const response = await fetch(endpoint, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: adminAuthHeaders()
             });
             
             if (!response.ok) {

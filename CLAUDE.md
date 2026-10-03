@@ -77,7 +77,7 @@ Frontend (React + Nginx)  ←→  Backend (FastAPI)  ←→  MySQL 8.0
 
 ### Key architectural patterns
 
-**Two separate JWT auth systems**: Admin and Timekeeper users authenticate independently. Admin tokens at `/api/admin/auth/login`, timekeeper at `/api/timekeeper/auth/login`. Both stored in `localStorage`.
+**One shared login for admin and timekeeper** (since 2026-10-03): both login endpoints (`/api/admin/auth/login` accepts role `admin` only, `/api/timekeeper/auth/login` accepts `admin` and `timekeeper`) issue the same JWT, and the frontend keeps it under one `localStorage` key (`auth_token`, see `frontend/src/config/session.js`). A login in either section covers both, and logout clears both. Role is enforced by the backend (`require_role("admin")` on every admin sub-router) and by the admin auth context, which refuses timekeeper-role accounts without logging them out of the timekeeper. Token lifetime is `ACCESS_TOKEN_EXPIRE_MINUTES` (720 = 12 h in production).
 
 **Raw SQL over ORM**: Most backend routers use `db.execute(text(...))` directly rather than SQLAlchemy ORM queries. This was intentional for performance and to avoid encoding issues with Czech characters.
 
@@ -120,7 +120,7 @@ Key variables in `secret/.env`:
 DATABASE_URL=mysql+pymysql://app:app@db:3306/jmlpcz?charset=utf8mb4
 SECRET_KEY=<min 32 chars>
 CORS_ORIGINS=http://localhost:3000,...
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=720
 MYSQL_ROOT_PASSWORD=<min 16 chars>
 MYSQL_PASSWORD=<min 16 chars>
 VITE_API_BASE=http://localhost:8000

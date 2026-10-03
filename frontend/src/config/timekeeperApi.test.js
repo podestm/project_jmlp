@@ -26,7 +26,7 @@ let fetchMock;
 beforeEach(async () => {
   await resetTimekeeperDb();
   setOnline(true);
-  localStorage.setItem('timekeeper_token', 'token-pro-test');
+  localStorage.setItem('auth_token', 'token-pro-test');
   fetchMock = vi.fn();
   vi.stubGlobal('fetch', fetchMock);
 });

@@ -1,4 +1,9 @@
 // API Configuration
+import { migrateLegacySession, SESSION_TOKEN_KEY } from './session.js';
+
+// Tokeny ze starších verzí (admin_token, timekeeper_token) -> společné přihlášení.
+migrateLegacySession();
+
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE || '',
   ENDPOINTS: {
@@ -201,6 +206,7 @@ const createAuthErrorHandler = (tokenKey, sectionPath, { inPlace = false } = {})
     }
 
     localStorage.removeItem(tokenKey);
+    localStorage.removeItem(`${tokenKey}_expires_at`);
     const { pathname } = window.location;
     if (pathname.startsWith(sectionPath) && pathname !== `${sectionPath}/login`) {
       if (inPlace) {
@@ -211,16 +217,17 @@ const createAuthErrorHandler = (tokenKey, sectionPath, { inPlace = false } = {})
     }
   };
 
-export const handleAdminAuthError = createAuthErrorHandler('admin_token', '/admin');
-export const handleTimekeeperAuthError = createAuthErrorHandler('timekeeper_token', '/timekeeper', { inPlace: true });
+// Administrace i časomíra mají jedno společné přihlášení (config/session.js).
+export const handleAdminAuthError = createAuthErrorHandler(SESSION_TOKEN_KEY, '/admin');
+export const handleTimekeeperAuthError = createAuthErrorHandler(SESSION_TOKEN_KEY, '/timekeeper', { inPlace: true });
 
 const bearer = (tokenKey) => () => {
   const token = localStorage.getItem(tokenKey);
   return { Authorization: token ? `Bearer ${token}` : '' };
 };
 
-export const adminAuthHeaders = bearer('admin_token');
-export const timekeeperAuthHeaders = bearer('timekeeper_token');
+export const adminAuthHeaders = bearer(SESSION_TOKEN_KEY);
+export const timekeeperAuthHeaders = bearer(SESSION_TOKEN_KEY);
 
 // Admin API with authentication
 export const AdminAPI = createHttpClient({

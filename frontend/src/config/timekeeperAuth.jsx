@@ -1,14 +1,17 @@
-// Timekeeper authentication context - separate from admin auth.
-// Shares the token/expiry primitives with the admin context but keeps its own
-// offline contract: a race-day tablet must stay logged in without a network.
+// Timekeeper authentication context.
+// Přihlášení je společné s administrací (config/session.js) - kdo se přihlásí
+// v jedné sekci, je přihlášený i v druhé a odhlášení platí pro obě. Časomíru
+// smí správce i časoměřič. Vlastní zůstává offline chování: tablet na závodě
+// musí zůstat přihlášený i bez sítě.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createTokenStore, fetchProfile, isNetworkError, loginWithCredentials } from './authCore.js';
 import { AUTH_EXPIRED_EVENT } from './api.js';
+import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
 import { startTimekeeperSync } from './timekeeperApi.js';
 
 const TimekeeperAuthContext = createContext();
-const store = createTokenStore('timekeeper_token');
-const USER_KEY = 'timekeeper_user';
+const store = createTokenStore(SESSION_TOKEN_KEY);
+const USER_KEY = SESSION_USER_KEY;
 
 const readCachedUser = () => {
   const stored = localStorage.getItem(USER_KEY);

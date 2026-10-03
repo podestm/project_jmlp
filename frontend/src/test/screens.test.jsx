@@ -42,7 +42,7 @@ const renderScreen = (ui) => render(
 
 beforeEach(async () => {
   await resetTimekeeperDb();
-  localStorage.setItem('timekeeper_token', 'token-pro-test');
+  localStorage.setItem('auth_token', 'token-pro-test');
   vi.stubGlobal('fetch', vi.fn(empty));
   // Web Serial v jsdom není; komponenty si na to musí umět poradit samy.
   vi.spyOn(console, 'error').mockImplementation(() => {});

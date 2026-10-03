@@ -50,7 +50,7 @@ const putCalls = () => fetchMock.mock.calls.filter(([, options]) => options?.met
 beforeEach(async () => {
   await resetTimekeeperDb();
   setOnline(true);
-  localStorage.setItem('timekeeper_token', 'token-pro-test');
+  localStorage.setItem('auth_token', 'token-pro-test');
   localStorage.setItem(SELECTED_RACE_KEY, String(RACE_ID));
 
   serverRows = [
