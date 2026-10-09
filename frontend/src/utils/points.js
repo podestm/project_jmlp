@@ -4,9 +4,9 @@
  * Musí zůstat v souladu s POINTS_TABLE a points_for_rank
  * v backend/app/services/results.py.
  *
- * Proč je to i na klientovi: offline se "Vypočítat body" neprovede (ta cesta
- * není v applyLocalMutation), takže by vytištěné průběžné výsledky měly staré
- * nebo žádné body. Tady se dopočítají z pořadí, které stejně počítáme lokálně.
+ * Proč je to i na klientovi: offline se výsledky ze serveru nenačtou, takže by
+ * vytištěné průběžné výsledky neměly body. Tady se dopočítají z pořadí, které
+ * stejně počítáme lokálně. Na server se body uloží při publikování listiny.
  */
 
 /** Tabulka Světového poháru FIS pro 1.–30. místo. */

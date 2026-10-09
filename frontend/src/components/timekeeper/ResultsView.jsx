@@ -10,7 +10,7 @@ import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
-import { TK_ACCENT, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 export default function ResultsView() {
   const [races, setRaces] = useState([]);
@@ -19,7 +19,6 @@ export default function ResultsView() {
   );
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [calculating, setCalculating] = useState(false);
   const [message, setMessage] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
 
@@ -69,18 +68,6 @@ export default function ResultsView() {
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst výsledky' });
     } finally { setLoading(false); }
-  };
-
-  const calculatePoints = async () => {
-    if (!selectedRaceId) return;
-    try {
-      setCalculating(true);
-      const result = await TimekeeperAPI.post(`/api/timekeeper/races/${selectedRaceId}/results/calculate-points`);
-      setMessage({ type: 'success', text: result.message });
-      loadResults();
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se vypočítat body' });
-    } finally { setCalculating(false); }
   };
 
   const formatDate = (dateStr) => {
@@ -306,18 +293,6 @@ export default function ResultsView() {
                 celkově
               </button>
             </div>
-            <button
-              className="btn btn-sm text-white"
-              style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
-              onClick={calculatePoints}
-              disabled={calculating}
-            >
-              {calculating ? (
-                <><ButtonSpinner />Počítám...</>
-              ) : (
-                <><i className="bi bi-calculator me-1"></i>Vypočítat body</>
-              )}
-            </button>
             <button
               className="btn btn-sm btn-outline-danger"
               onClick={clearResults}
