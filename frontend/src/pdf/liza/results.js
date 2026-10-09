@@ -8,7 +8,7 @@
  *
  * Tři podoby:
  *  - celková listina (CELKOVÁ VÝSLEDKOVÁ LISTINA) - časy kol, součet, ztráta, body,
- *  - listina kola: 1.KOLA jen s časem 1. kola, 2.KOLA rozepsaná i sečtená
+ *  - listina kola: 1.KOLA s časem 1. kola a ztrátou, 2.KOLA rozepsaná i sečtená
  *    (oba časy, součet, ztráta) - bez bodů,
  *  - průběžná listina během závodu - bez hlavičky závodu.
  */
@@ -123,7 +123,9 @@ function drawRaceHeader(canvas, header, runCount) {
   headerRow(canvas, { label: 'DÉLKA TRATI', labelBase: 239.28, boxTop: 232.56, boxBottom: 244.8, valueBase: 242.16, values: [length], wide: true });
 }
 
-function drawTitleBand(canvas, top, title, { runCount, showPoints }) {
+function drawTitleBand(canvas, top, title, { runCount, showPoints, mode, run }) {
+  // Listina 1. kola nemá 2. kolo ani součet - nemá je ani hlavička sloupců.
+  const firstRunOnly = mode === 'run' && run === 1;
   canvas.rect(16.56, top, 556.56, top + 60.48, { fill: BAND_BLUE });
   canvas.rect(16.92, top + 0.36, 556.08, top + 60.0, { stroke: BAND_BLUE, width: 0.72 });
   canvas.line(20.16, top + 6.48, 551.52, top + 6.48, { width: 3.6, color: TITLE_YELLOW });
@@ -137,8 +139,8 @@ function drawTitleBand(canvas, top, title, { runCount, showPoints }) {
   canvas.text('Startuje za', 190.8, base, BOLD10);
   canvas.text('Stát', 314.17, base, BOLD10);
   canvas.text('1.kolo', 357.1, base, BOLD10);
-  if (runCount > 1) canvas.text('2.kolo', 396.76, base, BOLD10);
-  canvas.text('Součet', 451.34, base, BOLD10);
+  if (runCount > 1 && !firstRunOnly) canvas.text('2.kolo', 396.76, base, BOLD10);
+  if (!firstRunOnly) canvas.text('Součet', 451.34, base, BOLD10);
   canvas.text('DIF', 499.72, base, BOLD10);
   if (showPoints) canvas.text('PT', 534.4, base, BOLD10);
 
@@ -195,18 +197,18 @@ function drawEntry(canvas, entry, bottom, { runCount, mode, run }) {
   // závodník dojel. Tak to tiskne LiZa a stejně to ukazuje tabulka výsledků.
   if (entry.status) return;
 
-  // Listina 1. kola má jen čas 1. kola. Listina 2. kola je rozepsaná
+  // Listina 1. kola má čas 1. kola a ztrátu. Listina 2. kola je rozepsaná
   // i sečtená (oba časy, součet, ztráta) - jen bez bodů, ty patří celkové.
   const firstRunOnly = mode === 'run' && run === 1;
   canvas.text(formatTime(entry.time1), 384.52, bottom - 8.4, { ...REGULAR8, align: 'right' });
   if (runCount > 1 && !firstRunOnly) canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
 
+  if (entry.rank == null) return;
+  // Ztráta na vítěze se tiskne vždy - u listiny 1. kola na vítěze 1. kola.
+  if (entry.diff != null && entry.rank !== 1) canvas.text(formatDiff(entry.diff), 493.92, bottom - 8.16, REGULAR8);
   if (firstRunOnly) return;
-  if (entry.rank != null) {
-    canvas.text(formatTime(entry.total), 481.66, bottom - 7.32, { ...BOLD10, align: 'right' });
-    if (entry.diff != null && entry.rank !== 1) canvas.text(formatDiff(entry.diff), 493.92, bottom - 8.16, REGULAR8);
-    if (entry.points && mode !== 'run') canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
-  }
+  canvas.text(formatTime(entry.total), 481.66, bottom - 7.32, { ...BOLD10, align: 'right' });
+  if (entry.points && mode !== 'run') canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
 }
 
 /** Pruh sponzorů pod posledním řádkem - mezi dvěma linkami, jako v LiZe. */

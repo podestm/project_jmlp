@@ -40,14 +40,20 @@ describe('výsledková listina jako z LiZy', () => {
     expect(texts).toEqual(expect.arrayContaining(['2.kolo', '2.KOLO', '31,00', '01:01,00', 'jasno', '12:00']));
   });
 
-  it('listina 1. kola: jen čas 1. kola, bez součtu a bodů', () => {
+  it('listina 1. kola: čas 1. kola a ztráta, bez součtu a bodů', () => {
     const doc = buildResultsDoc({
       header, runCount: 2, mode: 'run', run: 1,
-      categories: [{ name: 'Junioři', entries: [finisher(1, { time1: 30, time2: 31, total: 30 })] }]
+      categories: [{ name: 'Junioři', entries: [
+        finisher(1, { time1: 30, time2: 31, total: 30 }),
+        finisher(2, { time1: 32.5, total: 32.5, diff: 2.5 })
+      ] }]
     });
     const texts = textsOf(doc);
     expect(texts).toContain('VÝSLEDKOVÁ LISTINA 1.KOLA');
-    expect(texts).toContain('30,00');
+    expect(texts).toEqual(expect.arrayContaining(['30,00', '32,50', '+2,50']));
+    expect(texts).toContain('DIF');
+    expect(texts).not.toContain('Součet');
+    expect(texts).not.toContain('2.kolo');
     expect(texts).not.toContain('31,00');
     expect(texts).not.toContain('PT');
     expect(texts).not.toContain('100');
