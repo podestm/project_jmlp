@@ -74,10 +74,16 @@ export function startListCategories(categories, round = 1, order = SECOND_RUN_SA
  * @param {number} run         u mode 'run' číslo kola
  */
 export function resultCategories(categories, mode = 'final', run = 1) {
-  const timeField = mode === 'run' ? `time${run}` : 'time_sum';
+  const secondRun = mode === 'run' && Number(run) === 2;
+  // Listina 2. kola řadí podle součtu, ale jen ty, kdo už 2. kolo dojeli -
+  // jinak by se mezi součty zamíchal samotný čas 1. kola (time_sum = time1).
+  const timeField = secondRun ? 'second_run_sum' : (mode === 'run' ? `time${run}` : 'time_sum');
+  const withSum = (entries) => (secondRun
+    ? entries.map((entry) => ({ ...entry, second_run_sum: entry.time2 != null ? entry.time_sum : null }))
+    : entries);
   return (categories || []).map((category) => ({
     name: category.category_name,
-    entries: rankEntriesByTime(category.entries || [], { timeField }).map((entry) => ({
+    entries: rankEntriesByTime(withSum(category.entries || []), { timeField }).map((entry) => ({
       rank: entry.display_rank,
       status: entry.display_rank == null ? (entry.status || null) : null,
       surname: entry.racer_surname || '',

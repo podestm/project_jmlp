@@ -81,7 +81,7 @@ export default function ResultsView() {
     (cat) => String(cat.category_id) === String(selectedCategoryId)
   ) || null;
 
-  /** Průběžné pořadí jedné kategorie - bez hlavičky, takže funguje i offline. */
+  /** Listina kola jedné kategorie - bez hlavičky, takže funguje i offline. */
   const printCategory = async (runMode) => {
     if (!selectedCategory) return;
     try {
@@ -94,7 +94,7 @@ export default function ResultsView() {
     }
   };
 
-  /** Všechny kategorie ve stejném formátu jako průběžné - celkově nebo po kolech. */
+  /** Listina kola všech kategorií. */
   const printAllInterim = async (runMode) => {
     try {
       await pdf.generate({ categories: categoryList, interim: true, runMode });
@@ -240,14 +240,14 @@ export default function ResultsView() {
           <div className="d-flex gap-2 flex-wrap">
             <ResultsPrintButtons
               label="Tisk kategorie"
-              title="Průběžné výsledky vybrané kategorie - funguje i offline"
+              title="Výsledky kol vybrané kategorie - funguje i offline"
               busy={pdf.generating}
               disabled={!selectedCategory}
               onPrint={printCategory}
             />
             <ResultsPrintButtons
               label="Všechny kategorie"
-              title="Průběžné výsledky všech kategorií - funguje i offline"
+              title="Výsledky kol všech kategorií - funguje i offline"
               busy={pdf.generating}
               onPrint={printAllInterim}
             />

@@ -49,6 +49,21 @@ describe('výsledky', () => {
   });
 });
 
+describe('listina 2. kola', () => {
+  it('řadí podle součtu jen ty, kdo 2. kolo dojeli - samotný čas 1. kola se nemíchá mezi součty', () => {
+    const entries = [
+      row(1, { time1: 30, time2: 35, time_sum: 65 }),
+      row(2, { time1: 31, time2: 31, time_sum: 62 }),
+      row(3, { time1: 29, time_sum: 29 })
+    ];
+    const [category] = resultCategories([{ category_name: 'A', entries }], 'run', 2);
+    expect(category.entries.map((e) => [e.surname, e.rank, e.total, e.diff])).toEqual([
+      ['P2', 1, 62, null], ['P1', 2, 65, 3], ['P3', null, null, null]
+    ]);
+    expect(category.entries[2]).toMatchObject({ time1: 29, time2: null });
+  });
+});
+
 describe('rozpis po klubech', () => {
   it('sady a zkratky kategorií z dat', () => {
     const input = clubListInput([

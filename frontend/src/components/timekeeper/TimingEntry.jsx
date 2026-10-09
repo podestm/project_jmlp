@@ -332,13 +332,13 @@ export default function TimingEntry() {
   useEffect(() => { filteredListRef.current = filteredList; }, [filteredList]);
 
   /**
-   * Tisk průběžných výsledků rovnou od časomíry.
+   * Tisk listiny kola rovnou od časomíry.
    *
    * Tiskne se z toho, co je na obrazovce (včetně už uložených časů, které se
    * ještě nesynchronizovaly), takže to funguje i offline. Kolo se vybírá
    * zvlášť - každá kategorie může jet jiný počet kol.
    *
-   * @param {string} runMode 'sum' | '1' | '2'
+   * @param {string} runMode '1' | '2' (2. kolo = oba časy a součet)
    * @param {string} scope   'category' = vybraná kategorie, 'all' = všechny
    */
   const printResults = useCallback(async (runMode, scope) => {

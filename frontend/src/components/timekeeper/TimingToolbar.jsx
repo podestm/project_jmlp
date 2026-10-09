@@ -211,21 +211,21 @@ export default function TimingToolbar({
             </div>
           </div>
 
-          {/* Tisk rovnou od časomíry - stejný formát jako průběžné výsledky */}
+          {/* Tisk listin kol rovnou od časomíry */}
           <div className="d-flex align-items-center gap-2 flex-wrap mt-2 pt-2 border-top">
             <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
               <i className="bi bi-printer me-1"></i>Tisk:
             </small>
             <ResultsPrintButtons
               label={selectedCategory === 'all' ? 'Vybraná kategorie' : selectedCategory}
-              title="Průběžné výsledky vybrané kategorie"
+              title="Výsledky kol vybrané kategorie"
               busy={printBusy}
               disabled={selectedCategory === 'all'}
               onPrint={(runMode) => onPrintResults(runMode, 'category')}
             />
             <ResultsPrintButtons
               label="Všechny kategorie"
-              title="Průběžné výsledky všech kategorií"
+              title="Výsledky kol všech kategorií"
               busy={printBusy}
               onPrint={(runMode) => onPrintResults(runMode, 'all')}
             />

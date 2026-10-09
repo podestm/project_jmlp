@@ -1,8 +1,11 @@
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
-import { RUN_MODE_SUM } from '../../pdf/liza/results.js';
 
 /**
- * Trojice tlačítek pro tisk: celkově, 1. kolo, 2. kolo.
+ * Dvojice tlačítek pro rychlý tisk: 1. kolo, 2. kolo.
+ *
+ * Listina 1. kola má čas 1. kola, listina 2. kola je rozepsaná i sečtená
+ * (oba časy a součet). Nic jako "průběžné výsledky závodu" se nevyvěšuje,
+ * celková listina se tiskne zvlášť na obrazovce Výsledky.
  *
  * Kola se tisknou zvlášť, protože jedna kategorie může jet obě kola a jiná
  * jen jedno - počet kol tedy nejde nastavit u závodu a listina se vždy řídí
@@ -11,12 +14,14 @@ import { RUN_MODE_SUM } from '../../pdf/liza/results.js';
  * Záměrně bez rozbalovacího menu: Bootstrap JS není v aplikaci načtený a na
  * závodě se stejně kliká jednou, ne dvakrát.
  *
- * @param {string}   label     popisek prvního tlačítka ("Tisk kategorie")
- * @param {string}   [title]   tooltip prvního tlačítka
+ * @param {string}   label     popisek skupiny ("Všechny kategorie")
+ * @param {string}   [title]   tooltip
  * @param {boolean}  [busy]    běží generování
  * @param {boolean}  [disabled]
  * @param {(runMode: string) => void} onPrint
  */
+const COMPACT = { padding: '0.1rem 0.5rem', fontSize: '0.78rem', lineHeight: 1.3 };
+
 export default function ResultsPrintButtons({
   label,
   title,
@@ -25,23 +30,19 @@ export default function ResultsPrintButtons({
   onPrint,
 }) {
   return (
-    <div className="btn-group btn-group-sm" role="group" aria-label={label}>
-      <button
-        className="btn btn-outline-secondary"
-        onClick={() => onPrint(RUN_MODE_SUM)}
-        disabled={disabled || busy}
-        title={title}
-      >
+    <div className="btn-group btn-group-sm" role="group" aria-label={label} title={title}>
+      <span className="btn btn-outline-secondary disabled text-body fw-semibold" style={{ ...COMPACT, opacity: 1 }}>
         {busy ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
         {label}
-      </button>
+      </span>
       {['1', '2'].map((runMode) => (
         <button
           key={runMode}
           className="btn btn-outline-secondary"
+          style={COMPACT}
           onClick={() => onPrint(runMode)}
           disabled={disabled || busy}
-          title={`Výsledky ${runMode}. kola`}
+          title={runMode === '1' ? 'Výsledky 1. kola' : 'Výsledky 2. kola - oba časy a součet'}
         >
           {runMode}. kolo
         </button>

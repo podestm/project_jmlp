@@ -8,7 +8,8 @@
  *
  * Tři podoby:
  *  - celková listina (CELKOVÁ VÝSLEDKOVÁ LISTINA) - časy kol, součet, ztráta, body,
- *  - listina jednoho kola (VÝSLEDKOVÁ LISTINA 1.KOLA) - jen čas toho kola,
+ *  - listina kola: 1.KOLA jen s časem 1. kola, 2.KOLA rozepsaná i sečtená
+ *    (oba časy, součet, ztráta) - bez bodů,
  *  - průběžná listina během závodu - bez hlavičky závodu.
  */
 import { A4_PORTRAIT, PdfCanvas } from './layout.js';
@@ -194,15 +195,17 @@ function drawEntry(canvas, entry, bottom, { runCount, mode, run }) {
   // závodník dojel. Tak to tiskne LiZa a stejně to ukazuje tabulka výsledků.
   if (entry.status) return;
 
-  const showRun = (number) => mode !== 'run' || run === number;
-  if (showRun(1)) canvas.text(formatTime(entry.time1), 384.52, bottom - 8.4, { ...REGULAR8, align: 'right' });
-  if (runCount > 1 && showRun(2)) canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
+  // Listina 1. kola má jen čas 1. kola. Listina 2. kola je rozepsaná
+  // i sečtená (oba časy, součet, ztráta) - jen bez bodů, ty patří celkové.
+  const firstRunOnly = mode === 'run' && run === 1;
+  canvas.text(formatTime(entry.time1), 384.52, bottom - 8.4, { ...REGULAR8, align: 'right' });
+  if (runCount > 1 && !firstRunOnly) canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
 
-  if (mode === 'run') return;
+  if (firstRunOnly) return;
   if (entry.rank != null) {
     canvas.text(formatTime(entry.total), 481.66, bottom - 7.32, { ...BOLD10, align: 'right' });
     if (entry.diff != null && entry.rank !== 1) canvas.text(formatDiff(entry.diff), 493.92, bottom - 8.16, REGULAR8);
-    if (entry.points) canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
+    if (entry.points && mode !== 'run') canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
   }
 }
 
