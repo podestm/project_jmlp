@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from ...database import get_db
 from ... import models, schemas, auth
@@ -34,6 +35,34 @@ def _racer_columns(racer_data: schemas.RacerCreate, db: Session) -> dict:
         "club_id": racer_data.club_id,
         "category_id": category_id,
     }
+
+
+def _ensure_unique(columns: dict, db: Session, exclude_id: int | None = None) -> None:
+    """Závodník se stejným jménem, příjmením, ročníkem a pohlavím už existuje?
+
+    Registr to hlídá unikátním klíčem (jméno + příjmení + ročník + pohlaví je
+    identita závodníka). Bez téhle kontroly úprava, která se trefí do jiného
+    závodníka - typicky přejmenování "Viki" na "Viktorie", když se dítě
+    přihlásilo dvakrát - skončila "Interní chybou serveru". Dotaz jde přes
+    MySQL, takže porovnává stejně jako klíč (velikost písmen, mezery na konci).
+    """
+    existing = db.execute(text("""
+        SELECT r.id, c.name AS club FROM fuj_jmlp_racer r
+        LEFT JOIN fuj_jmlp_club c ON c.id = r.club_id
+        WHERE r.name = :name AND r.surname = :surname AND r.year = :year AND r.sex = :sex
+          AND (:exclude IS NULL OR r.id <> :exclude)
+        LIMIT 1
+    """), {**{k: columns[k] for k in ("name", "surname", "year", "sex")}, "exclude": exclude_id}).first()
+    if existing:
+        raise HTTPException(status_code=409, detail=_duplicate_message(columns, existing.id, existing.club))
+
+
+def _duplicate_message(columns: dict, other_id, club) -> str:
+    who = f"{columns['surname']} {columns['name']} ({columns['year']})"
+    where = f", {fix_encoding(club)}" if club else ""
+    ref = f" (ID {other_id}{where})" if other_id else ""
+    return (f"Závodník {who} už v registru je{ref}. Jde nejspíš o stejného člověka "
+            "zapsaného dvakrát - upravte nebo smažte jeden ze záznamů.")
 
 
 @router.get("/racers", response_model=List[schemas.Racer])
@@ -102,9 +131,15 @@ def create_racer(
         if not club:
             raise HTTPException(status_code=400, detail="Klub neexistuje")
     
-    db_racer = models.Racer(**_racer_columns(racer_data, db))
+    columns = _racer_columns(racer_data, db)
+    _ensure_unique(columns, db)
+    db_racer = models.Racer(**columns)
     db.add(db_racer)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=_duplicate_message(columns, None, None))
     db.refresh(db_racer)
     
     # Fix encoding in the returned racer data
@@ -134,10 +169,16 @@ def update_racer(
         if not club:
             raise HTTPException(status_code=400, detail="Klub neexistuje")
     
-    for field, value in _racer_columns(racer_data, db).items():
+    columns = _racer_columns(racer_data, db)
+    _ensure_unique(columns, db, exclude_id=racer_id)
+    for field, value in columns.items():
         setattr(db_racer, field, value)
-    
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=_duplicate_message(columns, None, None))
     db.refresh(db_racer)
     
     # Fix encoding in the returned racer data

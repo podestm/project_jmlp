@@ -145,3 +145,41 @@ def test_zalozeni_bez_prihlaseni_neprojde(client):
         "firstName": "Jan", "lastName": "Novak", "sex": 1, "birthYear": 2010,
     })
     assert odpoved.status_code in (401, 403)
+
+
+def test_uprava_na_jmeno_jineho_zavodnika_hlasi_duplicitu(client, db, admin_headers, kategorie):
+    """Přejmenování "Viki" na "Viktorie", když Viktorie už v registru je.
+
+    Dřív to končilo "Interní chybou serveru" (unikátní klíč jméno + příjmení
+    + ročník + pohlaví). Teď 409 s vysvětlením, kterého závodníka se to týká.
+    """
+    klub = _klub(db, "KSL BTL Kroměříž")
+    viki = _zavodnik(db, name="Viki", surname="Bezděková", year=2012, sex=2, club_id=klub.id)
+    viktorie = _zavodnik(db, name="Viktorie", surname="Bezděková", year=2012, sex=2, club_id=klub.id)
+
+    odpoved = client.put(f"/api/admin/racers/{viki.id}", headers=admin_headers, json={
+        "firstName": "Viktorie", "lastName": "Bezděková", "sex": 2, "birthYear": 2012, "club_id": klub.id,
+    })
+
+    assert odpoved.status_code == 409
+    detail = odpoved.json()["detail"]
+    assert "Bezděková Viktorie (2012)" in detail
+    assert f"ID {viktorie.id}" in detail and "KSL BTL Kroměříž" in detail
+    db.expire_all()
+    assert db.get(type(viki), viki.id).name == "Viki"
+
+
+def test_uprava_beze_zmeny_jmena_neni_duplicita(client, db, admin_headers, kategorie):
+    viki = _zavodnik(db, name="Viki", surname="Bezděková", year=2012, sex=2)
+    odpoved = client.put(f"/api/admin/racers/{viki.id}", headers=admin_headers, json={
+        "firstName": "Viki", "lastName": "Bezděková", "sex": 2, "birthYear": 2012, "idSlcr": "123456",
+    })
+    assert odpoved.status_code == 200
+
+
+def test_zalozeni_duplicitniho_zavodnika_hlasi_duplicitu(client, db, admin_headers, kategorie):
+    _zavodnik(db, name="Viktorie", surname="Bezděková", year=2012, sex=2)
+    odpoved = client.post("/api/admin/racers", headers=admin_headers, json={
+        "firstName": "Viktorie", "lastName": "Bezděková", "sex": 2, "birthYear": 2012,
+    })
+    assert odpoved.status_code == 409
