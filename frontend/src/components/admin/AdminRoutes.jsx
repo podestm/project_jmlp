@@ -18,6 +18,7 @@ import CategoryManagement from './CategoryManagement.jsx';
 import SeasonManagement from './SeasonManagement.jsx';
 import ClubManagement from './ClubManagement.jsx';
 import ClubRequests from './ClubRequests.jsx';
+import SlcrPairing from './SlcrPairing.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -47,6 +48,7 @@ export default function AdminRoutes() {
         <Route path="/seasons" element={protect(<SeasonManagement />)} />
         <Route path="/clubs" element={protect(<ClubManagement />)} />
         <Route path="/club-requests" element={protect(<ClubRequests />)} />
+        <Route path="/slcr" element={protect(<SlcrPairing />)} />
         <Route path="/register" element={protect(<AdminRegister />)} />
       </Routes>
     </AuthProvider>

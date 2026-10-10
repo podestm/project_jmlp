@@ -36,7 +36,8 @@ TABLES = [
     "fuj_jmlp_admin", "fuj_jmlp_areal", "fuj_jmlp_attachment", "fuj_jmlp_category",
     "fuj_jmlp_club", "fuj_jmlp_files", "fuj_jmlp_posts", "fuj_jmlp_race",
     "fuj_jmlp_race_numbers", "fuj_jmlp_race_registration", "fuj_jmlp_race_run",
-    "fuj_jmlp_race_start_list", "fuj_jmlp_racer", "fuj_jmlp_season",
+    "fuj_jmlp_race_start_list", "fuj_jmlp_racer", "fuj_jmlp_racer_slcr", "fuj_jmlp_season",
+    "fuj_jmlp_slcr_sync",
     "fuj_jmlp_timekeeper_idempotency", "fuj_jmlp_visitor_log",
 ]
 

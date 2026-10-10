@@ -900,6 +900,56 @@ def _m_race_is_final(conn):
     logger.info("Migrace: fuj_jmlp_race.is_final")
 
 
+# --------------------------------------------------------------------------
+# 011 - párování závodníků s evidencí SLČR
+#
+# Návrh člena evidence SLČR (evidence.czech-ski.com) ke každému našemu
+# závodníkovi a rozhodnutí správce. Registr závodníků se tím nemění - ani
+# "ID závodníka", které je odpovědností závodníka; párování jen ukáže,
+# kde nesouhlasí s evidencí. Druhá tabulka drží běhy načítání (běží na
+# pozadí a správce sleduje průběh).
+# --------------------------------------------------------------------------
+def _m_slcr_pairing(conn):
+    if not _table_exists(conn, "fuj_jmlp_racer_slcr"):
+        conn.execute(text("""
+            CREATE TABLE fuj_jmlp_racer_slcr (
+                racer_id BIGINT NOT NULL PRIMARY KEY,
+                status VARCHAR(12) NOT NULL,
+                member_id INT DEFAULT NULL,
+                member_slug VARCHAR(160) DEFAULT NULL,
+                race_code INT DEFAULT NULL,
+                slcr_surname VARCHAR(80) DEFAULT NULL,
+                slcr_name VARCHAR(80) DEFAULT NULL,
+                slcr_year INT DEFAULT NULL,
+                slcr_club VARCHAR(200) DEFAULT NULL,
+                confidence VARCHAR(8) DEFAULT NULL,
+                source VARCHAR(12) DEFAULT NULL,
+                note VARCHAR(400) DEFAULT NULL,
+                alternatives TEXT,
+                checked_at DATETIME DEFAULT NULL,
+                decided_at DATETIME DEFAULT NULL,
+                decided_by BIGINT DEFAULT NULL,
+                KEY ix_racer_slcr_member (member_id),
+                KEY ix_racer_slcr_status (status)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """))
+        logger.info("Migrace: fuj_jmlp_racer_slcr")
+    if not _table_exists(conn, "fuj_jmlp_slcr_sync"):
+        conn.execute(text("""
+            CREATE TABLE fuj_jmlp_slcr_sync (
+                id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                scope VARCHAR(10) NOT NULL,
+                started_at DATETIME NOT NULL,
+                finished_at DATETIME DEFAULT NULL,
+                total INT NOT NULL DEFAULT 0,
+                done INT NOT NULL DEFAULT 0,
+                error VARCHAR(500) DEFAULT NULL,
+                started_by BIGINT DEFAULT NULL
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """))
+        logger.info("Migrace: fuj_jmlp_slcr_sync")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -913,6 +963,7 @@ MIGRATIONS = (
     _m_flat_library,
     _m_start_list_excluded,
     _m_race_is_final,
+    _m_slcr_pairing,
 )
 
 

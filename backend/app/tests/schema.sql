@@ -245,6 +245,38 @@ CREATE TABLE `fuj_jmlp_racer` (
   KEY `idx_category_id` (`category_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE `fuj_jmlp_racer_slcr` (
+  `racer_id` bigint NOT NULL,
+  `status` varchar(12) NOT NULL,
+  `member_id` int DEFAULT NULL,
+  `member_slug` varchar(160) DEFAULT NULL,
+  `race_code` int DEFAULT NULL,
+  `slcr_surname` varchar(80) DEFAULT NULL,
+  `slcr_name` varchar(80) DEFAULT NULL,
+  `slcr_year` int DEFAULT NULL,
+  `slcr_club` varchar(200) DEFAULT NULL,
+  `confidence` varchar(8) DEFAULT NULL,
+  `source` varchar(12) DEFAULT NULL,
+  `note` varchar(400) DEFAULT NULL,
+  `alternatives` text,
+  `checked_at` datetime DEFAULT NULL,
+  `decided_at` datetime DEFAULT NULL,
+  `decided_by` bigint DEFAULT NULL,
+  PRIMARY KEY (`racer_id`),
+  KEY `ix_racer_slcr_member` (`member_id`),
+  KEY `ix_racer_slcr_status` (`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `fuj_jmlp_slcr_sync` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `scope` varchar(10) NOT NULL,
+  `started_at` datetime NOT NULL,
+  `finished_at` datetime DEFAULT NULL,
+  `total` int NOT NULL DEFAULT '0',
+  `done` int NOT NULL DEFAULT '0',
+  `error` varchar(500) DEFAULT NULL,
+  `started_by` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `fuj_jmlp_season` (

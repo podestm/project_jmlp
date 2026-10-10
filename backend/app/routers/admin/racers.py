@@ -6,6 +6,7 @@ from sqlalchemy import text
 from ...database import get_db
 from ... import models, schemas, auth
 from ...utils import fix_encoding, category_display_sql, get_category_snapshot_for_birth_year
+from ...services import slcr_sync
 
 router = APIRouter(tags=["admin-racers"])
 
@@ -170,5 +171,6 @@ def delete_racer(
         )
     
     db.delete(db_racer)
+    slcr_sync.forget_racer(db, racer_id)
     db.commit()
     return {"message": "Závodník úspěšně smazán"}

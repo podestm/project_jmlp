@@ -13,6 +13,7 @@ from .categories import router as categories_router
 from .seasons import router as seasons_router
 from .dashboard import router as dashboard_router
 from .clubs import router as clubs_router
+from .slcr import router as slcr_router
 
 # Main admin router that includes all sub-routers
 router = APIRouter(prefix="/api/admin")
@@ -33,3 +34,4 @@ router.include_router(categories_router, dependencies=admin_only)
 router.include_router(seasons_router, dependencies=admin_only)
 router.include_router(dashboard_router, dependencies=admin_only)
 router.include_router(clubs_router, dependencies=admin_only)
+router.include_router(slcr_router, dependencies=admin_only)

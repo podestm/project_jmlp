@@ -81,6 +81,10 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-people me-2"></i>
               Závodníci
             </Link>
+            <Link to="/admin/slcr" className={`nav-link text-white ${isActive('/admin/slcr') ? 'active' : ''}`}>
+              <i className="bi bi-person-check me-2"></i>
+              Párování SLČR
+            </Link>
             <Link to="/admin/club-requests" className={`nav-link text-white d-flex align-items-center justify-content-between ${isActive('/admin/club-requests') ? 'active' : ''}`}>
               <span className="d-flex align-items-center">
                 <i className="bi bi-buildings me-2"></i>
