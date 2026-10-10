@@ -1,19 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
-import {
-  KIND,
-  PAIR_STATUS,
-  STATUS_TABS,
-  appliedLabels,
-  bulkConfirmable,
-  changeLabels,
-  filterPairs,
-  pairWarnings
-} from './slcrPairing.js';
+import { changeLabels, filterFilled } from './slcrPairing.js';
 
 const POLL_MS = 3000;
 
@@ -22,23 +13,19 @@ const formatDateTime = (iso) => (iso
   : '—');
 
 /**
- * Párování závodníků s evidencí Svazu lyžařů ČR.
+ * Doplnění chybějících ID závodníků z evidence Svazu lyžařů ČR.
  *
- * Návrhy načítá server z veřejných údajů evidence (výsledky akcí JMLP
- * a hledání členů). Nic se nepřepisuje samo - správce návrh potvrdí nebo
- * odmítne; "ID závodníka" v registru zůstává, jak ho závodník zadal,
- * tabulka jen ukáže, kde nesouhlasí s evidencí.
+ * Spouští se ručně, pak běží samo na serveru: závodníkovi bez ID najde člena
+ * evidence se stejným jménem (bez ohledu na diakritiku) a ročníkem (podle
+ * věku) a doplní mu ID. Nic jiného nemění. Každé doplnění jde vrátit.
  */
 export default function SlcrPairing() {
   const [summary, setSummary] = useState(null);
-  const [status, setStatus] = useState(PAIR_STATUS.suggested);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
-  const [kind, setKind] = useState('all');
-  const [scope, setScope] = useState('active');
+  const [scope, setScope] = useState('all');
   const [busy, setBusy] = useState({});
-  const [bulk, setBulk] = useState(null);
   const [message, setMessage] = useState(null);
 
   const loadSummary = useCallback(async () => {
@@ -47,10 +34,10 @@ export default function SlcrPairing() {
     return data;
   }, []);
 
-  const loadItems = useCallback(async (nextStatus) => {
+  const loadItems = useCallback(async () => {
     setLoading(true);
     try {
-      setItems(await AdminAPI.get('/api/admin/slcr/pairs', { status: nextStatus }));
+      setItems(await AdminAPI.get('/api/admin/slcr/filled'));
     } catch (err) {
       setMessage({ type: 'danger', text: err.message });
     } finally {
@@ -60,11 +47,10 @@ export default function SlcrPairing() {
 
   useEffect(() => {
     loadSummary().catch((err) => setMessage({ type: 'danger', text: err.message }));
-  }, [loadSummary]);
+    loadItems();
+  }, [loadSummary, loadItems]);
 
-  useEffect(() => { loadItems(status); }, [status, loadItems]);
-
-  // Během načítání ze SLČR sledujeme průběh; po doběhnutí obnovíme tabulku.
+  // Během běhu sledujeme průběh; po doběhnutí obnovíme seznam.
   const running = Boolean(summary?.running);
   useEffect(() => {
     if (!running) return undefined;
@@ -72,18 +58,19 @@ export default function SlcrPairing() {
       try {
         const data = await loadSummary();
         if (!data.running) {
-          loadItems(status);
-          if (data.job?.error) setMessage({ type: 'danger', text: `Načítání ze SLČR selhalo: ${data.job.error}` });
-          else setMessage({ type: 'success', text: 'Návrhy ze SLČR jsou načtené.' });
+          loadItems();
+          setMessage(data.job?.error
+            ? { type: 'danger', text: `Doplňování ID selhalo: ${data.job.error}` }
+            : { type: 'success', text: `Hotovo - doplněno ${data.counts.filled_last_run} ID.` });
         }
       } catch {
         // Další pokus za chvíli.
       }
     }, POLL_MS);
     return () => clearInterval(timer);
-  }, [running, loadSummary, loadItems, status]);
+  }, [running, loadSummary, loadItems]);
 
-  const startSync = async () => {
+  const start = async () => {
     try {
       await AdminAPI.post('/api/admin/slcr/sync', { scope });
       setMessage(null);
@@ -93,10 +80,10 @@ export default function SlcrPairing() {
     }
   };
 
-  const decide = async (item, action) => {
-    setBusy((prev) => ({ ...prev, [item.racer_id]: action }));
+  const undo = async (item) => {
+    setBusy((prev) => ({ ...prev, [item.racer_id]: true }));
     try {
-      await AdminAPI.post(`/api/admin/slcr/pairs/${item.racer_id}/${action}`, {});
+      await AdminAPI.post(`/api/admin/slcr/filled/${item.racer_id}/undo`, {});
       setItems((prev) => prev.filter((other) => other.racer_id !== item.racer_id));
       loadSummary();
     } catch (err) {
@@ -110,45 +97,7 @@ export default function SlcrPairing() {
     }
   };
 
-  const visible = useMemo(() => filterPairs(items, { query, kind }), [items, query, kind]);
-  const confirmable = useMemo(() => bulkConfirmable(visible), [visible]);
-
-  const confirmAllSure = async () => {
-    setBulk({ done: 0, total: confirmable.length });
-    let failed = 0;
-    for (const [index, item] of confirmable.entries()) {
-      try {
-        await AdminAPI.post(`/api/admin/slcr/pairs/${item.racer_id}/confirm`, {});
-      } catch {
-        failed += 1;
-      }
-      setBulk({ done: index + 1, total: confirmable.length });
-    }
-    setBulk(null);
-    setMessage(failed
-      ? { type: 'warning', text: `Potvrzeno ${confirmable.length - failed}, ${failed} se nepodařilo - zkontrolujte je jednotlivě.` }
-      : { type: 'success', text: `Potvrzeno ${confirmable.length} jasných shod.` });
-    loadItems(status);
-    loadSummary();
-  };
-
-  const applyConfirmed = async () => {
-    setBulk({ done: 0, total: summary?.counts?.pending_apply || 0 });
-    try {
-      const result = await AdminAPI.post('/api/admin/slcr/apply-confirmed', {});
-      const failed = result.failed || [];
-      setMessage(failed.length
-        ? { type: 'warning', text: `Opraveno ${result.changed} záznamů; ${failed.length} se nepodařilo: ${failed.map((f) => f.reason).join(' | ')}` }
-        : { type: 'success', text: `Opraveno ${result.changed} záznamů podle evidence.` });
-    } catch (err) {
-      setMessage({ type: 'danger', text: err.message });
-    } finally {
-      setBulk(null);
-      loadItems(status);
-      loadSummary();
-    }
-  };
-
+  const visible = useMemo(() => filterFilled(items, query), [items, query]);
   const counts = summary?.counts || {};
   const job = summary?.job;
 
@@ -156,12 +105,11 @@ export default function SlcrPairing() {
     <div className="container-fluid">
       <div className="mb-4">
         <small><Link to="/admin/racers" className="text-decoration-none"><i className="bi bi-chevron-left" /> Závodníci</Link></small>
-        <h2 className="mb-0">Párování se SLČR</h2>
+        <h2 className="mb-0">Doplnění ID ze SLČR</h2>
         <small className="text-muted">
-          Křížová kontrola registru s evidencí Svazu lyžařů ČR: komu v evidenci patří naše ID závodníka
-          a kdo v evidenci má naše jméno a ročník (ročník podle výsledků, jinak dopočtený z věku). Jména se
-          porovnávají bez ohledu na diakritiku (převezme se zápis z evidence), jinak přesně; klub se neposuzuje. Potvrzení opraví náš záznam podle evidence, „Vrátit“ to
-          vezme zpět.
+          Závodníkům, kteří u nás nemají ID závodníka, se doplní ID z evidence Svazu lyžařů ČR - když tam
+          je přesně jeden člen se stejným jménem (bez ohledu na diakritiku) a ročníkem (podle věku). Nic jiného
+          se nemění a každé doplnění jde vrátit.
         </small>
       </div>
 
@@ -178,21 +126,19 @@ export default function SlcrPairing() {
               value={scope}
               onChange={(e) => setScope(e.target.value)}
               disabled={running}
-              aria-label="Koho načíst"
+              aria-label="Koho projít"
             >
-              <option value="active">Aktivní závodníci (letos a loni)</option>
               <option value="all">Celý registr</option>
+              <option value="active">Jen aktivní (letos a loni)</option>
             </select>
-            <button className="btn btn-sm btn-primary" onClick={startSync} disabled={running || !summary}>
+            <button className="btn btn-sm btn-primary" onClick={start} disabled={running || !summary}>
               {running ? <ButtonSpinner /> : <i className="bi bi-cloud-download me-1" />}
-              Načíst návrhy ze SLČR
+              Doplnit chybějící ID
             </button>
           </div>
           {running && job ? (
             <div className="flex-grow-1" style={{ minWidth: '200px' }}>
-              <div className="small text-muted mb-1">
-                Načítám z evidence SLČR… {job.done} z {job.total || '?'} závodníků
-              </div>
+              <div className="small text-muted mb-1">Hledám v evidenci SLČR… {job.done} z {job.total || '?'} závodníků bez ID</div>
               <div className="progress" style={{ height: '6px' }}>
                 <div className="progress-bar" style={{ width: `${job.total ? (job.done / job.total) * 100 : 5}%` }} />
               </div>
@@ -200,188 +146,70 @@ export default function SlcrPairing() {
           ) : (
             <small className="text-muted">
               {job
-                ? <>Naposledy načteno {formatDateTime(job.finished_at || job.started_at)}{job.error && <span className="text-danger"> – chyba: {job.error}</span>}</>
-                : 'Zatím nenačteno. Načtení trvá několik minut.'}
+                ? <>Naposledy {formatDateTime(job.finished_at || job.started_at)}, doplněno {counts.filled_last_run ?? 0} ID{job.error && <span className="text-danger"> – chyba: {job.error}</span>}.</>
+                : 'Zatím nespuštěno. Běh trvá několik minut.'}
+              {' '}ID nemá {counts.missing ?? '?'} závodníků v registru.
             </small>
           )}
         </div>
       </div>
 
-      {counts.pending_apply > 0 && (
-        <div className="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
-          <span>
-            U {counts.pending_apply} potvrzených závodníků se ještě nepřevzaly údaje z evidence
-            (potvrzeno dřív, než potvrzení začalo opravovat záznam).
-          </span>
-          <button className="btn btn-sm btn-primary" onClick={applyConfirmed} disabled={bulk != null}>
-            {bulk ? <ButtonSpinner /> : <i className="bi bi-pencil-square me-1" />}
-            Převzít z evidence
-          </button>
-        </div>
-      )}
-
-      <ul className="nav nav-tabs mb-3">
-        {STATUS_TABS.map((tab) => (
-          <li className="nav-item" key={tab.status}>
-            <button
-              className={`nav-link ${status === tab.status ? 'active' : ''}`}
-              onClick={() => setStatus(tab.status)}
-            >
-              {tab.label} <span className="badge bg-secondary ms-1">{counts[tab.status] ?? 0}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="row g-2 mb-3 align-items-center">
-        <div className="col-md-5">
-          <input
-            type="search"
-            className="form-control"
-            placeholder="Hledat jméno nebo ID…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        {status === PAIR_STATUS.suggested && (
-          <>
-            <div className="col-md-3">
-              <select className="form-select" value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Výsledek kontroly">
-                <option value="all">Všechny výsledky kontroly</option>
-                {Object.entries(KIND).map(([value, { label }]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-4 text-md-end">
-              <button
-                className="btn btn-outline-success"
-                onClick={confirmAllSure}
-                disabled={confirmable.length === 0 || bulk != null}
-                title="Jen „Sedí“, „Doplnit ID“ a „Opravit ID“ bez upozornění a bez změny ročníku"
-              >
-                {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><i className="bi bi-check2-all me-1" />Potvrdit jasné ({confirmable.length})</>}
-              </button>
-            </div>
-          </>
-        )}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h5 className="mb-0">Doplněná ID <span className="badge bg-secondary">{items.length}</span></h5>
+        <input
+          type="search"
+          className="form-control"
+          style={{ maxWidth: '360px' }}
+          placeholder="Hledat jméno nebo ID…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
 
       {loading && items.length === 0 ? (
-        <LoadingState variant="page" label="Načítám párování…" />
+        <LoadingState variant="page" label="Načítám…" />
       ) : visible.length === 0 ? (
-        <EmptyState
-          icon="bi-person-check"
-          title={items.length === 0 ? 'Tady zatím nikdo není' : 'Nikdo neodpovídá hledání'}
-          hint={items.length === 0 && !job ? 'Začněte tlačítkem „Načíst návrhy ze SLČR“.' : undefined}
-        />
+        <EmptyState icon="bi-person-check" title={items.length === 0 ? 'Zatím nic doplněno' : 'Nikdo neodpovídá hledání'} />
       ) : (
         <div className="table-responsive">
           <table className="table table-hover align-middle">
             <thead>
               <tr>
-                <th>Závodník u nás</th>
-                <th>Evidence SLČR</th>
-                <th>Shoda</th>
+                <th>Závodník</th>
+                <th>Člen SLČR</th>
+                <th>Změna</th>
+                <th>Kdy</th>
                 <th className="text-end">Akce</th>
               </tr>
             </thead>
             <tbody>
               {visible.map((item) => (
-                <PairRow key={item.racer_id} item={item} busy={busy[item.racer_id]} onDecide={decide} />
+                <tr key={item.racer_id}>
+                  <td>
+                    <div className="fw-semibold">{item.racer.surname} {item.racer.name}</div>
+                    <small className="text-muted">{item.racer.year}</small>
+                  </td>
+                  <td>
+                    {item.slcr ? (
+                      <a href={item.slcr.url} target="_blank" rel="noopener noreferrer">
+                        {item.slcr.surname} {item.slcr.name} <i className="bi bi-box-arrow-up-right small" />
+                      </a>
+                    ) : '—'}
+                  </td>
+                  <td><small>{changeLabels(item).join(', ') || '—'}</small></td>
+                  <td><small className="text-muted">{formatDateTime(item.applied_at)}</small></td>
+                  <td className="text-end">
+                    <button className="btn btn-sm btn-outline-secondary" onClick={() => undo(item)} disabled={Boolean(busy[item.racer_id])}>
+                      {busy[item.racer_id] ? <ButtonSpinner /> : <i className="bi bi-arrow-counterclockwise me-1" />}
+                      Vrátit
+                    </button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
     </div>
-  );
-}
-
-function PairRow({ item, busy, onDecide }) {
-  const { racer, slcr } = item;
-  const kindInfo = KIND[item.kind];
-  const warnings = pairWarnings(item);
-  const button = (action, label, className, icon) => (
-    <button
-      className={`btn btn-sm ${className} ms-1`}
-      onClick={() => onDecide(item, action)}
-      disabled={Boolean(busy)}
-    >
-      {busy === action ? <ButtonSpinner /> : <i className={`bi ${icon} me-1`} />}
-      {label}
-    </button>
-  );
-
-  return (
-    <tr>
-      <td>
-        <div className="fw-semibold">{racer.surname} {racer.name}</div>
-        <small className="text-muted">
-          {racer.year} · {racer.club || 'bez klubu'} · ID {racer.slcr_id || '—'}
-        </small>
-      </td>
-      <td>
-        {slcr ? (
-          <>
-            <a href={slcr.url} target="_blank" rel="noopener noreferrer" className="fw-semibold">
-              {slcr.surname} {slcr.name} <i className="bi bi-box-arrow-up-right small" />
-            </a>
-            <div>
-              <small className="text-muted">
-                {slcr.year || 'ročník neuveden'} · číslo {slcr.race_code || '—'}
-              </small>
-            </div>
-            {item.alternatives?.length > 0 && (
-              <small className="text-muted d-block">
-                Další kandidáti:{' '}
-                {item.alternatives.map((alt, index) => (
-                  <React.Fragment key={alt.member_id || index}>
-                    {index > 0 && ', '}
-                    <a href={alt.url} target="_blank" rel="noopener noreferrer">{alt.surname} {alt.name}{alt.race_code ? ` (${alt.race_code})` : ''}</a>
-                  </React.Fragment>
-                ))}
-              </small>
-            )}
-          </>
-        ) : (
-          <span className="text-muted">Nenalezen</span>
-        )}
-      </td>
-      <td style={{ maxWidth: '320px' }}>
-        {kindInfo && <span className={`badge ${kindInfo.className} me-1`}>{kindInfo.label}</span>}
-        {item.note && <small className="text-muted">{item.note}</small>}
-        {changeLabels(item).length > 0 && (
-          <div className="small mt-1">
-            <i className="bi bi-pencil-square me-1 text-primary" />
-            {item.status === PAIR_STATUS.confirmed ? 'K převzetí z evidence: ' : 'Potvrzení u nás změní: '}
-            <span className="fw-semibold">{changeLabels(item).join(', ')}</span>
-          </div>
-        )}
-        {appliedLabels(item).length > 0 && (
-          <div className="small text-muted mt-1">
-            <i className="bi bi-check2 me-1" />Převzato z evidence ({appliedLabels(item).join(', ')})
-          </div>
-        )}
-        {warnings.map((warning) => (
-          <div key={warning.key}>
-            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1 text-wrap text-start">
-              <i className="bi bi-exclamation-triangle me-1" />{warning.text}
-            </span>
-          </div>
-        ))}
-      </td>
-      <td className="text-end text-nowrap">
-        {item.status === PAIR_STATUS.suggested && (
-          <>
-            {button('confirm', 'Potvrdit', 'btn-success', 'bi-check-lg')}
-            {button('reject', 'Odmítnout', 'btn-outline-danger', 'bi-x-lg')}
-          </>
-        )}
-        {(item.status === PAIR_STATUS.confirmed || item.status === PAIR_STATUS.rejected) && (
-          button('undo', 'Vrátit', 'btn-outline-secondary', 'bi-arrow-counterclockwise')
-        )}
-      </td>
-    </tr>
   );
 }

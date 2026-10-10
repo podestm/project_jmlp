@@ -1,23 +1,18 @@
-"""Křížová kontrola závodníků s evidencí Svazu lyžařů ČR (evidence.czech-ski.com).
+"""Doplnění chybějícího ID závodníka z evidence Svazu lyžařů ČR (evidence.czech-ski.com).
 
-Evidence nemá zveřejněné API ani dokumentaci. Její web ale běží nad GraphQL
-(https://evidence.czech-ski.com/graphql), schéma se dá zjistit introspekcí
-a veřejné údaje se dají číst bez přihlášení. Je to interní API jejich webu
-a může se změnit bez ohlášení.
+Jediná kontrola: závodníkovi, který u nás nemá ID závodníka (české číslo
+závodníka v SLČR), se najde člen evidence se stejným jménem a ročníkem
+a doplní se jeho ID. Nic jiného se nemění.
 
-Párování je jen křížová kontrola dvou klíčů, bez odhadování podobnosti:
- 1. ID závodníka (české číslo závodníka v SLČR): komu v evidenci patří a sedí
-    k němu naše jméno a ročník?
- 2. Jméno + ročník (podle nich SLČR páruje nahrané výsledky): kdo je to
-    v evidenci a sedí jeho ID s naším?
-Jména se porovnávají bez ohledu na diakritiku a velikost písmen (zápis se
-pak převezme z evidence), jinak přesně - žádné odhady podobnosti. Ročník bere
-evidence z výsledků akcí JMLP, jinak se dopočítá z věku (ten je veřejný,
-ročník ne). Klub se neposuzuje.
+ - Jméno: příjmení i křestní jméno se shodují bez ohledu na diakritiku
+   a velikost písmen (Bajkova = Bajková, Ema ≠ Emma).
+ - Ročník: z výsledků akcí JMLP zveřejněných v evidenci, jinak dopočtený
+   z věku - ročník evidence veřejně neuvádí, věk ano.
+ - Doplní se jen jednoznačná shoda: přesně jeden takový člen a má ID.
 
-Kde člena v evidenci hledáme: výsledky akcí JMLP zveřejněné v evidenci
-(mají člena, ID i ročník) a členové se stejným příjmením. Podle ID samotného
-evidence hledat neumí.
+Evidence nemá zveřejněné API; její web běží nad GraphQL
+(https://evidence.czech-ski.com/graphql), veřejné údaje se čtou bez
+přihlášení. Je to interní API jejich webu a může se změnit bez ohlášení.
 """
 from __future__ import annotations
 
@@ -25,9 +20,9 @@ import logging
 import re
 import time
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
-from typing import Callable, Iterable, Optional
+from typing import Callable, Optional
 
 import httpx
 
@@ -46,20 +41,6 @@ EVENT_SEARCH_TERMS = ("JMLP", "Jihomoravský lyžařský pohár")
 # Ohleduplnost k cizímu serveru: mezi dotazy krátká pauza.
 REQUEST_PAUSE_SECONDS = 0.2
 
-# Výsledky křížové kontroly.
-KIND_OK = "ok"                    # ID i jméno s ročníkem ukazují na stejného člena
-KIND_FILL_ID = "fill_id"          # ID nemáme, jméno a ročník najdou člena s ID
-KIND_FIX_ID = "fix_id"            # jméno a ročník najdou člena s jiným ID; naše ID v evidenci nikomu nepatří
-KIND_OTHER_ID = "other_id"        # jméno a ročník najdou člena s jiným ID; naše ID patří v evidenci někomu jinému
-KIND_ID_MISMATCH = "id_mismatch"  # naše ID patří členovi s jiným jménem nebo ročníkem
-KIND_ID_UNKNOWN = "id_unknown"    # naše ID v evidenci nenajdu a jméno s ročníkem také ne
-KIND_AMBIGUOUS = "ambiguous"      # víc členů se stejným jménem i ročníkem
-KIND_NOT_FOUND = "not_found"      # bez ID a nikdo nesedí - nečlen SLČR
-
-# Co jde potvrdit bez přemýšlení: sedí, doplní se ID, nebo se opraví ID,
-# které v evidenci nikomu nepatří (domluveno s provozem 10. 10. 2026).
-CLEAR_KINDS = (KIND_OK, KIND_FILL_ID, KIND_FIX_ID)
-
 
 class SlcrError(Exception):
     """Evidence neodpověděla nebo odpověděla chybou."""
@@ -76,11 +57,7 @@ def fold(value: Optional[str]) -> str:
 
 
 def same_text(ours: Optional[str], theirs: Optional[str]) -> bool:
-    """Shoda jména: stejné písmena, diakritika a velikost písmen nerozhodují.
-
-    Bajkova = Bajková, OTIPKOVÁ = Otipková. Při potvrzení se pak převezme
-    zápis z evidence. Jiná písmena (Ema/Emma) shoda nejsou.
-    """
+    """Shoda jména bez ohledu na diakritiku a velikost písmen."""
     a = fold(ours)
     return bool(a) and a == fold(theirs)
 
@@ -88,8 +65,8 @@ def same_text(ours: Optional[str], theirs: Optional[str]) -> bool:
 def year_fits_age(year: Optional[int], age: Optional[int], today: Optional[date] = None) -> Optional[bool]:
     """Sedí ročník na věk z evidence? None = nedá se říct.
 
-    Evidence ročník veřejně neuvádí, věk ano. Kdo je dnes X let, narodil se
-    v roce (letos - X) nebo o rok dřív, podle toho, jestli už měl narozeniny.
+    Kdo je dnes X let, narodil se v roce (letos - X) nebo o rok dřív, podle
+    toho, jestli už měl narozeniny.
     """
     if year is None or age is None:
         return None
@@ -108,7 +85,7 @@ def race_code_of(slcr_id: Optional[str]) -> Optional[int]:
 # --------------------------------------------------------------------------
 @dataclass
 class SlcrPerson:
-    """Člověk, jak ho zná evidence - z výsledků nebo z karty člena."""
+    """Člen evidence - z výsledků JMLP nebo z karty člena."""
     member_id: Optional[int]
     surname: str
     name: str
@@ -116,23 +93,13 @@ class SlcrPerson:
     race_code: Optional[int] = None
     club: Optional[str] = None
     slug: Optional[str] = None
-    alpine: bool = True
-    source_event: Optional[str] = None
     # Věk podle evidence (veřejný, na rozdíl od ročníku) - viz year_fits_age.
     age: Optional[int] = None
 
-    def fits_year(self, year: Optional[int]) -> Optional[bool]:
+    def fits_year(self, year: Optional[int]) -> bool:
         if self.year is not None and year is not None:
             return self.year == year
-        return year_fits_age(year, self.age)
-
-    def year_label(self) -> Optional[str]:
-        if self.year is not None:
-            return str(self.year)
-        if self.age is not None:
-            this_year = date.today().year
-            return f"{this_year - self.age - 1}/{this_year - self.age}"
-        return None
+        return bool(year_fits_age(year, self.age))
 
 
 @dataclass
@@ -144,101 +111,33 @@ class RacerToPair:
     slcr_id: Optional[str] = None
 
 
-@dataclass
-class Proposal:
-    """Výsledek křížové kontroly jednoho našeho závodníka."""
-    person: Optional[SlcrPerson]
-    kind: str
-    note: str = ""
-    alternatives: list = field(default_factory=list)
-
-
-# --------------------------------------------------------------------------
-# Křížová kontrola (čistá logika, bez sítě)
-# --------------------------------------------------------------------------
-def _distinct(people: Iterable[SlcrPerson]) -> list[SlcrPerson]:
-    """Jeden záznam na člena; přednost má ten s ročníkem a ID (z výsledků)."""
-    seen: dict = {}
-    for person in people:
-        if person.member_id is None:
-            continue
-        current = seen.get(person.member_id)
-        if current is None:
-            seen[person.member_id] = person
-            continue
-        if current.year is None and person.year is not None:
-            current.year = person.year
-        if current.race_code is None and person.race_code is not None:
-            current.race_code = person.race_code
-        if current.age is None and person.age is not None:
-            current.age = person.age
-    return list(seen.values())
-
-
-def _who(person: SlcrPerson) -> str:
-    year = person.year_label()
-    return f"{person.surname} {person.name}" + (f" ({year})" if year else "")
-
-
-def cross_check(
+def find_member(
     racer: RacerToPair,
     results: list[SlcrPerson],
     search: Callable[[str], list[SlcrPerson]],
-) -> Proposal:
-    """Křížová kontrola: naše ID proti evidenci a naše jméno + ročník proti evidenci.
+) -> Optional[SlcrPerson]:
+    """Jediný člen evidence se stejným jménem a ročníkem, který má ID; jinak None.
 
-    `results` jsou závodníci z výsledků akcí JMLP v evidenci (mají člena, ID
-    i ročník). `search(příjmení)` vrátí členy evidence se stejným příjmením
-    i s jejich ID a věkem - stojí síťové dotazy.
+    `results` jsou závodníci z výsledků akcí JMLP v evidenci (mají ID
+    i ročník), `search(příjmení)` vrátí členy se stejným příjmením i s ID
+    a věkem (stojí síťové dotazy, volá se, jen když výsledky nestačí).
     """
-    code = race_code_of(racer.slcr_id)
-    same_surname = [p for p in results if same_text(racer.surname, p.surname)]
-    if not same_surname or code is not None and not any(p.race_code == code for p in same_surname):
-        same_surname = same_surname + search(racer.surname)
-    people = _distinct(same_surname)
+    def matching(people):
+        found = {}
+        for p in people:
+            if p.member_id and same_text(racer.surname, p.surname) and same_text(racer.name, p.name) \
+                    and p.fits_year(racer.year):
+                found.setdefault(p.member_id, p)
+                if found[p.member_id].race_code is None:
+                    found[p.member_id].race_code = p.race_code
+        return list(found.values())
 
-    # 1) Komu patří naše ID.
-    by_code = next((p for p in people if code is not None and p.race_code == code), None)
-    # 2) Kdo má naše jméno a ročník.
-    by_name = [
-        p for p in people
-        if same_text(racer.surname, p.surname) and same_text(racer.name, p.name) and p.fits_year(racer.year)
-    ]
-
-    if by_code is not None:
-        name_ok = same_text(racer.surname, by_code.surname) and same_text(racer.name, by_code.name)
-        year_ok = by_code.fits_year(racer.year)
-        if name_ok and year_ok:
-            return Proposal(by_code, KIND_OK, "ID, jméno i ročník sedí")
-        if year_ok is None and name_ok:
-            return Proposal(by_code, KIND_OK, "ID a jméno sedí, ročník evidence neuvádí")
-        if len(by_name) == 1 and by_name[0].member_id != by_code.member_id:
-            other = by_name[0]
-            return Proposal(other, KIND_OTHER_ID,
-                            f"naše ID {code} patří v evidenci členovi {_who(by_code)}; "
-                            f"člen se stejným jménem a ročníkem má ID {other.race_code or '–'}",
-                            alternatives=[by_code])
-        what = "jméno" if not name_ok and year_ok else ("ročník" if name_ok else "jméno a ročník")
-        return Proposal(by_code, KIND_ID_MISMATCH, f"naše ID patří v evidenci členovi {_who(by_code)} - nesedí {what}")
-
-    if len(by_name) > 1:
-        return Proposal(by_name[0], KIND_AMBIGUOUS,
-                        f"v evidenci je {len(by_name)} členů se stejným jménem a ročníkem",
-                        alternatives=by_name[1:])
-    if len(by_name) == 1:
-        person = by_name[0]
-        if code is None:
-            if person.race_code is None:
-                return Proposal(person, KIND_OK, "jméno a ročník sedí, člen nemá ID závodníka")
-            return Proposal(person, KIND_FILL_ID, "jméno a ročník sedí, u nás chybí ID")
-        # Naše ID v evidenci nikomu nepatří (jinak by se našlo výše) -
-        # přebíráme ID z evidence.
-        return Proposal(person, KIND_FIX_ID,
-                        f"jméno a ročník sedí, v evidenci má ID {person.race_code or '–'}; naše {code} se v evidenci nenašlo")
-
-    if code is not None:
-        return Proposal(None, KIND_ID_UNKNOWN, f"ID {code} v evidenci nenalezeno a jméno s ročníkem také ne")
-    return Proposal(None, KIND_NOT_FOUND, "v evidenci SLČR nenalezen")
+    candidates = matching(results)
+    if not candidates:
+        candidates = matching(search(racer.surname))
+    if len(candidates) == 1 and candidates[0].race_code:
+        return candidates[0]
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -354,7 +253,6 @@ class SlcrClient:
             for row in data["result"]:
                 if not same_text(surname, row.get("surname")):
                     continue
-                labels = {d.get("label") for d in row.get("departments") or []}
                 people.append(SlcrPerson(
                     member_id=row["id"],
                     slug=row.get("slug"),
@@ -362,7 +260,6 @@ class SlcrClient:
                     name=row.get("name") or "",
                     year=row.get("birthYear"),
                     club=row.get("mainClub"),
-                    alpine=DEPARTMENT_ALPINE_LABEL in labels,
                 ))
             page += 1
             if len(data["result"]) < 100 or page * 100 >= data["count"]:

@@ -281,7 +281,7 @@ export default function RacerManagement() {
               {/* Podagenda Závodníků - v bočním menu záměrně není. */}
               <Link to="/admin/racers/slcr" className="btn btn-outline-primary">
                 <i className="bi bi-person-check me-2"></i>
-                Párování SLČR
+                Doplnit ID ze SLČR
               </Link>
               <button
                 onClick={() => {

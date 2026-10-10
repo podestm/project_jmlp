@@ -1,91 +1,27 @@
 /**
- * Pomůcky obrazovky Párování se SLČR (SlcrPairing.jsx) - bez Reactu, ať jdou
+ * Pomůcky obrazovky Doplnění ID ze SLČR (SlcrPairing.jsx) - bez Reactu, ať jdou
  * otestovat samostatně.
  */
 
-export const PAIR_STATUS = {
-  suggested: 'suggested',
-  confirmed: 'confirmed',
-  rejected: 'rejected',
-  notFound: 'not_found'
-};
-
-export const STATUS_TABS = [
-  { status: PAIR_STATUS.suggested, label: 'K potvrzení' },
-  { status: PAIR_STATUS.confirmed, label: 'Spárovaní' },
-  { status: PAIR_STATUS.notFound, label: 'Nenalezení' },
-  { status: PAIR_STATUS.rejected, label: 'Odmítnutí' }
-];
-
-/**
- * Výsledek křížové kontroly s evidencí SLČR: naše ID proti evidenci a naše
- * jméno + ročník proti evidenci (viz backend services/slcr.py).
- */
-export const KIND = {
-  ok: { label: 'Sedí', className: 'bg-success' },
-  fill_id: { label: 'Doplnit ID', className: 'bg-success' },
-  fix_id: { label: 'Opravit ID', className: 'bg-success' },
-  other_id: { label: 'Jiné ID', className: 'bg-warning text-dark' },
-  id_mismatch: { label: 'Nesedí jméno / ročník', className: 'bg-warning text-dark' },
-  ambiguous: { label: 'Víc shod', className: 'bg-danger' },
-  id_unknown: { label: 'ID neznámé', className: 'bg-secondary' },
-  not_found: { label: 'Nenalezen', className: 'bg-secondary' }
-};
-
-/** Jasné výsledky, které jde potvrdit hromadně. */
-export const CLEAR_KINDS = ['ok', 'fill_id', 'fix_id'];
-
-/** Upozornění k návrhu, jak je ukazuje tabulka. */
-export function pairWarnings(item) {
-  const flags = item.flags || {};
-  const warnings = [];
-  if (flags.shared_member) warnings.push({ key: 'shared', text: 'Stejný člen i u jiného závodníka - duplicita?' });
-  return warnings;
-}
-
 const show = (value) => (value == null || value === '' ? '–' : String(value));
 
-/**
- * Co potvrzení změní v našem záznamu (evidence SLČR je zdroj pravdy pro
- * jméno, příjmení, ročník a ID závodníka), např. "jméno Ema → Emma".
- */
+/** Co se u závodníka změnilo, např. "ID závodníka – → 890521". */
 export function changeLabels(item) {
   return (item.changes || []).map((change) => `${change.label} ${show(change.old)} → ${show(change.new)}`);
 }
 
-/** Co se při potvrzení už převzalo (u potvrzených): "ročník byl 2016". */
-export function appliedLabels(item) {
-  return (item.applied || []).map((change) => `${change.label} bylo ${show(change.old)}`);
-}
-
 const fold = (value) => String(value || '')
-  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** Hledání v tabulce: jméno u nás i v evidenci, ID. */
-export function filterPairs(items, { query = '', kind = 'all' } = {}) {
+/** Hledání v seznamu: jméno u nás i v evidenci, ID. */
+export function filterFilled(items, query = '') {
   const words = fold(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return items;
   return items.filter((item) => {
-    if (kind !== 'all' && item.kind !== kind) return false;
-    if (words.length === 0) return true;
     const haystack = fold([
       item.racer.surname, item.racer.name, item.racer.year, item.racer.slcr_id,
       item.slcr?.surname, item.slcr?.name, item.slcr?.race_code
     ].join(' '));
     return words.every((word) => haystack.includes(word));
   });
-}
-
-/**
- * Návrhy, které jde potvrdit hromadně: sedí, nebo se jen doplní ID - bez
- * upozornění a bez změny ročníku. Ostatní má správce projít jednotlivě.
- */
-export function bulkConfirmable(items) {
-  return items.filter((item) => (
-    item.status === PAIR_STATUS.suggested
-    && CLEAR_KINDS.includes(item.kind)
-    && item.slcr
-    && pairWarnings(item).length === 0
-    // Změna ročníku přesune závodníka do jiné kategorie - jednotlivě.
-    && !(item.changes || []).some((change) => change.field === 'year')
-  ));
 }

@@ -1,7 +1,7 @@
-"""Párování závodníků s evidencí SLČR - přehled, načtení návrhů, rozhodnutí.
+"""Doplnění chybějících ID závodníků z evidence SLČR.
 
-Viz services/slcr.py (čtení evidence a párovací pravidla) a
-services/slcr_sync.py (ukládání návrhů a rozhodnutí správce).
+Spouští se ručně, pak běží sám na pozadí (services/slcr_sync.py). Přehled
+ukazuje doplněná ID; každé jde vrátit.
 """
 from typing import Optional
 
@@ -39,24 +39,21 @@ def summary(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
-    """Počty podle stavu a poslední (případně běžící) načítání."""
-    running = slcr_sync.running_job(db)
+    """Kolik ID je doplněných, kolik závodníků ID nemá a poslední (běžící) běh."""
+    job = slcr_sync.last_job(db)
     return {
-        "counts": slcr_sync.counts(db),
-        "running": running is not None,
-        "job": _job(slcr_sync.last_job(db)),
+        "counts": slcr_sync.counts(db, job),
+        "running": slcr_sync.running_job(db) is not None,
+        "job": _job(job),
     }
 
 
-@router.get("/pairs")
-def pairs(
-    status: Optional[str] = None,
+@router.get("/filled")
+def filled(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
-    if status and status not in slcr_sync.STATUSES:
-        raise HTTPException(status_code=400, detail="Neznámý stav")
-    return slcr_sync.list_pairs(db, status)
+    return slcr_sync.list_filled(db)
 
 
 @router.post("/sync", status_code=202)
@@ -66,57 +63,26 @@ def start_sync(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
-    """Spustí načtení návrhů ze SLČR na pozadí."""
+    """Spustí doplnění chybějících ID ze SLČR na pozadí."""
     if payload.scope not in slcr_sync.SCOPES:
         raise HTTPException(status_code=400, detail="Neznámý rozsah")
     try:
         job_id = slcr_sync.start_job(db, payload.scope, current_admin.id)
     except slcr_sync.SyncRunning:
-        raise HTTPException(status_code=409, detail="Načítání ze SLČR už běží")
+        raise HTTPException(status_code=409, detail="Doplňování ID ze SLČR už běží")
     background.add_task(slcr_sync.run_job, job_id, payload.scope, SessionLocal)
     return {"job_id": job_id}
 
 
-def _decision(action, racer_id: int, db: Session, *args):
-    try:
-        changes = action(db, racer_id, *args)
-    except slcr_sync.PairingError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=str(exc))
-    return {"ok": True, "changes": changes or []}
-
-
-@router.post("/apply-confirmed")
-def apply_confirmed(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db),
-):
-    """Převezme údaje z evidence u závodníků potvrzených dřív, než to potvrzení dělalo."""
-    return slcr_sync.apply_confirmed(db)
-
-
-@router.post("/pairs/{racer_id}/confirm")
-def confirm(
-    racer_id: int,
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db),
-):
-    """Potvrdí párování a opraví náš záznam podle evidence (jméno, příjmení, ročník, ID)."""
-    return _decision(slcr_sync.confirm, racer_id, db, current_admin.id)
-
-
-@router.post("/pairs/{racer_id}/reject")
-def reject(
-    racer_id: int,
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db),
-):
-    return _decision(slcr_sync.reject, racer_id, db, current_admin.id)
-
-
-@router.post("/pairs/{racer_id}/undo")
+@router.post("/filled/{racer_id}/undo")
 def undo(
     racer_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
-    return _decision(slcr_sync.undo, racer_id, db)
+    """Vrátí doplněné ID; při dalším běhu se už nedoplní."""
+    try:
+        slcr_sync.undo(db, racer_id)
+    except slcr_sync.PairingError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc))
+    return {"ok": True}
