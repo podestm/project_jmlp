@@ -41,6 +41,7 @@ export default function AdminRoutes() {
         <Route path="/" element={protect(<AdminDashboard />)} />
         <Route path="/races" element={protect(<RaceManagement />)} />
         <Route path="/racers" element={protect(<RacerManagement />)} />
+        <Route path="/racers/slcr" element={protect(<SlcrPairing />)} />
         <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
         <Route path="/documents" element={protect(<DocumentLibrary />)} />
         <Route path="/posts" element={protect(<PostManagement />)} />
@@ -48,7 +49,6 @@ export default function AdminRoutes() {
         <Route path="/seasons" element={protect(<SeasonManagement />)} />
         <Route path="/clubs" element={protect(<ClubManagement />)} />
         <Route path="/club-requests" element={protect(<ClubRequests />)} />
-        <Route path="/slcr" element={protect(<SlcrPairing />)} />
         <Route path="/register" element={protect(<AdminRegister />)} />
       </Routes>
     </AuthProvider>

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -135,6 +136,7 @@ export default function SlcrPairing() {
   return (
     <div className="container-fluid">
       <div className="mb-4">
+        <small><Link to="/admin/racers" className="text-decoration-none"><i className="bi bi-chevron-left" /> Závodníci</Link></small>
         <h2 className="mb-0">Párování se SLČR</h2>
         <small className="text-muted">
           Závodníci z registru spárovaní s členy evidence Svazu lyžařů ČR. Návrhy vycházejí z výsledků
