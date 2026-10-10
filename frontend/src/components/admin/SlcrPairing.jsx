@@ -160,7 +160,7 @@ export default function SlcrPairing() {
         <small className="text-muted">
           Křížová kontrola registru s evidencí Svazu lyžařů ČR: komu v evidenci patří naše ID závodníka
           a kdo v evidenci má naše jméno a ročník (ročník podle výsledků, jinak dopočtený z věku). Jména se
-          porovnávají přesně, klub se neposuzuje. Potvrzení opraví náš záznam podle evidence, „Vrátit“ to
+          porovnávají bez ohledu na diakritiku (převezme se zápis z evidence), jinak přesně; klub se neposuzuje. Potvrzení opraví náš záznam podle evidence, „Vrátit“ to
           vezme zpět.
         </small>
       </div>
@@ -258,7 +258,7 @@ export default function SlcrPairing() {
                 className="btn btn-outline-success"
                 onClick={confirmAllSure}
                 disabled={confirmable.length === 0 || bulk != null}
-                title="Jen „Sedí“ a „Doplnit ID“ bez upozornění a bez změny ročníku"
+                title="Jen „Sedí“, „Doplnit ID“ a „Opravit ID“ bez upozornění a bez změny ročníku"
               >
                 {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><i className="bi bi-check2-all me-1" />Potvrdit jasné ({confirmable.length})</>}
               </button>

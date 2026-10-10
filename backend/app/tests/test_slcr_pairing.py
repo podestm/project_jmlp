@@ -58,11 +58,27 @@ def test_chybi_id_jmeno_a_rocnik_najdou_clena():
     assert (result.kind, result.person.race_code) == (slcr.KIND_FILL_ID, 706829)
 
 
-def test_jmeno_a_rocnik_sedi_ale_id_je_jine():
+def test_nase_id_v_evidenci_neni_prebira_se_id_z_evidence():
     member = _person(5, "Pola", "Jonáš", None, 777512, age=THIS_YEAR - 2004)
     result = _check("Pola", "Jonáš", 2004, "775512", members=[member])
-    assert result.kind == slcr.KIND_OTHER_ID
+    assert result.kind == slcr.KIND_FIX_ID and result.kind in slcr.CLEAR_KINDS
     assert "777512" in result.note and "775512" in result.note
+
+
+def test_nase_id_patri_nekomu_jinemu_je_k_rozhodnuti():
+    """Jméno a ročník najdou člena s jiným ID a naše ID patří jinému člověku."""
+    me = _person(1, "Šibal", "Marek", None, 778290, age=THIS_YEAR - 1989)
+    other = _person(2, "Šibal", "Marek", None, 701000, age=THIS_YEAR - 2005)
+    result = _check("Šibal", "Marek", 2005, "778290", members=[me, other])
+    assert (result.kind, result.person.member_id) == (slcr.KIND_OTHER_ID, 2)
+    assert result.kind not in slcr.CLEAR_KINDS
+
+
+def test_diakritika_nerozhoduje_prevezme_se_zapis_z_evidence():
+    result = _check("Bajkova", "Laura", 2014, "887206", results=[_person(3, "Bajková", "Laura", 2014, 887206)])
+    assert result.kind == slcr.KIND_OK
+    assert _check("Siska", "Martin", 2015, members=[
+        _person(4, "Šiška", "Martin", None, 773450, age=THIS_YEAR - 2015)]).kind == slcr.KIND_FILL_ID
 
 
 def test_nase_id_patri_jinemu_jmenu():

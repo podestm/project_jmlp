@@ -10,7 +10,8 @@ Párování je jen křížová kontrola dvou klíčů, bez odhadování podobnos
     k němu naše jméno a ročník?
  2. Jméno + ročník (podle nich SLČR páruje nahrané výsledky): kdo je to
     v evidenci a sedí jeho ID s naším?
-Jména se porovnávají přesně, jen bez ohledu na velikost písmen. Ročník bere
+Jména se porovnávají bez ohledu na diakritiku a velikost písmen (zápis se
+pak převezme z evidence), jinak přesně - žádné odhady podobnosti. Ročník bere
 evidence z výsledků akcí JMLP, jinak se dopočítá z věku (ten je veřejný,
 ročník ne). Klub se neposuzuje.
 
@@ -23,6 +24,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Callable, Iterable, Optional
@@ -47,14 +49,16 @@ REQUEST_PAUSE_SECONDS = 0.2
 # Výsledky křížové kontroly.
 KIND_OK = "ok"                    # ID i jméno s ročníkem ukazují na stejného člena
 KIND_FILL_ID = "fill_id"          # ID nemáme, jméno a ročník najdou člena s ID
-KIND_OTHER_ID = "other_id"        # jméno a ročník najdou člena s jiným ID než naše
+KIND_FIX_ID = "fix_id"            # jméno a ročník najdou člena s jiným ID; naše ID v evidenci nikomu nepatří
+KIND_OTHER_ID = "other_id"        # jméno a ročník najdou člena s jiným ID; naše ID patří v evidenci někomu jinému
 KIND_ID_MISMATCH = "id_mismatch"  # naše ID patří členovi s jiným jménem nebo ročníkem
 KIND_ID_UNKNOWN = "id_unknown"    # naše ID v evidenci nenajdu a jméno s ročníkem také ne
 KIND_AMBIGUOUS = "ambiguous"      # víc členů se stejným jménem i ročníkem
 KIND_NOT_FOUND = "not_found"      # bez ID a nikdo nesedí - nečlen SLČR
 
-# Co jde potvrdit bez přemýšlení: nic se nemění, nebo se jen doplní ID.
-CLEAR_KINDS = (KIND_OK, KIND_FILL_ID)
+# Co jde potvrdit bez přemýšlení: sedí, doplní se ID, nebo se opraví ID,
+# které v evidenci nikomu nepatří (domluveno s provozem 10. 10. 2026).
+CLEAR_KINDS = (KIND_OK, KIND_FILL_ID, KIND_FIX_ID)
 
 
 class SlcrError(Exception):
@@ -64,11 +68,21 @@ class SlcrError(Exception):
 # --------------------------------------------------------------------------
 # Porovnávání
 # --------------------------------------------------------------------------
+def fold(value: Optional[str]) -> str:
+    """Jméno bez diakritiky, malými písmeny, s jednou mezerou mezi slovy."""
+    text = unicodedata.normalize("NFD", value or "")
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return re.sub(r"\s+", " ", text).strip().casefold()
+
+
 def same_text(ours: Optional[str], theirs: Optional[str]) -> bool:
-    """Přesná shoda jména - jen bez ohledu na velikost písmen a mezery okolo."""
-    a = re.sub(r"\s+", " ", ours or "").strip().casefold()
-    b = re.sub(r"\s+", " ", theirs or "").strip().casefold()
-    return bool(a) and a == b
+    """Shoda jména: stejné písmena, diakritika a velikost písmen nerozhodují.
+
+    Bajkova = Bajková, OTIPKOVÁ = Otipková. Při potvrzení se pak převezme
+    zápis z evidence. Jiná písmena (Ema/Emma) shoda nejsou.
+    """
+    a = fold(ours)
+    return bool(a) and a == fold(theirs)
 
 
 def year_fits_age(year: Optional[int], age: Optional[int], today: Optional[date] = None) -> Optional[bool]:
@@ -217,8 +231,10 @@ def cross_check(
             if person.race_code is None:
                 return Proposal(person, KIND_OK, "jméno a ročník sedí, člen nemá ID závodníka")
             return Proposal(person, KIND_FILL_ID, "jméno a ročník sedí, u nás chybí ID")
-        return Proposal(person, KIND_OTHER_ID,
-                        f"jméno a ročník sedí, ale v evidenci má ID {person.race_code or '–'}, u nás {code}")
+        # Naše ID v evidenci nikomu nepatří (jinak by se našlo výše) -
+        # přebíráme ID z evidence.
+        return Proposal(person, KIND_FIX_ID,
+                        f"jméno a ročník sedí, v evidenci má ID {person.race_code or '–'}; naše {code} se v evidenci nenašlo")
 
     if code is not None:
         return Proposal(None, KIND_ID_UNKNOWN, f"ID {code} v evidenci nenalezeno a jméno s ročníkem také ne")
@@ -324,7 +340,7 @@ class SlcrClient:
 
     def search_members(self, surname: str) -> list[SlcrPerson]:
         """Členové evidence s přesně stejným příjmením (velikost písmen nerozhoduje)."""
-        key = (surname or "").strip().casefold()
+        key = fold(surname)
         if key in self._search_cache:
             return self._search_cache[key]
         people, page = [], 0

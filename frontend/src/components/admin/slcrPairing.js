@@ -24,6 +24,7 @@ export const STATUS_TABS = [
 export const KIND = {
   ok: { label: 'Sedí', className: 'bg-success' },
   fill_id: { label: 'Doplnit ID', className: 'bg-success' },
+  fix_id: { label: 'Opravit ID', className: 'bg-success' },
   other_id: { label: 'Jiné ID', className: 'bg-warning text-dark' },
   id_mismatch: { label: 'Nesedí jméno / ročník', className: 'bg-warning text-dark' },
   ambiguous: { label: 'Víc shod', className: 'bg-danger' },
@@ -32,7 +33,7 @@ export const KIND = {
 };
 
 /** Jasné výsledky, které jde potvrdit hromadně. */
-export const CLEAR_KINDS = ['ok', 'fill_id'];
+export const CLEAR_KINDS = ['ok', 'fill_id', 'fix_id'];
 
 /** Upozornění k návrhu, jak je ukazuje tabulka. */
 export function pairWarnings(item) {
