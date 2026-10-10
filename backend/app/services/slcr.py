@@ -28,6 +28,7 @@ import re
 import time
 import unicodedata
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Callable, Iterable, Optional
 
 import httpx
@@ -115,6 +116,18 @@ def same_first_name(ours: Optional[str], theirs: Optional[str]) -> bool:
     return min(len(a), len(b)) >= 5 and _edit_distance_at_most_one(a, b)
 
 
+def year_fits_age(year: Optional[int], age: Optional[int], today: Optional[date] = None) -> Optional[bool]:
+    """Sedí ročník na věk z evidence? None = nedá se říct.
+
+    Evidence ročník veřejně neuvádí, věk ano. Kdo je dnes X let, narodil se
+    v roce (letos - X) nebo o rok dřív, podle toho, jestli už měl narozeniny.
+    """
+    if year is None or age is None:
+        return None
+    this_year = (today or date.today()).year
+    return year in (this_year - age, this_year - age - 1)
+
+
 def race_code_of(slcr_id: Optional[str]) -> Optional[int]:
     """Naše "ID závodníka" jako české číslo závodníka, je-li to číslo."""
     text = (slcr_id or "").strip()
@@ -136,6 +149,8 @@ class SlcrPerson:
     slug: Optional[str] = None
     alpine: bool = True
     source_event: Optional[str] = None
+    # Věk podle evidence (veřejný, na rozdíl od ročníku) - viz year_fits_age.
+    age: Optional[int] = None
 
 
 @dataclass
@@ -238,8 +253,11 @@ def _propose(
     candidates = [
         p for p in search(racer.surname, racer.name)
         if norm(p.surname) == surname and same_first_name(racer.name, p.name)
-        # Známý ročník, který nesedí, kandidáta vylučuje.
-        and (p.year is None or racer.year is None or p.year == racer.year)
+        # Známý ročník nebo věk, který nesedí, kandidáta vylučuje - leda by
+        # souhlasilo ID závodníka (pak je spíš špatně ročník u nás).
+        and ((code is not None and p.race_code == code) or (
+            (p.year is None or racer.year is None or p.year == racer.year)
+            and year_fits_age(racer.year, p.age) is not False))
     ]
     candidates = _distinct_members(candidates)
     if code is not None:
@@ -252,13 +270,22 @@ def _propose(
     # Klub se neposuzuje - SLČR páruje výsledky jen podle jména a ročníku
     # a klub si závodník vybírá z našich schválených klubů.
     # Alpské lyžování a přesné jméno napřed.
-    candidates.sort(key=lambda p: (not p.alpine, norm(p.name) != norm(racer.name), p.year is None))
+    aged = lambda p: p.year == racer.year or year_fits_age(racer.year, p.age) is True  # noqa: E731
+    candidates.sort(key=lambda p: (not aged(p), not p.alpine, norm(p.name) != norm(racer.name)))
     best = candidates[0]
+    # Víc jmenovců, ale věk sedí jen u jednoho - to je on.
+    if len(candidates) > 1 and aged(best) and sum(1 for p in candidates if aged(p)) == 1:
+        candidates = [best]
     if len(candidates) == 1:
-        notes = ["jméno souhlasí, ročník evidence nezveřejňuje" if best.year is None else "jméno a ročník souhlasí"]
+        if aged(best):
+            notes = ["jméno a ročník souhlasí" if best.year is not None else f"jméno souhlasí, věk v evidenci ({best.age}) odpovídá ročníku"]
+            confidence = CONFIDENCE_HIGH
+        else:
+            notes = ["jméno souhlasí, ročník ani věk evidence nezveřejňuje"]
+            confidence = CONFIDENCE_MEDIUM
         if not best.alpine:
             notes.append("člen jiného úseku než alpských disciplín")
-        confidence = CONFIDENCE_MEDIUM if best.alpine else CONFIDENCE_LOW
+            confidence = CONFIDENCE_MEDIUM if confidence == CONFIDENCE_HIGH else CONFIDENCE_LOW
         return Proposal(best, confidence, SOURCE_SEARCH, "; ".join(notes))
     return Proposal(best, CONFIDENCE_LOW, SOURCE_SEARCH,
                     f"v evidenci je {len(candidates)} lidí se stejným jménem", alternatives=candidates[1:])
@@ -356,7 +383,7 @@ class SlcrClient:
     def member(self, member_id: int) -> dict:
         if member_id not in self._member_cache:
             self._member_cache[member_id] = self.query(
-                "query($m:Int!){publicMember(member:$m){id slug name surname raceCode birthYear homeClubName}}",
+                "query($m:Int!){publicMember(member:$m){id slug name surname raceCode birthYear age homeClubName}}",
                 {"m": member_id},
             )["publicMember"]
         return self._member_cache[member_id]
@@ -390,13 +417,14 @@ class SlcrClient:
         return people
 
     def search_with_codes(self, surname: str, first_name: Optional[str]) -> list[SlcrPerson]:
-        """Jako search_members, jen kandidátům se shodným jménem doplní číslo závodníka."""
+        """Jako search_members, jen kandidátům se shodným jménem doplní číslo závodníka a věk."""
         people = self.search_members(surname)
         for person in people:
             if person.race_code is None and same_first_name(first_name, person.name):
                 detail = self.member(person.member_id)
                 person.race_code = detail.get("raceCode")
                 person.year = person.year or detail.get("birthYear")
+                person.age = detail.get("age")
                 person.club = detail.get("homeClubName") or person.club
         return people
 

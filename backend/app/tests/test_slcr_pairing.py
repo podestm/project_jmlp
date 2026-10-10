@@ -32,9 +32,9 @@ def test_id_zavodnika_jen_cislo():
     assert slcr.race_code_of(None) is None
 
 
-def _person(member_id, surname, name, year=None, race_code=None, club=None, alpine=True):
+def _person(member_id, surname, name, year=None, race_code=None, club=None, alpine=True, age=None):
     return SlcrPerson(member_id=member_id, surname=surname, name=name, year=year,
-                      race_code=race_code, club=club, alpine=alpine, slug=f"m{member_id}")
+                      race_code=race_code, club=club, alpine=alpine, slug=f"m{member_id}", age=age)
 
 
 def _no_search(surname, name):
@@ -352,3 +352,27 @@ def test_prevzeti_u_drive_potvrzenych(client, db, admin_headers):
     db.expire_all()
     assert _racer_row(db, racer)["slcr_id"] == "777512"
     assert client.get("/api/admin/slcr/summary", headers=admin_headers).json()["counts"]["pending_apply"] == 0
+
+
+def test_rocnik_podle_veku_z_evidence():
+    from datetime import date
+    today = date(2026, 10, 10)
+    assert slcr.year_fits_age(2007, 18, today) and slcr.year_fits_age(2008, 18, today)
+    assert slcr.year_fits_age(1964, 18, today) is False
+    assert slcr.year_fits_age(2007, None, today) is None
+
+
+def test_vek_rozhodne_mezi_otcem_a_synem(monkeypatch):
+    """Pantůček Václav 1964 a 2007 - evidence zná jen jednoho a uvádí mu věk."""
+    this_year = __import__("datetime").date.today().year
+    member = _person(14208, "Pantůček", "Václav", None, 709285, age=this_year - 2007)
+    syn = slcr.propose(RacerToPair(1, "Pantůček", "Václav", 2007, "-"), [], lambda s, n: [member])
+    otec = slcr.propose(RacerToPair(2, "Pantůček", "Václav", 1964, "-"), [], lambda s, n: [member])
+    assert syn.person.member_id == 14208 and syn.confidence == slcr.CONFIDENCE_HIGH
+    assert otec.person is None
+
+
+def test_shodne_id_prebije_nesedici_vek():
+    member = _person(5, "Němcová", "Rozálie", None, 809395, age=8)
+    proposal = slcr.propose(RacerToPair(1, "Němcová", "Rozálie", 2013, "809395"), [], lambda s, n: [member])
+    assert proposal.person.member_id == 5
