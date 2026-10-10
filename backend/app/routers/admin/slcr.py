@@ -79,10 +79,19 @@ def start_sync(
 
 def _decision(action, racer_id: int, db: Session, *args):
     try:
-        action(db, racer_id, *args)
+        changes = action(db, racer_id, *args)
     except slcr_sync.PairingError as exc:
         raise HTTPException(status_code=exc.status_code, detail=str(exc))
-    return {"ok": True}
+    return {"ok": True, "changes": changes or []}
+
+
+@router.post("/apply-confirmed")
+def apply_confirmed(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Převezme údaje z evidence u závodníků potvrzených dřív, než to potvrzení dělalo."""
+    return slcr_sync.apply_confirmed(db)
 
 
 @router.post("/pairs/{racer_id}/confirm")
@@ -91,6 +100,7 @@ def confirm(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
+    """Potvrdí párování a opraví náš záznam podle evidence (jméno, příjmení, ročník, ID)."""
     return _decision(slcr_sync.confirm, racer_id, db, current_admin.id)
 
 

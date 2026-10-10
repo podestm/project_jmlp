@@ -18,7 +18,7 @@ from typing import Callable, Optional
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from ..utils import fix_encoding, get_current_season_id
+from ..utils import fix_encoding, get_category_snapshot_for_birth_year, get_current_season_id
 from . import slcr
 
 logger = logging.getLogger(__name__)
@@ -224,14 +224,99 @@ class PairingError(Exception):
 
 def _row(db: Session, racer_id: int) -> dict:
     row = db.execute(text(
-        "SELECT racer_id, status, member_id FROM fuj_jmlp_racer_slcr WHERE racer_id = :id"
+        "SELECT racer_id, status, member_id, slcr_surname, slcr_name, slcr_year, race_code, previous, applied_at "
+        "FROM fuj_jmlp_racer_slcr WHERE racer_id = :id"
     ), {"id": racer_id}).mappings().first()
     if not row:
         raise PairingError("Pro závodníka zatím není návrh ze SLČR", 404)
     return dict(row)
 
 
-def confirm(db: Session, racer_id: int, admin_id: Optional[int]) -> None:
+# Co se z evidence přebírá do našeho záznamu. Délky odpovídají sloupcům
+# fuj_jmlp_racer.
+FIELD_LABELS = {"surname": "příjmení", "name": "jméno", "year": "ročník", "slcr_id": "ID závodníka"}
+_MAX_LENGTH = {"surname": 30, "name": 25, "slcr_id": 10}
+
+
+def _clean(value) -> str:
+    return fix_encoding(value or "").strip() if isinstance(value, str) or value is None else str(value)
+
+
+def planned_changes(racer: dict, pairing: dict) -> list[dict]:
+    """Co se v našem záznamu změní, když se převezmou údaje z evidence.
+
+    Evidence SLČR je zdroj pravdy pro jméno, příjmení, ročník a ID závodníka.
+    Co evidence neuvádí (veřejně často chybí ročník), zůstává naše.
+    """
+    wanted = {
+        "surname": (pairing.get("slcr_surname") or "").strip() or None,
+        "name": (pairing.get("slcr_name") or "").strip() or None,
+        "year": pairing.get("slcr_year"),
+        "slcr_id": str(pairing["race_code"]) if pairing.get("race_code") else None,
+    }
+    changes = []
+    for field, new in wanted.items():
+        if new is None:
+            continue
+        old = racer.get(field)
+        old_clean = old if field == "year" else _clean(old)
+        if field != "year" and old_clean == "":
+            old_clean = None
+        if old_clean != new:
+            changes.append({"field": field, "label": FIELD_LABELS[field], "old": old_clean, "new": new})
+    return changes
+
+
+def _racer_values(db: Session, racer_id: int) -> dict:
+    row = db.execute(text(
+        "SELECT id, name, surname, year, sex, slcr_id FROM fuj_jmlp_racer WHERE id = :id"
+    ), {"id": racer_id}).mappings().first()
+    if not row:
+        raise PairingError("Závodník v registru neexistuje", 404)
+    return dict(row)
+
+
+def _write_racer(db: Session, racer: dict, values: dict) -> None:
+    """Zapíše hodnoty do registru; hlídá délky a identitu (jméno + příjmení + ročník + pohlaví)."""
+    for field, value in values.items():
+        limit = _MAX_LENGTH.get(field)
+        if limit and value is not None and len(str(value)) > limit:
+            raise PairingError(f"{FIELD_LABELS[field].capitalize()} z evidence je delší, než registr dovolí ({limit} znaků): {value}")
+    merged = {**racer, **values}
+    other = db.execute(text("""
+        SELECT id FROM fuj_jmlp_racer
+        WHERE name = :name AND surname = :surname AND year = :year AND sex = :sex AND id <> :id LIMIT 1
+    """), {"name": merged["name"], "surname": merged["surname"], "year": merged["year"],
+           "sex": merged["sex"], "id": racer["id"]}).scalar()
+    if other:
+        raise PairingError(
+            f"V registru už je {merged['surname']} {merged['name']} ({merged['year']}) pod ID {other} - "
+            "nejspíš duplicita, nejdřív je slučte.", 409)
+
+    sets = dict(values)
+    if "year" in values:
+        category_id, _, _ = get_category_snapshot_for_birth_year(merged["year"], merged["sex"], db)
+        sets["category_id"] = category_id
+    assignments = ", ".join(f"{field} = :{field}" for field in sets)
+    db.execute(text(f"UPDATE fuj_jmlp_racer SET {assignments} WHERE id = :id"), {**sets, "id": racer["id"]})
+
+
+def apply_evidence(db: Session, racer_id: int, row: Optional[dict] = None) -> list[dict]:
+    """Opraví náš záznam podle evidence a uloží původní hodnoty. Necommituje."""
+    row = row or _row(db, racer_id)
+    racer = _racer_values(db, racer_id)
+    changes = planned_changes(racer, row)
+    if changes:
+        _write_racer(db, racer, {change["field"]: change["new"] for change in changes})
+    previous = {change["field"]: racer[change["field"]] for change in changes}
+    db.execute(text(
+        "UPDATE fuj_jmlp_racer_slcr SET previous = :previous, applied_at = NOW() WHERE racer_id = :id"
+    ), {"previous": json.dumps(previous, ensure_ascii=False) if previous else None, "id": racer_id})
+    return changes
+
+
+def confirm(db: Session, racer_id: int, admin_id: Optional[int]) -> list[dict]:
+    """Potvrdí párování a převezme do našeho záznamu údaje z evidence."""
     row = _row(db, racer_id)
     if not row["member_id"]:
         raise PairingError("Závodník nemá navrženého člena SLČR")
@@ -242,7 +327,30 @@ def confirm(db: Session, racer_id: int, admin_id: Optional[int]) -> None:
     if other:
         raise PairingError(
             "Tento člen SLČR je už potvrzený u jiného závodníka (nejspíš duplicita v registru)", 409)
+    try:
+        changes = apply_evidence(db, racer_id, row)
+    except PairingError:
+        db.rollback()
+        raise
     _decide(db, racer_id, STATUS_CONFIRMED, admin_id)
+    return changes
+
+
+def apply_confirmed(db: Session) -> dict:
+    """Převezme údaje z evidence u potvrzených, kterým se ještě nepřevzaly."""
+    ids = [r.racer_id for r in db.execute(text(
+        "SELECT racer_id FROM fuj_jmlp_racer_slcr WHERE status = :confirmed AND applied_at IS NULL"
+    ), {"confirmed": STATUS_CONFIRMED})]
+    changed, failed = 0, []
+    for racer_id in ids:
+        try:
+            if apply_evidence(db, racer_id):
+                changed += 1
+            db.commit()
+        except PairingError as exc:
+            db.rollback()
+            failed.append({"racer_id": racer_id, "reason": str(exc)})
+    return {"processed": len(ids), "changed": changed, "failed": failed}
 
 
 def reject(db: Session, racer_id: int, admin_id: Optional[int]) -> None:
@@ -253,11 +361,19 @@ def reject(db: Session, racer_id: int, admin_id: Optional[int]) -> None:
 
 
 def undo(db: Session, racer_id: int) -> None:
+    """Vrátí rozhodnutí; převzaté údaje z evidence vrátí na původní."""
     row = _row(db, racer_id)
+    if row["previous"]:
+        previous = json.loads(row["previous"])
+        try:
+            _write_racer(db, _racer_values(db, racer_id), previous)
+        except PairingError:
+            db.rollback()
+            raise
     status = STATUS_SUGGESTED if row["member_id"] else STATUS_NOT_FOUND
     db.execute(text(
-        "UPDATE fuj_jmlp_racer_slcr SET status = :status, decided_at = NULL, decided_by = NULL "
-        "WHERE racer_id = :id"
+        "UPDATE fuj_jmlp_racer_slcr SET status = :status, decided_at = NULL, decided_by = NULL, "
+        "previous = NULL, applied_at = NULL WHERE racer_id = :id"
     ), {"status": status, "id": racer_id})
     db.commit()
 
@@ -284,6 +400,11 @@ def counts(db: Session) -> dict:
     )).fetchall()
     result = {status: 0 for status in STATUSES}
     result.update({row.status: row.n for row in rows})
+    # Potvrzení, u kterých se údaje z evidence ještě nepřevzaly (potvrzená
+    # dřív, než potvrzení začalo opravovat záznam).
+    result["pending_apply"] = db.execute(text(
+        "SELECT COUNT(*) FROM fuj_jmlp_racer_slcr WHERE status = :confirmed AND applied_at IS NULL"
+    ), {"confirmed": STATUS_CONFIRMED}).scalar()
     return result
 
 
@@ -343,18 +464,19 @@ def list_pairs(db: Session, status: Optional[str]) -> list[dict]:
                 {**alt, "url": slcr.member_url(alt.get("member_id"), alt.get("slug"))}
                 for alt in json.loads(row["alternatives"] or "[]")
             ],
+            # Co potvrzení u nás změní (u potvrzených bez převzetí totéž),
+            # a co se už převzalo.
+            "changes": planned_changes(
+                {"surname": row["surname"], "name": row["name"], "year": row["year"], "slcr_id": row["slcr_id"]}, row)
+            if row["member_id"] and not row["applied_at"] and row["status"] != STATUS_REJECTED else [],
+            "applied": [
+                {"field": field, "label": FIELD_LABELS.get(field, field), "old": old}
+                for field, old in json.loads(row["previous"] or "{}").items()
+            ],
             "flags": {
-                # Naše ID závodníka nesouhlasí s číslem v evidenci.
+                # Naše ID závodníka je jiné číslo než v evidenci - může jít
+                # o překlep, ale i o jiného člověka.
                 "code_mismatch": their_code is not None and our_code is not None and our_code != their_code,
-                # Evidence číslo má, u nás chybí nebo není číslo.
-                "code_missing": their_code is not None and our_code is None,
-                # SLČR páruje výsledky podle jména a ročníku - jiný zápis
-                # jména nebo jiný ročník znamená, že se výsledek ke členovi
-                # nepřiřadí.
-                "name_differs": bool(row["member_id"]) and (
-                    slcr.norm(fix_encoding(row["surname"] or "")) != slcr.norm(row["slcr_surname"])
-                    or slcr.norm(fix_encoding(row["name"] or "")) != slcr.norm(row["slcr_name"])),
-                "year_differs": row["slcr_year"] is not None and row["year"] != row["slcr_year"],
                 "shared_member": shared.get(row["member_id"], 0) > 1,
             },
             "checked_at": row["checked_at"].isoformat() if row["checked_at"] else None,

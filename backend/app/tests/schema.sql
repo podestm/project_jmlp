@@ -262,6 +262,8 @@ CREATE TABLE `fuj_jmlp_racer_slcr` (
   `checked_at` datetime DEFAULT NULL,
   `decided_at` datetime DEFAULT NULL,
   `decided_by` bigint DEFAULT NULL,
+  `previous` text,
+  `applied_at` datetime DEFAULT NULL,
   PRIMARY KEY (`racer_id`),
   KEY `ix_racer_slcr_member` (`member_id`),
   KEY `ix_racer_slcr_status` (`status`)

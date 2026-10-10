@@ -950,6 +950,23 @@ def _m_slcr_pairing(conn):
         logger.info("Migrace: fuj_jmlp_slcr_sync")
 
 
+# --------------------------------------------------------------------------
+# 012 - převzetí údajů z evidence SLČR při potvrzení párování
+#
+# Potvrzení párování opraví náš záznam podle evidence (jméno, příjmení,
+# ročník, ID závodníka). Původní hodnoty se uloží, aby "Vrátit" mohlo
+# změnu vzít zpět.
+# --------------------------------------------------------------------------
+def _m_slcr_applied(conn):
+    if not _table_exists(conn, "fuj_jmlp_racer_slcr"):
+        return
+    if not _column_exists(conn, "fuj_jmlp_racer_slcr", "previous"):
+        conn.execute(text("ALTER TABLE fuj_jmlp_racer_slcr ADD COLUMN previous TEXT"))
+    if not _column_exists(conn, "fuj_jmlp_racer_slcr", "applied_at"):
+        conn.execute(text("ALTER TABLE fuj_jmlp_racer_slcr ADD COLUMN applied_at DATETIME DEFAULT NULL"))
+    logger.info("Migrace: fuj_jmlp_racer_slcr.previous, applied_at")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -964,6 +981,7 @@ MIGRATIONS = (
     _m_start_list_excluded,
     _m_race_is_final,
     _m_slcr_pairing,
+    _m_slcr_applied,
 )
 
 

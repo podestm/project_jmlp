@@ -208,19 +208,22 @@ def test_api_prehled_navrhy_a_rozhodnuti(client, db, admin_headers):
     assert item["racer"]["slcr_id"] == "778975"
     assert item["slcr"]["race_code"] == 778475
     assert item["slcr"]["url"] == "https://evidence.czech-ski.com/clenove/43580/m43580"
-    # Překlep v ID závodníka - ukáže se, ale nic se nepřepisuje.
+    # Jiné číslo v ID závodníka - upozornění a v náhledu, co se změní.
     assert item["flags"]["code_mismatch"] is True
-    assert item["flags"]["name_differs"] is False
-    assert item["flags"]["year_differs"] is False
+    assert item["changes"] == [{"field": "slcr_id", "label": "ID závodníka", "old": "778975", "new": "778475"}]
 
-    assert client.post(f"/api/admin/slcr/pairs/{racer}/confirm", headers=admin_headers).status_code == 200
+    # Potvrzení opraví náš záznam podle evidence.
+    response = client.post(f"/api/admin/slcr/pairs/{racer}/confirm", headers=admin_headers)
+    assert response.status_code == 200
+    assert response.json()["changes"][0]["new"] == "778475"
     assert _status(db, racer)["status"] == "confirmed"
-    stored = db.execute(text("SELECT slcr_id FROM fuj_jmlp_racer WHERE id = :id"), {"id": racer}).scalar()
-    assert stored == "778975"
+    assert _racer_row(db, racer)["slcr_id"] == "778475"
 
+    # Vrátit vezme zpět i opravu záznamu.
     assert client.post(f"/api/admin/slcr/pairs/{racer}/undo", headers=admin_headers).status_code == 200
     db.expire_all()
     assert _status(db, racer)["status"] == "suggested"
+    assert _racer_row(db, racer)["slcr_id"] == "778975"
 
 
 def test_api_jeden_clen_nejde_potvrdit_u_dvou_zavodniku(client, db, admin_headers):
@@ -273,16 +276,79 @@ def test_smazany_zavodnik_zmizi_z_parovani(client, db, admin_headers):
     assert _status(db, racer) is None
 
 
-def test_api_upozorni_na_jiny_zapis_jmena_a_rocnik(client, db, admin_headers):
-    """SLČR páruje výsledky podle jména a ročníku - Ema/Emma se tam nespáruje."""
-    _racer(db, "Fabiánová", "Ema", 2019, "891586")
-    _racer(db, "Junová", "Mariana", 2016, "891952")
+def _racer_row(db, racer_id):
+    return db.execute(text("SELECT name, surname, year, slcr_id, category_id FROM fuj_jmlp_racer WHERE id = :id"),
+                      {"id": racer_id}).mappings().first()
+
+
+def _kategorie(db, name, sex, od, do):
+    kategorie = models.Category(name=name, sex=sex, min_birth_year=od, max_birth_year=do, active=True)
+    db.add(kategorie)
+    db.commit()
+    return kategorie.id
+
+
+def test_potvrzeni_prevezme_jmeno_rocnik_a_id_z_evidence(client, db, admin_headers):
+    """SLČR páruje nahrané výsledky podle jména a ročníku - náš záznam se srovná s evidencí."""
+    predzacky = _kategorie(db, "U12 Předžactvo", 2, 2015, 2016)
+    mysaci = _kategorie(db, "U8 Myšáci", 2, 2019, 2026)
+    ema = _racer(db, "Fabiánová", "Ema", 2019, "-")
+    junova = _racer(db, "Junová", "Mariana", 2016, "891952")
+    db.execute(text("UPDATE fuj_jmlp_racer SET category_id = :c WHERE id = :id"), {"c": predzacky, "id": junova})
+    db.commit()
     _run(db, FakeClient(results=[
         _person(44319, "Fabiánová", "Emma", 2019, 891586),
         _person(45973, "Junová", "Mariana", 2022, 891952),
     ]))
 
     items = {i["racer"]["surname"]: i for i in client.get("/api/admin/slcr/pairs", headers=admin_headers).json()}
-    assert items["Fabiánová"]["flags"]["name_differs"] is True
-    assert items["Fabiánová"]["flags"]["year_differs"] is False
-    assert items["Junová"]["flags"]["year_differs"] is True
+    assert {c["field"]: (c["old"], c["new"]) for c in items["Fabiánová"]["changes"]} == {
+        "name": ("Ema", "Emma"), "slcr_id": ("-", "891586")}
+    assert items["Junová"]["changes"] == [{"field": "year", "label": "ročník", "old": 2016, "new": 2022}]
+
+    for racer in (ema, junova):
+        assert client.post(f"/api/admin/slcr/pairs/{racer}/confirm", headers=admin_headers).status_code == 200
+    db.expire_all()
+    assert dict(_racer_row(db, ema)) | {"category_id": None} == {
+        "name": "Emma", "surname": "Fabiánová", "year": 2019, "slcr_id": "891586", "category_id": None}
+    # Nový ročník = nová kategorie.
+    assert _racer_row(db, junova)["year"] == 2022
+    assert _racer_row(db, junova)["category_id"] == mysaci
+
+    [confirmed] = [i for i in client.get("/api/admin/slcr/pairs?status=confirmed", headers=admin_headers).json()
+                   if i["racer_id"] == junova]
+    assert confirmed["changes"] == []
+    assert confirmed["applied"] == [{"field": "year", "label": "ročník", "old": 2016}]
+
+
+def test_potvrzeni_ktere_by_vytvorilo_duplicitu_neprojde(client, db, admin_headers):
+    viki = _racer(db, "Bezděková", "Viki", 2012)
+    _racer(db, "Bezděková", "Viktorie", 2012)
+    # Návrh, který by Viki přejmenoval na Viktorii - ta už v registru je.
+    db.execute(text("""REPLACE INTO fuj_jmlp_racer_slcr (racer_id, status, member_id, slcr_surname, slcr_name, race_code)
+                       VALUES (:id, 'suggested', 9, 'Bezděková', 'Viktorie', 886000)"""), {"id": viki})
+    db.commit()
+
+    response = client.post(f"/api/admin/slcr/pairs/{viki}/confirm", headers=admin_headers)
+
+    assert response.status_code == 409
+    assert "nejdřív je slučte" in response.json()["detail"]
+    db.expire_all()
+    assert _status(db, viki)["status"] == "suggested"
+    assert _racer_row(db, viki)["name"] == "Viki"
+
+
+def test_prevzeti_u_drive_potvrzenych(client, db, admin_headers):
+    racer = _racer(db, "Pola", "Jonáš", 2004, "775512")
+    _run(db, FakeClient(members={"Pola": [_person(5, "Pola", "Jonáš", None, 777512)]}))
+    # Potvrzeno dřív, než potvrzení opravovalo záznam.
+    db.execute(text("UPDATE fuj_jmlp_racer_slcr SET status = 'confirmed' WHERE racer_id = :id"), {"id": racer})
+    db.commit()
+    assert client.get("/api/admin/slcr/summary", headers=admin_headers).json()["counts"]["pending_apply"] == 1
+
+    result = client.post("/api/admin/slcr/apply-confirmed", headers=admin_headers).json()
+
+    assert result == {"processed": 1, "changed": 1, "failed": []}
+    db.expire_all()
+    assert _racer_row(db, racer)["slcr_id"] == "777512"
+    assert client.get("/api/admin/slcr/summary", headers=admin_headers).json()["counts"]["pending_apply"] == 0
