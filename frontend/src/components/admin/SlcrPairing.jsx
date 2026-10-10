@@ -5,7 +5,7 @@ import Alert from '../ui/Alert.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import {
-  CONFIDENCE,
+  KIND,
   PAIR_STATUS,
   STATUS_TABS,
   appliedLabels,
@@ -35,7 +35,7 @@ export default function SlcrPairing() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
-  const [confidence, setConfidence] = useState('all');
+  const [kind, setKind] = useState('all');
   const [scope, setScope] = useState('active');
   const [busy, setBusy] = useState({});
   const [bulk, setBulk] = useState(null);
@@ -110,7 +110,7 @@ export default function SlcrPairing() {
     }
   };
 
-  const visible = useMemo(() => filterPairs(items, { query, confidence }), [items, query, confidence]);
+  const visible = useMemo(() => filterPairs(items, { query, kind }), [items, query, kind]);
   const confirmable = useMemo(() => bulkConfirmable(visible), [visible]);
 
   const confirmAllSure = async () => {
@@ -127,7 +127,7 @@ export default function SlcrPairing() {
     setBulk(null);
     setMessage(failed
       ? { type: 'warning', text: `Potvrzeno ${confirmable.length - failed}, ${failed} se nepodařilo - zkontrolujte je jednotlivě.` }
-      : { type: 'success', text: `Potvrzeno ${confirmable.length} jistých shod.` });
+      : { type: 'success', text: `Potvrzeno ${confirmable.length} jasných shod.` });
     loadItems(status);
     loadSummary();
   };
@@ -158,10 +158,10 @@ export default function SlcrPairing() {
         <small><Link to="/admin/racers" className="text-decoration-none"><i className="bi bi-chevron-left" /> Závodníci</Link></small>
         <h2 className="mb-0">Párování se SLČR</h2>
         <small className="text-muted">
-          Závodníci z registru spárovaní s členy evidence Svazu lyžařů ČR. Návrhy vycházejí z výsledků
-          JMLP zveřejněných v evidenci a z hledání členů; potvrzujete je vy. Potvrzení opraví náš záznam
-          podle evidence (příjmení, jméno, ročník, ID závodníka) - SLČR páruje nahrané výsledky podle
-          jména a ročníku. Klub se neposuzuje. „Vrátit“ vezme opravu zpět.
+          Křížová kontrola registru s evidencí Svazu lyžařů ČR: komu v evidenci patří naše ID závodníka
+          a kdo v evidenci má naše jméno a ročník (ročník podle výsledků, jinak dopočtený z věku). Jména se
+          porovnávají přesně, klub se neposuzuje. Potvrzení opraví náš záznam podle evidence, „Vrátit“ to
+          vezme zpět.
         </small>
       </div>
 
@@ -246,11 +246,11 @@ export default function SlcrPairing() {
         {status === PAIR_STATUS.suggested && (
           <>
             <div className="col-md-3">
-              <select className="form-select" value={confidence} onChange={(e) => setConfidence(e.target.value)} aria-label="Jistota shody">
-                <option value="all">Všechny shody</option>
-                <option value="high">Jisté shody</option>
-                <option value="medium">Pravděpodobné</option>
-                <option value="low">Nejisté</option>
+              <select className="form-select" value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Výsledek kontroly">
+                <option value="all">Všechny výsledky kontroly</option>
+                {Object.entries(KIND).map(([value, { label }]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
             </div>
             <div className="col-md-4 text-md-end">
@@ -258,9 +258,9 @@ export default function SlcrPairing() {
                 className="btn btn-outline-success"
                 onClick={confirmAllSure}
                 disabled={confirmable.length === 0 || bulk != null}
-                title="Jen jisté shody bez jakéhokoli upozornění"
+                title="Jen „Sedí“ a „Doplnit ID“ bez upozornění a bez změny ročníku"
               >
-                {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><i className="bi bi-check2-all me-1" />Potvrdit jisté ({confirmable.length})</>}
+                {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><i className="bi bi-check2-all me-1" />Potvrdit jasné ({confirmable.length})</>}
               </button>
             </div>
           </>
@@ -300,7 +300,7 @@ export default function SlcrPairing() {
 
 function PairRow({ item, busy, onDecide }) {
   const { racer, slcr } = item;
-  const confidence = CONFIDENCE[item.confidence];
+  const kindInfo = KIND[item.kind];
   const warnings = pairWarnings(item);
   const button = (action, label, className, icon) => (
     <button
@@ -349,7 +349,7 @@ function PairRow({ item, busy, onDecide }) {
         )}
       </td>
       <td style={{ maxWidth: '320px' }}>
-        {confidence && <span className={`badge ${confidence.className} me-1`}>{confidence.label}</span>}
+        {kindInfo && <span className={`badge ${kindInfo.className} me-1`}>{kindInfo.label}</span>}
         {item.note && <small className="text-muted">{item.note}</small>}
         {changeLabels(item).length > 0 && (
           <div className="small mt-1">

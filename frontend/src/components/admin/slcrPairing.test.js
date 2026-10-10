@@ -4,7 +4,7 @@ import { appliedLabels, bulkConfirmable, changeLabels, filterPairs, pairWarnings
 const pair = (overrides = {}) => ({
   racer_id: 1,
   status: 'suggested',
-  confidence: 'high',
+  kind: 'ok',
   racer: { surname: 'Fabiánová', name: 'Ema', year: 2019, club: 'Ski team Victoria Brno', slcr_id: '891586' },
   slcr: { member_id: 44319, surname: 'Fabiánová', name: 'Emma', club: 'Ski klub Victoria Brno', race_code: 891586 },
   flags: {},
@@ -12,15 +12,9 @@ const pair = (overrides = {}) => ({
 });
 
 describe('párování se SLČR', () => {
-  it('upozornění: jiné ID a duplicita', () => {
-    const item = pair({
-      racer: { ...pair().racer, slcr_id: '778975' },
-      slcr: { ...pair().slcr, race_code: 778475 },
-      flags: { code_mismatch: true, shared_member: true }
-    });
-    const texts = pairWarnings(item).map((w) => w.text);
-    expect(texts[0]).toBe('ID závodníka je jiné (u nás 778975, v evidenci 778475) - ověřte, že jde o stejného člověka');
-    expect(texts).toHaveLength(2);
+  it('upozornění: stejný člen u dvou našich závodníků', () => {
+    expect(pairWarnings(pair({ flags: { shared_member: true } })).map((w) => w.key)).toEqual(['shared']);
+    expect(pairWarnings(pair())).toEqual([]);
   });
 
   it('popis změn podle evidence a převzatých údajů', () => {
@@ -40,14 +34,14 @@ describe('párování se SLČR', () => {
     expect(filterPairs(items, { query: 'fabianova emma' }).map((i) => i.racer_id)).toEqual([1]);
     expect(filterPairs(items, { query: '891586' }).map((i) => i.racer_id)).toEqual([1]);
     expect(filterPairs(items, { query: 'novak' }).map((i) => i.racer_id)).toEqual([2]);
-    expect(filterPairs(items, { confidence: 'medium' })).toEqual([]);
+    expect(filterPairs(items, { kind: 'other_id' })).toEqual([]);
   });
 
   it('hromadně jen jisté shody bez upozornění', () => {
     const items = [
       pair(),
-      pair({ racer_id: 2, confidence: 'medium' }),
-      pair({ racer_id: 3, flags: { code_mismatch: true } }),
+      pair({ racer_id: 2, kind: 'other_id' }),
+      pair({ racer_id: 3, kind: 'id_mismatch' }),
       pair({ racer_id: 4, flags: { shared_member: true } }),
       pair({ racer_id: 5, status: 'confirmed' }),
       pair({ racer_id: 6, changes: [{ field: 'year', label: 'ročník', old: 2016, new: 2022 }] }),

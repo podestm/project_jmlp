@@ -141,9 +141,11 @@ def save_proposal(db: Session, racer_id: int, proposal: slcr.Proposal, now: date
     person = proposal.person
     member_id = person.member_id if person else None
 
-    if current and current["status"] == STATUS_CONFIRMED:
-        db.execute(text("UPDATE fuj_jmlp_racer_slcr SET checked_at = :now WHERE racer_id = :id"),
-                   {"now": now, "id": racer_id})
+    if current and current["status"] == STATUS_CONFIRMED and current["member_id"] == member_id:
+        # Potvrzené zůstává; výsledek kontroly se jen aktualizuje.
+        db.execute(text(
+            "UPDATE fuj_jmlp_racer_slcr SET checked_at = :now, source = :kind, note = :note WHERE racer_id = :id"
+        ), {"now": now, "kind": proposal.kind, "note": (proposal.note or "")[:400] or None, "id": racer_id})
         return STATUS_CONFIRMED
     if current and current["status"] == STATUS_REJECTED and current["member_id"] == member_id:
         db.execute(text("UPDATE fuj_jmlp_racer_slcr SET checked_at = :now WHERE racer_id = :id"),
@@ -161,8 +163,9 @@ def save_proposal(db: Session, racer_id: int, proposal: slcr.Proposal, now: date
         "slcr_name": person.name if person else None,
         "slcr_year": person.year if person else None,
         "slcr_club": (person.club or None) if person else None,
-        "confidence": proposal.confidence,
-        "source": proposal.source,
+        # Jasné výsledky (sedí, doplnit ID) jdou potvrdit hromadně.
+        "confidence": "high" if proposal.kind in slcr.CLEAR_KINDS else "low",
+        "source": proposal.kind,
         "note": (proposal.note or "")[:400] or None,
         "alternatives": json.dumps([_person_json(p) for p in proposal.alternatives[:5]], ensure_ascii=False)
         if proposal.alternatives else None,
@@ -198,7 +201,7 @@ def run_job(
         client = client_factory()
         results = client.jmlp_results(results_since())
         for index, racer in enumerate(racers, start=1):
-            proposal = slcr.propose(racer, results, client.search_with_codes)
+            proposal = slcr.cross_check(racer, results, client.search_with_details)
             save_proposal(db, racer.id, proposal, datetime.now())
             if index % PROGRESS_EVERY == 0:
                 _progress(db, job_id, done=index)
@@ -420,7 +423,7 @@ def list_pairs(db: Session, status: Optional[str]) -> list[dict]:
         JOIN fuj_jmlp_racer r ON r.id = p.racer_id
         LEFT JOIN fuj_jmlp_club c ON c.id = r.club_id
         {where}
-        ORDER BY FIELD(p.confidence, 'low', 'medium', 'high'), r.surname, r.name
+        ORDER BY FIELD(p.source, 'other_id', 'id_mismatch', 'ambiguous', 'id_unknown', 'fill_id', 'ok'), r.surname, r.name
     """), params).mappings().all()
 
     # Stejný člen navržený nebo potvrzený u víc našich závodníků = duplicita v registru.
@@ -442,6 +445,7 @@ def list_pairs(db: Session, status: Optional[str]) -> list[dict]:
             "racer_id": row["racer_id"],
             "status": row["status"],
             "confidence": row["confidence"],
+            "kind": row["source"],
             "source": row["source"],
             "note": row["note"],
             "racer": {

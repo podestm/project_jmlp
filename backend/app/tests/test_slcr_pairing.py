@@ -4,6 +4,8 @@ Evidence se v testech nevolá - klient je nahrazený falešným se stejnými
 metodami. Data odpovídají tomu, co evidence opravdu vrací (výsledky akcí
 JMLP s přiřazeným členem, hledání členů bez ročníku).
 """
+from datetime import date
+
 from sqlalchemy import text
 
 from app import models
@@ -12,17 +14,18 @@ from app.services.slcr import RacerToPair, SlcrPerson
 
 
 # --------------------------------------------------------------------------
-# Párovací pravidla
+# Křížová kontrola: ID ↔ jméno + ročník
 # --------------------------------------------------------------------------
-def test_varianty_krestniho_jmena():
-    assert slcr.same_first_name("Ema", "Emma")
-    assert slcr.same_first_name("Evelina", "Evelína")
-    assert slcr.same_first_name("Viktorie Ela", "Viktorie")
-    assert slcr.same_first_name("Kristyna", "Kristýna")
-    assert not slcr.same_first_name("Jan", "Jana")
-    assert not slcr.same_first_name("Martin", "Martina")
-    assert not slcr.same_first_name("Anna", "Hana")
-    assert not slcr.same_first_name("Martin", "Matěj")
+THIS_YEAR = date.today().year
+
+
+def _person(member_id, surname, name, year=None, race_code=None, club=None, alpine=True, age=None):
+    return SlcrPerson(member_id=member_id, surname=surname, name=name, year=year,
+                      race_code=race_code, club=club, alpine=alpine, slug=f"m{member_id}", age=age)
+
+
+def _check(surname, name, year, slcr_id=None, results=(), members=()):
+    return slcr.cross_check(RacerToPair(1, surname, name, year, slcr_id), list(results), lambda s: list(members))
 
 
 def test_id_zavodnika_jen_cislo():
@@ -32,71 +35,77 @@ def test_id_zavodnika_jen_cislo():
     assert slcr.race_code_of(None) is None
 
 
-def _person(member_id, surname, name, year=None, race_code=None, club=None, alpine=True, age=None):
-    return SlcrPerson(member_id=member_id, surname=surname, name=name, year=year,
-                      race_code=race_code, club=club, alpine=alpine, slug=f"m{member_id}", age=age)
+def test_rocnik_podle_veku_z_evidence():
+    today = date(2026, 10, 10)
+    assert slcr.year_fits_age(2007, 18, today) and slcr.year_fits_age(2008, 18, today)
+    assert slcr.year_fits_age(1964, 18, today) is False
+    assert slcr.year_fits_age(2007, None, today) is None
 
 
-def _no_search(surname, name):
-    raise AssertionError("hledání v evidenci se nemělo volat")
+def test_sedi_id_i_jmeno_s_rocnikem():
+    result = _check("Valeská", "Viktorie", 2019, "890521", results=[_person(42073, "Valeská", "Viktorie", 2019, 890521)])
+    assert (result.kind, result.person.member_id) == (slcr.KIND_OK, 42073)
 
 
-def test_id_zavodnika_ve_vysledcich_jmlp_je_jista_shoda():
-    results = [_person(44319, "Fabiánová", "Emma", 2019, 891586)]
-    proposal = slcr.propose(RacerToPair(1, "Fabiánová", "Ema", 2019, "891586"), results, _no_search)
-    assert proposal.person.member_id == 44319
-    assert (proposal.confidence, proposal.source) == (slcr.CONFIDENCE_HIGH, slcr.SOURCE_RACE_CODE)
+def test_velikost_pismen_nerozhoduje():
+    member = _person(8580, "Otipková", "Thaisy", None, 156096, age=THIS_YEAR - 2004)
+    assert _check("OTIPKOVÁ", "THAISY", 2004, "156096", members=[member]).kind == slcr.KIND_OK
 
 
-def test_jmeno_a_rocnik_z_vysledku_bez_cisla():
-    results = [_person(46042, "Bečvářová", "Sophia", 2020, None)]
-    proposal = slcr.propose(RacerToPair(1, "Bečvářová", "Sophia", 2020, "89199"), results, _no_search)
-    assert proposal.person.member_id == 46042
-    assert proposal.confidence == slcr.CONFIDENCE_HIGH
+def test_chybi_id_jmeno_a_rocnik_najdou_clena():
+    member = _person(7, "Pela", "Adam", None, 706829, age=THIS_YEAR - 2008)
+    result = _check("Pela", "Adam", 2008, "-", members=[member])
+    assert (result.kind, result.person.race_code) == (slcr.KIND_FILL_ID, 706829)
 
 
-def test_jiny_rocnik_ve_vysledcich_nestaci():
-    results = [_person(1, "Novák", "Jan", 2012)]
-    proposal = slcr.propose(RacerToPair(1, "Novák", "Jan", 1980, None), results, lambda s, n: [])
-    assert proposal.person is None
+def test_jmeno_a_rocnik_sedi_ale_id_je_jine():
+    member = _person(5, "Pola", "Jonáš", None, 777512, age=THIS_YEAR - 2004)
+    result = _check("Pola", "Jonáš", 2004, "775512", members=[member])
+    assert result.kind == slcr.KIND_OTHER_ID
+    assert "777512" in result.note and "775512" in result.note
 
 
-def test_hledani_v_evidenci_najde_cislo_zavodnika():
-    found = [_person(10, "Jaroš", "David", None, 778975), _person(11, "Jaroš", "David", None, 700001)]
-    proposal = slcr.propose(RacerToPair(1, "Jaroš", "David", 2018, "778975"), [], lambda s, n: found)
-    assert proposal.person.member_id == 10
-    assert proposal.confidence == slcr.CONFIDENCE_HIGH
+def test_nase_id_patri_jinemu_jmenu():
+    """Žádné odhadování podobnosti: Ema není Emma - ukáže se jako nesoulad."""
+    result = _check("Fabiánová", "Ema", 2019, "891586", results=[_person(44319, "Fabiánová", "Emma", 2019, 891586)])
+    assert (result.kind, result.person.member_id) == (slcr.KIND_ID_MISMATCH, 44319)
+    assert "nesedí jméno" in result.note
 
 
-def test_klub_se_neposuzuje():
-    """SLČR páruje podle jména a ročníku; shodný klub jmenovce nerozliší."""
-    found = [_person(1, "Černá", "Anna", club="SKI Klub Praha"), _person(2, "Černá", "Anna", club="TJ Tesla Pardubice")]
-    proposal = slcr.propose(RacerToPair(1, "Černá", "Anna", 2012, None), [], lambda s, n: found)
-    assert proposal.confidence == slcr.CONFIDENCE_LOW
-    assert "2 lidí se stejným jménem" in proposal.note
+def test_nase_id_patri_jinemu_rocniku():
+    result = _check("Junová", "Mariana", 2016, "891952", results=[_person(45973, "Junová", "Mariana", 2022, 891952)])
+    assert result.kind == slcr.KIND_ID_MISMATCH
+    assert "nesedí ročník" in result.note
 
 
-def test_jmenovce_jsou_nejisti():
-    found = [_person(1, "Hlaváč", "Jan"), _person(2, "Hlaváč", "Jan"), _person(3, "Hlaváč", "Jan")]
-    proposal = slcr.propose(RacerToPair(1, "Hlaváč", "Jan", 2001, None), [], lambda s, n: found)
-    assert proposal.confidence == slcr.CONFIDENCE_LOW
-    assert len(proposal.alternatives) == 2
+def test_bez_id_se_podobne_jmeno_nepovazuje_za_shodu():
+    assert _check("Fabiánová", "Ema", 2019, results=[_person(44319, "Fabiánová", "Emma", 2019, 891586)]).kind \
+        == slcr.KIND_NOT_FOUND
 
 
-def test_clen_jineho_useku_je_nejisty():
-    found = [_person(1, "Polák", "Martin", club="SKI Janov - Bedřichov", alpine=False)]
-    racer = RacerToPair(1, "Polák", "Martin", 1976, None)
-    assert slcr.propose(racer, [], lambda s, n: found).confidence == slcr.CONFIDENCE_LOW
+def test_nezname_id():
+    assert _check("Bečvářová", "Sophia", 2020, "89199").kind == slcr.KIND_ID_UNKNOWN
 
 
-def test_prohozene_jmeno_a_prijmeni():
-    results = [_person(44825, "Herinková", "Veronika", 2019, 891798)]
-    searched = []
-    proposal = slcr.propose(RacerToPair(1, "Veronika", "Herinková", 2019, None), results,
-                            lambda s, n: searched.append(s) or [])
-    assert proposal.person.member_id == 44825
-    assert proposal.confidence == slcr.CONFIDENCE_MEDIUM
-    assert "prohozené" in proposal.note
+def test_vic_clenu_se_stejnym_jmenem_a_rockem():
+    members = [_person(1, "Novák", "Jan", None, 700001, age=THIS_YEAR - 2010),
+               _person(2, "Novák", "Jan", None, 700002, age=THIS_YEAR - 2010)]
+    result = _check("Novák", "Jan", 2010, members=members)
+    assert result.kind == slcr.KIND_AMBIGUOUS and len(result.alternatives) == 1
+
+
+def test_vek_rozhodne_mezi_otcem_a_synem():
+    """Pantůček Václav 1964 a 2007 - evidence zná jen jednoho a uvádí mu věk."""
+    member = _person(14208, "Pantůček", "Václav", None, 709285, age=THIS_YEAR - 2007)
+    assert _check("Pantůček", "Václav", 2007, "-", members=[member]).kind == slcr.KIND_FILL_ID
+    assert _check("Pantůček", "Václav", 1964, "-", members=[member]).kind == slcr.KIND_NOT_FOUND
+
+
+def test_cizi_id_od_rodice():
+    """Dítě zadalo ID rodiče - ID patří jinému ročníku."""
+    parent = _person(9, "Arnold", "Franziska", None, 808853, age=52)
+    result = _check("Arnold", "Franziska", 2014, "808853", members=[parent])
+    assert result.kind == slcr.KIND_ID_MISMATCH
 
 
 # --------------------------------------------------------------------------
@@ -110,7 +119,7 @@ class FakeClient:
     def jmlp_results(self, since):
         return self.results
 
-    def search_with_codes(self, surname, name):
+    def search_with_details(self, surname):
         return self.members.get(surname, [])
 
 
@@ -198,7 +207,7 @@ def test_spadly_beh_se_zapise_jako_chyba(db):
 # --------------------------------------------------------------------------
 def test_api_prehled_navrhy_a_rozhodnuti(client, db, admin_headers):
     racer = _racer(db, "Jaroš", "David", 2018, "778975", "Ski team Victoria Brno")
-    _run(db, FakeClient(members={"Jaroš": [_person(43580, "Jaroš", "David", None, 778475, "Ski klub Victoria Brno")]}))
+    _run(db, FakeClient(members={"Jaroš": [_person(43580, "Jaroš", "David", None, 778475, age=THIS_YEAR - 2018)]}))
 
     summary = client.get("/api/admin/slcr/summary", headers=admin_headers).json()
     assert summary["counts"]["suggested"] == 1
@@ -227,12 +236,14 @@ def test_api_prehled_navrhy_a_rozhodnuti(client, db, admin_headers):
 
 
 def test_api_jeden_clen_nejde_potvrdit_u_dvou_zavodniku(client, db, admin_headers):
-    first = _racer(db, "Fiala", "Enrico", 2007)
-    second = _racer(db, "Fiala", "Enrico", 1971)
-    _run(db, FakeClient(members={"Fiala": [_person(17772, "Fiala", "Enrico")]}))
+    """Šíbal Marek 2005 a 1989 zadali oba ID 778290."""
+    first = _racer(db, "Šibal", "Marek", 2005, "778290")
+    second = _racer(db, "Šibal", "Marek", 1989, "778290")
+    _run(db, FakeClient(members={"Šibal": [_person(43253, "Šibal", "Marek", None, 778290, age=THIS_YEAR - 2005)]}))
 
-    [a, b] = client.get("/api/admin/slcr/pairs", headers=admin_headers).json()
-    assert a["flags"]["shared_member"] and b["flags"]["shared_member"]
+    items = {i["racer_id"]: i for i in client.get("/api/admin/slcr/pairs", headers=admin_headers).json()}
+    assert items[first]["kind"] == "ok" and items[second]["kind"] == "id_mismatch"
+    assert items[first]["flags"]["shared_member"] and items[second]["flags"]["shared_member"]
 
     assert client.post(f"/api/admin/slcr/pairs/{first}/confirm", headers=admin_headers).status_code == 200
     response = client.post(f"/api/admin/slcr/pairs/{second}/confirm", headers=admin_headers)
@@ -292,7 +303,7 @@ def test_potvrzeni_prevezme_jmeno_rocnik_a_id_z_evidence(client, db, admin_heade
     """SLČR páruje nahrané výsledky podle jména a ročníku - náš záznam se srovná s evidencí."""
     predzacky = _kategorie(db, "U12 Předžactvo", 2, 2015, 2016)
     mysaci = _kategorie(db, "U8 Myšáci", 2, 2019, 2026)
-    ema = _racer(db, "Fabiánová", "Ema", 2019, "-")
+    ema = _racer(db, "Fabiánová", "Ema", 2019, "891586")
     junova = _racer(db, "Junová", "Mariana", 2016, "891952")
     db.execute(text("UPDATE fuj_jmlp_racer SET category_id = :c WHERE id = :id"), {"c": predzacky, "id": junova})
     db.commit()
@@ -302,8 +313,7 @@ def test_potvrzeni_prevezme_jmeno_rocnik_a_id_z_evidence(client, db, admin_heade
     ]))
 
     items = {i["racer"]["surname"]: i for i in client.get("/api/admin/slcr/pairs", headers=admin_headers).json()}
-    assert {c["field"]: (c["old"], c["new"]) for c in items["Fabiánová"]["changes"]} == {
-        "name": ("Ema", "Emma"), "slcr_id": ("-", "891586")}
+    assert {c["field"]: (c["old"], c["new"]) for c in items["Fabiánová"]["changes"]} == {"name": ("Ema", "Emma")}
     assert items["Junová"]["changes"] == [{"field": "year", "label": "ročník", "old": 2016, "new": 2022}]
 
     for racer in (ema, junova):
@@ -340,7 +350,7 @@ def test_potvrzeni_ktere_by_vytvorilo_duplicitu_neprojde(client, db, admin_heade
 
 def test_prevzeti_u_drive_potvrzenych(client, db, admin_headers):
     racer = _racer(db, "Pola", "Jonáš", 2004, "775512")
-    _run(db, FakeClient(members={"Pola": [_person(5, "Pola", "Jonáš", None, 777512)]}))
+    _run(db, FakeClient(members={"Pola": [_person(5, "Pola", "Jonáš", None, 777512, age=THIS_YEAR - 2004)]}))
     # Potvrzeno dřív, než potvrzení opravovalo záznam.
     db.execute(text("UPDATE fuj_jmlp_racer_slcr SET status = 'confirmed' WHERE racer_id = :id"), {"id": racer})
     db.commit()
@@ -352,27 +362,3 @@ def test_prevzeti_u_drive_potvrzenych(client, db, admin_headers):
     db.expire_all()
     assert _racer_row(db, racer)["slcr_id"] == "777512"
     assert client.get("/api/admin/slcr/summary", headers=admin_headers).json()["counts"]["pending_apply"] == 0
-
-
-def test_rocnik_podle_veku_z_evidence():
-    from datetime import date
-    today = date(2026, 10, 10)
-    assert slcr.year_fits_age(2007, 18, today) and slcr.year_fits_age(2008, 18, today)
-    assert slcr.year_fits_age(1964, 18, today) is False
-    assert slcr.year_fits_age(2007, None, today) is None
-
-
-def test_vek_rozhodne_mezi_otcem_a_synem(monkeypatch):
-    """Pantůček Václav 1964 a 2007 - evidence zná jen jednoho a uvádí mu věk."""
-    this_year = __import__("datetime").date.today().year
-    member = _person(14208, "Pantůček", "Václav", None, 709285, age=this_year - 2007)
-    syn = slcr.propose(RacerToPair(1, "Pantůček", "Václav", 2007, "-"), [], lambda s, n: [member])
-    otec = slcr.propose(RacerToPair(2, "Pantůček", "Václav", 1964, "-"), [], lambda s, n: [member])
-    assert syn.person.member_id == 14208 and syn.confidence == slcr.CONFIDENCE_HIGH
-    assert otec.person is None
-
-
-def test_shodne_id_prebije_nesedici_vek():
-    member = _person(5, "Němcová", "Rozálie", None, 809395, age=8)
-    proposal = slcr.propose(RacerToPair(1, "Němcová", "Rozálie", 2013, "809395"), [], lambda s, n: [member])
-    assert proposal.person.member_id == 5

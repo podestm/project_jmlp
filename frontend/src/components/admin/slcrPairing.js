@@ -17,19 +17,27 @@ export const STATUS_TABS = [
   { status: PAIR_STATUS.rejected, label: 'Odmítnutí' }
 ];
 
-export const CONFIDENCE = {
-  high: { label: 'Jistá shoda', className: 'bg-success' },
-  medium: { label: 'Pravděpodobná', className: 'bg-warning text-dark' },
-  low: { label: 'Nejistá', className: 'bg-danger' }
+/**
+ * Výsledek křížové kontroly s evidencí SLČR: naše ID proti evidenci a naše
+ * jméno + ročník proti evidenci (viz backend services/slcr.py).
+ */
+export const KIND = {
+  ok: { label: 'Sedí', className: 'bg-success' },
+  fill_id: { label: 'Doplnit ID', className: 'bg-success' },
+  other_id: { label: 'Jiné ID', className: 'bg-warning text-dark' },
+  id_mismatch: { label: 'Nesedí jméno / ročník', className: 'bg-warning text-dark' },
+  ambiguous: { label: 'Víc shod', className: 'bg-danger' },
+  id_unknown: { label: 'ID neznámé', className: 'bg-secondary' },
+  not_found: { label: 'Nenalezen', className: 'bg-secondary' }
 };
+
+/** Jasné výsledky, které jde potvrdit hromadně. */
+export const CLEAR_KINDS = ['ok', 'fill_id'];
 
 /** Upozornění k návrhu, jak je ukazuje tabulka. */
 export function pairWarnings(item) {
   const flags = item.flags || {};
   const warnings = [];
-  if (flags.code_mismatch) {
-    warnings.push({ key: 'code', text: `ID závodníka je jiné (u nás ${item.racer.slcr_id}, v evidenci ${item.slcr.race_code}) - ověřte, že jde o stejného člověka` });
-  }
   if (flags.shared_member) warnings.push({ key: 'shared', text: 'Stejný člen i u jiného závodníka - duplicita?' });
   return warnings;
 }
@@ -53,10 +61,10 @@ const fold = (value) => String(value || '')
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 /** Hledání v tabulce: jméno u nás i v evidenci, ID. */
-export function filterPairs(items, { query = '', confidence = 'all' } = {}) {
+export function filterPairs(items, { query = '', kind = 'all' } = {}) {
   const words = fold(query).split(/\s+/).filter(Boolean);
   return items.filter((item) => {
-    if (confidence !== 'all' && item.confidence !== confidence) return false;
+    if (kind !== 'all' && item.kind !== kind) return false;
     if (words.length === 0) return true;
     const haystack = fold([
       item.racer.surname, item.racer.name, item.racer.year, item.racer.slcr_id,
@@ -67,13 +75,13 @@ export function filterPairs(items, { query = '', confidence = 'all' } = {}) {
 }
 
 /**
- * Návrhy, které jde potvrdit hromadně: jistá shoda bez upozornění a bez
- * změny ročníku. Všechno ostatní má správce projít jednotlivě.
+ * Návrhy, které jde potvrdit hromadně: sedí, nebo se jen doplní ID - bez
+ * upozornění a bez změny ročníku. Ostatní má správce projít jednotlivě.
  */
 export function bulkConfirmable(items) {
   return items.filter((item) => (
     item.status === PAIR_STATUS.suggested
-    && item.confidence === 'high'
+    && CLEAR_KINDS.includes(item.kind)
     && item.slcr
     && pairWarnings(item).length === 0
     // Změna ročníku přesune závodníka do jiné kategorie - jednotlivě.
