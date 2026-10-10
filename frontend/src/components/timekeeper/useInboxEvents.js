@@ -17,10 +17,14 @@ import {
 import { parseIncomingTime } from '../../utils/serial.js';
 import {
   compareCandidates,
+  isAutoWriteCandidate,
   isBibCandidate,
+  isRoundEmpty,
   matchesBib,
   normalizeBib,
   resolveInboxEvent,
+  roundField,
+  roundMatchesAutoWrite,
 } from './inboxMatching.js';
 import { isExcluded } from './startListHelpers.js';
 import { liveWriterIds } from './writerPresence.js';
@@ -36,6 +40,37 @@ const INBOX_REFRESH_DEBOUNCE_MS = 120;
 
 /** Zotavení přerušených zápisů se musí opakovat, ne běžet jen při mountu. */
 const INBOX_RECOVERY_INTERVAL_MS = 20000;
+
+/** Přepínač "Zapisovat automaticky" - platí pro zařízení, ne pro závod. */
+export const AUTO_WRITE_KEY = 'timekeeper_bridge_auto_write';
+
+/** Výchozí stav je zapnuto; vypnuto jen po výslovném vypnutí na tomhle zařízení. */
+export const readAutoWrite = () => {
+  try {
+    return localStorage.getItem(AUTO_WRITE_KEY) !== '0';
+  } catch {
+    return true;
+  }
+};
+
+const storeAutoWrite = (value) => {
+  try {
+    localStorage.setItem(AUTO_WRITE_KEY, value ? '1' : '0');
+  } catch {
+    // anonymní režim / plná kvóta - přepínač platí aspoň do obnovení stránky
+  }
+};
+
+/** Draft řádku startovky: rozepsaná hodnota, jinak to, co je uložené. */
+const currentDraft = (entry, edited) => ({
+  ...(edited || {
+    time1: entry.time1 != null ? String(entry.time1) : '',
+    time2: entry.time2 != null ? String(entry.time2) : '',
+    dnf: Boolean(entry.dnf),
+    dns: Boolean(entry.dns),
+    dsq: Boolean(entry.dsq),
+  }),
+});
 
 /**
  * Schránka impulzů z časomíry: odvozený pohled a všechny operace nad ní.
@@ -68,6 +103,7 @@ export function useInboxEvents({
   sessionStartedAt,
   loading,
   readOnlyMessage,
+  hasWriteLock = false,
 }) {
   // Inbox se čte z IndexedDB, ne z paměti: události chodí i když je obrazovka
   // zavřená, a přes `storage` i z karty, která drží sériový port.
@@ -340,24 +376,29 @@ export function useInboxEvents({
   }, [inboxEvents, startList, loading, selectedRaceId, candidateIdsForBib]);
 
   /**
-   * Potvrzení jedné události.
+   * Zápis jedné události do kola závodníka - společná cesta pro ✓ i pro
+   * automatický zápis.
    *
    * `entryIdHint` je id, které měl vykreslený řádek pod ✓. Bez něj by se
    * závodník počítal podruhé a mohl vyjít jinak, než co obsluha viděla.
    * Zabrání se tady i tomu, aby dvě karty zapsaly jeden impulz dvakrát:
    * beginInboxEventSave je compare-and-set nad uloženým řádkem.
+   *
+   * S `auto` se navíc trvá na prázdném kole (obsazené zůstane ruční a řádek to
+   * řekne), nehlásí se nic, co by obsluhu rušilo, a do řádku se uloží, co
+   * v kole bylo předtím - podle toho pak "Zamítnout" kolo vrátí.
    */
-  const confirmBridgeEvent = useCallback(async (eventId, entryIdHint = null) => {
+  const writeBridgeEvent = useCallback(async (eventId, entryIdHint = null, { auto = false } = {}) => {
     const event = inboxEventsRef.current.find((row) => row.id === eventId);
     if (!event || event.status === 'saved' || event.status === 'saving' || event.status === 'queued') return;
     if (!hasWriteLockRef.current) {
-      setMessage({ type: 'warning', text: readOnlyMessage });
+      if (!auto) setMessage({ type: 'warning', text: readOnlyMessage });
       return;
     }
 
     const raceId = Number(selectedRaceIdRef.current) || null;
     if (!raceId) {
-      setMessage({ type: 'warning', text: 'Nejprve vyberte závod – teprve potvrzením se čas přiřadí k závodu.' });
+      if (!auto) setMessage({ type: 'warning', text: 'Nejprve vyberte závod – teprve potvrzením se čas přiřadí k závodu.' });
       return;
     }
 
@@ -370,15 +411,15 @@ export function useInboxEvents({
     }
 
     const entryId = entry.id;
-    const nextDraft = {
-      ...(editedTimesRef.current[entryId] || {
-        time1: entry.time1 != null ? String(entry.time1) : '',
-        time2: entry.time2 != null ? String(entry.time2) : '',
-        dnf: Boolean(entry.dnf),
-        dns: Boolean(entry.dns),
-        dsq: Boolean(entry.dsq),
-      }),
-    };
+    const previousDraft = currentDraft(entry, editedTimesRef.current[entryId]);
+    const nextDraft = { ...previousDraft };
+    const field = roundField(event.targetRound);
+
+    if (auto && !isRoundEmpty(entry, previousDraft, field)) {
+      // Obsazené kolo se automaticky nikdy nepřepisuje - zůstává na ✓ obsluhy.
+      await patchInboxRow(eventId, { level: 'warning', reason: 'round_occupied' });
+      return;
+    }
 
     if (event.type === 'TIME') {
       const seconds = parseIncomingTime(event.time);
@@ -386,7 +427,6 @@ export function useInboxEvents({
         await patchInboxRow(eventId, { status: 'warning', level: 'warning', reason: 'invalid_time' });
         return;
       }
-      const field = event.targetRound === '2' ? 'time2' : 'time1';
       nextDraft[field] = seconds.toFixed(2);
       nextDraft.dnf = false;
       nextDraft.dns = false;
@@ -414,6 +454,8 @@ export function useInboxEvents({
 
     if (!claim.ok) {
       if (claim.row) patchInboxRowLocally(eventId, claim.row);
+      // Automatický zápis, který předběhla jiná karta, není chyba obsluhy.
+      if (auto) return;
       if (claim.reason === 'taken') {
         setMessage({ type: 'warning', text: 'Tuto událost mezitím zpracovala jiná karta – zkontrolujte výsledek v inboxu.' });
       } else if (claim.reason === 'other_race') {
@@ -436,6 +478,14 @@ export function useInboxEvents({
       selectedEntryId: entryId,
       saving_started_at: null,
       saving_writer_id: null,
+      // Co bylo v kole předtím a co se zapsalo; ručně potvrzený řádek nic z toho nemá.
+      auto_written: auto,
+      auto_previous: auto
+        ? { field, value: previousDraft[field], dnf: previousDraft.dnf, dns: previousDraft.dns, dsq: previousDraft.dsq }
+        : null,
+      auto_value: auto
+        ? { field, value: nextDraft[field], dnf: nextDraft.dnf, dns: nextDraft.dns, dsq: nextDraft.dsq }
+        : null,
     };
 
     if (outcome.ok && outcome.queued) {
@@ -474,6 +524,123 @@ export function useInboxEvents({
       sync_queue_id: null,
     });
   }, [patchInboxRow, patchInboxRowLocally, queueSave, resolveEntryForEvent]);
+
+  /** Potvrzení jedné události obsluhou (✓). */
+  const confirmBridgeEvent = useCallback(
+    (eventId, entryIdHint = null) => writeBridgeEvent(eventId, entryIdHint),
+    [writeBridgeEvent]
+  );
+
+  // Přepínač "Zapisovat automaticky", pamatuje si ho zařízení.
+  const [autoWrite, setAutoWriteState] = useState(readAutoWrite);
+  const setAutoWrite = useCallback((value) => {
+    const next = Boolean(value);
+    storeAutoWrite(next);
+    setAutoWriteState(next);
+  }, []);
+
+  // Události, které už automatický zápis v téhle kartě zkoušel. Podruhé se
+  // nezkouší nikdy: co neprošlo, zůstává obsluze.
+  const autoTriedRef = useRef(new Set());
+  const autoRunningRef = useRef(false);
+  const autoAgainRef = useRef(false);
+
+  /**
+   * Automatický zápis.
+   *
+   * Zapisuje jen karta s write lockem (jinak by dvě karty zapsaly jeden impulz
+   * dvakrát), jen do vybraného závodu a jen událost s jediným kandidátem.
+   * Obsazené kolo, neplatný čas a všechny výjimky párování zůstávají ruční.
+   * Události se zpracují postupně od nejstarší: dva impulzy téhož dresu tak
+   * nezapíšou oba - druhý už uvidí kolo obsazené prvním.
+   */
+  useEffect(() => {
+    if (!autoWrite || !hasWriteLock || !selectedRaceId || loading || startList.length === 0) return;
+    if (!inboxEvents.some((row) => isAutoWriteCandidate(row) && !autoTriedRef.current.has(row.id))) return;
+
+    if (autoRunningRef.current) {
+      autoAgainRef.current = true;
+      return;
+    }
+
+    const run = async () => {
+      autoRunningRef.current = true;
+      try {
+        do {
+          autoAgainRef.current = false;
+          const pending = [...inboxEventsRef.current]
+            .filter((row) => isAutoWriteCandidate(row) && !autoTriedRef.current.has(row.id))
+            .sort((a, b) => a.id - b.id);
+          for (const row of pending) {
+            if (!hasWriteLockRef.current || !selectedRaceIdRef.current) return;
+            autoTriedRef.current.add(row.id);
+            await writeBridgeEvent(row.id, row.selectedEntryId, { auto: true });
+          }
+        } while (autoAgainRef.current);
+      } finally {
+        autoRunningRef.current = false;
+      }
+    };
+    run();
+  }, [inboxEvents, startList, loading, selectedRaceId, autoWrite, hasWriteLock, writeBridgeEvent]);
+
+  /**
+   * "Zamítnout" u automaticky zapsané události: vrátí kolo na hodnotu, kterou
+   * mělo těsně před zápisem, a událost označí jako zamítnutou.
+   *
+   * Když se hodnota kola mezitím změnila (někdo ji opravil ručně), zamítnutí se
+   * odmítne s vysvětlením - vrácením by se potichu přepsala novější hodnota.
+   * Kdo zamítl, se nezaznamenává.
+   */
+  const rejectAutoWrittenEvent = useCallback(async (eventId) => {
+    const event = inboxEventsRef.current.find((row) => row.id === eventId);
+    if (!event || !event.auto_written || (event.status !== 'saved' && event.status !== 'queued')) return;
+    if (!hasWriteLockRef.current) {
+      setMessage({ type: 'warning', text: readOnlyMessage });
+      return;
+    }
+    const previous = event.auto_previous;
+    const written = event.auto_value;
+    const entry = startListByIdRef.current[event.selectedEntryId];
+    if (!entry || !previous || !written) {
+      setMessage({ type: 'warning', text: 'Závodník této události není v načtené startovce – kolo opravte ručně v tabulce.' });
+      return;
+    }
+
+    const entryId = entry.id;
+    const current = currentDraft(entry, editedTimesRef.current[entryId]);
+    const racer = `${entry.racer_surname || ''} ${entry.racer_name || ''}`.trim() || `#${entryId}`;
+    if (!roundMatchesAutoWrite(current, written)) {
+      setMessage({
+        type: 'warning',
+        text: `Kolo závodníka ${racer} se po automatickém zápisu změnilo – zamítnutím by se přepsala novější hodnota. Opravte ho ručně v tabulce.`
+      });
+      return;
+    }
+
+    const revertDraft = {
+      ...current,
+      [previous.field]: previous.value ?? '',
+      dnf: Boolean(previous.dnf),
+      dns: Boolean(previous.dns),
+      dsq: Boolean(previous.dsq),
+    };
+    setEditedTimes((prev) => ({ ...prev, [entryId]: revertDraft }));
+    editedTimesRef.current = { ...editedTimesRef.current, [entryId]: revertDraft };
+
+    const outcome = await queueSave(entryId, revertDraft, 'Nepodařilo se vrátit automaticky zapsaný čas');
+    if (!outcome.ok) return;
+
+    await patchInboxRow(eventId, {
+      status: 'rejected',
+      level: 'secondary',
+      reason: 'auto_rejected',
+      // Řádek už nečeká na svou operaci ve frontě - jinak by ho sladění
+      // s frontou vrátilo do stavu "zapsáno".
+      sync_op_id: null,
+      sync_queue_id: null,
+    });
+  }, [patchInboxRow, queueSave]);
 
   const clearResolvedInbox = async () => {
     if (!selectedRaceId || resolvedInboxCount === 0) return;
@@ -543,6 +710,9 @@ export function useInboxEvents({
     cycleBridgeCandidate,
     confirmBridgeEvent,
     rejectBridgeEvent,
+    rejectAutoWrittenEvent,
+    autoWrite,
+    setAutoWrite,
     clearResolvedInbox,
     dismissUnparsedInbox,
     clearWholeInbox,

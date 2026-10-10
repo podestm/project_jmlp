@@ -20,6 +20,8 @@ const REASON_LABELS = {
   sync_superseded: 'Nahrazeno novějším zápisem téhož času – zkontrolujte záznam',
   invalid_json: 'Bridge poslal neplatný JSON',
   manually_rejected: 'Událost byla ručně zamítnuta',
+  round_occupied: 'Kolo je obsazené – automaticky se nepřepisuje, zkontrolujte a případně potvrďte ručně',
+  auto_rejected: 'Zamítnuto',
   ready: '',
 };
 
@@ -74,6 +76,7 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
   onCycle,
   onConfirm,
   onReject,
+  onRejectAuto,
 }) {
   const bib = event.bib == null ? null : Number(event.bib);
   const selectedEntry = resolvedEntry || null;
@@ -87,6 +90,10 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
     || event.status === 'saving'
     || event.status === 'queued'
     || event.status === 'rejected';
+  // Automaticky zapsaná událost má jedinou akci - Zamítnout, která vrátí kolo.
+  const isAutoWritten = Boolean(event.auto_written)
+    && (event.status === 'saved' || event.status === 'queued');
+  const isRoundOccupied = event.reason === 'round_occupied' && !isLockedRow;
   // Uložený důvod vzniká jednou, vyřazení se ale může změnit kdykoli -
   // proto se o něm rozhoduje až tady, z aktuální startovky.
   const reason = excludedMatch && !isLockedRow ? 'bib_excluded' : event.reason;
@@ -145,28 +152,50 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
             </small>
           </>
         )}
-        <div className="d-flex gap-1 ms-auto">
-          <button
-            type="button"
-            className="btn btn-sm btn-success py-0 px-2"
-            style={{ fontSize: '0.85rem', lineHeight: '1' }}
-            onClick={() => onConfirm(event.id, selectedEntry ? selectedEntry.id : null)}
-            disabled={!selectedEntry || isLockedRow || isUnparsed || isUnsupportedType}
-            title="Přiřadit a uložit"
-          >
-            ✓
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-danger py-0 px-2"
-            style={{ fontSize: '0.85rem', lineHeight: '1' }}
-            onClick={() => onReject(event.id)}
-            disabled={isLockedRow}
-            title="Zamítnout událost"
-          >
-            ✕
-          </button>
-        </div>
+        {isAutoWritten ? (
+          <div className="d-flex align-items-center gap-1 ms-auto">
+            <span className="badge bg-success-subtle text-success-emphasis border border-success-subtle" style={{ fontSize: '0.68rem' }}>
+              <i className="bi bi-lightning-charge me-1"></i>Zapsáno automaticky
+            </span>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger py-0 px-2"
+              style={{ fontSize: '0.75rem' }}
+              onClick={() => onRejectAuto?.(event.id)}
+              title="Vrátí kolo závodníka na hodnotu před automatickým zápisem"
+            >
+              Zamítnout
+            </button>
+          </div>
+        ) : (
+          <div className="d-flex gap-1 ms-auto">
+            {isRoundOccupied && (
+              <span className="badge bg-warning text-dark align-self-center" style={{ fontSize: '0.68rem' }}>
+                Kolo obsazené
+              </span>
+            )}
+            <button
+              type="button"
+              className="btn btn-sm btn-success py-0 px-2"
+              style={{ fontSize: '0.85rem', lineHeight: '1' }}
+              onClick={() => onConfirm(event.id, selectedEntry ? selectedEntry.id : null)}
+              disabled={!selectedEntry || isLockedRow || isUnparsed || isUnsupportedType}
+              title="Přiřadit a uložit"
+            >
+              ✓
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger py-0 px-2"
+              style={{ fontSize: '0.85rem', lineHeight: '1' }}
+              onClick={() => onReject(event.id)}
+              disabled={isLockedRow}
+              title="Zamítnout událost"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
       {!isUnparsed && selectedEntry && (
         <div className="text-truncate" style={{ fontSize: '0.68rem' }} title={racerLabel}>

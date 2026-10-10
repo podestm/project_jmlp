@@ -18,6 +18,9 @@ import { INBOX_RENDER_LIMIT } from './useInboxEvents.js';
  * @param {Map}    resolutions       id události -> {entry, count, index, excluded}
  * @param {number} unparsedCount     nerozpoznané řádky ze zařízení
  * @param {number} resolvedCount     vyřízené řádky (potvrzené / zamítnuté / chybové)
+ * @param {boolean} autoWrite        zapisovat jednoznačné události bez potvrzení
+ * @param {function} onAutoWriteChange přepne automatický zápis
+ * @param {function} onRejectAuto    "Zamítnout" u automaticky zapsané události
  */
 export default function SerialInboxPanel({
   events,
@@ -32,6 +35,9 @@ export default function SerialInboxPanel({
   onCycle,
   onConfirm,
   onReject,
+  onRejectAuto,
+  autoWrite = false,
+  onAutoWriteChange,
   onDismissUnparsed,
   onClearResolved,
   onClearAll,
@@ -46,10 +52,27 @@ export default function SerialInboxPanel({
             </div>
             <small className="text-muted">
               Klik na badge přepne kandidáta, potvrzení zapíše serial událost do výsledků.
-              Uložené události zůstávají až do ručního smazání.
+              {autoWrite ? ' Jednoznačné události do prázdného kola se zapisují automaticky.' : ''}
+              {' '}Uložené události zůstávají až do ručního smazání.
             </small>
           </div>
           <div className="d-flex align-items-center gap-1 flex-wrap">
+            <div
+              className="form-check form-switch mb-0 me-1"
+              title="Událost s jediným kandidátem se zapíše do prázdného kola bez potvrzení. Obsazené kolo a ostatní výjimky zůstávají ruční."
+            >
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="tk-bridge-auto-write"
+                checked={autoWrite}
+                onChange={(e) => onAutoWriteChange?.(e.target.checked)}
+              />
+              <label className="form-check-label small" htmlFor="tk-bridge-auto-write">
+                Zapisovat automaticky
+              </label>
+            </div>
             <span className="badge bg-dark">Kolo {targetRound}</span>
             {unparsedCount > 0 && (
               <button
@@ -135,6 +158,7 @@ export default function SerialInboxPanel({
                     onCycle={onCycle}
                     onConfirm={onConfirm}
                     onReject={onReject}
+                    onRejectAuto={onRejectAuto}
                   />
                 );
               })}

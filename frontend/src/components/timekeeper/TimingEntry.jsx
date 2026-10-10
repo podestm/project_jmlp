@@ -33,7 +33,9 @@ import TimingToolbar from './TimingToolbar.jsx';
  * Obrazovka nevlastní ani sériový port (drží ho SerialSessionProvider nad
  * <Routes>), ani inbox (ten je v IndexedDB). Její jediná odpovědnost je spojit
  * uloženou událost se závodníkem a na povel obsluhy ji zapsat - všechno ostatní
- * musí přežít odchod z obrazovky i obnovení stránky.
+ * musí přežít odchod z obrazovky i obnovení stránky. Se zapnutým "Zapisovat
+ * automaticky" zapíše jednoznačnou událost do prázdného kola sama (viz
+ * useInboxEvents) - výjimky zůstávají na obsluze.
  *
  * Řádek tabulky je v TimingRow.jsx a řádek inboxu v BridgeEventRow.jsx: obojí
  * je memoizované a při psaní do jednoho pole se překreslí jen dotčený řádek.
@@ -380,6 +382,9 @@ export default function TimingEntry() {
     cycleBridgeCandidate,
     confirmBridgeEvent,
     rejectBridgeEvent,
+    rejectAutoWrittenEvent,
+    autoWrite,
+    setAutoWrite,
     clearResolvedInbox,
     dismissUnparsedInbox,
     clearWholeInbox,
@@ -404,6 +409,7 @@ export default function TimingEntry() {
     sessionStartedAt: SESSION_STARTED_AT,
     loading,
     readOnlyMessage: READ_ONLY_MESSAGE,
+    hasWriteLock,
   });
 
   return (
@@ -480,6 +486,9 @@ export default function TimingEntry() {
               onCycle={cycleBridgeCandidate}
               onConfirm={confirmBridgeEvent}
               onReject={rejectBridgeEvent}
+              onRejectAuto={rejectAutoWrittenEvent}
+              autoWrite={autoWrite}
+              onAutoWriteChange={setAutoWrite}
               onDismissUnparsed={dismissUnparsedInbox}
               onClearResolved={clearResolvedInbox}
               onClearAll={clearWholeInbox}
