@@ -115,7 +115,7 @@ export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
   let y = drawTitleBand(canvas, FIRST_BAND_TOP, title);
 
   const nextPage = () => {
-    drawFooter(canvas);
+    canvas.footer(() => drawFooter(canvas));
     canvas.newPage();
     y = drawTitleBand(canvas, NEXT_BAND_TOP, title);
   };
@@ -124,20 +124,20 @@ export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
     const entries = category.entries || [];
     if (entries.length === 0) return;
     // Jako v LiZe: nadpis kategorie smí zůstat posledním řádkem stránky.
-    if (y + CATEGORY_HEIGHT > PAGE_BOTTOM) nextPage();
+    if (y + CATEGORY_HEIGHT > canvas.limit(PAGE_BOTTOM)) nextPage();
     canvas.text(category.name || '', 17.28, y + 11.04, BOLD10);
     y += CATEGORY_HEIGHT;
 
     entries.forEach((entry) => {
-      if (y + ROW_HEIGHT > PAGE_BOTTOM) nextPage();
+      if (y + ROW_HEIGHT > canvas.limit(PAGE_BOTTOM)) nextPage();
       y += ROW_HEIGHT;
       drawEntry(canvas, entry, y);
     });
   });
 
-  if (y + 79.2 > PAGE_BOTTOM) nextPage();
+  if (y + 79.2 > canvas.limit(PAGE_BOTTOM)) nextPage();
   drawSponsors(canvas, null, y);
-  drawFooter(canvas);
+  canvas.footer(() => drawFooter(canvas));
 
   return canvas.toDocDefinition({ title });
 }

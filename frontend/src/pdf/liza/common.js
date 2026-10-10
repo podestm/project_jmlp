@@ -67,7 +67,10 @@ export function cupTitle(header) {
 }
 
 /** Česká vlajka vepsaná do obdélníku - LiZa ji tiskne jako roztaženou bitmapu. */
-export function drawFlag(canvas, x1, y1, x2, y2) {
+export function drawFlag(canvas, x1, top, x2, bottom) {
+  // Tvary jdou rovnou do plátna, tak i s jeho tiskovým okrajem (PdfCanvas.offsetY).
+  const y1 = top + canvas.offsetY;
+  const y2 = bottom + canvas.offsetY;
   const w = x2 - x1;
   const h = y2 - y1;
   const tip = x1 + w * 0.48;

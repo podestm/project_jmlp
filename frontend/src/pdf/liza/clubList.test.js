@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildClubListDoc, categoryCode, groupByClub, setName } from './clubList.js';
 import { pagesOf, textsOf } from './testHelpers.js';
+import { PRINT_MARGINS } from './layout.js';
+
+/** Listiny jsou v souřadnicích LiZy, plátno je posune o tiskový okraj. */
+const TOP = PRINT_MARGINS.top;
 
 describe('zkratky kategorií jako v LiZe', () => {
   it.each([
@@ -48,8 +52,8 @@ describe('rozpis po klubech', () => {
     const pages = pagesOf(doc);
     expect(pages).toHaveLength(2);
     const first = pages[0];
-    expect(first.find((t) => t.text === 'Adomi Race').base).toBeCloseTo(58.92, 2);
-    expect(first.find((t) => t.text === 'M - Vodica Michael').base).toBeCloseTo(73.92, 2);
+    expect(first.find((t) => t.text === 'Adomi Race').base).toBeCloseTo(58.92 + TOP, 2);
+    expect(first.find((t) => t.text === 'M - Vodica Michael').base).toBeCloseTo(73.92 + TOP, 2);
     expect(textsOf(doc)).toContain('Z - Mertová Beáta');
     expect(pages[1].map((t) => t.text)).toEqual(expect.arrayContaining(['SEZNAM SAD STARTOVNÍCH ČÍSEL', 'První sada', 'Seznam kategorií', 'MYD', 'Myšáci hoši']));
   });

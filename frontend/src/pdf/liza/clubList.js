@@ -96,7 +96,7 @@ export function buildClubListDoc({ header = {}, entries = [], sets = [], categor
 
   let y = FIRST_PAGE_TOP;
   const ensure = (height) => {
-    if (y + height > PAGE_BOTTOM) {
+    if (y + height > canvas.limit(PAGE_BOTTOM)) {
       canvas.newPage();
       y = NEXT_PAGE_TOP;
     }

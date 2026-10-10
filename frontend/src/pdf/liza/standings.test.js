@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildStandingsDoc, COUNTED_PREP, COUNTED_SNOW, raceColumns } from './standings.js';
 import { imagesOf, pagesOf, textsOf } from './testHelpers.js';
+import { PRINT_MARGINS } from './layout.js';
+
+/** Listiny jsou v souřadnicích LiZy, plátno je posune o tiskový okraj. */
+const TOP = PRINT_MARGINS.top;
 
 /*
  * Rozměry jsou změřené z pořadí, které pro JmLP vydával LIP (průběžné
@@ -44,10 +48,10 @@ describe('pořadí poháru jako od LIP', () => {
   it('záhlaví: pohár, sezóna, průběžné výsledky, datum a vysvětlivky', () => {
     const page = pagesOf(buildStandingsDoc({ standings: standings(), printedOn: '2026-02-23' }))[0];
 
-    expect(find(page, 'Jihomoravský lyžařský pohár')).toMatchObject({ x: 144.72, base: expect.closeTo(37.8, 2) });
+    expect(find(page, 'Jihomoravský lyžařský pohár')).toMatchObject({ x: 144.72, base: expect.closeTo(37.8 + TOP, 2) });
     expect(find(page, '2025-26').x).toBeCloseTo(370.08, 2);
     expect(find(page, 'Průběžné výsledky')).toMatchObject({ x: 146.88 });
-    expect(find(page, '23.02.2026').base).toBeCloseTo(17.4, 2);
+    expect(find(page, '23.02.2026').base).toBeCloseTo(17.4 + TOP, 2);
     expect(page.map((item) => item.text)).toContain('Výsledky z jednotlivých závodů jsou označeny písmenem');
   });
 
@@ -64,8 +68,8 @@ describe('pořadí poháru jako od LIP', () => {
     const page = pagesOf(doc)[0];
 
     // První řádek měřený z LIP: účaří 133,68, jméno o 0,12 níž, pořadí zarovnané doprava na 42,5.
-    expect(find(page, 'Keznikl Max')).toMatchObject({ x: 48.96, bold: true, base: expect.closeTo(133.8, 2) });
-    expect(find(page, 'Budín Max')).toMatchObject({ bold: false, base: expect.closeTo(170.4, 2) });
+    expect(find(page, 'Keznikl Max')).toMatchObject({ x: 48.96, bold: true, base: expect.closeTo(133.8 + TOP, 2) });
+    expect(find(page, 'Budín Max')).toMatchObject({ bold: false, base: expect.closeTo(170.4 + TOP, 2) });
     expect(find(page, '2019').x).toBeCloseTo(193.92, 2);
     expect(page.filter((item) => item.text === '210' && item.bold)).toHaveLength(4);
 
@@ -124,7 +128,7 @@ describe('pořadí poháru jako od LIP', () => {
     expect(pages[1].map((item) => item.text)).toContain('jméno a ročník');
     // Pokračování začíná rovnou řádkem na účaří 26,40 (měřeno z LIP).
     const first = pages[1].filter((item) => /^Závodník/.test(item.text)).sort((a, b) => a.base - b.base)[0];
-    expect(first.base).toBeCloseTo(26.4, 2);
+    expect(first.base).toBeCloseTo(26.4 + TOP, 2);
     expect(textsOf(buildStandingsDoc({ standings: standings() }))).toContain('Zpracováno systémem jmlp.cz');
   });
 });

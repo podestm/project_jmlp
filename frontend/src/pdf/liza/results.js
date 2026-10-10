@@ -259,7 +259,7 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
   // Čas vyvěšení patří listině kola, od něj běží lhůta na protesty.
   const footer = { posted: mode === 'run' ? posted : null };
   const nextPage = () => {
-    drawFooter(canvas, footer);
+    canvas.footer(() => drawFooter(canvas, footer));
     canvas.newPage();
     y = drawTitleBand(canvas, NEXT_BAND_TOP, title, options);
   };
@@ -269,20 +269,20 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
     if (entries.length === 0) return;
     // LiZa nadpis kategorie s prvním závodníkem nesvazuje - nadpis klidně
     // zůstane posledním řádkem stránky a závodníci pokračují na další.
-    if (y + CATEGORY_HEIGHT > PAGE_BOTTOM) nextPage();
+    if (y + CATEGORY_HEIGHT > canvas.limit(PAGE_BOTTOM)) nextPage();
     canvas.text(category.name || '', 23.76, y + 19.8, { size: 12, bold: true });
     y += CATEGORY_HEIGHT;
 
     entries.forEach((entry) => {
-      if (y + ROW_HEIGHT > PAGE_BOTTOM) nextPage();
+      if (y + ROW_HEIGHT > canvas.limit(PAGE_BOTTOM)) nextPage();
       y += ROW_HEIGHT;
       drawEntry(canvas, entry, y, options);
     });
   });
 
-  if (y + 80.64 > 812) nextPage();
+  if (y + 80.64 > canvas.limit(812)) nextPage();
   drawSponsors(canvas, header?.sponsors, y);
-  drawFooter(canvas, footer);
+  canvas.footer(() => drawFooter(canvas, footer));
 
   return canvas.toDocDefinition({ title });
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildResultsDoc, postingTime } from './results.js';
 import { imagesOf, pagesOf, textsOf } from './testHelpers.js';
+import { PRINT_MARGINS } from './layout.js';
+
+/** Listiny jsou v souřadnicích LiZy, plátno je posune o tiskový okraj. */
+const TOP = PRINT_MARGINS.top;
 
 const header = {
   cupName: 'Jihomoravský lyžařský pohár', editionLabel: 'XIX.', raceNumberLabel: '2025-05',
@@ -27,8 +31,8 @@ describe('výsledková listina jako z LiZy', () => {
     expect(texts).not.toContain('2.kolo');
     expect(texts).toEqual(expect.arrayContaining(['  1', '  2', 'DSQ', '31,00', '+2,00', '100', '80']));
     // Měřeno z LiZy: první řádek - příjmení s účařím 355,56, pořadí 359,16.
-    expect(page.find((t) => t.text === 'Závodník1').base).toBeCloseTo(355.56, 2);
-    expect(page.find((t) => t.text === '  1').base).toBeCloseTo(359.16, 2);
+    expect(page.find((t) => t.text === 'Závodník1').base).toBeCloseTo(355.56 + TOP, 2);
+    expect(page.find((t) => t.text === '  1').base).toBeCloseTo(359.16 + TOP, 2);
   });
 
   it('dvě kola: sloupec 2. kola a údaje 2. kola v hlavičce', () => {
@@ -114,7 +118,8 @@ describe('výsledková listina jako z LiZy', () => {
     pages.forEach((page) => {
       const label = page.find((item) => item.text === 'Čas vyvěšení: 10:44');
       expect(label).toBeDefined();
-      expect(label.base).toBeCloseTo(823.8, 2);
+      // Patička jde naopak o spodní tiskový okraj nahoru.
+      expect(label.base).toBeCloseTo(823.8 - PRINT_MARGINS.bottom, 2);
     });
   });
 

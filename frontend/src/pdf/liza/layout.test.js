@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PdfCanvas, clipText, textWidth } from './layout.js';
+import { CM, PRINT_MARGINS, PdfCanvas, clipText, textWidth } from './layout.js';
 import { pagesOf } from './testHelpers.js';
+import { drawFlag } from './common.js';
 
 /**
  * Sazba listin podle souřadnic z PDF LiZy - texty se umisťují účařím,
@@ -26,8 +27,32 @@ describe('clipText', () => {
 });
 
 describe('PdfCanvas', () => {
-  it('umístí text účařím na zadanou souřadnici', () => {
+  it('tiskové okraje: tělo o 1 cm níž, patička o 1,5 cm výš, stránka kratší o oba', () => {
+    expect(PRINT_MARGINS.top).toBeCloseTo(CM, 5);
+    expect(PRINT_MARGINS.bottom).toBeCloseTo(1.5 * CM, 5);
     const canvas = new PdfCanvas();
+    canvas.text('Tělo', 20, 100, { size: 8.04 });
+    canvas.footer(() => canvas.text('Patička', 20, 823.8, { size: 8.04 }));
+    canvas.text('Zase tělo', 20, 200, { size: 8.04 });
+    canvas.line(0, 50, 100, 50);
+    const [[body, foot, again]] = pagesOf(canvas.toDocDefinition());
+    expect(body.base).toBeCloseTo(100 + CM, 2);
+    expect(foot.base).toBeCloseTo(823.8 - 1.5 * CM, 2);
+    expect(again.base).toBeCloseTo(200 + CM, 2);
+    const line = canvas.toDocDefinition().content.find((item) => item.canvas).canvas[0];
+    expect(line.y1).toBeCloseTo(50 + CM, 2);
+    expect(canvas.limit(812)).toBeCloseTo(812 - 2.5 * CM, 2);
+  });
+
+  it('vlajka se posune o tiskový okraj stejně jako text', () => {
+    const canvas = new PdfCanvas();
+    drawFlag(canvas, 310, 100, 327, 112);
+    const [white] = canvas.toDocDefinition().content.find((item) => item.canvas).canvas;
+    expect(white.y).toBeCloseTo(100 + CM, 2);
+  });
+
+  it('umístí text účařím na zadanou souřadnici', () => {
+    const canvas = new PdfCanvas(undefined, { margins: { top: 0, bottom: 0 } });
     canvas.text('Čablová', 126.72, 211.56, { size: 9.96, bold: true });
     const [[item]] = pagesOf(canvas.toDocDefinition());
     expect(item.x).toBeCloseTo(126.72, 2);

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { buildStartListDoc } from './startList.js';
 import { pagesOf, textsOf } from './testHelpers.js';
+import { PRINT_MARGINS } from './layout.js';
+
+/** Listiny jsou v souřadnicích LiZy, plátno je posune o tiskový okraj. */
+const TOP = PRINT_MARGINS.top;
 
 const header = {
   cupName: 'Jihomoravský lyžařský pohár',
@@ -35,7 +39,7 @@ describe('startovní listina jako z LiZy', () => {
     const first = page.find((t) => t.text === 'Příjmení1');
     const second = page.find((t) => t.text === 'Příjmení2');
     // Měřeno z LiZy: první příjmení má účaří 211,56, další o 20,16 níž.
-    expect(first.base).toBeCloseTo(211.56, 2);
+    expect(first.base).toBeCloseTo(211.56 + TOP, 2);
     expect(second.base - first.base).toBeCloseTo(20.16, 2);
     expect(page.map((t) => t.text)).toContain('    2');
     // Registrační číslo nesmí být ve sloupci Body (x 79,2) - plete se s body.

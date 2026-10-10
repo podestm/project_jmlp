@@ -62,14 +62,46 @@ export function clipText(text, maxWidth, style) {
   return clipped;
 }
 
+/** Centimetr v bodech PDF. */
+export const CM = 72 / 2.54;
+
+/**
+ * Okraje pro tisk navíc proti LiZe: obsah začíná o 1 cm níž a patička je
+ * o 1,5 cm výš. LiZa tiskne skoro až k okraji listu a tiskárny na závodech
+ * horní i spodní řádek uřízly (domluveno s provozem 10. 10. 2026).
+ */
+export const PRINT_MARGINS = { top: 1 * CM, bottom: 1.5 * CM };
+
 /**
  * Stránky listiny jako seznam absolutně umístěných prvků pro pdfmake.
+ *
+ * Listiny kreslí v souřadnicích LiZy; plátno je posune o tiskové okraje.
+ * Tělo jde o `margins.top` dolů, patička (`footer`) o `margins.bottom`
+ * nahoru a mez stránky (`limit`) se zkrátí o oba okraje.
  */
 export class PdfCanvas {
-  constructor(pageSize = A4_PORTRAIT) {
+  constructor(pageSize = A4_PORTRAIT, { margins = PRINT_MARGINS } = {}) {
     this.pageSize = pageSize;
+    this.margins = margins;
+    this.offsetY = margins.top;
     this.pages = [];
     this.newPage();
+  }
+
+  /** Mez stránky z LiZy (spodek posledního řádku) zkrácená o tiskové okraje. */
+  limit(bottom) {
+    return bottom - this.margins.top - this.margins.bottom;
+  }
+
+  /** Patička: kreslí se v souřadnicích LiZy, ale drží se spodního tiskového okraje. */
+  footer(draw) {
+    const previous = this.offsetY;
+    this.offsetY = -this.margins.bottom;
+    try {
+      draw();
+    } finally {
+      this.offsetY = previous;
+    }
   }
 
   newPage() {
@@ -119,7 +151,7 @@ export class PdfCanvas {
       lineHeight: 1,
       preserveLeadingSpaces: true,
       noWrap: true,
-      absolutePosition: { x: left, y: baseline - face.ascender * style.size }
+      absolutePosition: { x: left, y: baseline - face.ascender * style.size + this.offsetY }
     });
   }
 
@@ -128,9 +160,10 @@ export class PdfCanvas {
    * zakulacené konce (krátké čárky s nimi vypadají jako tečky).
    */
   line(x1, y1, x2, y2, { width = 0.72, color = '#000000', dash = null, cap = null } = {}) {
+    const dy = this.offsetY;
     this.items.push({
       canvas: [{
-        type: 'line', x1, y1, x2, y2, lineWidth: width, lineColor: color,
+        type: 'line', x1, y1: y1 + dy, x2, y2: y2 + dy, lineWidth: width, lineColor: color,
         ...(dash ? { dash } : {}),
         ...(cap ? { lineCap: cap } : {})
       }],
@@ -140,7 +173,7 @@ export class PdfCanvas {
 
   /** Obdélník podle levého horního a pravého dolního rohu. */
   rect(x1, y1, x2, y2, { fill = null, stroke = null, width = 0.72 } = {}) {
-    const shape = { type: 'rect', x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+    const shape = { type: 'rect', x: x1, y: y1 + this.offsetY, w: x2 - x1, h: y2 - y1 };
     if (fill) shape.color = fill;
     if (stroke) {
       shape.lineColor = stroke;
@@ -154,7 +187,7 @@ export class PdfCanvas {
   /** Obrázek vepsaný do rámečku se zachováním poměru stran, vystředěný. */
   image(dataUrl, x1, y1, x2, y2, { fit = false } = {}) {
     if (!dataUrl) return;
-    const node = { image: dataUrl, absolutePosition: { x: x1, y: y1 } };
+    const node = { image: dataUrl, absolutePosition: { x: x1, y: y1 + this.offsetY } };
     if (fit) node.fit = [x2 - x1, y2 - y1];
     else {
       node.width = x2 - x1;

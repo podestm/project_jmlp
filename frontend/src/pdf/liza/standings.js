@@ -216,7 +216,7 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
   let base = FIRST_HEADER_LINE - 2.4;
 
   const nextPage = () => {
-    drawFooter(canvas);
+    canvas.footer(() => drawFooter(canvas));
     canvas.newPage();
     drawColumnHeader(canvas, columns, races, NEXT_HEADER_LINE);
     base = NEXT_HEADER_LINE - 2.4;
@@ -225,13 +225,13 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
   (standings.categories || []).forEach((category) => {
     if (!category.rows?.length) return;
     // Nadpis kategorie jen s aspoň jedním řádkem pod sebou.
-    if (base + 25.92 > LAST_ROW_BASE) nextPage();
+    if (base + 25.92 > canvas.limit(LAST_ROW_BASE)) nextPage();
     drawCategoryHeader(canvas, category.name, base + 8.16);
     base += 25.92;
     drawRow(canvas, category.rows[0], base, columns, final, 0);
 
     category.rows.slice(1).forEach((row, index) => {
-      if (base + ROW_PITCH > LAST_ROW_BASE) {
+      if (base + ROW_PITCH > canvas.limit(LAST_ROW_BASE)) {
         nextPage();
         // Pokračování kategorie na nové stránce začíná rovnou řádky.
         base = NEXT_HEADER_LINE + 9.84 - ROW_PITCH;
@@ -243,14 +243,14 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
 
   if (races.length) {
     let line = base + 5.28;
-    if (legendBottom(line, races.length) > LAST_ROW_BASE) {
+    if (legendBottom(line, races.length) > canvas.limit(LAST_ROW_BASE)) {
       nextPage();
       line = NEXT_HEADER_LINE + 5.28;
     }
     drawLegend(canvas, races, line);
   }
 
-  drawFooter(canvas);
+  canvas.footer(() => drawFooter(canvas));
   return canvas.toDocDefinition({
     title: `${final ? SUBTITLE_FINAL : SUBTITLE_INTERIM} ${standings.season_label || ''}`.trim()
   });
