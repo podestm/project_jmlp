@@ -8,7 +8,9 @@ import {
   CONFIDENCE,
   PAIR_STATUS,
   STATUS_TABS,
+  appliedLabels,
   bulkConfirmable,
+  changeLabels,
   filterPairs,
   pairWarnings
 } from './slcrPairing.js';
@@ -130,6 +132,23 @@ export default function SlcrPairing() {
     loadSummary();
   };
 
+  const applyConfirmed = async () => {
+    setBulk({ done: 0, total: summary?.counts?.pending_apply || 0 });
+    try {
+      const result = await AdminAPI.post('/api/admin/slcr/apply-confirmed', {});
+      const failed = result.failed || [];
+      setMessage(failed.length
+        ? { type: 'warning', text: `Opraveno ${result.changed} záznamů; ${failed.length} se nepodařilo: ${failed.map((f) => f.reason).join(' | ')}` }
+        : { type: 'success', text: `Opraveno ${result.changed} záznamů podle evidence.` });
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message });
+    } finally {
+      setBulk(null);
+      loadItems(status);
+      loadSummary();
+    }
+  };
+
   const counts = summary?.counts || {};
   const job = summary?.job;
 
@@ -140,9 +159,9 @@ export default function SlcrPairing() {
         <h2 className="mb-0">Párování se SLČR</h2>
         <small className="text-muted">
           Závodníci z registru spárovaní s členy evidence Svazu lyžařů ČR. Návrhy vycházejí z výsledků
-          JMLP zveřejněných v evidenci a z hledání členů; potvrzujete je vy. ID závodníka v registru se
-          nemění - tabulka jen ukáže, kde nesouhlasí s evidencí. SLČR páruje nahrané výsledky podle jména
-          a ročníku, klub se neposuzuje.
+          JMLP zveřejněných v evidenci a z hledání členů; potvrzujete je vy. Potvrzení opraví náš záznam
+          podle evidence (příjmení, jméno, ročník, ID závodníka) - SLČR páruje nahrané výsledky podle
+          jména a ročníku. Klub se neposuzuje. „Vrátit“ vezme opravu zpět.
         </small>
       </div>
 
@@ -187,6 +206,19 @@ export default function SlcrPairing() {
           )}
         </div>
       </div>
+
+      {counts.pending_apply > 0 && (
+        <div className="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span>
+            U {counts.pending_apply} potvrzených závodníků se ještě nepřevzaly údaje z evidence
+            (potvrzeno dřív, než potvrzení začalo opravovat záznam).
+          </span>
+          <button className="btn btn-sm btn-primary" onClick={applyConfirmed} disabled={bulk != null}>
+            {bulk ? <ButtonSpinner /> : <i className="bi bi-pencil-square me-1" />}
+            Převzít z evidence
+          </button>
+        </div>
+      )}
 
       <ul className="nav nav-tabs mb-3">
         {STATUS_TABS.map((tab) => (
@@ -319,6 +351,18 @@ function PairRow({ item, busy, onDecide }) {
       <td style={{ maxWidth: '320px' }}>
         {confidence && <span className={`badge ${confidence.className} me-1`}>{confidence.label}</span>}
         {item.note && <small className="text-muted">{item.note}</small>}
+        {changeLabels(item).length > 0 && (
+          <div className="small mt-1">
+            <i className="bi bi-pencil-square me-1 text-primary" />
+            {item.status === PAIR_STATUS.confirmed ? 'K převzetí z evidence: ' : 'Potvrzení u nás změní: '}
+            <span className="fw-semibold">{changeLabels(item).join(', ')}</span>
+          </div>
+        )}
+        {appliedLabels(item).length > 0 && (
+          <div className="small text-muted mt-1">
+            <i className="bi bi-check2 me-1" />Převzato z evidence ({appliedLabels(item).join(', ')})
+          </div>
+        )}
         {warnings.map((warning) => (
           <div key={warning.key}>
             <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1 text-wrap text-start">
@@ -335,7 +379,7 @@ function PairRow({ item, busy, onDecide }) {
           </>
         )}
         {(item.status === PAIR_STATUS.confirmed || item.status === PAIR_STATUS.rejected) && (
-          button('undo', 'Vrátit k potvrzení', 'btn-outline-secondary', 'bi-arrow-counterclockwise')
+          button('undo', 'Vrátit', 'btn-outline-secondary', 'bi-arrow-counterclockwise')
         )}
       </td>
     </tr>

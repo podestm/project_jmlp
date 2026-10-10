@@ -28,21 +28,25 @@ export function pairWarnings(item) {
   const flags = item.flags || {};
   const warnings = [];
   if (flags.code_mismatch) {
-    warnings.push({ key: 'code', text: `ID závodníka nesouhlasí (u nás ${item.racer.slcr_id}, v evidenci ${item.slcr.race_code})` });
-  }
-  if (flags.code_missing) {
-    warnings.push({ key: 'missing', text: `ID závodníka u nás chybí (v evidenci ${item.slcr.race_code})` });
-  }
-  // SLČR páruje nahrané výsledky podle jména a ročníku - když se liší,
-  // výsledek se v evidenci ke členovi nepřiřadí.
-  if (flags.name_differs) {
-    warnings.push({ key: 'name', text: `V evidenci se píše ${item.slcr.surname} ${item.slcr.name} - výsledky se v SLČR nespárují` });
-  }
-  if (flags.year_differs) {
-    warnings.push({ key: 'year', text: `Ročník v evidenci je ${item.slcr.year} (u nás ${item.racer.year}) - výsledky se v SLČR nespárují` });
+    warnings.push({ key: 'code', text: `ID závodníka je jiné (u nás ${item.racer.slcr_id}, v evidenci ${item.slcr.race_code}) - ověřte, že jde o stejného člověka` });
   }
   if (flags.shared_member) warnings.push({ key: 'shared', text: 'Stejný člen i u jiného závodníka - duplicita?' });
   return warnings;
+}
+
+const show = (value) => (value == null || value === '' ? '–' : String(value));
+
+/**
+ * Co potvrzení změní v našem záznamu (evidence SLČR je zdroj pravdy pro
+ * jméno, příjmení, ročník a ID závodníka), např. "jméno Ema → Emma".
+ */
+export function changeLabels(item) {
+  return (item.changes || []).map((change) => `${change.label} ${show(change.old)} → ${show(change.new)}`);
+}
+
+/** Co se při potvrzení už převzalo (u potvrzených): "ročník byl 2016". */
+export function appliedLabels(item) {
+  return (item.applied || []).map((change) => `${change.label} bylo ${show(change.old)}`);
 }
 
 const fold = (value) => String(value || '')
@@ -63,8 +67,8 @@ export function filterPairs(items, { query = '', confidence = 'all' } = {}) {
 }
 
 /**
- * Návrhy, které jde potvrdit hromadně: jistá shoda bez jakéhokoli upozornění.
- * Všechno ostatní má správce projít jednotlivě.
+ * Návrhy, které jde potvrdit hromadně: jistá shoda bez upozornění a bez
+ * změny ročníku. Všechno ostatní má správce projít jednotlivě.
  */
 export function bulkConfirmable(items) {
   return items.filter((item) => (
@@ -72,5 +76,7 @@ export function bulkConfirmable(items) {
     && item.confidence === 'high'
     && item.slcr
     && pairWarnings(item).length === 0
+    // Změna ročníku přesune závodníka do jiné kategorie - jednotlivě.
+    && !(item.changes || []).some((change) => change.field === 'year')
   ));
 }

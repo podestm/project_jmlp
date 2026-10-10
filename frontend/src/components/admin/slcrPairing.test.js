@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bulkConfirmable, filterPairs, pairWarnings } from './slcrPairing.js';
+import { appliedLabels, bulkConfirmable, changeLabels, filterPairs, pairWarnings } from './slcrPairing.js';
 
 const pair = (overrides = {}) => ({
   racer_id: 1,
@@ -12,20 +12,27 @@ const pair = (overrides = {}) => ({
 });
 
 describe('párování se SLČR', () => {
-  it('upozornění: nesouhlasící a chybějící ID, jiný zápis jména a ročník, duplicita', () => {
+  it('upozornění: jiné ID a duplicita', () => {
     const item = pair({
       racer: { ...pair().racer, slcr_id: '778975' },
       slcr: { ...pair().slcr, race_code: 778475 },
-      flags: { code_mismatch: true, name_differs: true, shared_member: true }
+      flags: { code_mismatch: true, shared_member: true }
     });
     const texts = pairWarnings(item).map((w) => w.text);
-    expect(texts[0]).toBe('ID závodníka nesouhlasí (u nás 778975, v evidenci 778475)');
-    expect(texts).toContain('V evidenci se píše Fabiánová Emma - výsledky se v SLČR nespárují');
-    expect(texts).toHaveLength(3);
-    const year = pairWarnings(pair({ racer: { ...pair().racer, year: 2016 }, slcr: { ...pair().slcr, year: 2022 }, flags: { year_differs: true } }));
-    expect(year[0].text).toBe('Ročník v evidenci je 2022 (u nás 2016) - výsledky se v SLČR nespárují');
-    expect(pairWarnings(pair({ racer: { ...pair().racer, slcr_id: null }, flags: { code_missing: true } }))[0].text)
-      .toBe('ID závodníka u nás chybí (v evidenci 891586)');
+    expect(texts[0]).toBe('ID závodníka je jiné (u nás 778975, v evidenci 778475) - ověřte, že jde o stejného člověka');
+    expect(texts).toHaveLength(2);
+  });
+
+  it('popis změn podle evidence a převzatých údajů', () => {
+    const item = pair({
+      changes: [
+        { field: 'name', label: 'jméno', old: 'Ema', new: 'Emma' },
+        { field: 'slcr_id', label: 'ID závodníka', old: null, new: '891586' }
+      ],
+      applied: [{ field: 'year', label: 'ročník', old: 2016 }]
+    });
+    expect(changeLabels(item)).toEqual(['jméno Ema → Emma', 'ID závodníka – → 891586']);
+    expect(appliedLabels(item)).toEqual(['ročník bylo 2016']);
   });
 
   it('hledá bez diakritiky v obou jménech i ID', () => {
@@ -42,8 +49,10 @@ describe('párování se SLČR', () => {
       pair({ racer_id: 2, confidence: 'medium' }),
       pair({ racer_id: 3, flags: { code_mismatch: true } }),
       pair({ racer_id: 4, flags: { shared_member: true } }),
-      pair({ racer_id: 5, status: 'confirmed' })
+      pair({ racer_id: 5, status: 'confirmed' }),
+      pair({ racer_id: 6, changes: [{ field: 'year', label: 'ročník', old: 2016, new: 2022 }] }),
+      pair({ racer_id: 7, changes: [{ field: 'name', label: 'jméno', old: 'Ema', new: 'Emma' }] })
     ];
-    expect(bulkConfirmable(items).map((i) => i.racer_id)).toEqual([1]);
+    expect(bulkConfirmable(items).map((i) => i.racer_id)).toEqual([1, 7]);
   });
 });
