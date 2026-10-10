@@ -545,6 +545,21 @@ export function useInboxEvents({
   const autoRunningRef = useRef(false);
   const autoAgainRef = useRef(false);
 
+  // Od kdy automatický zápis v téhle kartě běží. Zapisují se jen impulzy,
+  // které přišly potom - starší čekající (nastřádané při vypnutém přepínači,
+  // před obnovením stránky, zkušební impulzy před startem) zůstávají obsluze.
+  // Vypnutí, ztráta zámku nebo změna závodu hranici zruší; další zapnutí
+  // začne od nové chvíle.
+  const autoSinceRef = useRef(null);
+  useEffect(() => {
+    autoSinceRef.current = (autoWrite && hasWriteLock && selectedRaceId)
+      ? new Date().toISOString()
+      : null;
+  }, [autoWrite, hasWriteLock, selectedRaceId]);
+  const isFreshForAuto = (row) => (
+    autoSinceRef.current != null && typeof row.created_at === 'string' && row.created_at >= autoSinceRef.current
+  );
+
   /**
    * Automatický zápis.
    *
@@ -556,7 +571,7 @@ export function useInboxEvents({
    */
   useEffect(() => {
     if (!autoWrite || !hasWriteLock || !selectedRaceId || loading || startList.length === 0) return;
-    if (!inboxEvents.some((row) => isAutoWriteCandidate(row) && !autoTriedRef.current.has(row.id))) return;
+    if (!inboxEvents.some((row) => isAutoWriteCandidate(row) && isFreshForAuto(row) && !autoTriedRef.current.has(row.id))) return;
 
     if (autoRunningRef.current) {
       autoAgainRef.current = true;
@@ -569,7 +584,7 @@ export function useInboxEvents({
         do {
           autoAgainRef.current = false;
           const pending = [...inboxEventsRef.current]
-            .filter((row) => isAutoWriteCandidate(row) && !autoTriedRef.current.has(row.id))
+            .filter((row) => isAutoWriteCandidate(row) && isFreshForAuto(row) && !autoTriedRef.current.has(row.id))
             .sort((a, b) => a.id - b.id);
           for (const row of pending) {
             if (!hasWriteLockRef.current || !selectedRaceIdRef.current) return;

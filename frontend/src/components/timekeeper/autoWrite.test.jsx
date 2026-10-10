@@ -73,6 +73,16 @@ const savedOk = () => vi.fn(async () => ({ ok: true, queued: false, opId: null, 
 
 const timeEvent = (overrides = {}) => ({ type: 'TIME', bib: 23, time: '01:02.34', seq: 1, raw: 'x', ...overrides });
 
+/**
+ * Automatický zápis bere jen impulzy, které přišly po jeho zapnutí v kartě.
+ * Testy vkládají impulz před vykreslením hooku, proto ho "posunou" do budoucna,
+ * jako by přišel až po zapnutí.
+ */
+const freshen = async () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  await timekeeperDb.bridgeInbox.toCollection().modify({ created_at: future });
+};
+
 const storedRow = async () => (await timekeeperDb.bridgeInbox.toArray())[0];
 
 /** Nech proběhnout párování na pozadí a případný automatický zápis. */
@@ -83,9 +93,22 @@ const settle = async (ms = 400) => {
 const racer = (overrides = {}) => startListEntry({ id: 1, race_number_actual: 23, ...overrides });
 
 describe('automatický zápis z časomíry', () => {
+  it('impulz, který přišel před zapnutím automatického zápisu, zůstává ruční', async () => {
+    const queueSave = savedOk();
+    await appendInboxEvent(timeEvent());
+    renderHook(() => useHarness({ startList: [racer()], queueSave }));
+
+    await settle(600);
+    expect(queueSave).not.toHaveBeenCalled();
+    const row = await storedRow();
+    expect(row.status).toBe('pending');
+    expect(row.auto_written).toBeFalsy();
+  });
+
   it('jednoznačnou událost do prázdného kola zapíše bez kliknutí', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
@@ -103,6 +126,7 @@ describe('automatický zápis z časomíry', () => {
   it('do obsazeného kola nezapíše a řádek nechá ruční s důvodem', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer({ time1: 70.5 })], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('round_occupied'));
@@ -114,6 +138,7 @@ describe('automatický zápis z časomíry', () => {
   it('kolo s DNF je obsazené, i když v něm není čas', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer({ dnf: true })], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('round_occupied'));
@@ -123,6 +148,7 @@ describe('automatický zápis z časomíry', () => {
   it('rozepsaný neuložený čas se bere jako obsazené kolo', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     const drafts = { 1: { time1: '55.10', time2: '', dnf: false, dns: false, dsq: false } };
     renderHook(() => useHarness({ startList: [racer()], queueSave, drafts }));
 
@@ -133,6 +159,7 @@ describe('automatický zápis z časomíry', () => {
   it('zapisuje do kola, které má událost; druhé kolo obsazené nevadí', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer({ time1: 70.5 })], queueSave, targetRound: '2' }));
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
@@ -142,6 +169,7 @@ describe('automatický zápis z časomíry', () => {
   it('víc kandidátů se stejným dresem zůstává ruční', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({
       startList: [racer(), racer({ id: 2, start_number: 2 })],
       queueSave,
@@ -156,6 +184,7 @@ describe('automatický zápis z časomíry', () => {
   it('dres mimo startovku zůstává ruční', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ bib: 99 }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('bib_not_found'));
@@ -167,6 +196,7 @@ describe('automatický zápis z časomíry', () => {
     localStorage.setItem(AUTO_WRITE_KEY, '0');
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     const { result } = renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('ready'));
@@ -189,6 +219,7 @@ describe('automatický zápis z časomíry', () => {
   it('karta bez write locku nezapisuje', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave, hasWriteLock: false }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('ready'));
@@ -200,6 +231,7 @@ describe('automatický zápis z časomíry', () => {
   it('DNF ze zařízení zapíše automaticky', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ type: 'DNF', time: null }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
@@ -209,6 +241,7 @@ describe('automatický zápis z časomíry', () => {
   it('DNS ze zařízení zapíše automaticky', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ type: 'DNS', time: null }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
@@ -218,6 +251,7 @@ describe('automatický zápis z časomíry', () => {
   it('DSQ zůstává ruční', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ type: 'DSQ', time: null }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('ready'));
@@ -228,6 +262,7 @@ describe('automatický zápis z časomíry', () => {
   it('neplatný čas nezapíše a označí jako neplatný, stejně jako ruční ✓', async () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ time: 'xx' }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('invalid_time'));
@@ -238,6 +273,7 @@ describe('automatický zápis z časomíry', () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent({ seq: 1 }));
     await appendInboxEvent(timeEvent({ seq: 2, time: '01:05.00' }));
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => {
@@ -251,6 +287,7 @@ describe('automatický zápis z časomíry', () => {
   it('offline zápis jde do fronty stejně jako ruční potvrzení', async () => {
     const queueSave = vi.fn(async () => ({ ok: true, queued: true, opId: 'op-1', queueId: 7 }));
     await appendInboxEvent(timeEvent());
+    await freshen();
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(async () => expect((await storedRow()).status).toBe('queued'));
@@ -264,6 +301,7 @@ describe('Zamítnout u automaticky zapsané události', () => {
   const autoWritten = async (harnessProps = {}) => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
+    await freshen();
     const hook = renderHook(() => useHarness({ startList: [racer()], queueSave, ...harnessProps }));
     await waitFor(async () => expect((await storedRow()).status).toBe('saved'));
     await waitFor(() => expect(hook.result.current.inboxEvents[0]?.status).toBe('saved'));
