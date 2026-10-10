@@ -201,7 +201,6 @@ class SlcrClient:
             "athleteResults{athlete{name surname yearOfBirth raceCode clubName member{id slug}}}}}}}",
             {"e": event_id},
         )["publicRacingEvent"]
-        label = data.get("name")
         people = []
         for race in data.get("races") or []:
             result = race.get("resultRace") or {}
@@ -218,7 +217,6 @@ class SlcrClient:
                     year=athlete.get("yearOfBirth"),
                     race_code=athlete.get("raceCode"),
                     club=athlete.get("clubName"),
-                    source_event=label,
                 ))
         return people
 

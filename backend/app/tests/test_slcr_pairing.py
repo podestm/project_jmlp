@@ -209,3 +209,39 @@ def test_smazany_zavodnik_zmizi(client, db, admin_headers):
     assert client.delete(f"/api/admin/racers/{racer}", headers=admin_headers).status_code == 200
     assert db.execute(text("SELECT COUNT(*) FROM fuj_jmlp_racer_slcr WHERE racer_id = :id"),
                       {"id": racer}).scalar() == 0
+
+
+# --------------------------------------------------------------------------
+# Čtení evidence (odpovědi GraphQL nahrazené)
+# --------------------------------------------------------------------------
+class _FakeHttp:
+    def __init__(self, payloads):
+        self.payloads = payloads
+
+    def post(self, url, json):
+        import httpx
+        query = json["query"]
+        key = next(k for k in self.payloads if k in query)
+        return httpx.Response(200, json={"data": self.payloads[key]}, request=httpx.Request("POST", url))
+
+
+def test_klient_cte_vysledky_akce_a_kartu_clena():
+    http = _FakeHttp({
+        "publicRacingEvent": {"publicRacingEvent": {"name": "JMLP Kraví hora", "date": {"from": "2026-10-10"}, "races": [
+            {"resultRace": {"state": "Published", "athleteResults": [{"athlete": {
+                "name": "Viktorie", "surname": "Junová", "yearOfBirth": 2019, "raceCode": 890520,
+                "clubName": "Ski klub Victoria Brno", "member": {"id": 42067, "slug": "junova-viktorie"}}}]}},
+            {"resultRace": {"state": "Draft", "athleteResults": [{"athlete": {"name": "X", "surname": "Y"}}]}},
+        ]}},
+        "publicDataGrid": {"publicDataGrid": {"count": 1, "result": [
+            {"id": 7, "slug": "pela-adam", "surname": "Pela", "name": "Adam", "birthYear": None, "mainClub": "SK"}]}},
+        "publicMember": {"publicMember": {"id": 7, "slug": "pela-adam", "name": "Adam", "surname": "Pela",
+                                          "raceCode": 706829, "birthYear": None, "age": 18, "homeClubName": "SK"}},
+    })
+    client = slcr.SlcrClient(http=http, pause=0)
+
+    [athlete] = client.event_results(7178)
+    assert (athlete.member_id, athlete.race_code, athlete.year) == (42067, 890520, 2019)
+
+    [member] = client.search_with_details("Pela")
+    assert (member.member_id, member.race_code, member.age) == (7, 706829, 18)
