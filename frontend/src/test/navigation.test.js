@@ -30,6 +30,7 @@ const linksOf = (source) => new Set([...source.matchAll(/to="([^"]+)"/g)].map((m
  */
 const VYJIMKY = {
   '/admin/register': 'zakládání dalšího správce je vzácná akce, chodí se na ni odkazem',
+  '/admin/racers/slcr': 'podagenda Závodníků - otevírá se tlačítkem na obrazovce Závodníci, v menu být nemá',
 };
 
 describe('navigace administrace', () => {

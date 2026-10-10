@@ -77,14 +77,10 @@ export default function AdminLayout({ children }) {
               <i className="bi bi-trophy me-2"></i>
               Závody
             </Link>
-            <Link to="/admin/racers" className={`nav-link text-white ${location.pathname === '/admin/racers' ? 'active' : ''}`}>
+            {/* Aktivní i na podagendách Závodníků (Párování SLČR). */}
+            <Link to="/admin/racers" className={`nav-link text-white ${isActive('/admin/racers') ? 'active' : ''}`}>
               <i className="bi bi-people me-2"></i>
               Závodníci
-            </Link>
-            {/* Podpoložka Závodníků - párování registru s evidencí SLČR. */}
-            <Link to="/admin/racers/slcr" className={`nav-link nav-sublink text-white ${isActive('/admin/racers/slcr') ? 'active' : ''}`}>
-              <i className="bi bi-person-check me-2"></i>
-              Párování SLČR
             </Link>
             <Link to="/admin/club-requests" className={`nav-link text-white d-flex align-items-center justify-content-between ${isActive('/admin/club-requests') ? 'active' : ''}`}>
               <span className="d-flex align-items-center">

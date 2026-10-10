@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
@@ -276,16 +277,23 @@ export default function RacerManagement() {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Správa závodníků</h2>
-            <button
-              onClick={() => {
-                resetForm();
-                setShowForm(true);
-              }}
-              className="btn btn-primary"
-            >
-              <i className="bi bi-plus-circle me-2"></i>
-              Nový závodník
-            </button>
+            <div className="d-flex gap-2">
+              {/* Podagenda Závodníků - v bočním menu záměrně není. */}
+              <Link to="/admin/racers/slcr" className="btn btn-outline-primary">
+                <i className="bi bi-person-check me-2"></i>
+                Párování SLČR
+              </Link>
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowForm(true);
+                }}
+                className="btn btn-primary"
+              >
+                <i className="bi bi-plus-circle me-2"></i>
+                Nový závodník
+              </button>
+            </div>
           </div>
 
           {error && (

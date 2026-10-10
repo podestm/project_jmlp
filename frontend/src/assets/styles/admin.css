@@ -276,8 +276,6 @@ body.theme-backoffice .admin-layout-content > .container-fluid > .container-flui
 /* Tmavé menu - text v něm zůstává bílý */
 body.theme-backoffice :is(.admin-sidebar, .timekeeper-sidebar) .nav-link { color: #fff !important; }
 body.theme-backoffice .admin-sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.08); }
-/* Podpoložka menu (Závodníci → Párování SLČR): odsazená a menší. */
-.admin-sidebar .nav-link.nav-sublink { padding-left: 2.25rem; font-size: 0.875rem; padding-top: 0.3rem; padding-bottom: 0.3rem; }
 body.theme-backoffice .admin-sidebar .nav-pills { --bs-nav-pills-link-active-bg: var(--adm-primary); }
 body.theme-backoffice .admin-sidebar .border-secondary { border-color: rgba(255, 255, 255, 0.15) !important; }
 /* Bootstrapových 50 % bílé má na tmavém menu jen 4.3:1 */
