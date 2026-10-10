@@ -33,23 +33,30 @@ export function pairWarnings(item) {
   if (flags.code_missing) {
     warnings.push({ key: 'missing', text: `ID závodníka u nás chybí (v evidenci ${item.slcr.race_code})` });
   }
-  if (flags.club_differs) warnings.push({ key: 'club', text: 'Jiný klub' });
+  // SLČR páruje nahrané výsledky podle jména a ročníku - když se liší,
+  // výsledek se v evidenci ke členovi nepřiřadí.
+  if (flags.name_differs) {
+    warnings.push({ key: 'name', text: `V evidenci se píše ${item.slcr.surname} ${item.slcr.name} - výsledky se v SLČR nespárují` });
+  }
+  if (flags.year_differs) {
+    warnings.push({ key: 'year', text: `Ročník v evidenci je ${item.slcr.year} (u nás ${item.racer.year}) - výsledky se v SLČR nespárují` });
+  }
   if (flags.shared_member) warnings.push({ key: 'shared', text: 'Stejný člen i u jiného závodníka - duplicita?' });
   return warnings;
 }
 
 const fold = (value) => String(value || '')
-  .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-/** Hledání v tabulce: jméno u nás i v evidenci, klub, ID. */
+/** Hledání v tabulce: jméno u nás i v evidenci, ID. */
 export function filterPairs(items, { query = '', confidence = 'all' } = {}) {
   const words = fold(query).split(/\s+/).filter(Boolean);
   return items.filter((item) => {
     if (confidence !== 'all' && item.confidence !== confidence) return false;
     if (words.length === 0) return true;
     const haystack = fold([
-      item.racer.surname, item.racer.name, item.racer.year, item.racer.club, item.racer.slcr_id,
-      item.slcr?.surname, item.slcr?.name, item.slcr?.club, item.slcr?.race_code
+      item.racer.surname, item.racer.name, item.racer.year, item.racer.slcr_id,
+      item.slcr?.surname, item.slcr?.name, item.slcr?.race_code
     ].join(' '));
     return words.every((word) => haystack.includes(word));
   });

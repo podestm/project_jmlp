@@ -106,9 +106,8 @@ def load_racers(db: Session, scope: str, today: Optional[date] = None) -> list[s
                 JOIN fuj_jmlp_race x ON x.id = sl.race_id WHERE x.season_id >= :season
             )"""
     rows = db.execute(text(f"""
-        SELECT r.id, r.name, r.surname, r.year, r.slcr_id, c.name AS club
+        SELECT r.id, r.name, r.surname, r.year, r.slcr_id
         FROM fuj_jmlp_racer r
-        LEFT JOIN fuj_jmlp_club c ON c.id = r.club_id
         {where}
         ORDER BY r.id
     """), params).fetchall()
@@ -119,7 +118,6 @@ def load_racers(db: Session, scope: str, today: Optional[date] = None) -> list[s
             name=fix_encoding(row.name or "").strip(),
             year=row.year,
             slcr_id=row.slcr_id,
-            club=fix_encoding(row.club).strip() if row.club else None,
         )
         for row in rows
     ]
@@ -350,8 +348,13 @@ def list_pairs(db: Session, status: Optional[str]) -> list[dict]:
                 "code_mismatch": their_code is not None and our_code is not None and our_code != their_code,
                 # Evidence číslo má, u nás chybí nebo není číslo.
                 "code_missing": their_code is not None and our_code is None,
-                "club_differs": bool(row["member_id"]) and bool(club) and bool(row["slcr_club"])
-                and not slcr.same_club(club, row["slcr_club"]),
+                # SLČR páruje výsledky podle jména a ročníku - jiný zápis
+                # jména nebo jiný ročník znamená, že se výsledek ke členovi
+                # nepřiřadí.
+                "name_differs": bool(row["member_id"]) and (
+                    slcr.norm(fix_encoding(row["surname"] or "")) != slcr.norm(row["slcr_surname"])
+                    or slcr.norm(fix_encoding(row["name"] or "")) != slcr.norm(row["slcr_name"])),
+                "year_differs": row["slcr_year"] is not None and row["year"] != row["slcr_year"],
                 "shared_member": shared.get(row["member_id"], 0) > 1,
             },
             "checked_at": row["checked_at"].isoformat() if row["checked_at"] else None,

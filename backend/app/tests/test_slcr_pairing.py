@@ -25,12 +25,6 @@ def test_varianty_krestniho_jmena():
     assert not slcr.same_first_name("Martin", "Matěj")
 
 
-def test_shoda_klubu_bez_obecnych_slov():
-    assert slcr.same_club("Ski team Victoria Brno", "Ski klub Victoria Brno")
-    assert slcr.same_club("SK České Petrovice", "SKI Klub České Petrovice")
-    assert not slcr.same_club("SKI KLUB JUNIOR BRNO", "SKI Janov - Bedřichov")
-
-
 def test_id_zavodnika_jen_cislo():
     assert slcr.race_code_of("891586") == 891586
     assert slcr.race_code_of(" 891586 ") == 891586
@@ -74,16 +68,15 @@ def test_hledani_v_evidenci_najde_cislo_zavodnika():
     assert proposal.confidence == slcr.CONFIDENCE_HIGH
 
 
-def test_jmenovce_rozlisi_klub():
+def test_klub_se_neposuzuje():
+    """SLČR páruje podle jména a ročníku; shodný klub jmenovce nerozliší."""
     found = [_person(1, "Černá", "Anna", club="SKI Klub Praha"), _person(2, "Černá", "Anna", club="TJ Tesla Pardubice")]
-    racer = RacerToPair(1, "Černá", "Anna", 2012, None, "TJ TESLA Pardubice")
-    proposal = slcr.propose(racer, [], lambda s, n: found)
-    assert proposal.person.member_id == 2
-    assert proposal.confidence == slcr.CONFIDENCE_MEDIUM
-    assert "klub souhlasí" in proposal.note
+    proposal = slcr.propose(RacerToPair(1, "Černá", "Anna", 2012, None), [], lambda s, n: found)
+    assert proposal.confidence == slcr.CONFIDENCE_LOW
+    assert "2 lidí se stejným jménem" in proposal.note
 
 
-def test_jmenovce_bez_klubu_jsou_nejisti():
+def test_jmenovce_jsou_nejisti():
     found = [_person(1, "Hlaváč", "Jan"), _person(2, "Hlaváč", "Jan"), _person(3, "Hlaváč", "Jan")]
     proposal = slcr.propose(RacerToPair(1, "Hlaváč", "Jan", 2001, None), [], lambda s, n: found)
     assert proposal.confidence == slcr.CONFIDENCE_LOW
@@ -92,7 +85,7 @@ def test_jmenovce_bez_klubu_jsou_nejisti():
 
 def test_clen_jineho_useku_je_nejisty():
     found = [_person(1, "Polák", "Martin", club="SKI Janov - Bedřichov", alpine=False)]
-    racer = RacerToPair(1, "Polák", "Martin", 1976, None, "SKI KLUB JUNIOR BRNO")
+    racer = RacerToPair(1, "Polák", "Martin", 1976, None)
     assert slcr.propose(racer, [], lambda s, n: found).confidence == slcr.CONFIDENCE_LOW
 
 
@@ -217,7 +210,8 @@ def test_api_prehled_navrhy_a_rozhodnuti(client, db, admin_headers):
     assert item["slcr"]["url"] == "https://evidence.czech-ski.com/clenove/43580/m43580"
     # Překlep v ID závodníka - ukáže se, ale nic se nepřepisuje.
     assert item["flags"]["code_mismatch"] is True
-    assert item["flags"]["club_differs"] is False
+    assert item["flags"]["name_differs"] is False
+    assert item["flags"]["year_differs"] is False
 
     assert client.post(f"/api/admin/slcr/pairs/{racer}/confirm", headers=admin_headers).status_code == 200
     assert _status(db, racer)["status"] == "confirmed"
@@ -277,3 +271,18 @@ def test_smazany_zavodnik_zmizi_z_parovani(client, db, admin_headers):
     _run(db, FakeClient())
     assert client.delete(f"/api/admin/racers/{racer}", headers=admin_headers).status_code == 200
     assert _status(db, racer) is None
+
+
+def test_api_upozorni_na_jiny_zapis_jmena_a_rocnik(client, db, admin_headers):
+    """SLČR páruje výsledky podle jména a ročníku - Ema/Emma se tam nespáruje."""
+    _racer(db, "Fabiánová", "Ema", 2019, "891586")
+    _racer(db, "Junová", "Mariana", 2016, "891952")
+    _run(db, FakeClient(results=[
+        _person(44319, "Fabiánová", "Emma", 2019, 891586),
+        _person(45973, "Junová", "Mariana", 2022, 891952),
+    ]))
+
+    items = {i["racer"]["surname"]: i for i in client.get("/api/admin/slcr/pairs", headers=admin_headers).json()}
+    assert items["Fabiánová"]["flags"]["name_differs"] is True
+    assert items["Fabiánová"]["flags"]["year_differs"] is False
+    assert items["Junová"]["flags"]["year_differs"] is True

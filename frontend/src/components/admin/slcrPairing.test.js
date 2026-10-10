@@ -12,21 +12,23 @@ const pair = (overrides = {}) => ({
 });
 
 describe('párování se SLČR', () => {
-  it('upozornění: nesouhlasící a chybějící ID, jiný klub, duplicita', () => {
+  it('upozornění: nesouhlasící a chybějící ID, jiný zápis jména a ročník, duplicita', () => {
     const item = pair({
       racer: { ...pair().racer, slcr_id: '778975' },
       slcr: { ...pair().slcr, race_code: 778475 },
-      flags: { code_mismatch: true, club_differs: true, shared_member: true }
+      flags: { code_mismatch: true, name_differs: true, shared_member: true }
     });
     const texts = pairWarnings(item).map((w) => w.text);
     expect(texts[0]).toBe('ID závodníka nesouhlasí (u nás 778975, v evidenci 778475)');
-    expect(texts).toContain('Jiný klub');
+    expect(texts).toContain('V evidenci se píše Fabiánová Emma - výsledky se v SLČR nespárují');
     expect(texts).toHaveLength(3);
+    const year = pairWarnings(pair({ racer: { ...pair().racer, year: 2016 }, slcr: { ...pair().slcr, year: 2022 }, flags: { year_differs: true } }));
+    expect(year[0].text).toBe('Ročník v evidenci je 2022 (u nás 2016) - výsledky se v SLČR nespárují');
     expect(pairWarnings(pair({ racer: { ...pair().racer, slcr_id: null }, flags: { code_missing: true } }))[0].text)
       .toBe('ID závodníka u nás chybí (v evidenci 891586)');
   });
 
-  it('hledá bez diakritiky v obou jménech, klubu i ID', () => {
+  it('hledá bez diakritiky v obou jménech i ID', () => {
     const items = [pair(), pair({ racer_id: 2, racer: { ...pair().racer, surname: 'Novák', name: 'Jan', slcr_id: null }, slcr: null })];
     expect(filterPairs(items, { query: 'fabianova emma' }).map((i) => i.racer_id)).toEqual([1]);
     expect(filterPairs(items, { query: '891586' }).map((i) => i.racer_id)).toEqual([1]);

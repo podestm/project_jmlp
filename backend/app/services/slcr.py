@@ -15,6 +15,11 @@ Zdroje pro párování, od nejspolehlivějšího:
 Naše "ID závodníka" (fuj_jmlp_racer.slcr_id) je to, co závodník napsal
 v přihlášce, a je to jeho odpovědnost - párování ho nikdy nepřepisuje,
 jen ukáže, když nesouhlasí s evidencí.
+
+Klub se neposuzuje. SLČR při nahrání výsledků páruje závodníky podle jména
+a ročníku (klub ho nezajímá) a klub si u nás závodník vybírá ze schválených
+klubů. Důležité je proto, aby jméno a ročník souhlasily s evidencí - jinak
+se výsledek v SLČR ke členovi nepřiřadí.
 """
 from __future__ import annotations
 
@@ -110,25 +115,6 @@ def same_first_name(ours: Optional[str], theirs: Optional[str]) -> bool:
     return min(len(a), len(b)) >= 5 and _edit_distance_at_most_one(a, b)
 
 
-# Slova, která v názvech klubů nic neříkají - "Ski team Victoria Brno"
-# a "Ski klub Victoria Brno" je stejný klub.
-_CLUB_NOISE = {
-    "ski", "sk", "klub", "club", "team", "tj", "ts", "sokol", "spolek", "z", "s", "zs", "o",
-    "lyzarsky", "lyzarske", "lyzovani", "oddil", "sportovni", "telovychovna", "jednota",
-    "racing", "academy", "akademie", "pri", "a", "v", "na", "pod", "nad", "u",
-}
-
-
-def _club_tokens(value: Optional[str]) -> set:
-    words = re.findall(r"[a-z0-9]+", norm(value))
-    return {w for w in words if w not in _CLUB_NOISE and len(w) > 1}
-
-
-def same_club(ours: Optional[str], theirs: Optional[str]) -> bool:
-    """Klub se shoduje, když mají názvy společné aspoň jedno podstatné slovo."""
-    return bool(_club_tokens(ours) & _club_tokens(theirs))
-
-
 def race_code_of(slcr_id: Optional[str]) -> Optional[int]:
     """Naše "ID závodníka" jako české číslo závodníka, je-li to číslo."""
     text = (slcr_id or "").strip()
@@ -159,7 +145,6 @@ class RacerToPair:
     name: str
     year: Optional[int]
     slcr_id: Optional[str] = None
-    club: Optional[str] = None
 
 
 @dataclass
@@ -180,7 +165,7 @@ def _distinct_members(people: Iterable[SlcrPerson]) -> list[SlcrPerson]:
     for person in people:
         key = person.member_id if person.member_id is not None else (norm(person.surname), norm(person.name), person.year)
         current = seen.get(key)
-        # Záznam s číslem závodníka a klubem je užitečnější.
+        # Záznam s číslem závodníka je užitečnější.
         if current is None or (current.race_code is None and person.race_code is not None):
             seen[key] = person
     return list(seen.values())
@@ -199,7 +184,7 @@ def propose(
     proposal = _propose(racer, results, search)
     if proposal.person is not None or not racer.name:
         return proposal
-    swapped = RacerToPair(racer.id, racer.name, racer.surname, racer.year, racer.slcr_id, racer.club)
+    swapped = RacerToPair(racer.id, racer.name, racer.surname, racer.year, racer.slcr_id)
     other = _propose(swapped, results, search)
     if other.person is None:
         return proposal
@@ -264,22 +249,17 @@ def _propose(
     if not candidates:
         return Proposal(None, None, None, "v evidenci SLČR nenalezen")
 
-    # Shodný klub, alpské lyžování a přesné jméno napřed.
-    club_of = lambda p: same_club(racer.club, p.club)  # noqa: E731
-    candidates.sort(key=lambda p: (not club_of(p), not p.alpine, norm(p.name) != norm(racer.name), p.year is None))
+    # Klub se neposuzuje - SLČR páruje výsledky jen podle jména a ročníku
+    # a klub si závodník vybírá z našich schválených klubů.
+    # Alpské lyžování a přesné jméno napřed.
+    candidates.sort(key=lambda p: (not p.alpine, norm(p.name) != norm(racer.name), p.year is None))
     best = candidates[0]
-    same_club_count = sum(1 for p in candidates if club_of(p))
-    if len(candidates) == 1 or (club_of(best) and same_club_count == 1):
-        notes = ["jméno souhlasí" if best.year is None else "jméno a ročník souhlasí"]
-        if club_of(best):
-            notes.append("klub souhlasí")
+    if len(candidates) == 1:
+        notes = ["jméno souhlasí, ročník evidence nezveřejňuje" if best.year is None else "jméno a ročník souhlasí"]
         if not best.alpine:
             notes.append("člen jiného úseku než alpských disciplín")
-        if len(candidates) > 1:
-            notes.append(f"v evidenci je {len(candidates)} lidí se stejným jménem, klub souhlasí jen u jednoho")
-        confidence = CONFIDENCE_MEDIUM if (best.alpine or club_of(best)) else CONFIDENCE_LOW
-        return Proposal(best, confidence, SOURCE_SEARCH, "; ".join(notes),
-                        alternatives=candidates[1:])
+        confidence = CONFIDENCE_MEDIUM if best.alpine else CONFIDENCE_LOW
+        return Proposal(best, confidence, SOURCE_SEARCH, "; ".join(notes))
     return Proposal(best, CONFIDENCE_LOW, SOURCE_SEARCH,
                     f"v evidenci je {len(candidates)} lidí se stejným jménem", alternatives=candidates[1:])
 

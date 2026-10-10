@@ -141,7 +141,8 @@ export default function SlcrPairing() {
         <small className="text-muted">
           Závodníci z registru spárovaní s členy evidence Svazu lyžařů ČR. Návrhy vycházejí z výsledků
           JMLP zveřejněných v evidenci a z hledání členů; potvrzujete je vy. ID závodníka v registru se
-          nemění - tabulka jen ukáže, kde nesouhlasí s evidencí.
+          nemění - tabulka jen ukáže, kde nesouhlasí s evidencí. SLČR páruje nahrané výsledky podle jména
+          a ročníku, klub se neposuzuje.
         </small>
       </div>
 
@@ -205,7 +206,7 @@ export default function SlcrPairing() {
           <input
             type="search"
             className="form-control"
-            placeholder="Hledat jméno, klub nebo ID…"
+            placeholder="Hledat jméno nebo ID…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -296,7 +297,7 @@ function PairRow({ item, busy, onDecide }) {
             </a>
             <div>
               <small className="text-muted">
-                {slcr.year || 'ročník neuveden'} · {slcr.club || 'bez klubu'} · číslo {slcr.race_code || '—'}
+                {slcr.year || 'ročník neuveden'} · číslo {slcr.race_code || '—'}
               </small>
             </div>
             {item.alternatives?.length > 0 && (
@@ -305,7 +306,7 @@ function PairRow({ item, busy, onDecide }) {
                 {item.alternatives.map((alt, index) => (
                   <React.Fragment key={alt.member_id || index}>
                     {index > 0 && ', '}
-                    <a href={alt.url} target="_blank" rel="noopener noreferrer">{alt.surname} {alt.name}{alt.club ? ` (${alt.club})` : ''}</a>
+                    <a href={alt.url} target="_blank" rel="noopener noreferrer">{alt.surname} {alt.name}{alt.race_code ? ` (${alt.race_code})` : ''}</a>
                   </React.Fragment>
                 ))}
               </small>
