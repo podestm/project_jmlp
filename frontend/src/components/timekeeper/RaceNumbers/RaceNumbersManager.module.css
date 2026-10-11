@@ -1,0 +1,26 @@
+.note {
+  max-inline-size: 360px;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.sets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  min-inline-size: 0;
+}
+
+/* S otevřenou novou sadou: sady a formulář 420 px vedle sebe (TkCisla). */
+.withForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  align-items: start;
+  gap: var(--ms-space-4);
+}
+
+@media (max-width: 1279.98px) {
+  .withForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

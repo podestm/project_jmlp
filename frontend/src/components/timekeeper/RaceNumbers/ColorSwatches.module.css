@@ -1,0 +1,24 @@
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--ms-target);
+  block-size: var(--ms-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ms-radius-control);
+  background: var(--swatch);
+  color: var(--ms-on-dark);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed='true'] {
+  outline: 3px solid var(--ms-navy-deep);
+  outline-offset: 2px;
+}

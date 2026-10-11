@@ -13,7 +13,7 @@ import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from './TimingEntry.jsx';
 import ResultsView from './ResultsView.jsx';
 import RaceHeaderForm from './RaceHeaderForm/RaceHeaderForm.jsx';
-import RaceNumbersManager from './RaceNumbersManager.jsx';
+import RaceNumbersManager from './RaceNumbers/RaceNumbersManager.jsx';
 import SyncCenter from './SyncCenter.jsx';
 import TimingDeviceSettings from './TimingDeviceSettings.jsx';
 import { SerialSessionProvider } from './SerialSessionProvider.jsx';
@@ -47,7 +47,7 @@ export default function TimekeeperRoutes() {
           <Route path="/timing" element={legacy(<TimingEntry />)} />
           <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
           <Route path="/results" element={legacy(<ResultsView />)} />
-          <Route path="/race-numbers" element={legacy(<RaceNumbersManager />)} />
+          <Route path="/race-numbers" element={protect(<RaceNumbersManager />)} />
           <Route path="/sync" element={legacy(<SyncCenter />)} />
           <Route path="/device" element={legacy(<TimingDeviceSettings />)} />
         </Routes>

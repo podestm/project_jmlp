@@ -165,9 +165,6 @@
   "src/components/timekeeper/RaceNumberBadge.jsx": {
     "bootstrap": 11
   },
-  "src/components/timekeeper/RaceNumbersManager.jsx": {
-    "bootstrap": 190
-  },
   "src/components/timekeeper/ResultsPrintButtons.jsx": {
     "bootstrap": 10,
     "legacyImports": 1
