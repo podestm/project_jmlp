@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGet = vi.fn();
 const mockPost = vi.fn();
@@ -39,6 +39,9 @@ const renderScreen = () => render(<MemoryRouter><RaceManagement /></MemoryRouter
 
 describe('správa závodů', () => {
   beforeEach(() => {
+    // Výchozí filtr je aktuální sezóna – den testu pevně v sezóně 2026/27.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-11T12:00:00'));
     mockGet.mockReset().mockResolvedValue(RACES);
     mockPost.mockReset().mockResolvedValue({});
     mockDelete.mockReset().mockResolvedValue({});
@@ -54,6 +57,20 @@ describe('správa závodů', () => {
     expect(within(table).getAllByRole('link', { name: 'Přihlášky' })[0]).toHaveAttribute('href', '/admin/races/7/registrations');
     expect(screen.getByText('2 závody · 1 s otevřenou registrací')).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Sezóna 2026/27 — XX. ročník' })).toBeInTheDocument();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('výchozí filtr je aktuální sezóna, Všechny sezóny ukáže i starší závody', async () => {
+    mockGet.mockResolvedValue([...RACES, { ...RACES[0], id: 3, datum: '2025-12-01', race_nr: 'JMLP2025-01', season_id: 2025, areal_name: 'Hlinsko' }]);
+    renderScreen();
+    const table = await screen.findByRole('table', { name: 'Závody' });
+    expect(screen.getByRole('combobox', { name: 'Sezóna' })).toHaveValue('2026');
+    expect(within(table).queryByText('Hlinsko')).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Sezóna' }), '');
+    expect(within(screen.getByRole('table', { name: 'Závody' })).getByText('Hlinsko')).toBeInTheDocument();
   });
 
   it('přepínač v řádku změní stav registrace', async () => {

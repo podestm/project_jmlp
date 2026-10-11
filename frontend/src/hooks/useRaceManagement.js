@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { AdminAPI, adminAuthHeaders } from '../config/api.js';
-import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
+import { getCurrentSeasonId, getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 import { deleteRaceConfirm } from '../components/admin/Races/dialogs/deleteRaceConfirm.jsx';
 
@@ -42,8 +42,8 @@ export const useRaceManagement = ({ confirm } = {}) => {
     const [raceNumberPreview, setRaceNumberPreview] = useState('');
     const [seasonPreview, setSeasonPreview] = useState('');
     
-    // Filter states
-    const [seasonFilter, setSeasonFilter] = useState('');
+    // Filter states – výchozí je aktuální sezóna („Všechny sezóny“ zůstává ve výběru)
+    const [seasonFilter, setSeasonFilter] = useState(() => String(getCurrentSeasonId()));
     const [availableSeasons, setAvailableSeasons] = useState([]);
 
     // silent: obnova na pozadí - nesahá na hlášky nad seznamem
@@ -53,7 +53,8 @@ export const useRaceManagement = ({ confirm } = {}) => {
             const data = await AdminAPI.get('/api/admin/races');
             setRaces(data);
             
-            const seasons = [...new Set(data.map(race => race.season_id))];
+            // Aktuální sezóna je ve výběru i bez závodů (je to výchozí filtr).
+            const seasons = [...new Set([getCurrentSeasonId(), ...data.map(race => race.season_id)])];
             setAvailableSeasons(seasons.sort((a, b) => b - a));
         } catch (err) {
             console.error('Error loading races:', err);
