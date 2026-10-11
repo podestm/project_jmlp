@@ -1,0 +1,4 @@
+/* Odstup od obsahu pod hláškou (staré obrazovky časomíry nemají mezery v rozvržení). */
+.message {
+  margin-block-end: var(--ms-space-4);
+}

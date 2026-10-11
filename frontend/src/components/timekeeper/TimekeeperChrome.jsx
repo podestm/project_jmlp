@@ -3,9 +3,9 @@ import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Chrome shared by every timekeeper screen: the localStorage key that keeps the
- * selected race in sync between tabs, the selected-race bar and the message
- * banner. Each of these used to be re-declared per screen, and the banner had
- * already drifted into four variants.
+ * selected race in sync between tabs and the selected-race bar. Each of these
+ * used to be re-declared per screen. The message banner has its own file
+ * (TimekeeperMessage.jsx).
  */
 
 /**
@@ -38,27 +38,3 @@ export const SelectedRaceBar = ({ race }) => (
     </div>
   </div>
 );
-
-const MESSAGE_ICONS = {
-  success: 'success',
-  info: 'info',
-};
-
-/**
- * Dismissible status banner.
- *
- * @param {{type: string, text: React.ReactNode}|null} message
- * @param {() => void} onDismiss
- */
-export const TimekeeperMessage = ({ message, onDismiss }) => {
-  if (!message) return null;
-  return (
-    <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
-      <Icon name={MESSAGE_ICONS[message.type] || 'warning'} className="me-2" />
-      {message.text}
-      <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={onDismiss}></button>
-    </div>
-  );
-};
-
-export default TimekeeperMessage;

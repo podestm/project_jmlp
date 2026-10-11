@@ -5,7 +5,8 @@ import RegistrationFormFields from '../ui/registration/RegistrationFormFields.js
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage, TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar, TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import TimekeeperMessage from './TimekeeperMessage.jsx';
 import TimekeeperRacerRow, { getSexLabel } from './TimekeeperRacerRow.jsx';
 import {
   OFFLINE_QUEUED_TEXT,

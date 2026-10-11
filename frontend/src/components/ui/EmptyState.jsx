@@ -1,19 +1,15 @@
-import Icon from '../ms/Icon/Icon.jsx';
+import { EmptyState as MsEmptyState } from '../ms/index.js';
+
 /**
- * Placeholder for a list/table with nothing to show.
+ * Prázdný seznam nebo tabulka na obrazovce, která ještě není převedená na
+ * Modrou stopu. Vykreslí kit EmptyState; kořen má .ms-scope, aby ve starém
+ * okolí platil reset a písma nového UI.
  *
  * @param {string} icon - název ikony z components/ms/Icon/icons.js, např. 'folder'
  * @param {string} title
- * @param {string} [hint] - optional secondary line
- * @param {React.ReactNode} [action] - optional call-to-action button
+ * @param {string} [hint] - doplňující věta
+ * @param {React.ReactNode} [action] - tlačítko s další akcí
  */
 export default function EmptyState({ icon = 'inbox', title, hint, action }) {
-  return (
-    <div className="text-center text-muted py-5">
-      <Icon name={icon} className="d-block mx-auto fs-1 mb-2 opacity-50" />
-      <div className="fw-semibold">{title}</div>
-      {hint && <div className="small mt-1">{hint}</div>}
-      {action && <div className="mt-3">{action}</div>}
-    </div>
-  );
+  return <MsEmptyState icon={icon} title={title} hint={hint} action={action} className="ms-scope" />;
 }

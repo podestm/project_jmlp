@@ -28,9 +28,9 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                 </h5>
             </div>
             <div className="card-body">
-                <RegistrationMessage 
-                    msg={registration.msg}
-                    setMsg={registration.setMsg}
+                <RegistrationMessage
+                    message={registration.message}
+                    onDismiss={() => registration.setMessage(null)}
                 />
 
                 <div className="row">

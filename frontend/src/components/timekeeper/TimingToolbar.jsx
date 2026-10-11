@@ -2,7 +2,8 @@ import { formatDateLong } from '../../utils/date.js';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import SerialStatusBar from './SerialStatusBar.jsx';
-import { TimekeeperMessage, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import { TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import TimekeeperMessage from './TimekeeperMessage.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
 /**

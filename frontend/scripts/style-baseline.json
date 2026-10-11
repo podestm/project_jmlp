@@ -38,7 +38,7 @@
     "legacyVars": 8
   },
   "src/components/admin/AdminDashboard.jsx": {
-    "bootstrap": 309,
+    "bootstrap": 308,
     "legacyImports": 1
   },
   "src/components/admin/AdminLayout.jsx": {
@@ -46,7 +46,7 @@
     "legacyImports": 1
   },
   "src/components/admin/AdminLogin.jsx": {
-    "bootstrap": 32,
+    "bootstrap": 30,
     "legacyImports": 1
   },
   "src/components/admin/AdminRegister.jsx": {
@@ -88,7 +88,7 @@
     "legacyImports": 1
   },
   "src/components/admin/RacerManagement.jsx": {
-    "bootstrap": 127,
+    "bootstrap": 126,
     "legacyImports": 3
   },
   "src/components/admin/SeasonManagement.jsx": {
@@ -272,7 +272,7 @@
     "bootstrap": 182
   },
   "src/components/timekeeper/TimekeeperChrome.jsx": {
-    "bootstrap": 19,
+    "bootstrap": 7,
     "legacyVars": 4
   },
   "src/components/timekeeper/TimekeeperDashboard.jsx": {
@@ -286,7 +286,7 @@
     "legacyImports": 1
   },
   "src/components/timekeeper/TimekeeperLogin.jsx": {
-    "bootstrap": 52,
+    "bootstrap": 51,
     "legacyImports": 1
   },
   "src/components/timekeeper/TimekeeperRacerRow.jsx": {
@@ -326,17 +326,8 @@
   "src/components/timekeeper/useInboxEvents.js": {
     "emoji": 4
   },
-  "src/components/ui/Alert.jsx": {
-    "bootstrap": 7
-  },
   "src/components/ui/ConfirmDialog.jsx": {
     "bootstrap": 22
-  },
-  "src/components/ui/EmptyState.jsx": {
-    "bootstrap": 12
-  },
-  "src/components/ui/LoadingState.jsx": {
-    "bootstrap": 26
   },
   "src/components/ui/RegistrationForm.jsx": {
     "bootstrap": 21,
@@ -353,18 +344,11 @@
     "bootstrap": 87,
     "legacyVars": 10
   },
-  "src/components/ui/registration/RegistrationMessage.jsx": {
-    "bootstrap": 9,
-    "emoji": 2
-  },
   "src/hooks/useBodyClass.js": {
     "themeBackoffice": 1
   },
   "src/hooks/useConfirm.jsx": {
     "legacyImports": 1
-  },
-  "src/hooks/useRegistration.js": {
-    "emoji": 3
   },
   "src/offline/bridgeInbox.js": {
     "emoji": 1

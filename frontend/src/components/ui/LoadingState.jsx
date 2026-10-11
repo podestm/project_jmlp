@@ -1,56 +1,25 @@
-const TIMEKEEPER_COLOR = '#e94560';
+import { LoadingState as MsLoadingState, Spinner } from '../ms/index.js';
+import { cx } from '../ms/cx.js';
+import styles from './LoadingState.module.css';
+
+// Stará varianta „timekeeper“ (malý spinner v barvě časomíry) je v kitu inline.
+const VARIANT = { page: 'page', fullscreen: 'fullscreen', inline: 'inline', timekeeper: 'inline' };
 
 /**
- * The single loading indicator for the whole app.
+ * Načítání pro obrazovky, které ještě nejsou převedené na Modrou stopu.
+ * Vykreslí kit LoadingState (viditelný text v role="status"); kořen má
+ * .ms-scope, aby ve starém okolí platil reset a písma nového UI. Ve starém
+ * okolí stojí jako malá bílá karta na střed (jako dřív spinner), protože
+ * pod ní může být tmavá fotka veřejného webu i světlá administrace.
  *
  * @param {'page'|'fullscreen'|'inline'|'timekeeper'} [variant]
- *   page       - default block spinner for a screen that is still loading
- *   fullscreen - centred in the viewport (auth gates, before the layout exists)
- *   inline     - small spinner inside a card body
- *   timekeeper - small spinner in the timekeeper accent colour
- * @param {string} [label] - screen-reader text
+ * @param {string} [label] - text načítání
  */
-export default function LoadingState({ variant = 'page', label = 'Načítám...' }) {
-  if (variant === 'fullscreen') {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">{label}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === 'timekeeper') {
-    return (
-      <div className="text-center py-4">
-        <div className="spinner-border spinner-border-sm" style={{ color: TIMEKEEPER_COLOR }} role="status">
-          <span className="visually-hidden">{label}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === 'inline') {
-    return (
-      <div className="text-center py-3">
-        <div className="spinner-border spinner-border-sm text-primary" role="status">
-          <span className="visually-hidden">{label}</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="text-center py-5">
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">{label}</span>
-      </div>
-    </div>
-  );
+export default function LoadingState({ variant = 'page', label }) {
+  return <MsLoadingState variant={VARIANT[variant] ?? 'page'} label={label} className={cx('ms-scope', styles.card, variant === 'fullscreen' && styles.fullscreen)} />;
 }
 
-/** Spinner for inside a submit button while the request is in flight. */
+/** Spinner uvnitř starého tlačítka, zatímco požadavek běží (místo ikony). */
 export function ButtonSpinner() {
-  return <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />;
+  return <Spinner size="1em" tone="current" className={styles.buttonSpinner} />;
 }

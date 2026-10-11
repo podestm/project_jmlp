@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     return (
       <Alert 
         type="danger" 
-        message={<><Icon name="warning" className="me-2" />Chyba při načítání: {error}</>}
+        message={`Chyba při načítání: ${error}`}
         onDismiss={() => setError(null)}
       />
     );

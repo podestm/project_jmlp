@@ -49,12 +49,7 @@ export default function TimekeeperLogin() {
               {error && (
                 <Alert 
                   type="danger" 
-                  message={
-                    <>
-                      <Icon name="warning" className="me-2" />
-                      {error}
-                    </>
-                  }
+                  message={error}
                   onDismiss={() => setError('')}
                 />
               )}

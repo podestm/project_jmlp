@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../config/auth.jsx';
 import Alert from '../ui/Alert.jsx';
-import Icon from '../ms/Icon/Icon.jsx';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -39,23 +38,13 @@ export default function AdminLogin() {
                 <Alert
                   type="warning"
                   autoDismissDelay={0}
-                  message={
-                    <>
-                      <Icon name="shield-lock" className="me-2" />
-                      Účet {deniedUser.email} smí jen do časomíry. Do administrace se přihlaste účtem správce.
-                    </>
-                  }
+                  message={`Účet ${deniedUser.email} smí jen do časomíry. Do administrace se přihlaste účtem správce.`}
                 />
               )}
               {error && (
                 <Alert 
                   type="danger" 
-                  message={
-                    <>
-                      <Icon name="warning" className="me-2" />
-                      {error}
-                    </>
-                  }
+                  message={error}
                   onDismiss={() => setError('')}
                 />
               )}

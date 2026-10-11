@@ -37,7 +37,7 @@ export const useRegistration = (raceId, onSuccess) => {
     const [clubs, setClubs] = useState([]);
 
     // UI state
-    const [msg, setMsg] = useState('');
+    const [message, setMessage] = useState(null); // {type, text} pro RegistrationMessage
     const [isSearching, setIsSearching] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({ ...NO_ERRORS });
     const [clubNoteMode, setClubNoteMode] = useState(false);
@@ -85,7 +85,7 @@ export const useRegistration = (raceId, onSuccess) => {
     const updateField = useCallback((field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setSelectedRacer(null);
-        setMsg('');
+        setMessage(null);
         if (['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote'].includes(field)) {
             setFieldErrors(prev => ({ ...prev, [field === 'clubId' || field === 'clubNote' ? 'club' : field]: '' }));
         }
@@ -119,14 +119,14 @@ export const useRegistration = (raceId, onSuccess) => {
         });
         setClubNoteMode(false);
         setSelectedRacer(racer);
-        setMsg(`Vybrán existující závodník: ${racer.name} ${racer.surname}`);
+        setMessage({ type: 'info', text: `Vybrán existující závodník: ${racer.name} ${racer.surname}` });
         setFieldErrors({ ...NO_ERRORS });
     };
 
     // Submit registration
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMsg('');
+        setMessage(null);
 
         // Validace povinných polí
         const errors = {};
@@ -215,7 +215,7 @@ export const useRegistration = (raceId, onSuccess) => {
 
             if (response.ok) {
                 const result = await response.json();
-                setMsg(`✅ Registrace úspěšná! ${result.message || ''}`);
+                setMessage({ type: 'success', text: `Registrace úspěšná! ${result.message || ''}`.trim() });
 
                 // Reset formuláře
                 setFormData({ ...EMPTY_FORM });
@@ -227,11 +227,11 @@ export const useRegistration = (raceId, onSuccess) => {
                 if (onSuccess) onSuccess(result);
             } else {
                 const error = await response.json();
-                setMsg(`❌ Chyba: ${error.detail || 'Registrace se nezdařila'}`);
+                setMessage({ type: 'danger', text: `Chyba: ${error.detail || 'Registrace se nezdařila'}` });
             }
         } catch (error) {
             console.error('Registration error:', error);
-            setMsg('❌ Chyba spojení se serverem');
+            setMessage({ type: 'danger', text: 'Chyba spojení se serverem' });
         }
     };
 
@@ -241,7 +241,7 @@ export const useRegistration = (raceId, onSuccess) => {
         setClubNoteMode(false);
         setFilteredRacers([]);
         setSelectedRacer(null);
-        setMsg('');
+        setMessage(null);
         setFieldErrors({ ...NO_ERRORS });
     };
 
@@ -257,12 +257,12 @@ export const useRegistration = (raceId, onSuccess) => {
         selectedRacer,
         clubs,
         clubNoteMode,
-        msg,
+        message,
         isSearching,
         fieldErrors,
 
         // Setters
-        setMsg,
+        setMessage,
         setClubNoteMode,
 
         // Functions

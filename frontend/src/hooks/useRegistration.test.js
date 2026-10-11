@@ -54,6 +54,7 @@ describe('registrační formulář', () => {
     await submit(result);
 
     expect(registerBodies).toHaveLength(1);
+    expect(result.current.message).toEqual({ type: 'success', text: 'Registrace úspěšná!' });
     expect(registerBodies[0]).toMatchObject({
       racer_id: 2374, racer_name: 'Edita', racer_surname: 'Kelblová', racer_year: 2016, racer_sex: 2
     });

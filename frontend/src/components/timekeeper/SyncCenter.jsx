@@ -4,7 +4,8 @@ import { downloadBackup, importBackupPayload } from '../../offline/backup.js';
 import { getOpenConflicts, getRecentQueueItems, resolveConflict, retryQueueItem } from '../../offline/syncQueue.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { formatDateTimeShort } from '../../utils/date.js';
-import { TimekeeperMessage, TK_ACCENT } from './TimekeeperChrome.jsx';
+import { TK_ACCENT } from './TimekeeperChrome.jsx';
+import TimekeeperMessage from './TimekeeperMessage.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
 const STATUS_BADGE = {

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import { SELECTED_RACE_KEY, SelectedRaceBar } from './TimekeeperChrome.jsx';
+import TimekeeperMessage from './TimekeeperMessage.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
 /**
