@@ -114,7 +114,7 @@
     "legacyImports": 1
   },
   "src/components/admin/attachments/LibraryPicker.jsx": {
-    "bootstrap": 36,
+    "bootstrap": 14,
     "legacyImports": 2
   },
   "src/components/admin/category/CategoryForm.jsx": {
@@ -224,10 +224,6 @@
   "src/components/timekeeper/BridgeEventRow.jsx": {
     "bootstrap": 63,
     "emoji": 5
-  },
-  "src/components/timekeeper/PdfPreviewModal.jsx": {
-    "bootstrap": 22,
-    "legacyImports": 1
   },
   "src/components/timekeeper/RaceHeaderForm.jsx": {
     "bootstrap": 78,

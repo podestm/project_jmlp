@@ -23,7 +23,7 @@
 .lg { inline-size: 880px; }
 
 .full {
-  inline-size: calc(100vw - 32px);
+  inline-size: var(--ms-container);
   block-size: calc(100dvh - 32px);
 }
 
@@ -86,6 +86,13 @@
 .full .body {
   flex-grow: 1;
   min-block-size: 0;
+}
+
+/* Tělo bez odsazení (náhled PDF): obsah ho vyplní celé. */
+.body.flush {
+  padding: 0;
+  border-top: 1px solid var(--ms-line);
+  background: var(--ms-surface-sunken);
 }
 
 .footer {

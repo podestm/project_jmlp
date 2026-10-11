@@ -22,6 +22,10 @@ import styles from './Modal.module.css';
  *
  * Patička: `footer` vpravo (Zrušit, hlavní akce úplně vpravo), `footerStart`
  * vlevo (další nebezpečná volba). Uvnitř Modal nic neportálovat do body.
+ *
+ * size: sm 480 | md 620 | lg 880 | full (šířka kontejneru 1240 px, výška
+ * okna – náhled PDF). flush: tělo bez odsazení, oddělené linkou, na
+ * podkladu --ms-surface-sunken (TkDialogNahled*: vestavěný prohlížeč PDF).
  */
 export default function Modal({
   open,
@@ -32,6 +36,7 @@ export default function Modal({
   footer,
   footerStart,
   size = 'md',
+  flush = false,
   dismissible = true,
   closeLabel = 'Zavřít dialog',
   initialFocusRef,
@@ -112,7 +117,7 @@ export default function Modal({
             </div>
             {dismissible && <CloseButton ref={closeButtonRef} label={closeLabel} onClick={() => onClose('button')} />}
           </header>
-          <div className={styles.body}>{children}</div>
+          <div className={cx(styles.body, flush && styles.flush)}>{children}</div>
           {(footer || footerStart) && (
             <footer className={styles.footer}>
               {footerStart && <div className={styles.footerStart}>{footerStart}</div>}
