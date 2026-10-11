@@ -1,0 +1,63 @@
+/* TkHlavickaZavodu: formulář vlevo, „Z databáze“ vpravo (486 px). */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 486px);
+  align-items: start;
+  gap: var(--ms-space-5);
+}
+
+.main,
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+.main {
+  gap: var(--ms-space-6);
+}
+
+.officials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.saveBar {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-5);
+  padding: 18px 20px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.saveNote {
+  flex-grow: 1;
+  font-size: var(--ms-fs-base);
+  line-height: 1.5;
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 1279.98px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .officials {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--ms-space-4);
+  }
+
+  .saveBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

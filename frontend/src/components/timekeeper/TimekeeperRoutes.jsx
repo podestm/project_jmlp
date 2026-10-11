@@ -12,7 +12,7 @@ import StartListManager from './StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers.jsx';
 import TimingEntry from './TimingEntry.jsx';
 import ResultsView from './ResultsView.jsx';
-import RaceHeaderForm from './RaceHeaderForm.jsx';
+import RaceHeaderForm from './RaceHeaderForm/RaceHeaderForm.jsx';
 import RaceNumbersManager from './RaceNumbersManager.jsx';
 import SyncCenter from './SyncCenter.jsx';
 import TimingDeviceSettings from './TimingDeviceSettings.jsx';
@@ -45,7 +45,7 @@ export default function TimekeeperRoutes() {
           <Route path="/start-list" element={legacy(<StartListManager />)} />
           <Route path="/racers" element={legacy(<TimekeeperRacers />)} />
           <Route path="/timing" element={legacy(<TimingEntry />)} />
-          <Route path="/race-detail" element={legacy(<RaceHeaderForm />)} />
+          <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
           <Route path="/results" element={legacy(<ResultsView />)} />
           <Route path="/race-numbers" element={legacy(<RaceNumbersManager />)} />
           <Route path="/sync" element={legacy(<SyncCenter />)} />

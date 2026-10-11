@@ -162,10 +162,6 @@
     "bootstrap": 63,
     "emoji": 5
   },
-  "src/components/timekeeper/RaceHeaderForm.jsx": {
-    "bootstrap": 78,
-    "legacyImports": 2
-  },
   "src/components/timekeeper/RaceNumberBadge.jsx": {
     "bootstrap": 11
   },

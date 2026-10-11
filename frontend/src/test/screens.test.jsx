@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { TimekeeperAuthProvider } from '../config/timekeeperAuth.jsx';
 import { SerialSessionProvider } from '../components/timekeeper/SerialSessionProvider.jsx';
+import RaceHeaderForm from '../components/timekeeper/RaceHeaderForm/RaceHeaderForm.jsx';
 import RaceNumbersManager from '../components/timekeeper/RaceNumbersManager.jsx';
 import ResultsView from '../components/timekeeper/ResultsView.jsx';
 import StartListManager from '../components/timekeeper/StartListManager.jsx';
@@ -57,6 +58,7 @@ const OBRAZOVKY = [
   ['startovní čísla', RaceNumbersManager],
   ['centrum synchronizace', SyncCenter],
   ['přehled závodů', TimekeeperDashboard],
+  ['detail závodu', RaceHeaderForm],
   ['připojení časomíry', TimingDeviceSettings],
 ];
 
