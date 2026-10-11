@@ -1,0 +1,13 @@
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.action {
+  justify-content: flex-start;
+}

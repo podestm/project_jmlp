@@ -711,58 +711,9 @@ body.theme-backoffice .attachment-dropzone.border-primary {
   background: var(--adm-primary-subtle);
 }
 
-/* ── Dashboard ───────────────────────────────────────────────────────── */
-
-.dashboard-icon-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-body.theme-backoffice .dashboard-icon-primary { background: var(--adm-primary-subtle); color: var(--adm-primary); }
-body.theme-backoffice .dashboard-icon-success { background: var(--adm-success-subtle); color: var(--adm-success); }
-body.theme-backoffice .dashboard-icon-warning { background: var(--adm-warning-subtle); color: var(--adm-warning-line); }
-body.theme-backoffice .dashboard-icon-info { background: var(--adm-info-subtle); color: var(--adm-info); }
-body.theme-backoffice .dashboard-icon-box svg[aria-hidden] { color: inherit; }
-
-/* Nadcházející závod. Dřív tu byl přechod do světle tyrkysové, na které
-   bílý text neměl kontrast (2.2:1), a navíc ho přebíjelo bílé pozadí karet -
-   celá karta byla bílý text na bílém. */
-body.theme-backoffice .card.dashboard-upcoming-race {
-  background: linear-gradient(135deg, #166534 0%, #0f766e 100%) !important;
-  border: 0 !important;
-  color: #fff;
-}
-
-body.theme-backoffice .dashboard-upcoming-race .card-body {
-  background: transparent !important;
-  color: #fff;
-}
-
-body.theme-backoffice .dashboard-upcoming-race .opacity-75 { opacity: 0.9 !important; }
-body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(15, 23, 42, 0.35) !important; }
-
-.dashboard-upcoming-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 @media (max-width: 576px) {
-  .dashboard-icon-box {
-    width: 40px;
-    height: 40px;
-  }
-
   body.theme-backoffice .admin-layout-content .fs-3 {
     font-size: 1.25rem !important;
   }
 }
+

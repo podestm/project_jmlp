@@ -1,0 +1,64 @@
+/* AdminDashboard / AdminMobilPrehled */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ms-space-4);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ms-space-5);
+}
+
+.race,
+.registrations,
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-inline-size: 0;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--ms-space-5);
+}
+
+.asideText {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+  white-space: nowrap;
+}
+
+.asideLink {
+  color: var(--ms-navy);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.asideLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1279.98px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .split,
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .tiles {
+    gap: 10px;
+  }
+}
