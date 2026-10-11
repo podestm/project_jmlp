@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Button, EmptyState, Grid, Icon, LoadingState, PageHeader, Panel, Paska } from '../../ms/index.js';
 import { czechPlural } from '../../../utils/races.js';
@@ -6,7 +7,7 @@ import TkPage from '../frame/TkPage/TkPage.jsx';
 import { readSelectedRaceId, storeSelectedRaceId } from '../frame/selectedRace.js';
 import { czechDateParts } from '../../ms/BibDate/czechDate.js';
 import { formatDateShort } from '../../../utils/date.js';
-import { splitRaces } from './dashboard.js';
+import { splitRaces, splitRecentPast } from './dashboard.js';
 import PastRaceRow from './PastRaceRow.jsx';
 import RaceCard from './RaceCard.jsx';
 import { useTimekeeperRaces } from './useTimekeeperRaces.js';
@@ -21,6 +22,7 @@ export default function TimekeeperDashboard() {
   const { races, loading, error, clearError, loadRaces, toggleLive } = useTimekeeperRaces();
   const navigate = useNavigate();
   const { edition, season } = currentSeasonInfo();
+  const [showOlder, setShowOlder] = useState(false);
 
   const selectRace = (raceId) => {
     storeSelectedRaceId(raceId);
@@ -51,6 +53,9 @@ export default function TimekeeperDashboard() {
   }
 
   const { upcoming, past } = splitRaces(races);
+  // Starší než předchozí sezóna jen na požádání (jinak přes sto řádků).
+  const { recent, older } = splitRecentPast(past);
+  const shownPast = showOlder ? past : recent;
   const selectedId = readSelectedRaceId();
   const lastRace = races.find((race) => String(race.id) === String(selectedId));
 
@@ -107,10 +112,22 @@ export default function TimekeeperDashboard() {
 
       {past.length > 0 && (
         <section className={styles.section}>
-          <Paska aside={count(past.length)}>Proběhlé závody</Paska>
-          <Panel as="ul" padding="none">
-            {past.map((race) => <PastRaceRow key={race.id} {...rowProps(race)} />)}
-          </Panel>
+          <Paska aside={count(shownPast.length)}>Proběhlé závody</Paska>
+          {shownPast.length > 0 && (
+            <Panel as="ul" padding="none">
+              {shownPast.map((race) => <PastRaceRow key={race.id} {...rowProps(race)} />)}
+            </Panel>
+          )}
+          {older.length > 0 && (
+            <Button
+              icon={showOlder ? 'chevron-up' : 'chevron-down'}
+              aria-expanded={showOlder}
+              className={styles.older}
+              onClick={() => setShowOlder(!showOlder)}
+            >
+              {showOlder ? 'Skrýt starší závody' : `Zobrazit starší závody (${older.length})`}
+            </Button>
+          )}
         </section>
       )}
 

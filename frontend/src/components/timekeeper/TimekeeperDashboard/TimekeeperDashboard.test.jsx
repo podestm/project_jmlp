@@ -78,4 +78,15 @@ describe('výběr závodu', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Nepodařilo se načíst závody');
     expect(screen.queryByText('Žádné závody v aktuální sezóně')).toBeNull();
   });
+
+  it('závody starší než předchozí sezóna jsou až za tlačítkem', async () => {
+    api.get.mockResolvedValue([...RACES, { id: 7, race_nr: 'JMLP2019-02', areal_name: 'Sedmihorky', datum: '2020-01-20', registration: false, is_live: false }]);
+    renderScreen();
+    await screen.findByRole('heading', { name: 'Proběhlé závody' });
+    expect(screen.queryByText('Sedmihorky')).toBeNull();
+    expect(screen.getByText('Fajťák')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Zobrazit starší závody (1)' }));
+    expect(screen.getByText('Sedmihorky')).toBeInTheDocument();
+  });
 });
