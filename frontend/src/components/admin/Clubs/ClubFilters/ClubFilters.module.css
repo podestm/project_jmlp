@@ -36,6 +36,11 @@
     align-items: stretch;
   }
 
+  .search,
+  .validity {
+    flex: none;
+  }
+
   .summary {
     margin: 0;
   }

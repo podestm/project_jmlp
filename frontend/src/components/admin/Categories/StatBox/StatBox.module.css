@@ -1,0 +1,39 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+  padding: 10px var(--ms-space-3);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-sunken);
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+.value {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-xl);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.note {
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink-body);
+}
+
+.warning .value {
+  color: var(--ms-dry-ink);
+}
+
+.open .value {
+  color: var(--ms-open);
+}

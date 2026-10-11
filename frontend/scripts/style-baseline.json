@@ -43,26 +43,9 @@
   "src/components/admin/AdminRoutes.jsx": {
     "themeBackoffice": 1
   },
-  "src/components/admin/CategoryManagement.jsx": {
-    "bootstrap": 29,
-    "legacyImports": 2
-  },
   "src/components/admin/ClubRequests.jsx": {
     "bootstrap": 82,
     "legacyImports": 2
-  },
-  "src/components/admin/category/CategoryForm.jsx": {
-    "bootstrap": 48
-  },
-  "src/components/admin/category/CategoryTable.jsx": {
-    "bootstrap": 38,
-    "legacyImports": 1
-  },
-  "src/components/admin/category/CoverageReport.jsx": {
-    "bootstrap": 185
-  },
-  "src/components/admin/category/RecalculateSummary.jsx": {
-    "bootstrap": 69
   },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
     "bootstrap": 2
