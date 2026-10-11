@@ -1,0 +1,17 @@
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  min-inline-size: 0;
+}
+
+.nowrap { flex-wrap: nowrap; }
+
+.align-center { align-items: center; }
+.align-start { align-items: flex-start; }
+.align-baseline { align-items: baseline; }
+.align-end { align-items: flex-end; }
+
+.justify-start { justify-content: flex-start; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
