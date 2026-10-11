@@ -303,6 +303,8 @@ export function useRacePdf(raceId) {
   return {
     objectUrl,
     previewTitle,
+    // Název souboru otevřeného náhledu (do potvrzení publikace).
+    fileName: objectUrl ? fileNameRef.current : null,
     canPublish,
     publishTarget,
     generating,

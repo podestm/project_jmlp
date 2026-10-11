@@ -1,0 +1,71 @@
+.table {
+  min-inline-size: 860px;
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 38px;
+  block-size: 34px;
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.podium1 {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.podium2 {
+  background: var(--ms-ice);
+  color: var(--ms-navy-deep);
+}
+
+.podium3 {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.name,
+.nameMuted {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.nameMuted {
+  color: var(--ms-ink-body);
+}
+
+.year,
+.club {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.total {
+  font-size: var(--ms-fs-xl);
+}
+
+.statusText {
+  font-family: var(--ms-font-text);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.loss {
+  color: var(--ms-ink-body);
+}
+
+.points {
+  font-size: var(--ms-fs-lg);
+}
+
+.note {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

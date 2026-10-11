@@ -1,17 +1,9 @@
 // Sady startovních čísel mají skutečné barvy dresů (tokeny --ms-bib-*,
-// components/ms/tokens.js). `solid` nese bílé číslo, `soft` a `border` jsou
-// z téže barvy namíchané s průhlednou – pro podklad a rámeček.
+// components/ms/tokens.js). `solid` je hodnota CSS barvy sady.
 import { bibVar } from '../components/ms/tokens.js';
 
 const bib = (value, label) => {
-  const solid = `var(${bibVar(value)})`;
-  return {
-    value,
-    label,
-    solid,
-    soft: `color-mix(in srgb, ${solid} 10%, transparent)`,
-    border: `color-mix(in srgb, ${solid} 35%, transparent)`,
-  };
+  return { value, label, solid: `var(${bibVar(value)})` };
 };
 
 const SET_COLOR_OPTIONS = [
@@ -30,19 +22,6 @@ export const getSetColorTheme = (setColor) => (
 
 /** Barva sady jako hodnota CSS (var(--ms-bib-…)); neznámá sada = výchozí. */
 export const setColorVar = (setColor) => getSetColorTheme(setColor).solid;
-
-/** Inline vzhled odznaku čísla pro nepřevedené obrazovky (Live, schránka impulzů). */
-export const getRaceNumberBadgeStyle = (setColor) => {
-  const theme = getSetColorTheme(setColor);
-  return {
-    background: theme.solid,
-    color: 'var(--ms-on-dark)',
-    border: `1px solid ${theme.border}`,
-    fontSize: '0.78rem',
-    letterSpacing: '0.02em',
-    minWidth: '2.5rem',
-  };
-};
 
 export const formatSystemRaceNumber = (displayNumber) => (
   displayNumber != null && displayNumber !== '' ? `Sys. ${displayNumber}` : 'Sys. -'

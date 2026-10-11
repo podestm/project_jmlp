@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ResultsTable, { formatResultTime, rankEntriesByTime, resultStatus } from './ResultsTable.jsx';
+import { formatResultTime, rankEntriesByTime, resultStatus } from '../../../utils/results.js';
+import ResultsTable from './ResultsTable.jsx';
 
 /**
  * Pořadí je jediná věc, kterou počítá klient i server (rank_category

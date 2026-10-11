@@ -11,7 +11,7 @@ import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
 import StartListManager from './StartList/StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from './Timing/TimingEntry.jsx';
-import ResultsView from './ResultsView.jsx';
+import ResultsView from './Results/ResultsView.jsx';
 import RaceHeaderForm from './RaceHeaderForm/RaceHeaderForm.jsx';
 import RaceNumbersManager from './RaceNumbers/RaceNumbersManager.jsx';
 import SyncCenter from './SyncCenter.jsx';
@@ -46,7 +46,7 @@ export default function TimekeeperRoutes() {
           <Route path="/racers" element={protect(<TimekeeperRacers />)} />
           <Route path="/timing" element={protect(<TimingEntry />)} />
           <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
-          <Route path="/results" element={legacy(<ResultsView />)} />
+          <Route path="/results" element={protect(<ResultsView />)} />
           <Route path="/race-numbers" element={protect(<RaceNumbersManager />)} />
           <Route path="/sync" element={legacy(<SyncCenter />)} />
           <Route path="/device" element={legacy(<TimingDeviceSettings />)} />

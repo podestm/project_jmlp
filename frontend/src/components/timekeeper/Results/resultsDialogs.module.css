@@ -1,0 +1,27 @@
+.file {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  margin-block-end: var(--ms-space-2);
+  padding: var(--ms-space-3) var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.fileIcon {
+  flex-shrink: 0;
+  color: var(--ms-navy);
+}
+
+.fileName {
+  display: block;
+  font-weight: 700;
+  color: var(--ms-ink);
+  overflow-wrap: anywhere;
+}
+
+.fileDetail {
+  display: block;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
