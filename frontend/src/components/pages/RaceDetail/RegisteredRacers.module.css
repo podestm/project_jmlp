@@ -1,0 +1,100 @@
+/* ZavodDetail „Přihlášení závodníci“: kluby jako pruhy, závodníci jako řádky. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.total {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-lg);
+  font-weight: 600;
+  color: var(--ms-navy);
+}
+
+.panel {
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  overflow: hidden;
+}
+
+.clubName {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ms-navy);
+}
+
+.clubCount {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ms-ink-body);
+}
+
+.racers {
+  list-style: none;
+}
+
+.racer {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  padding: 12px 18px;
+  border-block-start: 1px solid var(--ms-line);
+}
+
+.racerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.racerName {
+  font-size: var(--ms-fs-lg);
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.racerMeta {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.more {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 52px;
+  border: 0;
+  border-block-start: 1px solid var(--ms-line);
+  background: var(--ms-surface-card);
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-base);
+  font-weight: 700;
+  color: var(--ms-navy);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.empty {
+  padding: var(--ms-space-6);
+  background: var(--ms-surface-card);
+  border: 1px dashed var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+  font-size: var(--ms-fs-lg);
+  text-align: center;
+  color: var(--ms-ink-body);
+}

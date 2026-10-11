@@ -27,7 +27,7 @@ export const ButtonContent = ({ icon, iconEnd, busy, children }) => (
 
 /**
  * Tlačítko Modré stopy (BRIEF: jedna plná primární akce na sekci, ostatní obrysové).
- * - variant: primary | outline | danger | quiet
+ * - variant: primary | outline | danger | quiet | on-dark | inverse (dvě poslední na navy ploše)
  * - size: sm (44 px) | md (48 px) | lg (52 px)
  * - icon / iconEnd: ikona před textem / za textem
  * - busy: probíhá akce – spinner místo ikony, aria-busy a tlačítko nejde znovu

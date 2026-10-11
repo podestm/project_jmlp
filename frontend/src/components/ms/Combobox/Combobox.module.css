@@ -1,0 +1,117 @@
+/* PrihlaskaHledani „Výběr klubu“: pole 52 px s lupou, seznam pod ním. */
+.combobox {
+  position: relative;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-1);
+  block-size: 52px;
+  padding-inline: 14px var(--ms-space-1);
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+}
+
+.field:focus-within {
+  outline: var(--ms-focus-width) solid var(--ms-focus-color);
+  outline-offset: var(--ms-focus-offset);
+}
+
+.field:has([aria-invalid='true']) {
+  border: 2px solid var(--ms-live-ink);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: var(--ms-ink-body);
+}
+
+.input {
+  flex-grow: 1;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding: 0 var(--ms-space-2);
+  border: 0;
+  background: transparent;
+  font-size: 17px;
+  color: var(--ms-ink);
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--ms-ink-muted);
+  opacity: 1;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: var(--ms-target);
+  block-size: var(--ms-target);
+  border: 0;
+  border-radius: var(--ms-radius-control);
+  background: transparent;
+  color: var(--ms-ink-body);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink);
+}
+
+.popover {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(100% + 4px);
+  z-index: var(--ms-z-popover);
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  box-shadow: var(--ms-shadow-dialog);
+}
+
+.list {
+  max-block-size: 300px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ms-space-3);
+  min-block-size: var(--ms-target);
+  padding: 10px 14px;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+  cursor: pointer;
+}
+
+.option[data-active] {
+  background: var(--ms-surface-sunken);
+}
+
+.option[aria-selected='true'] {
+  font-weight: 700;
+  color: var(--ms-navy);
+}
+
+.noMatch {
+  padding: 14px;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.footer {
+  padding: var(--ms-space-2) 14px;
+  border-block-start: 1px solid var(--ms-line);
+}

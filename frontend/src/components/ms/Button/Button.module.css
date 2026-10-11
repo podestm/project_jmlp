@@ -85,6 +85,34 @@
   color: var(--ms-navy);
 }
 
+/* Na navy ploše (hlavička detailu závodu, úvod): obrys v ledové, bílý text. */
+.on-dark {
+  background: transparent;
+  border-color: var(--ms-ice);
+  color: var(--ms-on-dark);
+  font-weight: 600;
+  --ms-focus-color: var(--ms-ice);
+}
+
+.on-dark:hover {
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+/* Hlavní akce na navy ploše: bílé tlačítko s navy textem (ZavodDetailOdjeto). */
+.inverse {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-surface-card);
+  color: var(--ms-navy);
+  font-weight: 700;
+  --ms-focus-color: var(--ms-ice);
+}
+
+.inverse:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
 /* Vypnuté: přerušovaný rámeček a tlumený text (DesignSystem „Přihlášky uzavřeny“). */
 .button:disabled:not([data-busy]),
 .button[aria-disabled='true'] {

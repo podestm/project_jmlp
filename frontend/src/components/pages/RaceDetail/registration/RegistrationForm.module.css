@@ -1,0 +1,85 @@
+/* ZavodDetail „Přihláška závodníka“ (karta 660 px) a MobilRegistrace. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--ms-space-4);
+  align-items: start;
+}
+
+.optional {
+  font-family: var(--ms-font-text);
+  font-size: var(--ms-fs-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ms-ink-body);
+}
+
+.clubBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ms-space-2);
+}
+
+.clubBlock > :first-child {
+  align-self: stretch;
+}
+
+/* Textové tlačítko „Můj klub tu není…“ – podtržené jako odkaz, cíl 44 px. */
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--ms-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  color: var(--ms-navy);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.linkButton:hover {
+  color: var(--ms-ink);
+}
+
+.submit {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+}
+
+.submitError {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ms-live-ink);
+}
+
+.submitNote {
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 767.98px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .submit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

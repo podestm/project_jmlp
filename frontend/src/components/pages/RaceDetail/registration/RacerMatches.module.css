@@ -1,0 +1,89 @@
+/* PrihlaskaHledani: nalezení závodníci pod jménem a příjmením. */
+.matches {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px var(--ms-space-4);
+  background: var(--ms-surface-sunken);
+  border-radius: var(--ms-radius-card);
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: var(--ms-ink);
+}
+
+.state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--ms-fs-md);
+  line-height: 1.45;
+  color: var(--ms-ink-body);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-block-size: 400px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.racer {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  inline-size: 100%;
+  min-block-size: 56px;
+  padding: 10px 14px;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  text-align: start;
+  cursor: pointer;
+}
+
+.racer:hover {
+  border-color: var(--ms-navy);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.name {
+  font-size: var(--ms-fs-lg);
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.fill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-md);
+  font-weight: 700;
+  color: var(--ms-navy);
+}
+
+.more {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

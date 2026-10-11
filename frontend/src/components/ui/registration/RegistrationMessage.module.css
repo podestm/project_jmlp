@@ -1,4 +1,0 @@
-/* Odstup od formuláře pod hláškou. */
-.message {
-  margin-block-end: var(--ms-space-4);
-}

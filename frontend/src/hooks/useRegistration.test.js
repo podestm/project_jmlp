@@ -71,3 +71,17 @@ describe('registrační formulář', () => {
     expect(result.current.formData.year).toBe('');
   });
 });
+
+describe('registrační formulář – kontroly místo bublin prohlížeče', () => {
+  it('nesmyslný ročník a e-mail bez zavináče přihlášku zastaví', async () => {
+    const { result } = renderHook(() => useRegistration(132));
+    await fill(result, { name: 'Adam', surname: 'Kratochvíl', year: 215, sex: 1, clubId: 3, email: 'adam.email.cz' });
+
+    await submit(result);
+
+    expect(result.current.fieldErrors.year).toBe('Ročník má čtyři číslice, například 2015.');
+    expect(result.current.fieldErrors.email).toMatch(/nemá správný tvar/);
+    expect(registerBodies).toHaveLength(0);
+    expect(result.current.isSubmitting).toBe(false);
+  });
+});

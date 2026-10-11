@@ -10,7 +10,7 @@ import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
 import LiveTiming from './components/pages/LiveTiming.jsx';
-import RaceDetail from './components/pages/RaceDetail.jsx';
+import RaceDetail from './components/pages/RaceDetail/RaceDetail.jsx';
 import NotFound from './components/pages/NotFound/NotFound.jsx';
 import Results from './components/pages/Results/Results.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -45,7 +45,7 @@ const RouterContent = () => {
       {/* Public routes */}
       <Route path="/" element={legacyPage(<Homepage />, { fluid: true, footer: 'full' })} />
       <Route path="/zavody" element={<SiteLayout><RaceCalendar /></SiteLayout>} />
-      <Route path="/zavod/:raceId" element={legacyPage(<RaceDetail />)} />
+      <Route path="/zavod/:raceId" element={<SiteLayout><RaceDetail /></SiteLayout>} />
       <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />
       <Route path="/aktuality" element={legacyPage(<NewsArchive />)} />
       <Route path="/dokumenty" element={legacyPage(<Documents />)} />

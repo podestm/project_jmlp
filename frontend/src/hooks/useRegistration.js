@@ -21,7 +21,7 @@ const EMPTY_FORM = Object.freeze({
     slcr_id: ''
 });
 
-const NO_ERRORS = Object.freeze({ name: '', surname: '', year: '', sex: '', club: '' });
+const NO_ERRORS = Object.freeze({ name: '', surname: '', year: '', sex: '', club: '', email: '' });
 
 export const useRegistration = (raceId, onSuccess) => {
     // Formulářová data
@@ -37,8 +37,10 @@ export const useRegistration = (raceId, onSuccess) => {
     const [clubs, setClubs] = useState([]);
 
     // UI state
-    const [message, setMessage] = useState(null); // {type, text} pro RegistrationMessage
+    const [message, setMessage] = useState(null); // {type, text} – hláška nad formulářem přihlášky
     const [isSearching, setIsSearching] = useState(false);
+    // Přihláška se právě odesílá – tlačítko je zamčené, aby nevznikla dvakrát
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({ ...NO_ERRORS });
     const [clubNoteMode, setClubNoteMode] = useState(false);
 
@@ -86,7 +88,7 @@ export const useRegistration = (raceId, onSuccess) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         setSelectedRacer(null);
         setMessage(null);
-        if (['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote'].includes(field)) {
+        if (['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote', 'email'].includes(field)) {
             setFieldErrors(prev => ({ ...prev, [field === 'clubId' || field === 'clubNote' ? 'club' : field]: '' }));
         }
 
@@ -132,7 +134,16 @@ export const useRegistration = (raceId, onSuccess) => {
         const errors = {};
         if (!formData.name.trim()) errors.name = 'Jméno je povinné';
         if (!formData.surname.trim()) errors.surname = 'Příjmení je povinné';
+        // Formulář má noValidate (české hlášky u polí místo bublin prohlížeče),
+        // proto rozsah ročníku a tvar e-mailu hlídáme tady.
+        const year = Number(formData.year);
         if (!formData.year) errors.year = 'Rok narození je povinný';
+        else if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
+            errors.year = 'Ročník má čtyři číslice, například 2015.';
+        }
+        if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+            errors.email = 'E-mail nemá správný tvar, například vas@email.cz.';
+        }
         if (![1, 2].includes(Number(formData.sex))) errors.sex = 'Vyberte pohlaví';
         if (!formData.clubId && !(formData.clubNote && formData.clubNote.trim())) {
             errors.club = 'Vyberte klub nebo zadejte poznámku';
@@ -148,6 +159,8 @@ export const useRegistration = (raceId, onSuccess) => {
             setFieldErrors(errors);
             return;
         }
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
         // Detekce existujícího závodníka - hledáme v celé databázi
         let exactMatch = null;
@@ -232,6 +245,8 @@ export const useRegistration = (raceId, onSuccess) => {
         } catch (error) {
             console.error('Registration error:', error);
             setMessage({ type: 'danger', text: 'Chyba spojení se serverem' });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -259,6 +274,7 @@ export const useRegistration = (raceId, onSuccess) => {
         clubNoteMode,
         message,
         isSearching,
+        isSubmitting,
         fieldErrors,
 
         // Setters
