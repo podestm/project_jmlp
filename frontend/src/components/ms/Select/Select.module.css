@@ -1,0 +1,53 @@
+.wrap {
+  position: relative;
+  display: flex;
+  min-inline-size: 0;
+}
+
+.select {
+  appearance: none;
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: 0 42px 0 14px;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-text);
+  font-size: var(--ms-fs-lg);
+  font-weight: 600;
+  color: var(--ms-ink);
+  cursor: pointer;
+}
+
+.sm {
+  block-size: var(--ms-target);
+}
+
+.md {
+  block-size: 48px;
+}
+
+.lg {
+  block-size: 52px;
+  font-size: 17px;
+}
+
+.select[aria-invalid='true'] {
+  border: 2px solid var(--ms-live-ink);
+}
+
+.select:disabled {
+  background: var(--ms-surface-sunken);
+  border-color: var(--ms-line);
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}
+
+.arrow {
+  position: absolute;
+  inset-inline-end: 14px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  color: var(--ms-ink-body);
+  pointer-events: none;
+}

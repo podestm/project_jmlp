@@ -1,0 +1,46 @@
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-block-size: var(--ms-target);
+  padding-block: 11px;
+}
+
+.input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.label {
+  cursor: pointer;
+  font-size: var(--ms-fs-lg);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ms-ink);
+}
+
+.description {
+  font-size: var(--ms-fs-md);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.input:disabled,
+.input:disabled + .text .label {
+  cursor: not-allowed;
+}
+
+.input:disabled + .text .label {
+  color: var(--ms-ink-muted);
+}

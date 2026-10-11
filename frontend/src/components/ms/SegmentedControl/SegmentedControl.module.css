@@ -1,0 +1,48 @@
+/* Zavody „Filtry“: samostatná tlačítka s mezerou 10 px. */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.sm {
+  min-block-size: var(--ms-target);
+}
+
+.md {
+  min-block-size: 48px;
+}
+
+.option:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.option[aria-pressed='true'] {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.option:disabled {
+  background: var(--ms-surface-sunken);
+  border-style: dashed;
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}
