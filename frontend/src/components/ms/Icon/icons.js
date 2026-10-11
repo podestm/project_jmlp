@@ -4,7 +4,7 @@
 import {
   ArrowLeft, ArrowRight, ArrowUpDown, Ban, Building, Calendar, Check, ChevronDown, ChevronLeft,
   ChevronRight, ChevronUp, CircleAlert, CircleCheck, CircleX, Clock, Cloud, CloudOff, Copy, Download,
-  ExternalLink, Eye, EyeOff, FileText, FileUp, Funnel, GripVertical, Hash, House, Image, Inbox, Info,
+  ExternalLink, Eye, EyeOff, FileText, FileUp, Funnel, Gauge, GripVertical, Hash, House, Image, Inbox, Info,
   Link, List, Lock, LockOpen, LogOut, Mail, MapPin, Menu, Minus, Newspaper, Paperclip, Pencil, Phone,
   Plus, Printer, RefreshCw, Save, Search, Send, Settings, Snowflake, Tag, Timer, Trash, TriangleAlert,
   Trophy, Upload, Usb, User, UserPlus, Users, WifiOff, X,
@@ -36,6 +36,7 @@ export const ICONS = {
   'file-text': FileText,
   'file-up': FileUp,
   funnel: Funnel,
+  gauge: Gauge,
   'grip-vertical': GripVertical,
   hash: Hash,
   house: House,
