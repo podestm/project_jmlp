@@ -8,6 +8,7 @@ import CategoryForm from './category/CategoryForm.jsx';
 import CategoryTable from './category/CategoryTable.jsx';
 import CoverageReport from './category/CoverageReport.jsx';
 import RecalculateSummary from './category/RecalculateSummary.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /** Prázdný formulář - stejný tvar pro první render i po uložení. */
 const emptyForm = () => ({
@@ -115,7 +116,7 @@ export default function CategoryManagement() {
       message: `Opravdu chcete smazat kategorii „${category.display_name || category.name}" (ročníky ${category.min_birth_year}–${category.max_birth_year})? Tuto akci nelze vrátit zpět.`,
       confirmLabel: 'Smazat',
       variant: 'danger',
-      icon: 'bi-trash'
+      icon: 'trash'
     });
     if (!confirmed) return;
 
@@ -149,7 +150,7 @@ export default function CategoryManagement() {
       message: `Vytvoří se ${sexName} kategorie „${category.name}" pro ročníky ${category.min_birth_year}–${category.max_birth_year}.`,
       confirmLabel: 'Vytvořit',
       variant: 'primary',
-      icon: 'bi-arrows-angle-expand'
+      icon: 'expand'
     });
     if (!confirmed) return;
 
@@ -223,7 +224,7 @@ export default function CategoryManagement() {
       message: 'Všem závodníkům se znovu přiřadí kategorie podle roku narození a pohlaví. Operace může trvat několik sekund.',
       confirmLabel: 'Přepočítat',
       variant: 'warning',
-      icon: 'bi-arrow-repeat'
+      icon: 'sync'
     });
     if (!confirmed) return;
 
@@ -274,7 +275,7 @@ export default function CategoryManagement() {
       <div className="container-fluid">
         <div className="text-center py-5">
           <div className="alert alert-warning">
-            <i className="bi bi-exclamation-triangle me-2"></i>
+            <Icon name="warning" className="me-2" />
             Pro přístup k této stránce se musíte přihlásit.
           </div>
         </div>
@@ -296,7 +297,7 @@ export default function CategoryManagement() {
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h1>
-              <i className="bi bi-tag me-2"></i>
+              <Icon name="tag" className="me-2" />
               Správa kategorií
             </h1>
             <div className="d-flex gap-2">
@@ -313,7 +314,7 @@ export default function CategoryManagement() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-clipboard-check me-2"></i>
+                    <Icon name="clipboard-check" className="me-2" />
                     Kontrola pokrytí
                   </>
                 )}
@@ -331,7 +332,7 @@ export default function CategoryManagement() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-arrow-repeat me-2"></i>
+                    <Icon name="sync" className="me-2" />
                     Přepočítat kategorie
                   </>
                 )}
@@ -343,7 +344,7 @@ export default function CategoryManagement() {
                   setShowForm(true);
                 }}
               >
-                <i className="bi bi-plus-circle me-2"></i>
+                <Icon name="plus-circle" className="me-2" />
                 Nová kategorie
               </button>
             </div>
@@ -361,7 +362,7 @@ export default function CategoryManagement() {
               type="danger"
               message={
                 <>
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <Icon name="warning" className="me-2" />
                   {error}
                 </>
               }
@@ -374,7 +375,7 @@ export default function CategoryManagement() {
               type="success"
               message={
                 <>
-                  <i className="bi bi-check-circle me-2"></i>
+                  <Icon name="success" className="me-2" />
                   {success}
                 </>
               }

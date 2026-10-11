@@ -80,7 +80,7 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
 
               {!loading && !error && visibleFiles.length === 0 && (
                 <EmptyState
-                  icon="bi-folder2-open"
+                  icon="folder"
                   title="Žádný odpovídající soubor"
                   hint="Zkuste jiný výraz, nebo soubor rovnou nahrajte přetažením."
                 />

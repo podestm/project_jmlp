@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import ResultsTable, { CategoryPills } from '../timekeeper/ResultsTable.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function LiveTiming() {
   const [data, setData] = useState(null);
@@ -52,10 +53,10 @@ export default function LiveTiming() {
         <p className="text-muted small mb-4">Výsledky budou po ověření k dispozici v sekci Výsledky.</p>
         <div className="d-flex gap-2 justify-content-center">
           <Link to="/zavody" className="btn btn-outline-secondary">
-            <i className="bi bi-trophy me-1"></i>Výsledky
+            <Icon name="trophy" className="me-1" />Výsledky
           </Link>
           <Link to="/" className="btn btn-outline-secondary">
-            <i className="bi bi-house me-1"></i>Úvod
+            <Icon name="home" className="me-1" />Úvod
           </Link>
         </div>
       </div>
@@ -77,7 +78,7 @@ export default function LiveTiming() {
     <div>
       {/* Unofficial warning */}
       <div className="alert alert-warning py-2 d-flex align-items-center gap-2 mb-3" style={{ borderRadius: '8px', fontSize: '0.85rem' }}>
-        <i className="bi bi-exclamation-triangle-fill"></i>
+        <Icon name="warning" />
         <span><strong>Neoficiální výsledky</strong> — průběžné výsledky živého přenosu, nejsou závazné ani ověřené rozhodčím.</span>
       </div>
 
@@ -102,7 +103,7 @@ export default function LiveTiming() {
         <div className="text-end">
           <small className="text-muted d-block">Aktualizováno {lastUpdate?.toLocaleTimeString('cs-CZ')}</small>
           <button className="btn btn-sm btn-outline-secondary mt-1" style={{ borderRadius: '6px', fontSize: '0.75rem' }} onClick={fetchResults}>
-            <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
+            <Icon name="refresh" className="me-1" />Obnovit
           </button>
         </div>
       </div>
@@ -122,7 +123,7 @@ export default function LiveTiming() {
         <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
           <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
             <small className="fw-bold">
-              <i className="bi bi-tag-fill me-1" style={{ color: '#e94560' }}></i>
+              <Icon name="tag" className="me-1" style={{ color: '#e94560' }} />
               {selectedCat.category_name}
               <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{selectedCat.entries.length}</span>
             </small>
@@ -136,7 +137,7 @@ export default function LiveTiming() {
 
       {categories.length === 0 && (
         <div className="text-center py-4">
-          <i className="bi bi-clock text-muted" style={{ fontSize: '2rem' }}></i>
+          <Icon name="clock" className="text-muted" style={{ fontSize: '2rem' }} />
           <p className="text-muted mt-2 mb-0 small">Čeká se na první časy...</p>
         </div>
       )}

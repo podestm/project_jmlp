@@ -2,6 +2,8 @@ import { getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
 import { pointsForRank } from '../../utils/points.js';
 import { activeEntries } from './startListHelpers.js';
 import { TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import VisuallyHidden from '../ms/VisuallyHidden/VisuallyHidden.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * The one results table in the app.
@@ -123,7 +125,7 @@ export const CategoryPills = ({ categories, selectedId, onSelect, inactiveClass 
     <div className="card-body py-2 px-3">
       <div className="d-flex align-items-center gap-1 flex-wrap">
         <small className="fw-semibold me-1" style={{ color: TK_ACCENT_TEXT }}>
-          <i className="bi bi-tag me-1"></i>Kat:
+          <Icon name="tag" className="me-1" />Kat:
         </small>
         {categories.map((cat) => {
           const isActive = String(selectedId) === String(cat.category_id);
@@ -201,7 +203,7 @@ export default function ResultsTable({ entries, showPoints = false }) {
                 {entry.status === 'DNF' && <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>DNF</span>}
                 {entry.status === 'DNS' && <span className="badge bg-secondary" style={{ fontSize: '0.65rem' }}>DNS</span>}
                 {entry.status === 'DSQ' && <span className="badge bg-danger" style={{ fontSize: '0.65rem' }}>DSQ</span>}
-                {!entry.status && entry.time_sum != null && <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '0.8rem' }}></i>}
+                {!entry.status && entry.time_sum != null && <><Icon name="success" className="text-success" style={{ fontSize: '0.8rem' }} /><VisuallyHidden>Dokončil</VisuallyHidden></>}
               </td>
             </tr>
           ))}

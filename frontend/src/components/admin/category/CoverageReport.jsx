@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 /**
  * Report kontroly pokrytí ročníků kategoriemi (endpoint /categories/check/coverage).
  *
@@ -14,11 +15,11 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
     <div className="card mb-4 border-info">
       <div className="card-header bg-info text-white d-flex justify-content-between align-items-center">
         <h5 className="mb-0">
-          <i className="bi bi-clipboard-check me-2"></i>
+          <Icon name="clipboard-check" className="me-2" />
           Výsledek kontroly pokrytí kategorií
         </h5>
-        <button className="btn btn-sm btn-light" onClick={onClose}>
-          <i className="bi bi-x-lg"></i>
+        <button type="button" className="btn btn-sm btn-light" onClick={onClose} aria-label="Zavřít výsledek kontroly">
+          <Icon name="close" />
         </button>
       </div>
       <div className="card-body">
@@ -69,13 +70,13 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
 
         {report.racer_range && (
           <div className="alert alert-light border">
-            <i className="bi bi-info-circle me-2"></i>
+            <Icon name="info" className="me-2" />
             <strong>Závodníci v databázi:</strong> ročníky {report.racer_range.min} – {report.racer_range.max}
           </div>
         )}
 
         <div className="alert alert-info mb-3">
-          <i className="bi bi-info-circle me-2"></i>
+          <Icon name="info" className="me-2" />
           {report.message}
         </div>
 
@@ -87,7 +88,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
                 <div className="card h-100 border-primary" style={{ backgroundColor: 'rgba(13, 110, 253, 0.05)' }}>
                   <div className="card-header bg-primary text-white">
                     <h6 className="mb-0">
-                      <i className={`bi ${sexName === 'Muži' ? 'bi-gender-male' : 'bi-gender-female'} me-2`}></i>
+                      <Icon name={sexName === 'Muži' ? 'male' : 'female'} className="me-2" />
                       {sexName}
                     </h6>
                   </div>
@@ -115,7 +116,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
                       <div className="mb-3">
                         <div className="alert alert-danger alert-sm p-2">
                           <small className="fw-bold text-danger d-block mb-1">
-                            <i className="bi bi-exclamation-triangle me-1"></i>
+                            <Icon name="warning" className="me-1" />
                             Nepokryté rozsahy:
                           </small>
                           {sexData.gap_ranges.map((gap, idx) => (
@@ -133,7 +134,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
                       <div className="mb-3">
                         <div className="alert alert-warning alert-sm p-2">
                           <small className="fw-bold text-warning d-block mb-1">
-                            <i className="bi bi-exclamation-circle me-1"></i>
+                            <Icon name="error" className="me-1" />
                             Překryvy:
                           </small>
                           {sexData.overlap_details.slice(0, 3).map((overlap, idx) => (
@@ -153,7 +154,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
                     {(!sexData.gap_ranges || sexData.gap_ranges.length === 0) &&
                      (!sexData.overlap_details || sexData.overlap_details.length === 0) && (
                       <div className="alert alert-success alert-sm p-2 text-center">
-                        <i className="bi bi-check-circle me-1"></i>
+                        <Icon name="success" className="me-1" />
                         <small>Všechny ročníky OK</small>
                       </div>
                     )}
@@ -173,7 +174,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
               onClick={onToggleDetails}
               aria-expanded={showDetails}
             >
-              <i className={`bi me-1 ${showDetails ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
+              <Icon name={showDetails ? 'chevron-up' : 'chevron-down'} className="me-1" />
               {showDetails ? 'Skrýt detaily' : 'Zobrazit detaily'}
             </button>
             {showDetails && (
@@ -216,7 +217,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
             {report.gap_ranges && report.gap_ranges.length > 0 && (
               <div className="mb-3">
                 <h6 className="text-danger">
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <Icon name="warning" className="me-2" />
                   Nepokryté rozsahy ({report.gap_ranges.length})
                 </h6>
                 <div className="alert alert-danger">
@@ -237,7 +238,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
             {report.overlaps && report.overlaps.length > 0 && (
               <div className="mb-3">
                 <h6 className="text-warning">
-                  <i className="bi bi-exclamation-circle me-2"></i>
+                  <Icon name="error" className="me-2" />
                   Překrývající se ročníky ({report.overlaps.length})
                 </h6>
                 <div className="alert alert-warning">
@@ -255,7 +256,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
         {report.inactive_categories?.length > 0 && (
           <div className="mb-3">
             <h6 className="text-muted">
-              <i className="bi bi-archive me-2"></i>
+              <Icon name="archive" className="me-2" />
               Neaktivní kategorie ({report.inactive_categories.length})
             </h6>
             <div className="alert alert-secondary">
@@ -289,7 +290,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
          (!report.gap_ranges || report.gap_ranges.length === 0) &&
          (!report.overlaps || report.overlaps.length === 0) && (
           <div className="alert alert-success">
-            <i className="bi bi-check-circle me-2"></i>
+            <Icon name="success" className="me-2" />
             Všechny ročníky od roku 1900 do současnosti jsou správně pokryty kategoriemi bez překryvů.
           </div>
         )}
@@ -300,7 +301,7 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
            (!sexData.overlap_details || sexData.overlap_details.length === 0)
          ) && (
           <div className="alert alert-success">
-            <i className="bi bi-check-circle me-2"></i>
+            <Icon name="success" className="me-2" />
             Všechny ročníky od roku 1900 do současnosti jsou správně pokryty kategoriemi pro obě pohlaví bez překryvů.
           </div>
         )}

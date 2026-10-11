@@ -11,6 +11,7 @@ import PdfPreviewModal from './PdfPreviewModal.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
 import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function ResultsView() {
   const [races, setRaces] = useState([]);
@@ -145,12 +146,12 @@ export default function ResultsView() {
         + 'Startovní listina zůstane, závod se dá měřit znovu bez opakovaného losování. Akce je nevratná.',
       cancelLabel: 'Zrušit',
       choices: [
-        { value: 'times', label: 'Smazat naměřené časy', variant: 'danger', icon: 'bi-trash' },
+        { value: 'times', label: 'Smazat naměřené časy', variant: 'danger', icon: 'trash' },
         {
           value: 'all',
           label: 'Smazat časy i publikovanou listinu',
           variant: 'danger',
-          icon: 'bi-trash'
+          icon: 'trash'
         }
       ]
     });
@@ -205,13 +206,13 @@ export default function ResultsView() {
       message: `Pořadí se zveřejní na webu u sezóny ${target.seasonLabel || ''} a nahradí dosavadní průběžné nebo celkové výsledky.`,
       confirmLabel: 'Zveřejnit',
       variant: 'success',
-      icon: 'bi-upload'
+      icon: 'upload'
     } : {
       title: 'Publikovat výsledkovou listinu?',
       message: 'Soubor bude připojen k závodu a zveřejněn na webu. Nahradí dosud publikovanou listinu.',
       confirmLabel: 'Publikovat',
       variant: 'success',
-      icon: 'bi-upload'
+      icon: 'upload'
     });
     if (!confirmed) return;
 
@@ -231,7 +232,7 @@ export default function ResultsView() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-trophy me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="trophy" className="me-2" style={{ color: TK_ACCENT }} />
             Výsledky závodu
           </h5>
           <small className="text-muted">Výsledky seřazené podle času, výpočet bodů</small>
@@ -256,7 +257,7 @@ export default function ResultsView() {
               onClick={() => printFinal(false)}
               disabled={pdf.generating}
             >
-              <i className="bi bi-file-earmark-pdf me-1"></i>
+              <Icon name="file" className="me-1" />
               Celková listina
             </button>
             <button
@@ -267,7 +268,7 @@ export default function ResultsView() {
                 ? 'Vygeneruje listinu a nabídne její publikaci k závodu'
                 : 'Publikování vyžaduje připojení k internetu'}
             >
-              <i className="bi bi-upload me-1"></i>
+              <Icon name="upload" className="me-1" />
               Publikovat
             </button>
             <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
@@ -279,7 +280,7 @@ export default function ResultsView() {
                   ? 'Průběžné výsledky poháru za sezónu tohoto závodu'
                   : 'Pořadí poháru vyžaduje připojení k internetu'}
               >
-                <i className="bi bi-bar-chart-steps me-1"></i>
+                <Icon name="chart" className="me-1" />
                 Pohár průběžně
               </button>
               <button
@@ -299,7 +300,7 @@ export default function ResultsView() {
               disabled={clearing}
               title="Smaže naměřené časy, příznaky a body; startovní listina zůstane"
             >
-              {clearing ? <ButtonSpinner /> : <i className="bi bi-trash me-1"></i>}
+              {clearing ? <ButtonSpinner /> : <Icon name="trash" className="me-1" />}
               Smazat výsledky
             </button>
           </div>
@@ -312,7 +313,7 @@ export default function ResultsView() {
           <div className="row align-items-center g-2">
             <div className="col-md-9">
               <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
+                <Icon name="trophy" style={{ color: TK_ACCENT }} />
                 <div className="form-control form-control-sm d-flex align-items-center" style={{ borderRadius: '8px', minHeight: '38px', background: '#fff' }}>
                   {selectedRace
                     ? `${selectedRace.race_nr || `#${selectedRace.id}`} — ${selectedRace.areal_name || '?'} (${formatDate(selectedRace.datum)})`
@@ -333,7 +334,7 @@ export default function ResultsView() {
       {/* Messages */}
       {message && (
         <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
-          <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
+          <Icon name={message.type === 'success' ? 'success' : 'warning'} className="me-2" />
           {message.text}
           <button type="button" className="btn-close ms-auto" style={{ fontSize: '0.7rem' }} onClick={() => setMessage(null)}></button>
         </div>
@@ -358,7 +359,7 @@ export default function ResultsView() {
         <div className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
           <div className="card-header bg-white py-2 px-3" style={{ borderRadius: '10px 10px 0 0', borderBottom: '2px solid #e94560' }}>
             <small className="fw-bold">
-              <i className="bi bi-tag-fill me-1" style={{ color: TK_ACCENT }}></i>
+              <Icon name="tag" className="me-1" style={{ color: TK_ACCENT }} />
               {selectedCategory.category_name}
               <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{selectedCategory.entries.length}</span>
             </small>
@@ -372,7 +373,7 @@ export default function ResultsView() {
       {/* Empty states */}
       {!loading && results && results.total_entries === 0 && (
         <div className="text-center py-4">
-          <i className="bi bi-trophy text-muted" style={{ fontSize: '2rem' }}></i>
+          <Icon name="trophy" className="text-muted" style={{ fontSize: '2rem' }} />
           <p className="text-muted mt-2 mb-0 small">Žádné výsledky</p>
           <small className="text-muted">Nejprve zadejte časy závodníkům</small>
         </div>
@@ -380,7 +381,7 @@ export default function ResultsView() {
 
       {!selectedRaceId && (
         <div className="text-center py-4">
-          <i className="bi bi-hand-index text-muted" style={{ fontSize: '2rem' }}></i>
+          <Icon name="pointer" className="text-muted" style={{ fontSize: '2rem' }} />
           <p className="text-muted mt-2 small">Vyberte závod pro zobrazení výsledků</p>
         </div>
       )}

@@ -1,3 +1,4 @@
+import Icon from '../ms/Icon/Icon.jsx';
 export default function Contacts() {
   const officials = [
     { name: 'Roman Keznikl', position: 'Komisař soutěže', email: 'rk@rkak.cz' },
@@ -45,7 +46,7 @@ export default function Contacts() {
           color: 'var(--text-primary)',
           opacity: '0.9'
         }}>
-          <span className="bi bi-envelope me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
+          <Icon name="mail" className="me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }} />
           Kontakty
         </h2>
       </div>
@@ -68,7 +69,7 @@ export default function Contacts() {
               padding: '1rem 1.25rem'
             }}>
               <h5 className="card-title mb-0">
-                <i className="bi bi-people-fill me-2"></i>
+                <Icon name="users" className="me-2" />
                 Komisař a Soutěžní výbor
               </h5>
             </div>
@@ -89,11 +90,11 @@ export default function Contacts() {
                       {official.name}
                     </h6>
                     <p className="mb-1 text-muted small">
-                      <i className="bi bi-award me-2"></i>
+                      <Icon name="trophy" className="me-2" />
                       {official.position}
                     </p>
                     <p className="mb-0">
-                      <i className="bi bi-envelope me-2"></i>
+                      <Icon name="mail" className="me-2" />
                       <a href={`mailto:${official.email}`} style={{ color: 'var(--sunset-orange)', textDecoration: 'none' }}>
                         {official.email}
                       </a>
@@ -122,7 +123,7 @@ export default function Contacts() {
               padding: '1rem 1.25rem'
             }}>
               <h5 className="card-title mb-0">
-                <i className="bi bi-flag-fill me-2"></i>
+                <Icon name="flag" className="me-2" />
                 Kluby
               </h5>
             </div>
@@ -145,7 +146,7 @@ export default function Contacts() {
                           {club.name}
                         </h6>
                         <p className="mb-0">
-                          <i className="bi bi-envelope me-2"></i>
+                          <Icon name="mail" className="me-2" />
                           <a href={`mailto:${club.email}`} style={{ color: 'var(--sunset-orange)', textDecoration: 'none', fontSize: '0.875rem' }}>
                             {club.email}
                           </a>

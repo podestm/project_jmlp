@@ -1,6 +1,7 @@
 import React from 'react';
 import RaceNumberBadge from './RaceNumberBadge.jsx';
 import { isExcluded } from './startListHelpers.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Read-only start-list row.
@@ -66,12 +67,12 @@ const StartListRow = React.memo(function StartListRow({ entry, onEdit, onDelete,
             {excluded ? 'Vrátit' : 'Vyřadit'}
           </button>
           <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
-            onClick={() => onEdit(entry)} title="Upravit">
-            <i className="bi bi-pencil"></i>
+            onClick={() => onEdit(entry)} aria-label="Upravit" title="Upravit">
+            <Icon name="pencil" />
           </button>
           <button className="btn btn-sm btn-outline-danger py-0 px-1" style={{ fontSize: '0.7rem' }}
-            onClick={() => onDelete(entry.id, racerName)} title="Odebrat">
-            <i className="bi bi-trash"></i>
+            onClick={() => onDelete(entry.id, racerName)} aria-label="Odebrat" title="Odebrat">
+            <Icon name="trash" />
           </button>
         </div>
       </td>

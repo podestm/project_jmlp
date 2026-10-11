@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { APP_CONFIG } from '../../config/constants.js';
 import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function Navigation() {
   const location = useLocation();
@@ -24,11 +25,11 @@ export default function Navigation() {
   const currentPage = getPageFromPath(location.pathname);
   
   const navigationItems = [
-    { key: 'uvod', label: 'Úvod', icon: 'bi-house', path: '/' },
-    { key: 'zavody', label: 'Závody', icon: 'bi-calendar3', path: '/zavody' },
-    { key: 'aktuality', label: 'Aktuality', icon: 'bi-newspaper', path: '/archiv-zprav' },
-    { key: 'dokumenty', label: 'Dokumenty', icon: 'bi-file-earmark-text', path: '/dokumenty' },
-    { key: 'kontakty', label: 'Kontakty', icon: 'bi-envelope', path: '/kontakty' }
+    { key: 'uvod', label: 'Úvod', icon: 'home', path: '/' },
+    { key: 'zavody', label: 'Závody', icon: 'calendar', path: '/zavody' },
+    { key: 'aktuality', label: 'Aktuality', icon: 'news', path: '/archiv-zprav' },
+    { key: 'dokumenty', label: 'Dokumenty', icon: 'file-text', path: '/dokumenty' },
+    { key: 'kontakty', label: 'Kontakty', icon: 'mail', path: '/kontakty' }
   ];
 
   return (
@@ -41,7 +42,7 @@ export default function Navigation() {
       <div className="container">
         {/* Brand */}
         <Link to="/" className="navbar-brand mb-0 h1 text-decoration-none" style={{color: '#ffffff', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'}}>
-          <i className="bi bi-snow2 me-2"></i>
+          <Icon name="snowflake" className="me-2" />
           <span className="d-none d-md-inline">{APP_CONFIG.FULL_NAME}</span>
           <span className="d-inline d-md-none">JMLP</span>
         </Link>
@@ -76,7 +77,7 @@ export default function Navigation() {
                 } : {}}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <i className={`${item.icon} me-1`}></i>
+                <Icon name={item.icon} className="me-1" />
                 {item.label}
               </Link>
             ))}

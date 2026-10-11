@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/date.js';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 import RegistrationForm from '../ui/RegistrationForm.jsx';
 import RegisteredRacersCard, { useRaceRegistrations } from './RegisteredRacersCard.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 function Registration() {
   const [races, setRaces] = useState([]);
@@ -55,7 +56,7 @@ function Registration() {
 
           <div className="mb-4" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
             <h1 className="mb-0" style={{ fontSize: '1.75rem', fontWeight: '500', color: 'var(--text-primary)' }}>
-              <span className="bi bi-pencil-square me-2" style={{ color: 'var(--sunset-orange)' }}></span>
+              <Icon name="pencil" className="me-2" style={{ color: 'var(--sunset-orange)' }} />
               Registrace na závod
             </h1>
           </div>
@@ -68,7 +69,7 @@ function Registration() {
             </div>
           ) : races.length === 0 ? (
             <div className="alert alert-info">
-              <span className="bi bi-info-circle me-2"></span>
+              <Icon name="info" className="me-2" />
               Momentálně není otevřena registrace na žádný závod.
               <div className="mt-2">
                 <Link to="/zavody" className="btn btn-sm btn-outline-primary">
@@ -102,7 +103,7 @@ function Registration() {
                           padding: '0.5rem 1rem'
                         }}
                       >
-                        <span className="bi bi-calendar3 me-2" style={{ color: 'var(--sunset-orange)' }}></span>
+                        <Icon name="calendar" className="me-2" style={{ color: 'var(--sunset-orange)' }} />
                         {formatDate(race.datum)} &mdash; {race.areal_name}
                       </button>
                     ))}
@@ -117,7 +118,7 @@ function Registration() {
                   backdropFilter: 'blur(10px)'
                 }}>
                   <div className="d-flex align-items-center gap-2">
-                    <span className="bi bi-calendar-event" style={{ color: 'var(--sunset-orange)', fontSize: '1.2rem' }}></span>
+                    <Icon name="calendar" style={{ color: 'var(--sunset-orange)', fontSize: '1.2rem' }} />
                     <div>
                       <div className="fw-semibold" style={{ color: 'var(--text-primary)' }}>{selectedRace.areal_name}</div>
                       <small style={{ color: 'var(--text-muted)' }}>{formatDate(selectedRace.datum)}</small>
@@ -130,7 +131,7 @@ function Registration() {
                 <>
                   {successMsg && (
                     <div className="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                      <i className="bi bi-check-circle-fill me-2"></i>
+                      <Icon name="success" className="me-2" />
                       {successMsg}
                       <button type="button" className="btn-close" onClick={() => setSuccessMsg('')}></button>
                     </div>
@@ -151,7 +152,7 @@ function Registration() {
                 </>
               ) : (
                 <div className="alert alert-secondary">
-                  <span className="bi bi-arrow-up me-2"></span>
+                  <Icon name="arrow-up" className="me-2" />
                   Vyberte závod výše pro zobrazení registračního formuláře.
                 </div>
               )}

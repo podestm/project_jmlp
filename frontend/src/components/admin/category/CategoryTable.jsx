@@ -1,5 +1,6 @@
 import EmptyState from '../../ui/EmptyState.jsx';
 import { formatDateShort } from '../../../utils/date.js';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 /** Věkové rozmezí, které kategorie letos pokrývá - počítá se z ročníků. */
 const getAgeRange = (category) => {
@@ -29,7 +30,7 @@ export default function CategoryTable({
       </div>
       <div className="card-body">
         {categories.length === 0 ? (
-          <EmptyState icon="bi-inbox" title="Zatím nebyly vytvořeny žádné kategorie" />
+          <EmptyState icon="inbox" title="Zatím nebyly vytvořeny žádné kategorie" />
         ) : (
           <div className="table-responsive">
             <table className="table table-striped table-hover">
@@ -89,31 +90,31 @@ export default function CategoryTable({
                         <button
                           className="btn btn-outline-primary"
                           onClick={() => onEdit(category)}
-                          title="Upravit kategorii"
+                          aria-label="Upravit kategorii" title="Upravit kategorii"
                         >
-                          <i className="bi bi-pencil"></i>
+                          <Icon name="pencil" />
                         </button>
                         <button
                           className="btn btn-outline-info"
                           onClick={() => onCreateMirror(category)}
-                          title={`Vytvořit zrcadlovou kategorii pro ${category.sex === 1 ? 'ženy' : category.sex === 2 ? 'muže' : 'opačné pohlaví'}`}
+                          aria-label={`Vytvořit zrcadlovou kategorii pro ${category.sex === 1 ? 'ženy' : category.sex === 2 ? 'muže' : 'opačné pohlaví'}`} title={`Vytvořit zrcadlovou kategorii pro ${category.sex === 1 ? 'ženy' : category.sex === 2 ? 'muže' : 'opačné pohlaví'}`}
                           disabled={category.sex === 0}
                         >
-                          <i className="bi bi-arrows-angle-expand"></i>
+                          <Icon name="expand" />
                         </button>
                         <button
                           className={`btn btn-outline-${category.active ? 'warning' : 'success'}`}
                           onClick={() => onToggleActive(category.id, category.active)}
-                          title={category.active ? 'Deaktivovat kategorii' : 'Aktivovat kategorii'}
+                          aria-label={category.active ? 'Deaktivovat kategorii' : 'Aktivovat kategorii'} title={category.active ? 'Deaktivovat kategorii' : 'Aktivovat kategorii'}
                         >
-                          <i className={`bi ${category.active ? 'bi-pause-circle' : 'bi-play-circle'}`}></i>
+                          <Icon name={category.active ? 'pause' : 'play'} />
                         </button>
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => onDelete(category)}
-                          title="Smazat kategorii"
+                          aria-label="Smazat kategorii" title="Smazat kategorii"
                         >
-                          <i className="bi bi-trash"></i>
+                          <Icon name="trash" />
                         </button>
                       </div>
                     </td>

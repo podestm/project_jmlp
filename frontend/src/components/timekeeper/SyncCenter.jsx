@@ -5,6 +5,7 @@ import { getOpenConflicts, getRecentQueueItems, resolveConflict, retryQueueItem 
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { formatDateTimeShort } from '../../utils/date.js';
 import { TimekeeperMessage, TK_ACCENT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const STATUS_BADGE = {
   done: 'bg-success',
@@ -197,7 +198,7 @@ export default function SyncCenter() {
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
         <div>
           <h5 className="fw-bold mb-1">
-            <i className="bi bi-arrow-repeat me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="sync" className="me-2" style={{ color: TK_ACCENT }} />
             Sync centrum
           </h5>
           <small className="text-muted">Správa fronty, konfliktů a lokálních záloh.</small>
@@ -209,7 +210,7 @@ export default function SyncCenter() {
 
       {authExpired && (
         <div className="alert alert-warning py-2 d-flex align-items-center small" role="alert">
-          <i className="bi bi-person-lock me-2"></i>
+          <Icon name="shield-lock" className="me-2" />
           Přihlášení vypršelo – fronta čeká, přihlaste se znovu.
         </div>
       )}
@@ -262,15 +263,15 @@ export default function SyncCenter() {
       <div className="card border-0 shadow-sm mb-3">
         <div className="card-body d-flex flex-wrap gap-2 align-items-center">
           <button className="btn btn-sm btn-danger" disabled={busy} onClick={handleSyncNow}>
-            <i className="bi bi-cloud-upload me-1"></i>
+            <Icon name="cloud-upload" className="me-1" />
             Sync now
           </button>
           <button className="btn btn-sm btn-outline-secondary" onClick={handleExport}>
-            <i className="bi bi-download me-1"></i>
+            <Icon name="download" className="me-1" />
             Export zálohy
           </button>
           <label className="btn btn-sm btn-outline-secondary mb-0">
-            <i className="bi bi-upload me-1"></i>
+            <Icon name="upload" className="me-1" />
             Import zálohy
             <input type="file" accept="application/json" className="d-none" onChange={handleImport} />
           </label>

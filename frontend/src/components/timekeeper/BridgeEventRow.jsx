@@ -1,5 +1,6 @@
 import React from 'react';
 import { getRaceNumberBadgeStyle } from '../../utils/raceNumbers.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const REASON_LABELS = {
   read_only_tab: 'Karta je jen pro čtení',
@@ -155,7 +156,7 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
         {isAutoWritten ? (
           <div className="d-flex align-items-center gap-1 ms-auto">
             <span className="badge bg-success-subtle text-success-emphasis border border-success-subtle" style={{ fontSize: '0.68rem' }}>
-              <i className="bi bi-lightning-charge me-1"></i>Zapsáno automaticky
+              <Icon name="lightning" className="me-1" />Zapsáno automaticky
             </span>
             <button
               type="button"
@@ -199,7 +200,7 @@ const BridgeEventRow = React.memo(function BridgeEventRow({
       </div>
       {!isUnparsed && selectedEntry && (
         <div className="text-truncate" style={{ fontSize: '0.68rem' }} title={racerLabel}>
-          <i className="bi bi-person me-1"></i>
+          <Icon name="user" className="me-1" />
           {racerLabel || 'Bez jména'}
           {/* Kategorie a startovní číslo se ukazují vždycky, ne jen když má
               dres víc kandidátů: obsluha podle nich kontroluje, že impulz

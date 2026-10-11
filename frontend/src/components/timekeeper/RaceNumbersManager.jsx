@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function RaceNumbersManager() {
   const [sets, setSets] = useState([]);
@@ -222,7 +223,7 @@ export default function RaceNumbersManager() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h3 className="fw-bold mb-1" style={{ fontSize: '1.3rem' }}>
-            <i className="bi bi-123 me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="numbers" className="me-2" style={{ color: TK_ACCENT }} />
             Startovní čísla
           </h3>
           <p className="text-muted mb-0 small">Správa sad startovních čísel</p>
@@ -230,14 +231,14 @@ export default function RaceNumbersManager() {
         <button className="btn text-white btn-sm"
           style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
           onClick={() => setShowSetForm(!showSetForm)}>
-          <i className={`bi ${showSetForm ? 'bi-x-lg' : 'bi-plus-circle'} me-1`}></i>
+          <Icon name={showSetForm ? 'close' : 'plus-circle'} className="me-1" />
           {showSetForm ? 'Zrušit' : 'Nová sada'}
         </button>
       </div>
 
       {message && (
         <div className={`alert alert-${message.type} py-2 d-flex align-items-center small`} role="alert">
-          <i className={`bi ${message.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
+          <Icon name={message.type === 'success' ? 'success' : 'warning'} className="me-2" />
           {message.text}
           <button type="button" className="btn-close btn-close-sm ms-auto" onClick={() => setMessage(null)}></button>
         </div>
@@ -246,7 +247,7 @@ export default function RaceNumbersManager() {
       {showSetForm && (
         <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px', borderTop: '3px solid #e94560' }}>
           <div className="card-body py-3">
-            <h6 className="fw-bold mb-2"><i className="bi bi-plus-circle me-2"></i>Nová sada</h6>
+            <h6 className="fw-bold mb-2"><Icon name="plus-circle" className="me-2" />Nová sada</h6>
             <form onSubmit={createSet}>
               <div className="row g-2">
                 <div className="col-md-3">
@@ -304,7 +305,7 @@ export default function RaceNumbersManager() {
                 <button type="submit" className="btn btn-sm text-white"
                   style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '8px' }}
                   disabled={creating}>
-                  {creating ? <><span className="spinner-border spinner-border-sm me-1"></span>Vytvářím...</> : <><i className="bi bi-check-lg me-1"></i>Vytvořit</>}
+                  {creating ? <><span className="spinner-border spinner-border-sm me-1"></span>Vytvářím...</> : <><Icon name="check" className="me-1" />Vytvořit</>}
                 </button>
               </div>
             </form>
@@ -319,7 +320,7 @@ export default function RaceNumbersManager() {
               <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between"
                 style={{ cursor: 'pointer' }} onClick={() => toggleExpand(set.set_number)}>
                 <div className="d-flex align-items-center gap-3">
-                  <i className={`bi ${expandedSet === set.set_number ? 'bi-chevron-down' : 'bi-chevron-right'} text-muted`}></i>
+                  <Icon name={expandedSet === set.set_number ? 'chevron-down' : 'chevron-right'} className="text-muted" />
                   <span className="badge" style={{ background: getSetColorTheme(set.set_color).solid, fontSize: '0.8rem' }}>
                     Sada {set.set_number}
                   </span>
@@ -332,8 +333,8 @@ export default function RaceNumbersManager() {
                   </span>
                 </div>
                 <button className="btn btn-outline-danger btn-sm py-0 px-2"
-                  onClick={(e) => { e.stopPropagation(); deleteSet(set.set_number); }} title="Smazat celou sadu">
-                  <i className="bi bi-trash" style={{ fontSize: '0.75rem' }}></i>
+                  onClick={(e) => { e.stopPropagation(); deleteSet(set.set_number); }} aria-label="Smazat celou sadu" title="Smazat celou sadu">
+                  <Icon name="trash" style={{ fontSize: '0.75rem' }} />
                 </button>
               </div>
 
@@ -367,7 +368,7 @@ export default function RaceNumbersManager() {
                     </div>
                     <button className="btn btn-sm btn-outline-dark py-0 px-2"
                       onClick={() => setShowAddNumber(!showAddNumber)}>
-                      <i className={`bi ${showAddNumber ? 'bi-x' : 'bi-plus'} me-1`} style={{ fontSize: '0.75rem' }}></i>
+                      <Icon name={showAddNumber ? 'close' : 'plus'} className="me-1" style={{ fontSize: '0.75rem' }} />
                       {showAddNumber ? 'Zrušit' : 'Přidat číslo'}
                     </button>
                   </div>
@@ -387,9 +388,9 @@ export default function RaceNumbersManager() {
                             value={addNumberData.display_number}
                             onChange={(e) => setAddNumberData(prev => ({ ...prev, display_number: e.target.value }))} min="1" required />
                         </div>
-                        <button type="submit" className="btn btn-sm text-white"
+                        <button type="submit" className="btn btn-sm text-white" aria-label="Přidat číslo"
                           style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '6px' }}>
-                          <i className="bi bi-plus-lg"></i>
+                          <Icon name="plus" />
                         </button>
                       </form>
                     </div>
@@ -444,7 +445,7 @@ export default function RaceNumbersManager() {
         </div>
       ) : (
         <div className="text-center py-5">
-          <i className="bi bi-123 text-muted" style={{ fontSize: '3rem' }}></i>
+          <Icon name="numbers" className="text-muted" style={{ fontSize: '3rem' }} />
           <p className="text-muted mt-3 mb-1">Žádné sady startovních čísel</p>
           <p className="text-muted small">Vytvořte první sadu kliknutím na "Nová sada"</p>
         </div>

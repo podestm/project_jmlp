@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../config/auth.jsx';
 import Alert from '../ui/Alert.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -40,7 +41,7 @@ export default function AdminLogin() {
                   autoDismissDelay={0}
                   message={
                     <>
-                      <i className="bi bi-shield-lock me-2"></i>
+                      <Icon name="shield-lock" className="me-2" />
                       Účet {deniedUser.email} smí jen do časomíry. Do administrace se přihlaste účtem správce.
                     </>
                   }
@@ -51,7 +52,7 @@ export default function AdminLogin() {
                   type="danger" 
                   message={
                     <>
-                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                      <Icon name="warning" className="me-2" />
                       {error}
                     </>
                   }

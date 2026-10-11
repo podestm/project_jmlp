@@ -4,6 +4,7 @@ import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import VisitsChart from './VisitsChart.jsx';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -46,7 +47,7 @@ export default function AdminDashboard() {
     return (
       <Alert 
         type="danger" 
-        message={<><i className="bi bi-exclamation-triangle-fill me-2"></i>Chyba při načítání: {error}</>}
+        message={<><Icon name="warning" className="me-2" />Chyba při načítání: {error}</>}
         onDismiss={() => setError(null)}
       />
     );
@@ -86,12 +87,12 @@ export default function AdminDashboard() {
         <div>
           <h1 className="mb-1">Dashboard</h1>
           <span className="text-muted">
-            <i className="bi bi-calendar3 me-1"></i>
+            <Icon name="calendar" className="me-1" />
             Sezóna {season.label}
           </span>
         </div>
         <button className="btn btn-outline-secondary btn-sm" onClick={loadDashboardData}>
-          <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
+          <Icon name="refresh" className="me-1" />Obnovit
         </button>
       </div>
 
@@ -102,7 +103,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="dashboard-icon-box dashboard-icon-primary me-3">
-                  <i className="bi bi-people-fill fs-4"></i>
+                  <Icon name="users" className="fs-4" />
                 </div>
                 <div>
                   <div className="fs-3 fw-bold">{counts.total_racers.toLocaleString('cs-CZ')}</div>
@@ -118,7 +119,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="dashboard-icon-box dashboard-icon-success me-3">
-                  <i className="bi bi-hdd-fill fs-4"></i>
+                  <Icon name="server" className="fs-4" />
                 </div>
                 <div>
                   <div className="fs-3 fw-bold">{counts.storage_size}</div>
@@ -135,7 +136,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="dashboard-icon-box dashboard-icon-warning me-3">
-                  <i className="bi bi-trophy-fill fs-4"></i>
+                  <Icon name="trophy" className="fs-4" />
                 </div>
                 <div>
                   <div className="fs-3 fw-bold">{counts.season_races}</div>
@@ -151,7 +152,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <div className="d-flex align-items-center">
                 <div className="dashboard-icon-box dashboard-icon-info me-3">
-                  <i className="bi bi-eye-fill fs-4"></i>
+                  <Icon name="eye" className="fs-4" />
                 </div>
                 <div>
                   <div className="fs-3 fw-bold">{visits.today.toLocaleString('cs-CZ')}</div>
@@ -169,14 +170,14 @@ export default function AdminDashboard() {
         <div className="card border-warning shadow-sm mb-4">
           <div className="card-body d-flex align-items-center gap-3">
             <div className="dashboard-icon-box" style={{ background: 'rgba(255,193,7,0.15)', color: '#856404' }}>
-              <i className="bi bi-buildings fs-4"></i>
+              <Icon name="building" className="fs-4" />
             </div>
             <div className="flex-grow-1">
               <div className="fw-semibold">Nevyřízené žádosti o přiřazení klubu</div>
               <small className="text-muted">{counts.pending_club_requests} závodníků čeká na přiřazení klubu</small>
             </div>
             <a href="/admin/club-requests" className="btn btn-warning btn-sm">
-              Vyřídit žádosti <i className="bi bi-arrow-right ms-1"></i>
+              Vyřídit žádosti <Icon name="arrow-right" className="ms-1" />
             </a>
           </div>
         </div>
@@ -189,7 +190,7 @@ export default function AdminDashboard() {
             <div className="row align-items-center">
               <div className="col-auto">
                 <div className="dashboard-upcoming-icon">
-                  <i className="bi bi-flag-fill fs-4"></i>
+                  <Icon name="flag" className="fs-4" />
                 </div>
               </div>
               <div className="col">
@@ -199,14 +200,14 @@ export default function AdminDashboard() {
                   </h5>
                   {upcoming_race.registration && (
                     <span className="badge bg-white bg-opacity-25 text-white">
-                      <i className="bi bi-door-open me-1"></i>Registrace otevřena
+                      <Icon name="login" className="me-1" />Registrace otevřena
                     </span>
                   )}
                 </div>
                 <div className="d-flex flex-wrap gap-3 opacity-75">
-                  <span><i className="bi bi-calendar3 me-1"></i>{formatDate(upcoming_race.datum)}</span>
-                  {upcoming_race.areal_name && <span><i className="bi bi-geo-alt me-1"></i>{upcoming_race.areal_name}</span>}
-                  <span><i className="bi bi-people me-1"></i>{upcoming_race.registration_count} registrovaných</span>
+                  <span><Icon name="calendar" className="me-1" />{formatDate(upcoming_race.datum)}</span>
+                  {upcoming_race.areal_name && <span><Icon name="map-pin" className="me-1" />{upcoming_race.areal_name}</span>}
+                  <span><Icon name="users" className="me-1" />{upcoming_race.registration_count} registrovaných</span>
                 </div>
               </div>
               <div className="col-auto d-none d-md-block text-end">
@@ -219,7 +220,7 @@ export default function AdminDashboard() {
               </div>
               <div className="col-auto">
                 <Link to="/admin/races" className="btn btn-outline-light btn-sm">
-                  <i className="bi bi-arrow-right me-1"></i>Detail
+                  <Icon name="arrow-right" className="me-1" />Detail
                 </Link>
               </div>
             </div>
@@ -240,11 +241,11 @@ export default function AdminDashboard() {
           <div className="card border-0 shadow-sm mb-3">
             <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
               <h6 className="mb-0">
-                <i className="bi bi-clock-history me-2"></i>
+                <Icon name="history" className="me-2" />
                 Poslední registrace
               </h6>
               <Link to="/admin/races" className="btn btn-link btn-sm p-0 text-decoration-none">
-                Všechny závody <i className="bi bi-arrow-right"></i>
+                Všechny závody <Icon name="arrow-right" />
               </Link>
             </div>
             <div className="card-body p-0">
@@ -276,11 +277,11 @@ export default function AdminDashboard() {
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
               <h6 className="mb-0">
-                <i className="bi bi-newspaper me-2"></i>
+                <Icon name="news" className="me-2" />
                 Poslední příspěvky
               </h6>
               <Link to="/admin/posts" className="btn btn-link btn-sm p-0 text-decoration-none">
-                Správa příspěvků <i className="bi bi-arrow-right"></i>
+                Správa příspěvků <Icon name="arrow-right" />
               </Link>
             </div>
             <div className="card-body p-0">
@@ -312,7 +313,7 @@ export default function AdminDashboard() {
           <div className="card border-0 shadow-sm mb-3">
             <div className="card-header bg-transparent border-bottom">
               <h6 className="mb-0">
-                <i className="bi bi-bar-chart me-2"></i>
+                <Icon name="chart" className="me-2" />
                 Nejnavštěvovanější stránky
               </h6>
               <small className="text-muted">posledních 30 dní</small>
@@ -339,7 +340,7 @@ export default function AdminDashboard() {
           <div className="card border-0 shadow-sm mb-3">
             <div className="card-header bg-transparent border-bottom">
               <h6 className="mb-0">
-                <i className="bi bi-info-circle me-2"></i>
+                <Icon name="info" className="me-2" />
                 Přehled systému
               </h6>
             </div>
@@ -367,24 +368,24 @@ export default function AdminDashboard() {
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-transparent border-bottom">
               <h6 className="mb-0">
-                <i className="bi bi-lightning me-2"></i>
+                <Icon name="lightning" className="me-2" />
                 Rychlé akce
               </h6>
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
                 <Link to="/admin/races" className="btn btn-primary btn-sm">
-                  <i className="bi bi-plus-circle me-2"></i>Nový závod
+                  <Icon name="plus-circle" className="me-2" />Nový závod
                 </Link>
                 <Link to="/admin/posts" className="btn btn-outline-success btn-sm">
-                  <i className="bi bi-pencil me-2"></i>Nový příspěvek
+                  <Icon name="pencil" className="me-2" />Nový příspěvek
                 </Link>
                 <Link to="/admin/documents" className="btn btn-outline-secondary btn-sm">
-                  <i className="bi bi-upload me-2"></i>Nahrát dokumenty
+                  <Icon name="upload" className="me-2" />Nahrát dokumenty
                 </Link>
                 <hr className="my-1" />
                 <a href="/" target="_blank" className="btn btn-outline-info btn-sm">
-                  <i className="bi bi-box-arrow-up-right me-2"></i>Zobrazit web
+                  <Icon name="external-link" className="me-2" />Zobrazit web
                 </a>
               </div>
             </div>

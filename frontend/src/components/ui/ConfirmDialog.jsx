@@ -1,3 +1,4 @@
+import Icon from '../ms/Icon/Icon.jsx';
 import { useEffect, useRef } from 'react';
 
 /**
@@ -89,7 +90,7 @@ export default function ConfirmDialog({
                   onClick={() => onResolve(choice.value)}
                   title={choice.hint}
                 >
-                  {choice.icon && <i className={`bi ${choice.icon} me-1`} aria-hidden="true" />}
+                  {choice.icon && <Icon name={choice.icon} className="me-1" />}
                   {choice.label}
                 </button>
               ))}

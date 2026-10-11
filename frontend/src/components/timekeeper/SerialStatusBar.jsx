@@ -1,5 +1,6 @@
 import { BAUD_OPTIONS, describeSerialPort } from '../../utils/serial.js';
 import { TK_ACCENT_FILL, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Stav časomíry a její připojení.
@@ -30,14 +31,14 @@ export default function SerialStatusBar({
 
     {serial.dbStateText && (
       <div className="alert alert-danger py-2 d-flex align-items-center small" role="alert">
-        <i className="bi bi-database-exclamation me-2"></i>
+        <Icon name="database" className="me-2" />
         {serial.dbStateText}
       </div>
     )}
 
     {serial.health.persistFailures > 0 && (
       <div className="alert alert-danger py-2 d-flex align-items-center flex-wrap gap-2 small" role="alert">
-        <i className="bi bi-exclamation-octagon-fill me-1"></i>
+        <Icon name="error" className="me-1" />
         <span>
           {serial.health.persistFailures} událostí z časomíry se nepodařilo uložit do zařízení
           {serial.health.bufferedEvents > 0
@@ -55,7 +56,7 @@ export default function SerialStatusBar({
 
     {serial.health.unparsedStreak >= unparsedStreakAlert && (
       <div className="alert alert-warning py-2 small" role="alert">
-        <i className="bi bi-question-octagon-fill me-2"></i>
+        <Icon name="question" className="me-2" />
         Časomíra posílá data, ale posledních {serial.health.unparsedStreak} řádků se nepodařilo rozpoznat
         (celkem {serial.health.unparsedTotal}). Zkontrolujte formát výstupu zařízení.
         {serial.health.lastUnparsedLine ? <> Poslední řádek: <code>{serial.health.lastUnparsedLine}</code></> : null}
@@ -66,7 +67,7 @@ export default function SerialStatusBar({
 
     {serial.detection && (
       <div className="alert alert-info py-2 d-flex align-items-center flex-wrap gap-2 small" role="status">
-        <i className="bi bi-search me-1"></i>
+        <Icon name="search" className="me-1" />
         <span>
           Hledám rychlost časomíry: {serial.detection.baud} ({serial.detection.index + 1} z {serial.detection.total}).
           Posílejte z časomíry časy (nebo ji vypněte a zapněte), dokud se rychlost nenajde.
@@ -79,7 +80,7 @@ export default function SerialStatusBar({
 
     {serial.baudHint && !serial.detection && (
       <div className="alert alert-warning py-2 d-flex align-items-center flex-wrap gap-2 small" role="alert">
-        <i className="bi bi-exclamation-triangle-fill me-1"></i>
+        <Icon name="warning" className="me-1" />
         <span>
           Časomíra posílá data, kterým aplikace nerozumí – nejspíš vysílá jinou rychlostí než {serial.baud}.
           Rychlost se sama nepřepíná, zjistěte ji tlačítkem.
@@ -92,7 +93,7 @@ export default function SerialStatusBar({
 
     {serial.heldByOtherTab && (
       <div className="alert alert-info py-2 d-flex align-items-center flex-wrap gap-2 small" role="alert">
-        <i className="bi bi-usb-symbol me-1"></i>
+        <Icon name="plug" className="me-1" />
         <span>Časomíru má otevřenou jiná karta. Události se ukládají společně a zobrazují se i zde.</span>
         <button type="button" className="btn btn-sm btn-outline-primary py-0 px-2 ms-auto" onClick={serial.reconnect}>
           Převzít časomíru
@@ -102,7 +103,7 @@ export default function SerialStatusBar({
 
     {!hasWriteLock && selectedRaceId && (
       <div className="alert alert-warning py-2 d-flex align-items-center small" role="alert">
-        <i className="bi bi-lock-fill me-2"></i>
+        <Icon name="lock" className="me-2" />
         Tato karta je pouze pro čtení. Editace probíhá v jiné otevřené kartě stejného závodu.
       </div>
     )}
@@ -113,7 +114,7 @@ export default function SerialStatusBar({
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div className="d-flex align-items-center gap-2 flex-wrap">
               <span className="fw-semibold" style={{ fontSize: '0.85rem', color: TK_ACCENT_TEXT }}>
-                <i className="bi bi-usb-symbol me-1"></i>Přímé serial připojení
+                <Icon name="plug" className="me-1" />Přímé serial připojení
               </span>
               <select
                 className="form-select form-select-sm"
@@ -168,7 +169,7 @@ export default function SerialStatusBar({
                 disabled={!serial.supported || !serial.canUse}
                 title="Vynutí zavření a znovuotevření portu"
               >
-                <i className="bi bi-arrow-repeat me-1"></i>Obnovit připojení
+                <Icon name="sync" className="me-1" />Obnovit připojení
               </button>
               <span className={`badge ${serial.connected ? 'bg-success' : 'bg-secondary'}`}>{serial.status}</span>
               {serial.health.unparsedStreak > 0 && (
@@ -194,7 +195,7 @@ export default function SerialStatusBar({
             </div>
             <div className="d-flex align-items-center gap-2 flex-wrap">
               <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
-                <i className="bi bi-arrow-return-right me-1"></i>Cílové kolo:
+                <Icon name="corner-down-right" className="me-1" />Cílové kolo:
               </small>
               <div className="btn-group btn-group-sm">
                 <button

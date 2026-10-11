@@ -148,8 +148,8 @@ export default function AttachmentManager({
       title: `Odpojit ${ROLE_LABELS[attachment.role].toLowerCase()}?`,
       message: `Soubor „${attachment.original_filename}" přestane být u této položky zveřejněný.`,
       choices: [
-        { value: 'detach', label: 'Odpojit, soubor ponechat', variant: 'primary', icon: 'bi-box-arrow-up' },
-        { value: 'delete', label: 'Odpojit a smazat soubor', variant: 'danger', icon: 'bi-trash' }
+        { value: 'detach', label: 'Odpojit, soubor ponechat', variant: 'primary', icon: 'publish' },
+        { value: 'delete', label: 'Odpojit a smazat soubor', variant: 'danger', icon: 'trash' }
       ]
     });
     if (!choice) return;

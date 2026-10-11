@@ -1,5 +1,7 @@
 import EmptyState from '../ui/EmptyState.jsx';
 import TimingRow from './TimingRow.jsx';
+import VisuallyHidden from '../ms/VisuallyHidden/VisuallyHidden.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /** Sdílená prázdná hodnota - nový objekt na řádek by rozbil memoizaci TimingRow. */
 const EMPTY_TIMES = Object.freeze({});
@@ -44,10 +46,10 @@ export default function TimingTable({
                     <th style={{ width: '96px', padding: '5px 6px' }}>Dres</th>
                     <th style={{ minWidth: '170px', padding: '5px 6px' }}>Závodník</th>
                     <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '2' ? LOCKED_HEADER_STYLE : {}) }}>
-                      K1 {activeRound === '2' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
+                      K1 {activeRound === '2' && <><Icon name="lock" style={{ fontSize: '0.6rem' }} /><VisuallyHidden>Kolo zamčeno</VisuallyHidden></>}
                     </th>
                     <th style={{ width: '90px', padding: '5px 6px', ...(activeRound === '1' ? LOCKED_HEADER_STYLE : {}) }}>
-                      K2 {activeRound === '1' && <i className="bi bi-lock-fill" style={{ fontSize: '0.6rem' }}></i>}
+                      K2 {activeRound === '1' && <><Icon name="lock" style={{ fontSize: '0.6rem' }} /><VisuallyHidden>Kolo zamčeno</VisuallyHidden></>}
                     </th>
                     <th style={{ width: '72px', padding: '5px 6px' }}>Součet</th>
                     <th style={{ width: '118px', padding: '5px 6px', borderRadius: '0 10px 0 0' }}>Stav</th>
@@ -76,16 +78,16 @@ export default function TimingTable({
         </div>
       ) : startListEmpty ? (
         <EmptyState
-          icon="bi-list-ul"
+          icon="list"
           title="Startovní listina je prázdná"
           action={(
             <a href="/timekeeper/start-list" className="btn btn-sm btn-outline-primary">
-              <i className="bi bi-list-ol me-1"></i>Přejít na startovní listinu
+              <Icon name="list-numbered" className="me-1" />Přejít na startovní listinu
             </a>
           )}
         />
       ) : (
-        <EmptyState icon="bi-check-circle" title="Žádné záznamy pro vybraný filtr" />
+        <EmptyState icon="success" title="Žádné záznamy pro vybraný filtr" />
       )}
     </>
   );

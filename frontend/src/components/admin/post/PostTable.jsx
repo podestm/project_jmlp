@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const PostTable = ({
     filteredPosts,
@@ -28,7 +29,7 @@ const PostTable = ({
                 {filteredPosts.length === 0 ? (
                     <div className="text-center p-4">
                         <div className="text-muted">
-                            <i className="bi bi-inbox display-1"></i>
+                            <Icon name="inbox" className="display-1" />
                             <p className="mt-2">Žádné posty k zobrazení</p>
                         </div>
                     </div>
@@ -76,13 +77,13 @@ const PostTable = ({
                                             <div className="d-flex gap-1">
                                                 {post.image_file_id && (
                                                     <span className="badge bg-info">
-                                                        <i className="bi bi-image me-1"></i>
+                                                        <Icon name="image" className="me-1" />
                                                         Obrázek
                                                     </span>
                                                 )}
                                                 {post.document_file_id && (
                                                     <span className="badge bg-primary">
-                                                        <i className="bi bi-file-text me-1"></i>
+                                                        <Icon name="file-text" className="me-1" />
                                                         Dokument
                                                     </span>
                                                 )}
@@ -99,16 +100,16 @@ const PostTable = ({
                                                 <button
                                                     className="btn btn-sm btn-outline-primary"
                                                     onClick={() => handleEdit(post)}
-                                                    title="Upravit"
+                                                    aria-label="Upravit" title="Upravit"
                                                 >
-                                                    <i className="bi bi-pencil"></i>
+                                                    <Icon name="pencil" />
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-outline-danger"
                                                     onClick={() => handleDelete(post.id)}
-                                                    title="Smazat"
+                                                    aria-label="Smazat" title="Smazat"
                                                 >
-                                                    <i className="bi bi-trash"></i>
+                                                    <Icon name="trash" />
                                                 </button>
                                             </div>
                                         </td>

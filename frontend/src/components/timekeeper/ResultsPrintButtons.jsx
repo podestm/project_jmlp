@@ -1,4 +1,5 @@
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Dvojice tlačítek pro rychlý tisk: 1. kolo, 2. kolo.
@@ -32,7 +33,7 @@ export default function ResultsPrintButtons({
   return (
     <div className="btn-group btn-group-sm" role="group" aria-label={label} title={title}>
       <span className="btn btn-outline-secondary disabled text-body fw-semibold" style={{ ...COMPACT, opacity: 1 }}>
-        {busy ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
+        {busy ? <ButtonSpinner /> : <Icon name="printer" className="me-1" />}
         {label}
       </span>
       {['1', '2'].map((runMode) => (

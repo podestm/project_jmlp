@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
 import SectionSwitch from '../ui/SectionSwitch.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function AdminLayout({ children }) {
   const { admin, logout } = useAuth();
@@ -57,7 +58,7 @@ export default function AdminLayout({ children }) {
               justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(13, 110, 253, 0.3)'
             }}>
-              <i className="bi bi-gear-fill text-white" style={{ fontSize: '24px' }}></i>
+              <Icon name="gear" className="text-white" style={{ fontSize: '24px' }} />
             </div>
             <div>
               <h5 className="mb-0 fw-bold">JMLP Admin</h5>
@@ -70,21 +71,21 @@ export default function AdminLayout({ children }) {
         <nav className="p-3 flex-grow-1">
           <div className="nav nav-pills flex-column">
             <Link to="/admin" className={`nav-link text-white ${isActive('/admin') ? 'active' : ''}`}>
-              <i className="bi bi-speedometer2 me-2"></i>
+              <Icon name="dashboard" className="me-2" />
               Dashboard
             </Link>
             <Link to="/admin/races" className={`nav-link text-white ${isActive('/admin/races') ? 'active' : ''}`}>
-              <i className="bi bi-trophy me-2"></i>
+              <Icon name="trophy" className="me-2" />
               Závody
             </Link>
             {/* Aktivní i na podagendách Závodníků (Párování SLČR). */}
             <Link to="/admin/racers" className={`nav-link text-white ${isActive('/admin/racers') ? 'active' : ''}`}>
-              <i className="bi bi-people me-2"></i>
+              <Icon name="users" className="me-2" />
               Závodníci
             </Link>
             <Link to="/admin/club-requests" className={`nav-link text-white d-flex align-items-center justify-content-between ${isActive('/admin/club-requests') ? 'active' : ''}`}>
               <span className="d-flex align-items-center">
-                <i className="bi bi-buildings me-2"></i>
+                <Icon name="building" className="me-2" />
                 Žádosti o kluby
               </span>
               {pendingClubRequests > 0 && (
@@ -92,30 +93,30 @@ export default function AdminLayout({ children }) {
               )}
             </Link>
             <Link to="/admin/documents" className={`nav-link text-white ${isActive('/admin/documents') ? 'active' : ''}`}>
-              <i className="bi bi-file-text me-2"></i>
+              <Icon name="file-text" className="me-2" />
               Dokumenty
             </Link>
             <Link to="/admin/posts" className={`nav-link text-white ${isActive('/admin/posts') ? 'active' : ''}`}>
-              <i className="bi bi-newspaper me-2"></i>
+              <Icon name="news" className="me-2" />
               Posty a zprávy
             </Link>
             <Link to="/admin/seasons" className={`nav-link text-white ${isActive('/admin/seasons') ? 'active' : ''}`}>
-              <i className="bi bi-trophy-fill me-2"></i>
+              <Icon name="trophy" className="me-2" />
               Sezóny
             </Link>
             <Link to="/admin/clubs" className={`nav-link text-white ${isActive('/admin/clubs') ? 'active' : ''}`}>
-              <i className="bi bi-buildings-fill me-2"></i>
+              <Icon name="building" className="me-2" />
               Kluby
             </Link>
             <Link to="/admin/categories" className={`nav-link text-white ${isActive('/admin/categories') ? 'active' : ''}`}>
-              <i className="bi bi-tag me-2"></i>
+              <Icon name="tag" className="me-2" />
               Kategorie
             </Link>
             
             <hr className="border-secondary my-3" />
             
             <Link to="/admin/register" className={`nav-link text-white ${isActive('/admin/register') ? 'active' : ''}`}>
-              <i className="bi bi-person-plus me-2"></i>
+              <Icon name="user-plus" className="me-2" />
               Nový administrátor
             </Link>
           </div>
@@ -138,7 +139,7 @@ export default function AdminLayout({ children }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <i className="bi bi-person-fill text-white" style={{ fontSize: '20px' }}></i>
+              <Icon name="user" className="text-white" style={{ fontSize: '20px' }} />
             </div>
             <div className="flex-grow-1">
               <div className="fw-semibold text-white">{admin?.full_name || admin?.email}</div>
@@ -154,7 +155,7 @@ export default function AdminLayout({ children }) {
               transition: 'all 0.2s'
             }}
           >
-            <i className="bi bi-box-arrow-right me-2"></i>
+            <Icon name="logout" className="me-2" />
             Odhlásit se
           </button>
         </div>

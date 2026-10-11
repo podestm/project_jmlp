@@ -3,6 +3,7 @@ import { ButtonSpinner } from '../../ui/LoadingState.jsx';
 import { getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
 import LibraryPicker from './LibraryPicker.jsx';
 import { ROLE_LABELS } from '../../../config/attachmentsApi.js';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 /**
  * Jeden dokument dané role - obsazený, nebo prázdná drop zóna.
@@ -112,9 +113,9 @@ export default function AttachmentSlot({
             className="btn btn-sm btn-outline-danger"
             onClick={onRemove}
             disabled={busy}
-            title="Odpojit dokument"
+            aria-label="Odpojit dokument" title="Odpojit dokument"
           >
-            <i className="bi bi-x-lg" />
+            <Icon name="close" />
           </button>
         </div>
       ) : (
@@ -130,7 +131,7 @@ export default function AttachmentSlot({
             <span className="text-muted"><ButtonSpinner /> Nahrávám…</span>
           ) : (
             <>
-              <i className="bi bi-cloud-arrow-up fs-4 d-block text-muted" />
+              <Icon name="cloud-upload" className="fs-4 d-block text-muted" style={{ marginInline: 'auto' }} />
               <span className="small text-muted">Přetáhněte soubor sem nebo klikněte</span>
             </>
           )}

@@ -11,9 +11,10 @@ const resolveStroke = (icon, size, override) => override ?? (typeof size === 'nu
  * Ikona Modré stopy: vložené stroke SVG s geometrií z artboardů (icons.js).
  * Vždy dekorativní (aria-hidden) – význam nese text vedle ní, u ikonového
  * tlačítka jeho `label` (IconButton). Barva je currentColor.
- * Velikost 1em se řídí písmem okolí; `size` ji přebije v px.
+ * Velikost 1em se řídí písmem okolí; `size` ji přebije v px. `style` jen pro
+ * staré obrazovky (velikost písma, barva) – v kitu se nepoužívá.
  */
-export default function Icon({ name, size, strokeWidth, className }) {
+export default function Icon({ name, size, strokeWidth, className, style }) {
   const icon = ICONS[name];
   if (!icon) {
     if (import.meta.env.DEV) throw new Error(`Neznámá ikona „${name}“ – přidej ji do components/ms/Icon/icons.js`);
@@ -33,6 +34,7 @@ export default function Icon({ name, size, strokeWidth, className }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className={cx(styles.icon, className)}
+      style={style}
     >
       {icon.paths.map(({ tag, ...attrs }, index) => {
         const Shape = SHAPES[tag];

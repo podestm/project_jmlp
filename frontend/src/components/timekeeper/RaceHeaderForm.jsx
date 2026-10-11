@@ -3,6 +3,7 @@ import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Údaje závodu do hlavičky výsledkové listiny.
@@ -119,7 +120,7 @@ export default function RaceHeaderForm() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="mb-0"><i className="bi bi-card-heading me-2" />Údaje závodu</h5>
+        <h5 className="mb-0"><Icon name="card" className="me-2" />Údaje závodu</h5>
       </div>
 
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
@@ -132,7 +133,7 @@ export default function RaceHeaderForm() {
 
       {!selectedRaceId ? (
         <EmptyState
-          icon="bi-card-heading"
+          icon="card"
           title="Vyberte závod"
           hint="Závod vyberte v Přehledu závodů."
         />
@@ -142,7 +143,7 @@ export default function RaceHeaderForm() {
         <form onSubmit={handleSubmit}>
           <div className="card mb-3">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <span><i className="bi bi-card-heading me-2" />Hlavička výsledkové listiny</span>
+              <span><Icon name="card" className="me-2" />Hlavička výsledkové listiny</span>
               <small className="text-muted">
                 {detail?.race_number_label}
                 {detail?.edition_label ? ` · ${detail.edition_label} ročník` : ''}
@@ -156,7 +157,7 @@ export default function RaceHeaderForm() {
                 {' '}místo a datum <code>{detail?.areal_name || '—'}</code>.
                 {!detail?.organizer_logo_url && (
                   <div className="mt-1 text-warning-emphasis">
-                    <i className="bi bi-exclamation-triangle me-1" />
+                    <Icon name="warning" className="me-1" />
                     Pořádající klub nemá nahrané logo — v hlavičce bude logo JMLP.
                   </div>
                 )}
@@ -198,7 +199,7 @@ export default function RaceHeaderForm() {
           {form.runs.map((run) => (
             <div className="card mb-3" key={run.run_number}>
               <div className="card-header d-flex justify-content-between align-items-center">
-                <span><i className="bi bi-flag me-2" />{run.run_number}. KOLO</span>
+                <span><Icon name="flag" className="me-2" />{run.run_number}. KOLO</span>
                 <small className="text-muted">Nevyplněné kolo se do hlavičky netiskne</small>
               </div>
               <div className="card-body">
@@ -261,7 +262,7 @@ export default function RaceHeaderForm() {
           ))}
 
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? <ButtonSpinner /> : <i className="bi bi-check-lg me-1" />}
+            {saving ? <ButtonSpinner /> : <Icon name="check" className="me-1" />}
             Uložit údaje závodu
           </button>
         </form>

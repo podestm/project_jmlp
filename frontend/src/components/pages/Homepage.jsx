@@ -7,6 +7,7 @@ import jmlpLogo from '../../assets/images/jmlp_logo.png';
 import slcrLogo from '../../assets/images/czech_ski_snowboard-logo.png';
 import { useLiveStatus } from '../../contexts/LiveStatusContext.jsx';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 
 function Homepage() {
@@ -78,7 +79,7 @@ function Homepage() {
   if (error) {
     return (
       <div className="alert alert-danger" role="alert">
-        <i className="bi bi-exclamation-triangle-fill me-2"></i>
+        <Icon name="warning" className="me-2" />
         Chyba: {error}
       </div>
     );
@@ -204,7 +205,7 @@ function Homepage() {
                     </div>
                   </div>
                   <span className="text-white fw-semibold" style={{ fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
-                    Živé výsledky <i className="bi bi-arrow-right ms-1"></i>
+                    Živé výsledky <Icon name="arrow-right" className="ms-1" />
                   </span>
                 </div>
               </Link>
@@ -217,14 +218,14 @@ function Homepage() {
               <div className="col-12 col-md-7 order-2 order-md-1">
                 <div className="mb-3" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
                   <h2 className="mb-0" style={{ fontSize: '1.5rem', fontWeight: '500', color: 'var(--text-primary)', opacity: '0.9' }}>
-                    <span className="bi bi-newspaper me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
+                    <Icon name="news" className="me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }} />
                     Aktuality
                   </h2>
                 </div>
 
                 {posts.length === 0 ? (
                   <div className="alert alert-info">
-                    <span className="bi bi-info-circle me-2"></span>
+                    <Icon name="info" className="me-2" />
                     Zatím nejsou k dispozici žádné aktuality.
                   </div>
                 ) : (
@@ -263,7 +264,7 @@ function Homepage() {
                             <div className="d-flex flex-column p-3" style={{ flex: 1, minWidth: 0 }}>
                               <div className="mb-1">
                                 <span className="badge bg-secondary" style={{ fontSize: '0.72rem' }}>
-                                  <i className="bi bi-calendar3 me-1"></i>
+                                  <Icon name="calendar" className="me-1" />
                                   {formatDate(post.created_at)}
                                 </span>
                               </div>
@@ -290,7 +291,7 @@ function Homepage() {
                                     rel="noopener noreferrer"
                                     style={{ borderRadius: '6px', fontWeight: '500' }}
                                   >
-                                    <span className="bi bi-file-text me-1"></span>
+                                    <Icon name="file-text" className="me-1" />
                                     Stáhnout přílohu
                                   </a>
                                 </div>
@@ -314,7 +315,7 @@ function Homepage() {
                         className="btn btn-outline-secondary"
                         style={{ borderRadius: '8px', padding: '0.75rem 2rem', fontWeight: '500' }}
                       >
-                        <span className="bi bi-arrow-right me-2"></span>
+                        <Icon name="arrow-right" className="me-2" />
                         Zobrazit starší zprávy
                       </Link>
                     </div>
@@ -327,14 +328,14 @@ function Homepage() {
                 <div style={{ position: 'sticky', top: '80px' }}>
                   <div className="mb-3" style={{ borderBottom: '2px solid rgba(255,107,0,0.3)', paddingBottom: '0.75rem' }}>
                     <h2 className="mb-0" style={{ fontSize: '1.5rem', fontWeight: '500', color: 'var(--text-primary)', opacity: '0.9' }}>
-                      <span className="bi bi-calendar-event me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }}></span>
+                      <Icon name="calendar" className="me-2" style={{ color: 'var(--sunset-orange)', opacity: '0.8' }} />
                       Závody sezóny
                     </h2>
                   </div>
 
                   {upcomingRaces.length === 0 ? (
                     <div className="alert alert-info">
-                      <span className="bi bi-info-circle me-2"></span>
+                      <Icon name="info" className="me-2" />
                       Žádné závody v této sezóně.
                     </div>
                   ) : (
@@ -424,7 +425,7 @@ function Homepage() {
                                     className={`btn btn-sm flex-shrink-0 ${isPast ? 'btn-outline-secondary' : 'btn-primary'}`}
                                     style={{ borderRadius: '6px' }}
                                   >
-                                    <i className={`bi ${isPast ? 'bi-trophy' : (race.registration ? 'bi-pencil-square' : 'bi-info-circle')} me-1`} style={{ fontSize: '0.8rem' }}></i>
+                                    <Icon name={isPast ? 'trophy' : (race.registration ? 'pencil' : 'info')} className="me-1" style={{ fontSize: '0.8rem' }} />
                                     {isPast ? 'Výsledky' : (race.registration ? 'Registrace' : 'Detail')}
                                   </Link>
                                 </div>
@@ -440,7 +441,7 @@ function Homepage() {
                           className="btn btn-outline-secondary btn-sm"
                           style={{ borderRadius: '8px', padding: '0.5rem 1.5rem', fontWeight: '500' }}
                         >
-                          <span className="bi bi-arrow-right me-2"></span>
+                          <Icon name="arrow-right" className="me-2" />
                           Všechny závody
                         </Link>
                       </div>

@@ -12,6 +12,7 @@ import {
   getExtensionBadgeClass,
   getExtensionLabel
 } from '../../utils/files.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Knihovna dokumentů - jedna plochá tabulka s filtry.
@@ -167,7 +168,7 @@ export default function DocumentLibrary() {
         value: season.year_start,
         label: `Sezóna ${season.season_label}`,
         variant: 'primary',
-        icon: 'bi-globe'
+        icon: 'globe'
       }))
     });
     if (!year) return;
@@ -194,7 +195,7 @@ export default function DocumentLibrary() {
         : 'Soubor se smaže z knihovny i z disku. Akci nelze vzít zpět.',
       confirmLabel: used ? 'Přesto smazat' : 'Smazat',
       variant: 'danger',
-      icon: 'bi-trash'
+      icon: 'trash'
     });
     if (!confirmed) return;
 
@@ -223,7 +224,7 @@ export default function DocumentLibrary() {
           onClick={handleExport}
           disabled={exporting}
         >
-          {exporting ? <ButtonSpinner /> : <i className="bi bi-download me-1" />}
+          {exporting ? <ButtonSpinner /> : <Icon name="download" className="me-1" />}
           {filtersActive ? 'Stáhnout vyfiltrované' : 'Stáhnout vše'}
         </button>
       </div>
@@ -315,7 +316,7 @@ export default function DocumentLibrary() {
         <LoadingState variant="page" label="Načítám knihovnu…" />
       ) : files.length === 0 ? (
         <EmptyState
-          icon="bi-folder2-open"
+          icon="folder"
           title={filtersActive ? 'Filtru neodpovídá žádný soubor' : 'Knihovna je prázdná'}
           hint={filtersActive
             ? 'Zkuste jiný výraz nebo zrušte filtry.'
@@ -393,33 +394,33 @@ export default function DocumentLibrary() {
                         type="button"
                         className="btn btn-sm btn-outline-secondary me-1"
                         onClick={() => startRename(file)}
-                        title="Přejmenovat"
+                        aria-label="Přejmenovat" title="Přejmenovat"
                       >
-                        <i className="bi bi-pencil" />
+                        <Icon name="pencil" />
                       </button>
                       <a
                         href={file.download_url}
                         download
                         className="btn btn-sm btn-outline-secondary me-1"
-                        title="Stáhnout"
+                        aria-label="Stáhnout" title="Stáhnout"
                       >
-                        <i className="bi bi-download" />
+                        <Icon name="download" />
                       </a>
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-secondary me-1"
                         onClick={() => handlePublish(file)}
-                        title="Zveřejnit na webu"
+                        aria-label="Zveřejnit na webu" title="Zveřejnit na webu"
                       >
-                        <i className="bi bi-globe" />
+                        <Icon name="globe" />
                       </button>
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDelete(file)}
-                        title="Smazat"
+                        aria-label="Smazat" title="Smazat"
                       >
-                        <i className="bi bi-trash" />
+                        <Icon name="trash" />
                       </button>
                     </td>
                   </tr>

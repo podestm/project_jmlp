@@ -4,6 +4,7 @@ import { formatDate } from '../../utils/date.js';
 import { fixEncoding } from '../../utils/text.js';
 import { getCurrentSeasonId } from '../../utils/season.js';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
@@ -84,7 +85,7 @@ export default function RaceCalendar() {
   if (error) {
     return (
       <div className="alert alert-danger" role="alert">
-        <i className="bi bi-exclamation-triangle-fill me-2"></i>
+        <Icon name="warning" className="me-2" />
         Chyba při načítání závodů: {error}
       </div>
     );
@@ -109,14 +110,14 @@ export default function RaceCalendar() {
         padding: '1rem 1.25rem'
       }}>
         <h5 className="card-title mb-0">
-          <i className="bi bi-calendar3 me-2"></i>
+          <Icon name="calendar" className="me-2" />
           Kalendář závodů
         </h5>
       </div>
       <div className="card-body">
         {groupedRaces.allSeasons.length === 0 ? (
           <div className="text-center text-muted py-5">
-            <i className="bi bi-inbox display-1"></i>
+            <Icon name="inbox" className="display-1" />
             <p className="mt-2">Zatím nejsou k dispozici žádné závody</p>
           </div>
         ) : (
@@ -152,7 +153,7 @@ export default function RaceCalendar() {
               <>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h5 className="mb-0" style={{ color: 'var(--text-primary)' }}>
-                    <i className="bi bi-calendar3 me-2"></i>
+                    <Icon name="calendar" className="me-2" />
                     Sezóna: {getSeasonDisplayName(selectedSeason)}
                   </h5>
                   {seasonResults[selectedSeason] ? (
@@ -163,7 +164,7 @@ export default function RaceCalendar() {
                       className="btn btn-success"
                       title={seasonResults[selectedSeason].final_results === 1 ? 'Stáhnout celkové výsledky' : 'Stáhnout průběžné výsledky'}
                     >
-                      <i className="bi bi-trophy-fill me-2"></i>
+                      <Icon name="trophy" className="me-2" />
                       {seasonResults[selectedSeason].final_results === 1 ? 'Celkové výsledky' : 'Průběžné výsledky'}
                     </a>
                   ) : (
@@ -175,7 +176,7 @@ export default function RaceCalendar() {
                       title={`${isFinishedSeason(selectedSeason) ? 'Celkové' : 'Průběžné'} výsledky zatím nejsou k dispozici`}
                     >
                       <button type="button" className="btn btn-success" disabled>
-                        <i className="bi bi-trophy-fill me-2"></i>
+                        <Icon name="trophy" className="me-2" />
                         {isFinishedSeason(selectedSeason) ? 'Celkové výsledky' : 'Průběžné výsledky'}
                       </button>
                     </span>
@@ -225,7 +226,7 @@ export default function RaceCalendar() {
                                     title="Stáhnout propozice"
                                     onClick={e => e.stopPropagation()}
                                   >
-                                    <i className="bi bi-download me-1"></i>
+                                    <Icon name="download" className="me-1" />
                                     Propozice
                                   </a>
                                 )}
@@ -238,7 +239,7 @@ export default function RaceCalendar() {
                                     title="Stáhnout výsledky"
                                     onClick={e => e.stopPropagation()}
                                   >
-                                    <i className="bi bi-download me-1"></i>
+                                    <Icon name="download" className="me-1" />
                                     Výsledky
                                   </a>
                                 )}
@@ -248,7 +249,7 @@ export default function RaceCalendar() {
                                     className="btn btn-sm btn-primary"
                                     onClick={e => e.stopPropagation()}
                                   >
-                                    <i className="bi bi-pencil-square me-1"></i>
+                                    <Icon name="pencil" className="me-1" />
                                     Registrovat
                                   </Link>
                                 )}
@@ -257,7 +258,7 @@ export default function RaceCalendar() {
                                   className="btn btn-sm btn-outline-primary"
                                   onClick={e => e.stopPropagation()}
                                 >
-                                  <i className="bi bi-info-circle me-1"></i>
+                                  <Icon name="info" className="me-1" />
                                   Detail
                                 </Link>
                               </div>

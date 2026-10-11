@@ -1,6 +1,7 @@
 import React from 'react';
 import RaceNumberBadge from './RaceNumberBadge.jsx';
 import { isExcluded } from './startListHelpers.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export const getSexLabel = (sex) => {
   if (Number(sex) === 1) return 'Muž';
@@ -46,8 +47,8 @@ const TimekeeperRacerRow = React.memo(function TimekeeperRacerRow({ entry, onEdi
       <td className="text-muted">{entry.club_name || 'Bez oddílu'}</td>
       <td>
         <button className="btn btn-sm btn-outline-primary py-0 px-1" style={{ fontSize: '0.7rem' }}
-          onClick={() => onEdit(entry)} title="Upravit">
-          <i className="bi bi-pencil"></i>
+          onClick={() => onEdit(entry)} aria-label="Upravit" title="Upravit">
+          <Icon name="pencil" />
         </button>
       </td>
     </tr>

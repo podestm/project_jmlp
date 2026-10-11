@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function RaceRegistrations() {
   const { raceId } = useParams();
@@ -62,7 +63,7 @@ export default function RaceRegistrations() {
         type="danger" 
         message={
           <>
-            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            <Icon name="warning" className="me-2" />
             {error}
           </>
         }
@@ -95,7 +96,7 @@ export default function RaceRegistrations() {
                 onClick={() => navigate('/admin/races')}
                 className="btn btn-outline-secondary me-2"
               >
-                <i className="bi bi-arrow-left me-2"></i>
+                <Icon name="arrow-left" className="me-2" />
                 Zpět na seznam
               </button>
             </div>
@@ -106,7 +107,7 @@ export default function RaceRegistrations() {
             <div className="col-md-3">
               <div className="card border-primary">
                 <div className="card-body text-center">
-                  <i className="bi bi-people-fill text-primary fs-2"></i>
+                  <Icon name="users" className="text-primary fs-2" />
                   <h3 className="mt-2">{registrations.length}</h3>
                   <p className="text-muted mb-0">Registrovaných závodníků</p>
                 </div>
@@ -115,7 +116,7 @@ export default function RaceRegistrations() {
             <div className="col-md-3">
               <div className="card border-info">
                 <div className="card-body text-center">
-                  <i className="bi bi-gender-male text-info fs-2"></i>
+                  <Icon name="male" className="text-info fs-2" />
                   <h3 className="mt-2">{registrations.filter(r => r.sex === 'M').length}</h3>
                   <p className="text-muted mb-0">Muži</p>
                 </div>
@@ -124,7 +125,7 @@ export default function RaceRegistrations() {
             <div className="col-md-3">
               <div className="card border-warning">
                 <div className="card-body text-center">
-                  <i className="bi bi-gender-female text-warning fs-2"></i>
+                  <Icon name="female" className="text-warning fs-2" />
                   <h3 className="mt-2">{registrations.filter(r => r.sex === 'Z').length}</h3>
                   <p className="text-muted mb-0">Ženy</p>
                 </div>
@@ -133,7 +134,7 @@ export default function RaceRegistrations() {
             <div className="col-md-3">
               <div className="card border-success">
                 <div className="card-body text-center">
-                  <i className="bi bi-buildings text-success fs-2"></i>
+                  <Icon name="building" className="text-success fs-2" />
                   <h3 className="mt-2">{new Set(registrations.map(r => r.club_name)).size}</h3>
                   <p className="text-muted mb-0">Klubů</p>
                 </div>
@@ -145,14 +146,14 @@ export default function RaceRegistrations() {
           <div className="card">
             <div className="card-header">
               <h5 className="mb-0">
-                <i className="bi bi-list me-2"></i>
+                <Icon name="menu" className="me-2" />
                 Seznam registrovaných závodníků
               </h5>
             </div>
             <div className="card-body">
               {registrations.length === 0 ? (
                 <div className="text-center text-muted py-4">
-                  <i className="bi bi-info-circle fs-1"></i>
+                  <Icon name="info" className="fs-1" />
                   <h4 className="mt-3">Žádní registrovaní závodníci</h4>
                   <p>Pro tento závod se zatím nikdo nepřihlásil.</p>
                 </div>

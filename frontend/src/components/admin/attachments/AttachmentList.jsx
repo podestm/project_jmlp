@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { ButtonSpinner } from '../../ui/LoadingState.jsx';
 import { getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
 import LibraryPicker from './LibraryPicker.jsx';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 /**
  * Seznam dokumentů jedné role, kterých smí být víc.
@@ -109,18 +110,18 @@ export default function AttachmentList({
                 className="btn btn-sm btn-outline-secondary"
                 onClick={() => startRename(attachment)}
                 disabled={busy}
-                title="Přejmenovat"
+                aria-label="Přejmenovat" title="Přejmenovat"
               >
-                <i className="bi bi-pencil" />
+                <Icon name="pencil" />
               </button>
               <button
                 type="button"
                 className="btn btn-sm btn-outline-danger"
                 onClick={() => onRemove(attachment)}
                 disabled={busy}
-                title="Odpojit"
+                aria-label="Odpojit" title="Odpojit"
               >
-                <i className="bi bi-x-lg" />
+                <Icon name="close" />
               </button>
             </li>
           ))}
@@ -143,7 +144,7 @@ export default function AttachmentList({
           <span className="text-muted"><ButtonSpinner /> Nahrávám…</span>
         ) : (
           <>
-            <i className="bi bi-cloud-arrow-up fs-5 d-block text-muted" />
+            <Icon name="cloud-upload" className="fs-5 d-block text-muted" style={{ marginInline: 'auto' }} />
             <span className="small text-muted">Přetáhněte soubory sem nebo klikněte</span>
           </>
         )}

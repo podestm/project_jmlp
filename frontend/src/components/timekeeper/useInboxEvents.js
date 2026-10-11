@@ -664,7 +664,7 @@ export function useInboxEvents({
       message: `Smaže se ${resolvedInboxCount} řádků: potvrzené a prokazatelně odeslané na server + ručně zamítnuté. Zůstane ${liveInboxCount} řádků – nepotvrzené, čekající na synchronizaci, chybové i varovné. Ty obsahují naměřené časy, které nejsou zapsané nikde jinde.`,
       confirmLabel: `Smazat ${resolvedInboxCount}`,
       variant: 'warning',
-      icon: 'bi-eraser',
+      icon: 'erase',
     });
     if (!ok) return;
     try {
@@ -682,7 +682,7 @@ export function useInboxEvents({
       message: `${unparsedInboxCount} řádků z časomíry se nepodařilo rozpoznat. Potvrzením prohlásíte, že to nejsou naměřené časy – zůstanou uložené jako zamítnuté a půjdou pak smazat tlačítkem „Smazat vyřízené“.`,
       confirmLabel: 'Odbavit',
       variant: 'warning',
-      icon: 'bi-question-octagon',
+      icon: 'question',
     });
     if (!ok) return;
     try {
@@ -702,7 +702,7 @@ export function useInboxEvents({
         : `Smaže se všech ${inboxEvents.length} uložených událostí. Akci nelze vrátit zpět.`,
       confirmLabel: 'Smazat vše',
       variant: 'danger',
-      icon: 'bi-trash',
+      icon: 'trash',
     });
     if (!ok) return;
     try {

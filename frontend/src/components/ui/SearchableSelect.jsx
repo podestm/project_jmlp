@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Searchable Select - dropdown s live vyhledáváním
@@ -221,13 +222,16 @@ export default function SearchableSelect({
           />
           <div style={{ position: 'absolute', right: '0.6rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
             {value ? (
-              <i
-                className="bi bi-x-circle"
+              <button
+                type="button"
+                aria-label="Vymazat výběr"
                 onClick={handleClear}
-                style={{ cursor: 'pointer', opacity: 0.6, fontSize: '1rem', color: 'var(--text-primary)' }}
-              />
+                style={{ display: 'inline-flex', padding: 0, border: 0, background: 'none', cursor: 'pointer', opacity: 0.6, fontSize: '1rem', color: 'var(--text-primary)' }}
+              >
+                <Icon name="x-circle" />
+              </button>
             ) : (
-              <i className="bi bi-search" style={{ opacity: 0.4, fontSize: '0.9rem', color: 'var(--text-primary)' }} />
+              <Icon name="search" style={{ opacity: 0.4, fontSize: '0.9rem', color: 'var(--text-primary)' }} />
             )}
           </div>
         </div>
@@ -258,13 +262,16 @@ export default function SearchableSelect({
         </span>
         <div className="d-flex align-items-center gap-1">
           {value && (
-            <i
-              className="bi bi-x-circle"
+            <button
+              type="button"
+              aria-label="Vymazat výběr"
               onClick={handleClear}
-              style={{ cursor: 'pointer', opacity: 0.7, fontSize: '0.9rem' }}
-            />
+              style={{ display: 'inline-flex', padding: 0, border: 0, background: 'none', color: 'inherit', cursor: 'pointer', opacity: 0.7, fontSize: '0.9rem' }}
+            >
+              <Icon name="x-circle" />
+            </button>
           )}
-          <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'}`} style={{ opacity: 0.7 }} />
+          <Icon name={isOpen ? 'chevron-up' : 'chevron-down'} style={{ opacity: 0.7 }} />
         </div>
       </div>
       {dropdownContent}

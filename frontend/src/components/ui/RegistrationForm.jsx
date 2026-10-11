@@ -2,6 +2,7 @@ import { useRegistration } from '../../hooks/useRegistration.js';
 import RegistrationFormFields from './registration/RegistrationFormFields.jsx';
 import RacerSearchResults from './registration/RacerSearchResults.jsx';
 import RegistrationMessage from './registration/RegistrationMessage.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function RegistrationForm({ raceId, onSuccess }) {
     const registration = useRegistration(raceId, onSuccess);
@@ -22,7 +23,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                 padding: '1rem 1.25rem'
             }}>
                 <h5 className="card-title mb-0">
-                    <span className="bi bi-person-plus me-2"></span>
+                    <Icon name="user-plus" className="me-2" />
                     Registrovat závodníka
                 </h5>
             </div>
@@ -57,7 +58,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
                                         fontWeight: '500'
                                     }}
                                 >
-                                    <span className="bi bi-check-circle me-1"></span>
+                                    <Icon name="success" className="me-1" />
                                     Registrovat závodníka
                                 </button>
                             </div>

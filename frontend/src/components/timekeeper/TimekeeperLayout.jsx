@@ -4,6 +4,7 @@ import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../pdf/pdfmake.js';
 import SectionSwitch from '../ui/SectionSwitch.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
@@ -22,41 +23,41 @@ export default function TimekeeperLayout({ children }) {
     if (syncState === 'offline') {
       return {
         label: 'Offline',
-        icon: 'bi-wifi-off',
+        icon: 'wifi-off',
         style: { background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.35)' }
       };
     }
     if (syncState === 'syncing') {
       return {
         label: 'Synchronizuji',
-        icon: 'bi-arrow-repeat',
+        icon: 'sync',
         style: { background: 'rgba(59, 130, 246, 0.2)', color: '#93c5fd', border: '1px solid rgba(147, 197, 253, 0.35)' }
       };
     }
     if (syncState === 'error') {
       return {
         label: 'Chyba sync',
-        icon: 'bi-exclamation-triangle',
+        icon: 'warning',
         style: { background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(252, 165, 165, 0.35)' }
       };
     }
     if (syncState === 'conflict') {
       return {
         label: 'Konflikt',
-        icon: 'bi-bug',
+        icon: 'bug',
         style: { background: 'rgba(220, 38, 38, 0.25)', color: '#fecaca', border: '1px solid rgba(254, 202, 202, 0.4)' }
       };
     }
     if (syncState === 'queued') {
       return {
         label: 'Ve frontě',
-        icon: 'bi-hourglass-split',
+        icon: 'hourglass',
         style: { background: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', border: '1px solid rgba(110, 231, 183, 0.35)' }
       };
     }
     return {
       label: 'Online',
-      icon: 'bi-wifi',
+      icon: 'wifi',
       style: { background: 'rgba(34, 197, 94, 0.2)', color: '#86efac', border: '1px solid rgba(134, 239, 172, 0.35)' }
     };
   })();
@@ -184,7 +185,7 @@ export default function TimekeeperLayout({ children }) {
               justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(233, 69, 96, 0.3)'
             }}>
-              <i className="bi bi-stopwatch-fill text-white" style={{ fontSize: '24px' }}></i>
+              <Icon name="stopwatch" className="text-white" style={{ fontSize: '24px' }} />
             </div>
             <div className="timekeeper-sidebar-brand-text">
               <h5 className="mb-0 fw-bold">Časomíra</h5>
@@ -196,7 +197,7 @@ export default function TimekeeperLayout({ children }) {
               className="badge rounded-pill"
               style={{ fontWeight: 600, ...syncMeta.style }}
             >
-              <i className={`bi ${syncMeta.icon} me-1`}></i>
+              <Icon name={syncMeta.icon} className="me-1" />
               {syncMeta.label}
             </span>
             <small className="text-white-50">
@@ -213,7 +214,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper') && !isActive('/timekeeper/') ? 'active' : ''}`}
               style={isActive('/timekeeper') && !location.pathname.includes('/timekeeper/') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-speedometer2 timekeeper-sidebar-link-icon"></i>
+              <Icon name="dashboard" className="timekeeper-sidebar-link-icon" />
               <span>Přehled</span>
             </Link>
             
@@ -228,7 +229,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/start-list') ? 'active' : ''}`}
               style={isActive('/timekeeper/start-list') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-list-ol timekeeper-sidebar-link-icon"></i>
+              <Icon name="list-numbered" className="timekeeper-sidebar-link-icon" />
               <span>Listina</span>
             </Link>
             <Link
@@ -236,7 +237,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/race-detail') ? 'active' : ''}`}
               style={isActive('/timekeeper/race-detail') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-card-heading timekeeper-sidebar-link-icon"></i>
+              <Icon name="card" className="timekeeper-sidebar-link-icon" />
               <span>Údaje</span>
             </Link>
             <Link
@@ -244,7 +245,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/racers') ? 'active' : ''}`}
               style={isActive('/timekeeper/racers') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-people timekeeper-sidebar-link-icon"></i>
+              <Icon name="users" className="timekeeper-sidebar-link-icon" />
               <span>Závodníci</span>
             </Link>
             <Link 
@@ -252,7 +253,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/timing') ? 'active' : ''}`}
               style={isActive('/timekeeper/timing') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-clock timekeeper-sidebar-link-icon"></i>
+              <Icon name="clock" className="timekeeper-sidebar-link-icon" />
               <span>Časy</span>
             </Link>
             <Link 
@@ -260,7 +261,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/results') ? 'active' : ''}`}
               style={isActive('/timekeeper/results') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-trophy timekeeper-sidebar-link-icon"></i>
+              <Icon name="trophy" className="timekeeper-sidebar-link-icon" />
               <span>Výsledky</span>
             </Link>
 
@@ -275,7 +276,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/device') ? 'active' : ''}`}
               style={isActive('/timekeeper/device') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-plug timekeeper-sidebar-link-icon"></i>
+              <Icon name="plug" className="timekeeper-sidebar-link-icon" />
               <span>Časomíra</span>
             </Link>
             <Link 
@@ -283,7 +284,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/race-numbers') ? 'active' : ''}`}
               style={isActive('/timekeeper/race-numbers') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-123 timekeeper-sidebar-link-icon"></i>
+              <Icon name="numbers" className="timekeeper-sidebar-link-icon" />
               <span>Čísla</span>
             </Link>
             <Link
@@ -291,7 +292,7 @@ export default function TimekeeperLayout({ children }) {
               className={`nav-link text-white mb-1 timekeeper-sidebar-link ${isActive('/timekeeper/sync') ? 'active' : ''}`}
               style={isActive('/timekeeper/sync') ? { background: 'rgba(233, 69, 96, 0.3)' } : {}}
             >
-              <i className="bi bi-arrow-repeat timekeeper-sidebar-link-icon"></i>
+              <Icon name="sync" className="timekeeper-sidebar-link-icon" />
               <span>Sync centrum</span>
             </Link>
           </div>
@@ -316,7 +317,7 @@ export default function TimekeeperLayout({ children }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <i className="bi bi-person-fill text-white" style={{ fontSize: '18px' }}></i>
+              <Icon name="user" className="text-white" style={{ fontSize: '18px' }} />
             </div>
             <div className="flex-grow-1 text-truncate timekeeper-sidebar-user-text">
               <div className="fw-semibold text-white small">{user?.full_name || user?.email}</div>
@@ -334,7 +335,7 @@ export default function TimekeeperLayout({ children }) {
               background: 'rgba(255,255,255,0.05)'
             }}
           >
-            <i className="bi bi-box-arrow-right me-2"></i>
+            <Icon name="logout" className="me-2" />
             <span className="timekeeper-sidebar-logout-text">Odhlásit se</span>
           </button>
         </div>

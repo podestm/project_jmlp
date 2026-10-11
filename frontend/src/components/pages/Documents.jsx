@@ -4,6 +4,7 @@ import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { formatFileSize } from '../../utils/files.js';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Veřejný seznam dokumentů.
@@ -41,15 +42,12 @@ function DocumentLink({ document }) {
         e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
       }}
     >
-      <i
-        className="bi bi-file-earmark-pdf me-3"
-        style={{ fontSize: '1.5rem', color: 'var(--sunset-orange)', opacity: 0.8 }}
-      />
+      <Icon name="file" className="me-3" style={{ fontSize: '1.5rem', color: 'var(--sunset-orange)', opacity: 0.8 }} />
       <span className="flex-grow-1">{document.title}</span>
       {document.file_size != null && (
         <small className="text-muted ms-2">{formatFileSize(document.file_size)}</small>
       )}
-      <i className="bi bi-download ms-3" style={{ opacity: 0.6 }} />
+      <Icon name="download" className="ms-3" style={{ opacity: 0.6 }} />
     </a>
   );
 }
@@ -64,7 +62,7 @@ function SectionHeading({ icon, children }) {
         className="mb-0"
         style={{ fontSize: '2rem', fontWeight: 500, color: 'var(--text-primary)', opacity: 0.9 }}
       >
-        <span className={`bi ${icon} me-2`} style={{ color: 'var(--sunset-orange)', opacity: 0.8 }} />
+        <Icon name={icon} className="me-2" style={{ color: 'var(--sunset-orange)', opacity: 0.8 }} />
         {children}
       </h2>
     </div>
@@ -106,9 +104,9 @@ export default function Documents() {
   if (!current && archive.length === 0) {
     return (
       <div>
-        <SectionHeading icon="bi-file-earmark-text">Dokumenty</SectionHeading>
+        <SectionHeading icon="file-text">Dokumenty</SectionHeading>
         <EmptyState
-          icon="bi-file-earmark-text"
+          icon="file-text"
           title="Zatím tu nejsou žádné dokumenty"
           hint="Jakmile budou zveřejněny, najdete je na této stránce."
         />
@@ -120,7 +118,7 @@ export default function Documents() {
     <div>
       {current && (
         <div className="mb-5">
-          <SectionHeading icon="bi-file-earmark-text">Dokumenty</SectionHeading>
+          <SectionHeading icon="file-text">Dokumenty</SectionHeading>
           <p className="text-muted mb-3">
             {current.name}
             {current.edition_label ? ` – ${current.edition_label} ročník` : ''}
@@ -136,7 +134,7 @@ export default function Documents() {
 
       {archive.length > 0 && (
         <div>
-          <SectionHeading icon="bi-archive">Archiv</SectionHeading>
+          <SectionHeading icon="archive">Archiv</SectionHeading>
           {archive.map((season) => (
             <div className="mb-4" key={season.season_year_start}>
               <h5 className="mb-2" style={{ color: 'var(--text-primary)', opacity: 0.8 }}>

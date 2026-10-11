@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const NewsFilters = ({
     searchTerm,
@@ -19,7 +20,7 @@ const NewsFilters = ({
                 <div className="row g-3 align-items-end">
                     <div className="col-md-6">
                         <label className="form-label">
-                            <i className="bi bi-search me-1"></i>
+                            <Icon name="search" className="me-1" />
                             Hledat v příspěvcích
                         </label>
                         <input
@@ -32,7 +33,7 @@ const NewsFilters = ({
                     </div>
                     <div className="col-md-3">
                         <label className="form-label">
-                            <i className="bi bi-calendar me-1"></i>
+                            <Icon name="calendar" className="me-1" />
                             Rok
                         </label>
                         <select
@@ -48,7 +49,7 @@ const NewsFilters = ({
                     </div>
                     <div className="col-md-3">
                         <label className="form-label">
-                            <i className="bi bi-calendar-month me-1"></i>
+                            <Icon name="calendar" className="me-1" />
                             Měsíc
                         </label>
                         <select
@@ -77,7 +78,7 @@ const NewsFilters = ({
                             className="btn btn-outline-secondary btn-sm"
                             onClick={clearFilters}
                         >
-                            <i className="bi bi-x-circle me-1"></i>
+                            <Icon name="x-circle" className="me-1" />
                             Vymazat filtry
                         </button>
                     )}

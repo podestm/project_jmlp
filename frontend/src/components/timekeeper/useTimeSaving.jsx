@@ -16,8 +16,8 @@ import {
  * přepsal čas uložený z jiného zařízení. Bezpečná volba proto musí zůstat první.
  */
 export const CONFLICT_CHOICES = [
-  { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary', icon: 'bi-cloud-arrow-down' },
-  { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger', icon: 'bi-pencil-square' },
+  { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary', icon: 'cloud-download' },
+  { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger', icon: 'pencil' },
 ];
 
 /**

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Náhled vygenerované listiny (startovní i výsledkové) a druhé potvrzení
@@ -61,7 +62,7 @@ export default function PdfPreviewModal({
                   onClick={onPublish}
                   disabled={publishing}
                 >
-                  {publishing ? <ButtonSpinner /> : <i className="bi bi-upload me-1" />}
+                  {publishing ? <ButtonSpinner /> : <Icon name="upload" className="me-1" />}
                   {publishLabel}
                 </button>
               </div>

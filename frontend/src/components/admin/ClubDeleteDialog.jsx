@@ -76,7 +76,7 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
         value: 'smazat',
         label: 'Smazat klub',
         variant: 'danger',
-        icon: 'bi-trash',
+        icon: 'trash',
         disabled: potrebujeCil && !cil,
       }]}
       onResolve={(volba) => onResolve(volba ? (cil ? Number(cil) : null) : false)}

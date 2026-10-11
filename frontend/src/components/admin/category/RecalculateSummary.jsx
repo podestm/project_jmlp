@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 /**
  * Výsledek hromadného přepočtu kategorií závodníků.
  *
@@ -9,7 +10,7 @@ export default function RecalculateSummary({ result, onDismiss }) {
     <div className="mb-4">
       <div className="alert alert-success d-flex align-items-center justify-content-between mb-3">
         <div className="d-flex align-items-center">
-          <i className="bi bi-check-circle-fill me-2"></i>
+          <Icon name="success" className="me-2" />
           <div>
             <strong>Přepočet kategorií dokončen</strong>
             <small className="d-block text-muted mt-1">
@@ -20,9 +21,9 @@ export default function RecalculateSummary({ result, onDismiss }) {
         <button
           className="btn btn-sm btn-outline-secondary"
           onClick={onDismiss}
-          title="Skrýt výsledky"
+          aria-label="Skrýt výsledky" title="Skrýt výsledky"
         >
-          <i className="bi bi-x"></i>
+          <Icon name="close" />
         </button>
       </div>
 
@@ -30,7 +31,7 @@ export default function RecalculateSummary({ result, onDismiss }) {
         <div className="card">
           <div className="card-header bg-light">
             <h6 className="mb-0">
-              <i className="bi bi-arrow-repeat me-2"></i>
+              <Icon name="sync" className="me-2" />
               Aktualizováno {result.updates.length} závodníků
             </h6>
           </div>
@@ -64,7 +65,7 @@ export default function RecalculateSummary({ result, onDismiss }) {
                       <td>
                         <div className="d-flex align-items-center">
                           <span className="text-muted me-2">{update.old_category}</span>
-                          <i className="bi bi-arrow-right text-primary me-2"></i>
+                          <Icon name="arrow-right" className="text-primary me-2" />
                           <span className="fw-bold">{update.new_category}</span>
                         </div>
                       </td>

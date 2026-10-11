@@ -7,6 +7,8 @@ import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
+import VisuallyHidden from '../ms/VisuallyHidden/VisuallyHidden.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const CLUB_ROLES = [ROLE.logo];
 
@@ -143,7 +145,7 @@ export default function ClubManagement() {
       {loading && clubs.length === 0 ? (
         <LoadingState variant="page" label="Načítám kluby…" />
       ) : visibleClubs.length === 0 ? (
-        <EmptyState icon="bi-buildings" title="Žádný klub neodpovídá filtru" />
+        <EmptyState icon="building" title="Žádný klub neodpovídá filtru" />
       ) : (
         <div className="table-responsive">
           <table className="table table-hover align-middle">
@@ -168,15 +170,15 @@ export default function ClubManagement() {
                     <td className="text-center">{club.organized_races_count || '—'}</td>
                     <td className="text-center">
                       {club.has_logo
-                        ? <i className="bi bi-check-circle-fill text-success" title="Logo nahráno" />
-                        : <i className="bi bi-dash-circle text-muted" title="Bez loga" />}
+                        ? <span title="Logo nahráno"><Icon name="success" className="text-success" /><VisuallyHidden>Ano</VisuallyHidden></span>
+                        : <span title="Bez loga"><Icon name="minus-circle" className="text-muted" /><VisuallyHidden>Ne</VisuallyHidden></span>}
                     </td>
                     <td className="text-end">
                       <button
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => setExpandedClub(expandedClub === club.id ? null : club.id)}
                       >
-                        <i className="bi bi-image me-1" />
+                        <Icon name="image" className="me-1" />
                         {club.has_logo ? 'Změnit logo' : 'Nahrát logo'}
                       </button>
                       <button
@@ -185,7 +187,7 @@ export default function ClubManagement() {
                         aria-label={`Smazat klub ${club.name}`}
                         onClick={() => setMazanyKlub(club)}
                       >
-                        <i className="bi bi-trash" />
+                        <Icon name="trash" />
                       </button>
                     </td>
                   </tr>

@@ -1,3 +1,4 @@
+import Icon from '../ms/Icon/Icon.jsx';
 import { Link } from 'react-router-dom';
 
 /**
@@ -9,8 +10,8 @@ import { Link } from 'react-router-dom';
  * uvidí po přepnutí její přihlašovací obrazovku.
  */
 const SECTIONS = [
-  { key: 'admin', to: '/admin', icon: 'bi-gear-fill', label: 'Admin' },
-  { key: 'timekeeper', to: '/timekeeper', icon: 'bi-stopwatch-fill', label: 'Časomíra' }
+  { key: 'admin', to: '/admin', icon: 'gear', label: 'Admin' },
+  { key: 'timekeeper', to: '/timekeeper', icon: 'stopwatch', label: 'Časomíra' }
 ];
 
 /** @param {{ current: 'admin' | 'timekeeper' }} props sekce, ve které uživatel je */
@@ -20,7 +21,7 @@ export default function SectionSwitch({ current }) {
       {SECTIONS.map((section) => {
         const content = (
           <>
-            <i className={`bi ${section.icon}`} aria-hidden="true"></i>
+            <Icon name={section.icon} />
             <span className="section-switch-label">{section.label}</span>
           </>
         );

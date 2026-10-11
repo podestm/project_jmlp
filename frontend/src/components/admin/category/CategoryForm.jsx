@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 /**
  * Formulář pro založení a úpravu kategorie.
  *
@@ -141,7 +142,7 @@ export default function CategoryForm({
 
           <div className="d-flex gap-2">
             <button type="submit" className="btn btn-primary">
-              <i className="bi bi-save me-2"></i>
+              <Icon name="save" className="me-2" />
               {editingCategory ? 'Uložit změny' : 'Vytvořit kategorii'}
             </button>
             <button type="button" className="btn btn-secondary" onClick={onCancel}>

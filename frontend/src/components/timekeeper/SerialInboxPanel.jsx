@@ -2,6 +2,7 @@ import BridgeEventRow from './BridgeEventRow.jsx';
 import { EMPTY_RESOLUTION } from './inboxMatching.js';
 import { TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 import { INBOX_RENDER_LIMIT } from './useInboxEvents.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Schránka impulzů z časomíry.
@@ -48,7 +49,7 @@ export default function SerialInboxPanel({
         <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom flex-wrap gap-2">
           <div>
             <div className="fw-semibold" style={{ color: TK_ACCENT_TEXT, fontSize: '0.95rem' }}>
-              <i className="bi bi-journal-text me-1"></i>Serial inbox
+              <Icon name="news" className="me-1" />Serial inbox
             </div>
             <small className="text-muted">
               Klik na badge přepne kandidáta, potvrzení zapíše serial událost do výsledků.
@@ -82,7 +83,7 @@ export default function SerialInboxPanel({
                 onClick={onDismissUnparsed}
                 title="Označí nerozpoznané řádky jako zamítnuté"
               >
-                <i className="bi bi-question-octagon me-1"></i>Odbavit nerozpoznané ({unparsedCount})
+                <Icon name="question" className="me-1" />Odbavit nerozpoznané ({unparsedCount})
               </button>
             )}
             <button
@@ -93,7 +94,7 @@ export default function SerialInboxPanel({
               disabled={resolvedCount === 0}
               title="Smaže potvrzené, zamítnuté a chybové řádky"
             >
-              <i className="bi bi-eraser me-1"></i>Smazat vyřízené
+              <Icon name="erase" className="me-1" />Smazat vyřízené
             </button>
             <button
               type="button"
@@ -103,7 +104,7 @@ export default function SerialInboxPanel({
               disabled={events.length === 0}
               title="Smaže celý inbox tohoto závodu včetně nepotvrzených"
             >
-              <i className="bi bi-trash me-1"></i>Smazat vše
+              <Icon name="trash" className="me-1" />Smazat vše
             </button>
           </div>
         </div>

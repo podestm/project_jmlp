@@ -5,6 +5,7 @@ import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
 import SearchableSelect from '../ui/SearchableSelect.jsx';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 // Závodníků jsou v databázi tisíce. Vykreslit je všechny naráz znamená tisíce
 // řádků v DOMu a zaseknutou stránku, proto se ukazuje po stovkách.
@@ -45,16 +46,16 @@ const RacerRow = React.memo(function RacerRow({ racer, onEdit, onDelete }) {
           <button
             onClick={() => onEdit(racer)}
             className="btn btn-sm btn-outline-primary"
-            title="Upravit"
+            aria-label="Upravit" title="Upravit"
           >
-            <i className="bi bi-pencil"></i>
+            <Icon name="pencil" />
           </button>
           <button
             onClick={() => onDelete(racer)}
             className="btn btn-sm btn-outline-danger"
-            title="Smazat"
+            aria-label="Smazat" title="Smazat"
           >
-            <i className="bi bi-trash"></i>
+            <Icon name="trash" />
           </button>
         </div>
       </td>
@@ -239,7 +240,7 @@ export default function RacerManagement() {
       message: `Opravdu chcete smazat závodníka ${label} (ročník ${racer.birthYear || '?'})? Tuto akci nelze vrátit zpět.`,
       confirmLabel: 'Smazat',
       variant: 'danger',
-      icon: 'bi-trash'
+      icon: 'trash'
     });
     if (!confirmed) return;
 
@@ -280,7 +281,7 @@ export default function RacerManagement() {
             <div className="d-flex gap-2">
               {/* Podagenda Závodníků - v bočním menu záměrně není. */}
               <Link to="/admin/racers/slcr" className="btn btn-outline-primary">
-                <i className="bi bi-person-check me-2"></i>
+                <Icon name="user-check" className="me-2" />
                 Párování SLČR
               </Link>
               <button
@@ -290,7 +291,7 @@ export default function RacerManagement() {
                 }}
                 className="btn btn-primary"
               >
-                <i className="bi bi-plus-circle me-2"></i>
+                <Icon name="plus-circle" className="me-2" />
                 Nový závodník
               </button>
             </div>
@@ -301,7 +302,7 @@ export default function RacerManagement() {
               type="danger"
               message={
                 <>
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  <Icon name="warning" className="me-2" />
                   {error}
                 </>
               }
@@ -315,7 +316,7 @@ export default function RacerManagement() {
               <div className="row g-3">
                 <div className="col-md-3">
                   <label className="form-label small text-muted">
-                    <i className="bi bi-search me-1"></i>
+                    <Icon name="search" className="me-1" />
                     Hledat
                   </label>
                   <input
@@ -328,7 +329,7 @@ export default function RacerManagement() {
                 </div>
                 <div className="col-md-3">
                   <label className="form-label small text-muted">
-                    <i className="bi bi-buildings me-1"></i>
+                    <Icon name="building" className="me-1" />
                     Klub
                   </label>
                   <SearchableSelect
@@ -341,7 +342,7 @@ export default function RacerManagement() {
                 </div>
                 <div className="col-md-2">
                   <label className="form-label small text-muted">
-                    <i className="bi bi-tag me-1"></i>
+                    <Icon name="tag" className="me-1" />
                     Kategorie
                   </label>
                   <SearchableSelect
@@ -354,7 +355,7 @@ export default function RacerManagement() {
                 </div>
                 <div className="col-md-2">
                   <label className="form-label small text-muted">
-                    <i className="bi bi-gender-ambiguous me-1"></i>
+                    <Icon name="gender" className="me-1" />
                     Pohlaví
                   </label>
                   <select
@@ -373,7 +374,7 @@ export default function RacerManagement() {
                       className="btn btn-outline-secondary w-100"
                       onClick={resetFilters}
                     >
-                      <i className="bi bi-x-circle me-1"></i>
+                      <Icon name="x-circle" className="me-1" />
                       Zrušit
                     </button>
                   )}
@@ -381,7 +382,7 @@ export default function RacerManagement() {
               </div>
               {filtersActive && (
                 <div className="mt-2 text-muted small">
-                  <i className="bi bi-funnel me-1"></i>
+                  <Icon name="filter" className="me-1" />
                   Zobrazeno {filteredRacers.length} z {racers.length} závodníků
                 </div>
               )}
@@ -435,7 +436,7 @@ export default function RacerManagement() {
                     className="btn btn-outline-primary btn-sm"
                     onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
                   >
-                    <i className="bi bi-chevron-down me-1"></i>
+                    <Icon name="chevron-down" className="me-1" />
                     Zobrazit dalších {Math.min(PAGE_SIZE, filteredRacers.length - visibleRacers.length)}
                   </button>
                 </div>

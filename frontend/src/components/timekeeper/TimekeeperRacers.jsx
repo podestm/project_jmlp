@@ -15,6 +15,7 @@ import {
   sortStartListEntries,
 } from './startListHelpers.js';
 import { getRaceNumberBadgeStyle, getSetColorTheme } from '../../utils/raceNumbers.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Závodníci jednoho závodu - přidání a inline oprava bez zápisu do registrací.
@@ -442,7 +443,7 @@ export default function TimekeeperRacers() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-people me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="users" className="me-2" style={{ color: TK_ACCENT }} />
             Závodníci
           </h5>
           <small className="text-muted">Správa závodníků daného závodu bez zápisu do registrací</small>
@@ -453,7 +454,7 @@ export default function TimekeeperRacers() {
             style={{ borderRadius: '8px' }}
             onClick={() => navigate('/timekeeper/start-list')}
           >
-            <i className="bi bi-list-ol me-1"></i>Na startovní listinu
+            <Icon name="list-numbered" className="me-1" />Na startovní listinu
           </button>
         )}
       </div>
@@ -479,7 +480,7 @@ export default function TimekeeperRacers() {
         <div className="card border-0 shadow-sm mb-3 timekeeper-racers-panel" style={{ borderRadius: '10px' }}>
           <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
             <h6 className="fw-bold mb-0">
-              <span className="bi bi-person-plus me-2" style={{ color: TK_ACCENT }}></span>
+              <Icon name="user-plus" className="me-2" style={{ color: TK_ACCENT }} />
               Přidat závodníka do závodu
             </h6>
           </div>
@@ -497,7 +498,7 @@ export default function TimekeeperRacers() {
                   <div className="row g-2 mt-0">
                     <div className="col-md-4">
                       <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-123"></span>
+                        <Icon name="numbers" />
                         Systémové číslo
                       </label>
                       <input
@@ -525,7 +526,7 @@ export default function TimekeeperRacers() {
                     </div>
                     <div className="col-md-8">
                       <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-person-badge"></span>
+                        <Icon name="user" />
                         Číslo dresu
                       </label>
                       <div className="d-flex align-items-center justify-content-between gap-3 px-3 py-2 rounded-3" style={{
@@ -569,7 +570,7 @@ export default function TimekeeperRacers() {
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => resetForm()}
                     >
-                      <span className="bi bi-x-circle me-1"></span>
+                      <Icon name="x-circle" className="me-1" />
                       Vymazat
                     </button>
                     <button
@@ -586,7 +587,7 @@ export default function TimekeeperRacers() {
                       {submitting ? (
                         <><ButtonSpinner />Přidávám...</>
                       ) : (
-                        <><span className="bi bi-plus-circle me-1"></span>Přidat</>
+                        <><Icon name="plus-circle" className="me-1" />Přidat</>
                       )}
                     </button>
                   </div>
@@ -674,7 +675,7 @@ export default function TimekeeperRacers() {
             {loading ? (
               <LoadingState variant="timekeeper" />
             ) : filteredEntries.length === 0 ? (
-              <EmptyState icon="bi-funnel" title="Žádní závodníci neodpovídají aktuálním filtrům." />
+              <EmptyState icon="filter" title="Žádní závodníci neodpovídají aktuálním filtrům." />
             ) : (
               <div className="table-responsive">
                 <table className="table table-sm table-hover align-middle mb-0 timekeeper-racers-table">
@@ -752,12 +753,12 @@ export default function TimekeeperRacers() {
                           <td>
                             <div className="d-flex gap-1">
                               <button className="btn btn-sm btn-success py-0 px-1" style={{ fontSize: '0.75rem' }}
-                                onClick={saveEditing} title="Uložit">
-                                <i className="bi bi-check-lg"></i>
+                                onClick={saveEditing} aria-label="Uložit" title="Uložit">
+                                <Icon name="check" />
                               </button>
                               <button className="btn btn-sm btn-outline-secondary py-0 px-1" style={{ fontSize: '0.75rem' }}
-                                onClick={cancelEditing} title="Zrušit">
-                                <i className="bi bi-x-lg"></i>
+                                onClick={cancelEditing} aria-label="Zrušit" title="Zrušit">
+                                <Icon name="close" />
                               </button>
                             </div>
                           </td>
@@ -775,7 +776,7 @@ export default function TimekeeperRacers() {
       )}
 
       {!selectedRaceId && (
-        <EmptyState icon="bi-hand-index" title="Vyberte závod" />
+        <EmptyState icon="pointer" title="Vyberte závod" />
       )}
     </div>
   );

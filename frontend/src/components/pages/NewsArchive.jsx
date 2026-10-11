@@ -3,6 +3,7 @@ import NewsFilters from './news/NewsFilters.jsx';
 import PostsList from './news/PostsList.jsx';
 import NewsPagination from './news/NewsPagination.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 function NewsArchive() {
     const newsArchive = useNewsArchive();
@@ -32,7 +33,7 @@ function NewsArchive() {
                 <div className="col-12">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h1 className="mb-0">
-                            <i className="bi bi-newspaper me-2"></i>
+                            <Icon name="news" className="me-2" />
                             Archiv příspěvků
                         </h1>
                     </div>

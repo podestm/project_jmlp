@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminAPI } from '../../config/api.js';
 import SearchableSelect from '../ui/SearchableSelect.jsx';
 import Alert from '../ui/Alert.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function ClubRequests() {
     const [requests, setRequests] = useState([]);
@@ -84,7 +85,7 @@ export default function ClubRequests() {
             {requests.length === 0 ? (
                 <div className="card border-0 shadow-sm">
                     <div className="card-body text-center py-5 text-muted">
-                        <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '2.5rem' }}></i>
+                        <Icon name="success" className="text-success" style={{ fontSize: '2.5rem' }} />
                         <p className="mt-3 mb-0 fs-5">Žádné nevyřízené žádosti</p>
                         <p className="text-muted small">Všechny žádosti o přiřazení klubu jsou vyřízeny.</p>
                     </div>
@@ -182,7 +183,7 @@ export default function ClubRequests() {
                                                                     disabled={!canConfirm}
                                                                     onClick={() => handleResolve(req.registration_id)}
                                                                 >
-                                                                    <i className="bi bi-check-lg me-1"></i>
+                                                                    <Icon name="check" className="me-1" />
                                                                     Potvrdit a přiřadit
                                                                 </button>
                                                             </div>

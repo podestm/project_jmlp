@@ -26,6 +26,7 @@ import PdfPreviewModal from './PdfPreviewModal.jsx';
 import SerialInboxPanel from './SerialInboxPanel.jsx';
 import TimingTable from './TimingTable.jsx';
 import TimingToolbar from './TimingToolbar.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Zadávání časů: ruční tabulka vlevo, inbox událostí z časomíry vpravo.
@@ -453,7 +454,7 @@ export default function TimingEntry() {
           <div className="col-12 col-xl-7">
             {excludedCount > 0 && (
               <div className="small text-muted mb-1">
-                <i className="bi bi-person-dash me-1"></i>
+                <Icon name="user-minus" className="me-1" />
                 Vyřazení ze startovní listiny ({excludedCount}) se tu nezobrazují – vrátit je jde v Listině.
               </div>
             )}
@@ -501,12 +502,12 @@ export default function TimingEntry() {
         <>
           {inboxEvents.length > 0 && (
             <div className="alert alert-info py-2 small" role="alert">
-              <i className="bi bi-inbox-fill me-2"></i>
+              <Icon name="inbox" className="me-2" />
               Časomíra už poslala {inboxEvents.length} událostí, které zatím nepatří k žádnému závodu.
               Vyberte závod – zobrazí se zde a půjdou potvrdit. Nic se neztratilo.
             </div>
           )}
-          <EmptyState icon="bi-hand-index" title="Vyberte závod pro zadávání časů" />
+          <EmptyState icon="pointer" title="Vyberte závod pro zadávání časů" />
         </>
       )}
 

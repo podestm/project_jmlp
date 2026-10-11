@@ -24,6 +24,7 @@ import {
   resolveCategoryPreview,
   sortStartListEntries,
 } from './startListHelpers.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /** Stejné pro všechny tabulky kategorií, aby sloupce seděly pod sebou. */
 const START_LIST_TABLE_STYLE = Object.freeze({ fontSize: '0.82rem', tableLayout: 'fixed', minWidth: '920px' });
@@ -187,7 +188,7 @@ export default function StartListManager() {
         + '. Listinu půjde znovu vygenerovat z přihlášek. Akce je nevratná.',
       confirmLabel: 'Smazat vše',
       variant: 'danger',
-      icon: 'bi-trash',
+      icon: 'trash',
     });
     if (!confirmed) return;
     try {
@@ -287,7 +288,7 @@ export default function StartListManager() {
       title: `Odebrat ${name} ze startovní listiny?`,
       confirmLabel: 'Odebrat',
       variant: 'danger',
-      icon: 'bi-trash',
+      icon: 'trash',
     });
     if (!confirmed) return;
     try {
@@ -425,7 +426,7 @@ export default function StartListManager() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-list-ol me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="list-numbered" className="me-2" style={{ color: TK_ACCENT }} />
             Startovní listina
           </h5>
           <small className="text-muted">Generování a správa startovní listiny</small>
@@ -448,7 +449,7 @@ export default function StartListManager() {
                     onClick={showGenerateSetup ? () => setShowGenerateSetup(false) : openGenerateSetup}
                     disabled={generating}
                   >
-                    <i className={`bi ${showGenerateSetup ? 'bi-x-lg' : 'bi-plus-circle'} me-1`}></i>
+                    <Icon name={showGenerateSetup ? 'close' : 'plus-circle'} className="me-1" />
                     {showGenerateSetup ? 'Zrušit' : 'Generovat'}
                   </button>
                   <button
@@ -456,7 +457,7 @@ export default function StartListManager() {
                     style={{ borderRadius: '8px' }}
                     onClick={() => navigate('/timekeeper/racers')}
                   >
-                    <i className="bi bi-people me-1"></i>Závodníci
+                    <Icon name="users" className="me-1" />Závodníci
                   </button>
                   {startList.length > 0 && (
                     <>
@@ -467,7 +468,7 @@ export default function StartListManager() {
                           disabled={pdf.generating}
                           title="Startovní listina 1. kola všech kategorií - funguje i offline"
                         >
-                          {pdf.generating ? <ButtonSpinner /> : <i className="bi bi-printer me-1"></i>}
+                          {pdf.generating ? <ButtonSpinner /> : <Icon name="printer" className="me-1" />}
                           Startovka 1. kola
                         </button>
                         <button
@@ -494,14 +495,14 @@ export default function StartListManager() {
                         disabled={pdf.generating}
                         title="Seznam startujících podle oddílu - funguje i offline"
                       >
-                        <i className="bi bi-people me-1"></i>Rozpis po klubech
+                        <Icon name="users" className="me-1" />Rozpis po klubech
                       </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
                         style={{ borderRadius: '8px' }}
                         onClick={clearStartList}
                       >
-                        <i className="bi bi-trash me-1"></i>Smazat vše
+                        <Icon name="trash" className="me-1" />Smazat vše
                       </button>
                     </>
                   )}
@@ -521,7 +522,7 @@ export default function StartListManager() {
             ) : (
               <>
                 <h6 className="fw-bold mb-2">
-                  <i className="bi bi-gear me-2"></i>Nastavení generování
+                  <Icon name="gear" className="me-2" />Nastavení generování
                 </h6>
                 <div className="row g-3">
                   {/* Category ordering */}
@@ -529,9 +530,9 @@ export default function StartListManager() {
                     <div className="p-2 rounded-2" style={{ background: '#f8f9fa' }}>
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <small className="fw-bold">
-                          <i className="bi bi-arrow-down-up me-1" style={{ color: TK_ACCENT }}></i>Pořadí kategorií
+                          <Icon name="sort" className="me-1" style={{ color: TK_ACCENT }} />Pořadí kategorií
                         </small>
-                        <small className="text-muted"><i className="bi bi-grip-vertical me-1"></i>Přetáhněte</small>
+                        <small className="text-muted"><Icon name="grip" className="me-1" />Přetáhněte</small>
                       </div>
                       <div className="d-flex flex-column gap-1">
                         {categoryOrder.map((catId, index) => {
@@ -546,7 +547,7 @@ export default function StartListManager() {
                               className="d-flex align-items-center py-1 px-2 rounded-2"
                               style={{ background: 'white', border: '1px solid #dee2e6', cursor: 'grab', userSelect: 'none', fontSize: '0.85rem' }}
                             >
-                              <i className="bi bi-grip-vertical text-muted me-2"></i>
+                              <Icon name="grip" className="text-muted me-2" />
                               <span className="badge me-2" style={{ background: TK_ACCENT_FILL, minWidth: '22px', fontSize: '0.7rem' }}>{index + 1}</span>
                               <span className="fw-semibold flex-grow-1">{categoryLabel(cat)}</span>
                               {cat.code && (
@@ -555,12 +556,14 @@ export default function StartListManager() {
                               <small className="text-muted me-2">{cat.sex === 2 ? '♀' : '♂'}</small>
                               <div className="btn-group btn-group-sm">
                                 <button className="btn btn-outline-secondary py-0 px-1" style={{ fontSize: '0.7rem' }}
-                                  onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }} disabled={index === 0}>
-                                  <i className="bi bi-chevron-up"></i>
+                                  onClick={(e) => { e.stopPropagation(); moveCategoryUp(index); }} disabled={index === 0}
+                                  aria-label={`Posunout ${categoryLabel(cat)} nahoru`}>
+                                  <Icon name="chevron-up" />
                                 </button>
                                 <button className="btn btn-outline-secondary py-0 px-1" style={{ fontSize: '0.7rem' }}
-                                  onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }} disabled={index === categoryOrder.length - 1}>
-                                  <i className="bi bi-chevron-down"></i>
+                                  onClick={(e) => { e.stopPropagation(); moveCategoryDown(index); }} disabled={index === categoryOrder.length - 1}
+                                  aria-label={`Posunout ${categoryLabel(cat)} dolů`}>
+                                  <Icon name="chevron-down" />
                                 </button>
                               </div>
                             </div>
@@ -579,7 +582,7 @@ export default function StartListManager() {
                     {generating ? (
                       <><ButtonSpinner />Generuji...</>
                     ) : (
-                      <><i className="bi bi-lightning me-1"></i>Vygenerovat</>
+                      <><Icon name="lightning" className="me-1" />Vygenerovat</>
                     )}
                   </button>
                 </div>
@@ -605,7 +608,7 @@ export default function StartListManager() {
             </small>
             <button className="btn btn-sm btn-primary" style={{ borderRadius: '8px' }}
               onClick={() => navigate('/timekeeper/timing')}>
-              <i className="bi bi-clock me-1"></i>Zadávání časů
+              <Icon name="clock" className="me-1" />Zadávání časů
             </button>
           </div>
 
@@ -613,7 +616,7 @@ export default function StartListManager() {
             <div key={group.key} className="card border-0 shadow-sm mb-2" style={{ borderRadius: '10px' }}>
               <div className="card-header bg-white py-2 px-3 border-bottom" style={{ borderRadius: '10px 10px 0 0' }}>
                 <small className="fw-bold">
-                  <i className="bi bi-tag-fill me-1" style={{ color: TK_ACCENT }}></i>
+                  <Icon name="tag" className="me-1" style={{ color: TK_ACCENT }} />
                   {group.category_name}
                   <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}>{group.activeCount}</span>
                   {group.excludedCount > 0 && (
@@ -703,12 +706,12 @@ export default function StartListManager() {
                             <td style={{ padding: '4px 8px' }}>
                               <div className="d-flex gap-1">
                                 <button className="btn btn-sm btn-success py-0 px-1" style={{ fontSize: '0.75rem' }}
-                                  onClick={saveEditing} title="Uložit">
-                                  <i className="bi bi-check-lg"></i>
+                                  onClick={saveEditing} aria-label="Uložit" title="Uložit">
+                                  <Icon name="check" />
                                 </button>
                                 <button className="btn btn-sm btn-outline-secondary py-0 px-1" style={{ fontSize: '0.75rem' }}
-                                  onClick={cancelEditing} title="Zrušit">
-                                  <i className="bi bi-x-lg"></i>
+                                  onClick={cancelEditing} aria-label="Zrušit" title="Zrušit">
+                                  <Icon name="close" />
                                 </button>
                               </div>
                             </td>
@@ -734,13 +737,13 @@ export default function StartListManager() {
 
       {!loading && selectedRaceId && startList.length === 0 && !showGenerateSetup && (
         <EmptyState
-          icon="bi-list-ul"
+          icon="list"
           title="Startovní listina je prázdná"
           hint='Klikněte na "Generovat" pro vytvoření listiny'
         />
       )}
 
-      {!selectedRaceId && <EmptyState icon="bi-hand-index" title="Vyberte závod" />}
+      {!selectedRaceId && <EmptyState icon="pointer" title="Vyberte závod" />}
 
       {pdf.objectUrl && (
         <PdfPreviewModal

@@ -1,4 +1,5 @@
 import SearchableSelect from '../SearchableSelect.jsx';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const RegistrationFormFields = ({
     formData,
@@ -47,7 +48,7 @@ const RegistrationFormFields = ({
             <div className="row g-2 mb-3">
                 <div className="col-md-6">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-person"></span>
+                        <Icon name="user" />
                         Jméno <span className="text-danger">*</span>
                     </label>
                     <input
@@ -66,7 +67,7 @@ const RegistrationFormFields = ({
                 </div>
                 <div className="col-md-6">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-person"></span>
+                        <Icon name="user" />
                         Příjmení <span className="text-danger">*</span>
                     </label>
                     <input
@@ -88,7 +89,7 @@ const RegistrationFormFields = ({
             <div className="row g-2 mb-1">
                 <div className="col-md-4">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-calendar3"></span>
+                        <Icon name="calendar" />
                         Rok narození <span className="text-danger">*</span>
                     </label>
                     <input
@@ -109,7 +110,7 @@ const RegistrationFormFields = ({
                 </div>
                 <div className="col-md-4">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-gender-ambiguous"></span>
+                        <Icon name="gender" />
                         Pohlaví <span className="text-danger">*</span>
                     </label>
                     <select
@@ -134,7 +135,7 @@ const RegistrationFormFields = ({
             <div className="row g-2 mb-3">
                 <div className="col-12">
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-buildings"></span>
+                        <Icon name="building" />
                         Klub <span className="text-danger">*</span>
                     </label>
                     {setClubNoteMode === null ? (
@@ -185,7 +186,7 @@ const RegistrationFormFields = ({
                                 }}
                                 onClick={() => { updateField('clubId', null); setClubNoteMode(true); }}
                             >
-                                <i className="bi bi-question-circle me-1" />
+                                <Icon name="question" className="me-1" />
                                 Nemůžu najít svůj klub
                             </button>
                         </>
@@ -222,7 +223,7 @@ const RegistrationFormFields = ({
                                 }}
                                 onClick={() => { updateField('clubNote', ''); setClubNoteMode(false); }}
                             >
-                                <i className="bi bi-arrow-left me-1" />
+                                <Icon name="arrow-left" className="me-1" />
                                 Zpět na výběr ze seznamu
                             </button>
                         </>
@@ -236,7 +237,7 @@ const RegistrationFormFields = ({
                     <>
                         <div className="col-md-4">
                             <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                                <span className="bi bi-telephone"></span>
+                                <Icon name="phone" />
                                 Telefon
                             </label>
                             <input
@@ -250,7 +251,7 @@ const RegistrationFormFields = ({
                         </div>
                         <div className="col-md-4">
                             <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                                <span className="bi bi-envelope"></span>
+                                <Icon name="mail" />
                                 Email
                             </label>
                             <input
@@ -266,7 +267,7 @@ const RegistrationFormFields = ({
                 )}
                 <div className={showContactFields ? "col-md-4" : "col-md-4"}>
                     <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                        <span className="bi bi-card-text"></span>
+                        <Icon name="card" />
                         ID závodníka
                     </label>
                     <input

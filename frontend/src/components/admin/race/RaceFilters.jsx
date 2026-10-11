@@ -1,4 +1,5 @@
 import Alert from '../../ui/Alert.jsx';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const RaceFilters = ({ 
     seasonFilter, 
@@ -30,7 +31,7 @@ const RaceFilters = ({
                         className="btn btn-primary"
                         onClick={() => setShowForm(true)}
                     >
-                        <i className="bi bi-plus-circle me-2"></i>
+                        <Icon name="plus-circle" className="me-2" />
                         Přidat závod
                     </button>
                 </div>

@@ -1,4 +1,5 @@
 import { formatSeason } from '../../../utils/season.js';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const RaceTable = ({
     races,
@@ -19,7 +20,7 @@ const RaceTable = ({
                     rel="noopener noreferrer"
                     title="Propozice"
                 >
-                    <i className="bi bi-file-text me-1"></i>P
+                    <Icon name="file-text" className="me-1" />P
                 </a>
             )}
             {race.results_file_id && (
@@ -30,7 +31,7 @@ const RaceTable = ({
                     rel="noopener noreferrer"
                     title="Výsledky"
                 >
-                    <i className="bi bi-file-text me-1"></i>V
+                    <Icon name="file-text" className="me-1" />V
                 </a>
             )}
             {!race.proposition_file_id && !race.results_file_id && (
@@ -42,7 +43,7 @@ const RaceTable = ({
     if (races.length === 0) {
         return (
             <div className="text-center py-4">
-                <i className="bi bi-inbox display-1 text-muted"></i>
+                <Icon name="inbox" className="display-1 text-muted" />
                 <p className="text-muted mt-2">Žádné závody nebyly nalezeny</p>
             </div>
         );
@@ -91,7 +92,7 @@ const RaceTable = ({
                                     onClick={() => toggleRegistration(race.id)}
                                     title={race.registration ? 'Registrace povolena - klikněte pro zakázání' : 'Registrace zakázána - klikněte pro povolení'}
                                 >
-                                    <i className={`bi ${race.registration ? 'bi-check-circle' : 'bi-x-circle'}`}></i>
+                                    <Icon name={race.registration ? 'success' : 'x-circle'} />
                                     {race.registration ? ' Aktivní' : ' Neaktivní'}
                                 </button>
                             </td>
@@ -106,23 +107,23 @@ const RaceTable = ({
                                     <button 
                                         className="btn btn-outline-primary" 
                                         onClick={() => editRace(race)}
-                                        title="Upravit závod"
+                                        aria-label="Upravit závod" title="Upravit závod"
                                     >
-                                        <i className="bi bi-pencil"></i>
+                                        <Icon name="pencil" />
                                     </button>
                                     <button 
                                         className="btn btn-outline-success" 
                                         onClick={() => downloadRegistrationsCsv(race.id, race.race_nr)}
-                                        title="Stáhnout registrace CSV"
+                                        aria-label="Stáhnout registrace CSV" title="Stáhnout registrace CSV"
                                     >
-                                        <i className="bi bi-download"></i>
+                                        <Icon name="download" />
                                     </button>
                                     <button 
                                         className="btn btn-outline-danger" 
                                         onClick={() => deleteRace(race.id, race.race_nr)}
-                                        title="Smazat závod"
+                                        aria-label="Smazat závod" title="Smazat závod"
                                     >
-                                        <i className="bi bi-trash"></i>
+                                        <Icon name="trash" />
                                     </button>
                                 </div>
                             </td>

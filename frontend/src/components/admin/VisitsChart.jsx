@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { AdminAPI } from '../../config/api';
+import Icon from '../ms/Icon/Icon.jsx';
 
 // Registrace Chart.js komponent
 ChartJS.register(
@@ -157,7 +158,7 @@ const VisitsChart = () => {
     <div className="card border-0 shadow-sm">
       <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
         <h6 className="mb-0">
-          <i className="bi bi-graph-up me-2"></i>
+          <Icon name="chart-line" className="me-2" />
           Návštěvnost webu
         </h6>
         <div className="btn-group btn-group-sm">
@@ -181,11 +182,11 @@ const VisitsChart = () => {
           </div>
         ) : error ? (
           <div className="alert alert-danger mb-0">
-            <i className="bi bi-exclamation-triangle me-2"></i>{error}
+            <Icon name="warning" className="me-2" />{error}
           </div>
         ) : isEmpty ? (
           <div className="text-center text-muted py-5">
-            <i className="bi bi-bar-chart-line" style={{ fontSize: '2.5rem', opacity: 0.25 }}></i>
+            <Icon name="chart" style={{ fontSize: '2.5rem', opacity: 0.25 }} />
             <p className="mt-2 mb-0 small">Zatím žádná data o návštěvnosti</p>
           </div>
         ) : (

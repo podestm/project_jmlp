@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const RacerSearchResults = ({
     filteredRacers,
@@ -8,7 +9,7 @@ const RacerSearchResults = ({
     return (
         <div className="h-100">
             <h6 className="text-muted mb-3">
-                <span className="bi bi-people"></span>
+                <Icon name="users" />
                 Nalezení závodníci
             </h6>
 
@@ -23,7 +24,7 @@ const RacerSearchResults = ({
 
             {!isSearching && filteredRacers.length === 0 && (
                 <div className="text-muted text-center">
-                    <span className="bi bi-search"></span>
+                    <Icon name="search" />
                     <div>Začněte psát pro vyhledání závodníků</div>
                 </div>
             )}
@@ -52,7 +53,7 @@ const RacerSearchResults = ({
                                         )}
                                     </div>
                                 </div>
-                                <span className="bi bi-chevron-right text-muted"></span>
+                                <Icon name="chevron-right" className="text-muted" />
                             </div>
                         </button>
                     ))}

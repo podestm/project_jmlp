@@ -1,6 +1,7 @@
 import API from '../../../config/api.js';
 import { formatDateShort } from '../../../utils/date.js';
 import { formatText } from '../../../utils/text.js';
+import Icon from '../../ms/Icon/Icon.jsx';
 
 // Pomocné funkce si karta bere přímo z utils - dřív je dostávala jako props,
 // což vázalo každé místo, které kartu vykreslí, na hook s formátováním.
@@ -28,7 +29,7 @@ const PostCard = ({ post }) => {
             <div className="card-header d-flex justify-content-between align-items-center">
                 <h5 className="card-title mb-0">{post.title}</h5>
                 <small className="text-muted">
-                    <i className="bi bi-calendar3 me-1"></i>
+                    <Icon name="calendar" className="me-1" />
                     {formatDateShort(post.created_at)}
                 </small>
             </div>
@@ -58,7 +59,7 @@ const PostCard = ({ post }) => {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <i className="bi bi-file-text me-1"></i>
+                            <Icon name="file-text" className="me-1" />
                             Stáhnout dokument
                         </a>
                     </div>

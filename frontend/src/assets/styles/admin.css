@@ -492,7 +492,7 @@ body.theme-backoffice .btn-link {
 }
 
 /* Ikony v tlačítku mají barvu textu tlačítka (i při najetí myší) */
-body.theme-backoffice .btn .bi { color: inherit !important; }
+body.theme-backoffice .btn svg[aria-hidden] { color: inherit !important; }
 
 /* ── Formuláře ───────────────────────────────────────────────────────── */
 
@@ -694,7 +694,7 @@ body.theme-backoffice .list-group {
 }
 
 /* Ve vybraném řádku je všechno bílé - i ztlumený text a ikony */
-body.theme-backoffice .list-group-item.active :is(.text-muted, .small, small, .bi) { color: #fff !important; }
+body.theme-backoffice .list-group-item.active :is(.text-muted, .small, small, svg[aria-hidden]) { color: #fff !important; }
 
 /* ── Modální okna ────────────────────────────────────────────────────── */
 
@@ -770,7 +770,7 @@ body.theme-backoffice .dashboard-icon-primary { background: var(--adm-primary-su
 body.theme-backoffice .dashboard-icon-success { background: var(--adm-success-subtle); color: var(--adm-success); }
 body.theme-backoffice .dashboard-icon-warning { background: var(--adm-warning-subtle); color: var(--adm-warning-line); }
 body.theme-backoffice .dashboard-icon-info { background: var(--adm-info-subtle); color: var(--adm-info); }
-body.theme-backoffice .dashboard-icon-box .bi { color: inherit; }
+body.theme-backoffice .dashboard-icon-box svg[aria-hidden] { color: inherit; }
 
 /* Nadcházející závod. Dřív tu byl přechod do světle tyrkysové, na které
    bílý text neměl kontrast (2.2:1), a navíc ho přebíjelo bílé pozadí karet -

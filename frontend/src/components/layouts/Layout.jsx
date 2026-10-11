@@ -1,4 +1,5 @@
 import Navigation from './Navigation.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function Layout({ children, fluid }) {
   return (
@@ -42,11 +43,11 @@ export default function Layout({ children, fluid }) {
             </div>
             <div className="col-md-6">
               <div className="d-flex justify-content-center justify-content-md-end">
-                <a href="mailto:info@jmlp.cz" className="text-muted me-3">
-                  <i className="bi bi-envelope"></i>
+                <a href="mailto:info@jmlp.cz" className="text-muted me-3" aria-label="Napsat e-mail">
+                  <Icon name="mail" />
                 </a>
-                <a href="tel:+420123456789" className="text-muted">
-                  <i className="bi bi-phone"></i>
+                <a href="tel:+420123456789" className="text-muted" aria-label="Zavolat">
+                  <Icon name="smartphone" />
                 </a>
               </div>
             </div>

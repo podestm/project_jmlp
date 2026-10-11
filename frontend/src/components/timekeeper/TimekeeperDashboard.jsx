@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function TimekeeperDashboard() {
   const [races, setRaces] = useState([]);
@@ -85,7 +86,7 @@ export default function TimekeeperDashboard() {
               {isSelected && <span className="badge bg-primary-subtle ms-2">Naposledy vybraný</span>}
             </div>
             <small className="text-muted">
-              <i className="bi bi-calendar3 me-1"></i>{formatDate(race.datum)}
+              <Icon name="calendar" className="me-1" />{formatDate(race.datum)}
             </small>
           </div>
 
@@ -144,19 +145,19 @@ export default function TimekeeperDashboard() {
       <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-stopwatch me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="stopwatch" className="me-2" style={{ color: TK_ACCENT }} />
             Přehled závodů
           </h5>
           <small className="text-muted">Vyberte závod pro správu startovní listiny a zadávání časů</small>
         </div>
         <button className="btn btn-outline-secondary btn-sm" style={{ borderRadius: '8px' }} onClick={loadRaces}>
-          <i className="bi bi-arrow-clockwise me-1"></i>Obnovit
+          <Icon name="refresh" className="me-1" />Obnovit
         </button>
       </div>
 
       {error && (
         <div className="alert alert-danger py-2 d-flex align-items-center small" role="alert">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>{error}
+          <Icon name="warning" className="me-2" />{error}
         </div>
       )}
 
@@ -165,7 +166,7 @@ export default function TimekeeperDashboard() {
         <div className="mb-4">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <small className="fw-semibold text-success">
-              <i className="bi bi-calendar-event me-1"></i>Nadcházející závody
+              <Icon name="calendar" className="me-1" />Nadcházející závody
             </small>
             <small className="text-muted">{upcomingRaces.length} položek</small>
           </div>
@@ -180,7 +181,7 @@ export default function TimekeeperDashboard() {
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
             <small className="fw-semibold text-secondary">
-              <i className="bi bi-clock-history me-1"></i>Proběhlé závody
+              <Icon name="history" className="me-1" />Proběhlé závody
             </small>
             <small className="text-muted">{pastRaces.length} položek</small>
           </div>
@@ -193,7 +194,7 @@ export default function TimekeeperDashboard() {
       {races.length === 0 && !error && (
         <div className="card border-0 shadow-sm" style={{ borderRadius: '10px' }}>
           <div className="card-body text-center py-4">
-            <i className="bi bi-calendar-x text-muted" style={{ fontSize: '2rem' }}></i>
+            <Icon name="calendar-x" className="text-muted" style={{ fontSize: '2rem' }} />
             <p className="text-muted mt-2 mb-0 small">Žádné závody v aktuální sezóně</p>
           </div>
         </div>

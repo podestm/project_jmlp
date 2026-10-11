@@ -3,6 +3,7 @@ import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import SerialStatusBar from './SerialStatusBar.jsx';
 import { TimekeeperMessage, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * Ovládací část obrazovky zadávání časů: uložení, výběr závodu, filtry,
@@ -48,7 +49,7 @@ export default function TimingToolbar({
     <div className="d-flex justify-content-between align-items-center mb-2">
       <div>
         <h5 className="fw-bold mb-0">
-          <i className="bi bi-clock me-2" style={{ color: TK_ACCENT }}></i>
+          <Icon name="clock" className="me-2" style={{ color: TK_ACCENT }} />
           Zadávání časů
         </h5>
         <small className="text-muted">Zapište časy jízd pro závodníky</small>
@@ -63,7 +64,7 @@ export default function TimingToolbar({
           {saving ? (
             <><ButtonSpinner />Ukládám...</>
           ) : (
-            <><i className="bi bi-save me-1"></i>Uložit vše</>
+            <><Icon name="save" className="me-1" />Uložit vše</>
           )}
         </button>
       )}
@@ -86,7 +87,7 @@ export default function TimingToolbar({
         <div className="card-body py-2 px-3">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div className="d-flex align-items-center gap-2">
-              <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
+              <Icon name="trophy" style={{ color: TK_ACCENT }} />
               <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>
                 {selectedRace.race_nr || `#${selectedRace.id}`} — {selectedRace.areal_name || '?'}
               </span>
@@ -132,7 +133,7 @@ export default function TimingToolbar({
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '10px' }}>
         <div className="card-body py-2 px-3">
           <div className="d-flex align-items-center gap-2">
-            <i className="bi bi-trophy" style={{ color: TK_ACCENT }}></i>
+            <Icon name="trophy" style={{ color: TK_ACCENT }} />
             <select className="form-select form-select-sm" value={selectedRaceId}
               onChange={(e) => setSelectedRaceId(e.target.value)} style={{ borderRadius: '8px' }}>
               <option value="">-- Vyberte závod --</option>
@@ -155,7 +156,7 @@ export default function TimingToolbar({
             {/* Category pills */}
             <div className="d-flex align-items-center gap-1 flex-wrap">
               <small className="fw-semibold me-1" style={{ color: TK_ACCENT_TEXT }}>
-                <i className="bi bi-tag me-1"></i>Kat:
+                <Icon name="tag" className="me-1" />Kat:
               </small>
               <button
                 className={`btn py-0 px-2 ${selectedCategory === 'all' ? '' : 'btn-outline-dark'}`}
@@ -184,7 +185,7 @@ export default function TimingToolbar({
             {/* Round toggle */}
             <div className="d-flex align-items-center gap-2">
               <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
-                <i className="bi bi-toggles me-1"></i>Kolo:
+                <Icon name="toggle" className="me-1" />Kolo:
               </small>
               <div className="btn-group btn-group-sm">
                 <button className={`btn py-0 px-2 ${activeRound === '1' ? '' : 'btn-outline-dark'}`}
@@ -205,7 +206,7 @@ export default function TimingToolbar({
               </div>
               {activeRound !== 'both' && (
                 <span className="badge bg-warning text-dark" style={{ fontSize: '0.65rem' }}>
-                  <i className="bi bi-lock me-1"></i>{activeRound === '1' ? 'K2 zamčeno' : 'K1 zamčeno'}
+                  <Icon name="lock" className="me-1" />{activeRound === '1' ? 'K2 zamčeno' : 'K1 zamčeno'}
                 </span>
               )}
             </div>
@@ -214,7 +215,7 @@ export default function TimingToolbar({
           {/* Tisk listin kol rovnou od časomíry */}
           <div className="d-flex align-items-center gap-2 flex-wrap mt-2 pt-2 border-top">
             <small className="fw-semibold" style={{ color: TK_ACCENT_TEXT }}>
-              <i className="bi bi-printer me-1"></i>Tisk:
+              <Icon name="printer" className="me-1" />Tisk:
             </small>
             <ResultsPrintButtons
               label={selectedCategory === 'all' ? 'Vybraná kategorie' : selectedCategory}

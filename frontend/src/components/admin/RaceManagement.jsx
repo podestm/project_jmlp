@@ -3,6 +3,7 @@ import { useConfirm } from '../../hooks/useConfirm.jsx';
 import RaceFilters from './race/RaceFilters.jsx';
 import RaceTable from './race/RaceTable.jsx';
 import RaceForm from './race/RaceForm.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const RaceManagement = () => {
     // Hook sám nic nerenderuje, dialog proto vlastní tahle komponenta
@@ -16,7 +17,7 @@ const RaceManagement = () => {
                 <div className="col-12">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h1>
-                            <i className="bi bi-trophy me-2"></i>
+                            <Icon name="trophy" className="me-2" />
                             Správa závodů
                         </h1>
                     </div>

@@ -5,6 +5,7 @@ import { fixEncoding } from '../../utils/text.js';
 import { useRevalidateOnFocus } from '../../hooks/useRevalidateOnFocus.js';
 import RegistrationForm from '../ui/RegistrationForm.jsx';
 import RegisteredRacersCard, { useRaceRegistrations } from './RegisteredRacersCard.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
@@ -63,11 +64,11 @@ export default function RaceDetail() {
     return (
       <div>
         <div className="alert alert-danger">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          <Icon name="warning" className="me-2" />
           Závod nenalezen.
         </div>
         <Link to="/zavody" className="btn btn-outline-secondary">
-          <i className="bi bi-arrow-left me-2"></i>Zpět na závody
+          <Icon name="arrow-left" className="me-2" />Zpět na závody
         </Link>
       </div>
     );
@@ -82,7 +83,7 @@ export default function RaceDetail() {
           {/* Back link */}
           <div className="mb-3">
             <Link to="/zavody" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
-              <i className="bi bi-arrow-left me-1"></i>Zpět na závody
+              <Icon name="arrow-left" className="me-1" />Zpět na závody
             </Link>
           </div>
 
@@ -102,7 +103,7 @@ export default function RaceDetail() {
               padding: '1rem 1.25rem'
             }}>
               <h5 className="card-title mb-0">
-                <i className="bi bi-flag-fill me-2"></i>
+                <Icon name="flag" className="me-2" />
                 {fixEncoding(race.areal_name) || 'Detail závodu'}
               </h5>
             </div>
@@ -111,14 +112,14 @@ export default function RaceDetail() {
                 <div className="col-md-8">
                   <div className="d-flex flex-column gap-2">
                     <div className="d-flex align-items-center gap-2">
-                      <i className="bi bi-calendar-event" style={{ color: 'var(--sunset-orange)', fontSize: '1.1rem' }}></i>
+                      <Icon name="calendar" style={{ color: 'var(--sunset-orange)', fontSize: '1.1rem' }} />
                       <span style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '1.1rem' }}>
                         {formatDate(race.datum, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       </span>
                     </div>
                     {race.organizer_name && (
                       <div className="d-flex align-items-center gap-2">
-                        <i className="bi bi-buildings" style={{ color: 'var(--sunset-orange)' }}></i>
+                        <Icon name="building" style={{ color: 'var(--sunset-orange)' }} />
                         <span style={{ color: 'var(--text-secondary)' }}>{fixEncoding(race.organizer_name)}</span>
                       </div>
                     )}
@@ -156,7 +157,7 @@ export default function RaceDetail() {
                       }}
                       onClick={race.proposition_file_id ? undefined : e => e.preventDefault()}
                     >
-                      <i className="bi bi-file-earmark-text me-2"></i>
+                      <Icon name="file-text" className="me-2" />
                       Propozice
                     </a>
                     <a
@@ -176,7 +177,7 @@ export default function RaceDetail() {
                       }}
                       onClick={race.results_file_id ? undefined : e => e.preventDefault()}
                     >
-                      <i className="bi bi-file-earmark-check me-2"></i>
+                      <Icon name="file-check" className="me-2" />
                       Výsledky
                     </a>
                   </div>
@@ -190,7 +191,7 @@ export default function RaceDetail() {
             <div className="mb-4">
               {successMsg && (
                 <div className="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                  <i className="bi bi-check-circle-fill me-2"></i>
+                  <Icon name="success" className="me-2" />
                   {successMsg}
                   <button type="button" className="btn-close" onClick={() => setSuccessMsg('')}></button>
                 </div>

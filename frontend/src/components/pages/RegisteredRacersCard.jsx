@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import LoadingState from '../ui/LoadingState.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 /**
  * "Seznam registrovaných závodníků" card, shared by RaceDetail and Registration.
@@ -26,7 +27,7 @@ export default function RegisteredRacersCard({ registrations, loading, className
         padding: '1rem 1.25rem'
       }}>
         <h5 className="card-title mb-0">
-          <i className="bi bi-people me-2"></i>
+          <Icon name="users" className="me-2" />
           Seznam registrovaných závodníků ({registrations?.total_racers || 0})
         </h5>
       </div>
@@ -35,7 +36,7 @@ export default function RegisteredRacersCard({ registrations, loading, className
           <LoadingState variant="inline" />
         ) : !registrations || registrations.total_racers === 0 ? (
           <div className="text-center text-muted py-3">
-            <i className="bi bi-person-x" style={{ fontSize: '3rem' }}></i>
+            <Icon name="user-minus" style={{ fontSize: '3rem' }} />
             <p className="mt-2">Zatím není nikdo přihlášen</p>
           </div>
         ) : (

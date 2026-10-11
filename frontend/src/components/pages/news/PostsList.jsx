@@ -3,7 +3,7 @@ import EmptyState from '../../ui/EmptyState.jsx';
 
 const PostsList = ({ posts }) => {
     if (posts.length === 0) {
-        return <EmptyState icon="bi-inbox" title="Žádné příspěvky nebyly nalezeny" />;
+        return <EmptyState icon="inbox" title="Žádné příspěvky nebyly nalezeny" />;
     }
 
     return (

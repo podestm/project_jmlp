@@ -7,6 +7,8 @@ import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { SEASON_CONFIG } from '../../config/constants.js';
+import VisuallyHidden from '../ms/VisuallyHidden/VisuallyHidden.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 // Sezóna má buď průběžné, nebo celkové výsledky - proto jeden slot s přepínačem
 // typu, ne dva sloty. Během sezóny platí průběžné pořadí, po jejím konci ho
@@ -111,7 +113,7 @@ export default function SeasonManagement() {
       message: 'Dokumenty sezóny se odpojí, soubory zůstanou v knihovně.',
       confirmLabel: 'Smazat',
       variant: 'danger',
-      icon: 'bi-trash'
+      icon: 'trash'
     });
     if (!confirmed) return;
 
@@ -136,7 +138,7 @@ export default function SeasonManagement() {
           </small>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>
-          <i className="bi bi-plus-lg me-1" />Nová sezóna
+          <Icon name="plus" className="me-1" />Nová sezóna
         </button>
       </div>
 
@@ -154,7 +156,7 @@ export default function SeasonManagement() {
         <LoadingState variant="page" label="Načítám sezóny…" />
       ) : seasons.length === 0 ? (
         <EmptyState
-          icon="bi-calendar3"
+          icon="calendar"
           title="Zatím žádná sezóna"
           hint="Sezónu založte tlačítkem Nová sezóna."
         />
@@ -187,8 +189,8 @@ export default function SeasonManagement() {
                     </td>
                     <td className="text-center">
                       {season.active
-                        ? <i className="bi bi-check-circle-fill text-success" />
-                        : <i className="bi bi-dash-circle text-muted" />}
+                        ? <><Icon name="success" className="text-success" /><VisuallyHidden>Ano</VisuallyHidden></>
+                        : <><Icon name="minus-circle" className="text-muted" /><VisuallyHidden>Ne</VisuallyHidden></>}
                     </td>
                     <td className="text-end">
                       <div className="btn-group btn-group-sm">
@@ -197,22 +199,24 @@ export default function SeasonManagement() {
                           onClick={() => setExpandedSeason(
                             expandedSeason === season.id ? null : season.id
                           )}
-                          title="Dokumenty sezóny"
+                          aria-label="Dokumenty sezóny" title="Dokumenty sezóny"
                         >
-                          <i className="bi bi-paperclip" />
+                          <Icon name="paperclip" />
                         </button>
-                        <button className="btn btn-outline-secondary" onClick={() => openEdit(season)}>
-                          <i className="bi bi-pencil" />
+                        <button className="btn btn-outline-secondary" onClick={() => openEdit(season)} aria-label={`Upravit sezónu ${season.season_label}`}>
+                          <Icon name="pencil" />
                         </button>
                         <button
                           className="btn btn-outline-danger"
                           onClick={() => handleDelete(season)}
                           disabled={season.races_count > 0}
-                          title={season.races_count > 0
+                          aria-label={season.races_count > 0
+                            ? 'Sezóna má závody a nelze ji smazat'
+                            : 'Smazat sezónu'} title={season.races_count > 0
                             ? 'Sezóna má závody a nelze ji smazat'
                             : 'Smazat sezónu'}
                         >
-                          <i className="bi bi-trash" />
+                          <Icon name="trash" />
                         </button>
                       </div>
                     </td>
@@ -310,7 +314,7 @@ export default function SeasonManagement() {
                       Zrušit
                     </button>
                     <button type="submit" className="btn btn-primary" disabled={saving}>
-                      {saving ? <ButtonSpinner /> : <i className="bi bi-check-lg me-1" />}
+                      {saving ? <ButtonSpinner /> : <Icon name="check" className="me-1" />}
                       Uložit
                     </button>
                   </div>

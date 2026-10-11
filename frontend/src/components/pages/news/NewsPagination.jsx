@@ -1,3 +1,4 @@
+import Icon from '../../ms/Icon/Icon.jsx';
 
 const NewsPagination = ({ currentPage, totalPages, handlePageChange }) => {
     if (totalPages <= 1) return null;
@@ -19,8 +20,9 @@ const NewsPagination = ({ currentPage, totalPages, handlePageChange }) => {
                 <button
                     className="page-link"
                     onClick={() => handlePageChange(currentPage - 1)}
+                    aria-label="Předchozí strana"
                 >
-                    <i className="bi bi-chevron-left"></i>
+                    <Icon name="chevron-left" />
                 </button>
             </li>
         );
@@ -47,8 +49,9 @@ const NewsPagination = ({ currentPage, totalPages, handlePageChange }) => {
                 <button
                     className="page-link"
                     onClick={() => handlePageChange(currentPage + 1)}
+                    aria-label="Další strana"
                 >
-                    <i className="bi bi-chevron-right"></i>
+                    <Icon name="chevron-right" />
                 </button>
             </li>
         );

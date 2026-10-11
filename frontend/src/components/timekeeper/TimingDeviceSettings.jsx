@@ -4,6 +4,7 @@ import { BAUD_OPTIONS, describeSerialPort, parseTimingDeviceLine } from '../../u
 import { isCleanDeviceLine } from './baudDetection.js';
 import { useSerialSession } from './SerialSessionProvider.jsx';
 import { TK_ACCENT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const LOG_LIMIT = 200;
 
@@ -40,7 +41,7 @@ export default function TimingDeviceSettings() {
         message: `Na rychlosti ${serial.baud} už z časomíry přišel platný řádek. Hledejte jen tehdy, když časomíra opravdu posílá nečitelná data.`,
         confirmLabel: 'Hledat rychlost',
         variant: 'primary',
-        icon: 'bi-search'
+        icon: 'search'
       });
       if (!go) return;
     }
@@ -52,7 +53,7 @@ export default function TimingDeviceSettings() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">
-            <i className="bi bi-usb-symbol me-2" style={{ color: TK_ACCENT }}></i>
+            <Icon name="plug" className="me-2" style={{ color: TK_ACCENT }} />
             Připojení časomíry
           </h5>
           <small className="text-muted">Přímé připojení přes Web Serial (Chrome, Edge). Spojení platí pro celou časomíru.</small>
@@ -61,20 +62,20 @@ export default function TimingDeviceSettings() {
 
       {!serial.supported && (
         <div className="alert alert-warning">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          <Icon name="warning" className="me-2" />
           Tento prohlížeč nepodporuje Web Serial. Použijte Google Chrome nebo Microsoft Edge.
         </div>
       )}
       {serial.supported && !serial.canUse && (
         <div className="alert alert-warning">
-          <i className="bi bi-shield-lock-fill me-2"></i>
+          <Icon name="shield-lock" className="me-2" />
           Web Serial funguje jen na HTTPS nebo localhost.
         </div>
       )}
 
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '12px' }}>
         <div className="card-header bg-white py-2 px-3" style={{ borderBottom: `2px solid ${TK_ACCENT}` }}>
-          <small className="fw-bold"><i className="bi bi-plug me-1" style={{ color: TK_ACCENT }}></i>Port</small>
+          <small className="fw-bold"><Icon name="plug" className="me-1" style={{ color: TK_ACCENT }} />Port</small>
         </div>
         <div className="card-body p-3">
           <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
@@ -95,7 +96,7 @@ export default function TimingDeviceSettings() {
               </select>
             )}
             <button className="btn btn-sm btn-outline-dark" onClick={serial.requestPort} disabled={!usable || serial.connected || detecting}>
-              <i className="bi bi-plus-circle me-1"></i>Vybrat port
+              <Icon name="plus-circle" className="me-1" />Vybrat port
             </button>
             {serial.connected ? (
               <button className="btn btn-sm btn-outline-danger" onClick={serial.disconnect}>Odpojit</button>
@@ -110,7 +111,7 @@ export default function TimingDeviceSettings() {
               disabled={!usable}
               title="Vynutí zavření a znovuotevření portu"
             >
-              <i className="bi bi-arrow-repeat me-1"></i>Obnovit připojení
+              <Icon name="sync" className="me-1" />Obnovit připojení
             </button>
             <span className={`badge ${serial.connected ? 'bg-success' : 'bg-secondary'}`}>{serial.status}</span>
           </div>
@@ -122,7 +123,7 @@ export default function TimingDeviceSettings() {
 
       <div className="card border-0 shadow-sm mb-3" style={{ borderRadius: '12px' }}>
         <div className="card-header bg-white py-2 px-3" style={{ borderBottom: `2px solid ${TK_ACCENT}` }}>
-          <small className="fw-bold"><i className="bi bi-speedometer me-1" style={{ color: TK_ACCENT }}></i>Rychlost přenosu (baud)</small>
+          <small className="fw-bold"><Icon name="dashboard" className="me-1" style={{ color: TK_ACCENT }} />Rychlost přenosu (baud)</small>
         </div>
         <div className="card-body p-3">
           <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
@@ -140,25 +141,25 @@ export default function TimingDeviceSettings() {
             </select>
             {verified ? (
               <span className="badge bg-success-subtle text-success-emphasis border border-success-subtle">
-                <i className="bi bi-check-circle me-1"></i>Ověřená – z časomíry na ní přišel platný řádek
+                <Icon name="success" className="me-1" />Ověřená – z časomíry na ní přišel platný řádek
               </span>
             ) : (
               <span className="badge text-bg-light border">Zatím neověřená</span>
             )}
             {detecting ? (
               <button className="btn btn-sm btn-outline-danger" onClick={() => serial.cancelDetection()}>
-                <i className="bi bi-stop-circle me-1"></i>Zastavit hledání
+                <Icon name="stop" className="me-1" />Zastavit hledání
               </button>
             ) : (
               <button className="btn btn-sm btn-outline-primary" onClick={startDetection} disabled={!usable}>
-                <i className="bi bi-search me-1"></i>Zjistit rychlost
+                <Icon name="search" className="me-1" />Zjistit rychlost
               </button>
             )}
           </div>
 
           {serial.baudHint && !detecting && (
             <div className="alert alert-warning py-2 small mb-2">
-              <i className="bi bi-exclamation-triangle-fill me-2"></i>
+              <Icon name="warning" className="me-2" />
               Časomíra posílá data, kterým aplikace nerozumí – nejspíš vysílá jinou rychlostí než {serial.baud}.
               Klikněte na „Zjistit rychlost“.
             </div>
@@ -188,7 +189,7 @@ export default function TimingDeviceSettings() {
 
       <div className="card border-0 shadow-sm" style={{ borderRadius: '12px' }}>
         <div className="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center" style={{ borderBottom: `2px solid ${TK_ACCENT}` }}>
-          <small className="fw-bold"><i className="bi bi-terminal me-1" style={{ color: TK_ACCENT }}></i>Živý záznam z časomíry</small>
+          <small className="fw-bold"><Icon name="terminal" className="me-1" style={{ color: TK_ACCENT }} />Živý záznam z časomíry</small>
           {log.length > 0 && (
             <button className="btn btn-sm btn-link py-0" onClick={() => setLog([])}>Vymazat záznam</button>
           )}

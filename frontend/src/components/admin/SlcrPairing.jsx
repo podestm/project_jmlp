@@ -14,6 +14,7 @@ import {
   filterPairs,
   pairWarnings
 } from './slcrPairing.js';
+import Icon from '../ms/Icon/Icon.jsx';
 
 const POLL_MS = 3000;
 
@@ -155,7 +156,7 @@ export default function SlcrPairing() {
   return (
     <div className="container-fluid">
       <div className="mb-4">
-        <small><Link to="/admin/racers" className="text-decoration-none"><i className="bi bi-chevron-left" /> Závodníci</Link></small>
+        <small><Link to="/admin/racers" className="text-decoration-none"><Icon name="chevron-left" /> Závodníci</Link></small>
         <h2 className="mb-0">Párování se SLČR</h2>
         <small className="text-muted">
           Závodníci z registru spárovaní s členy evidence Svazu lyžařů ČR. Návrhy vycházejí z výsledků
@@ -184,7 +185,7 @@ export default function SlcrPairing() {
               <option value="all">Celý registr</option>
             </select>
             <button className="btn btn-sm btn-primary" onClick={startSync} disabled={running || !summary}>
-              {running ? <ButtonSpinner /> : <i className="bi bi-cloud-download me-1" />}
+              {running ? <ButtonSpinner /> : <Icon name="cloud-download" className="me-1" />}
               Načíst návrhy ze SLČR
             </button>
           </div>
@@ -214,7 +215,7 @@ export default function SlcrPairing() {
             (potvrzeno dřív, než potvrzení začalo opravovat záznam).
           </span>
           <button className="btn btn-sm btn-primary" onClick={applyConfirmed} disabled={bulk != null}>
-            {bulk ? <ButtonSpinner /> : <i className="bi bi-pencil-square me-1" />}
+            {bulk ? <ButtonSpinner /> : <Icon name="pencil" className="me-1" />}
             Převzít z evidence
           </button>
         </div>
@@ -260,7 +261,7 @@ export default function SlcrPairing() {
                 disabled={confirmable.length === 0 || bulk != null}
                 title="Jen jisté shody bez jakéhokoli upozornění"
               >
-                {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><i className="bi bi-check2-all me-1" />Potvrdit jisté ({confirmable.length})</>}
+                {bulk ? <><ButtonSpinner />Potvrzuji {bulk.done} z {bulk.total}</> : <><Icon name="check-double" className="me-1" />Potvrdit jisté ({confirmable.length})</>}
               </button>
             </div>
           </>
@@ -271,7 +272,7 @@ export default function SlcrPairing() {
         <LoadingState variant="page" label="Načítám párování…" />
       ) : visible.length === 0 ? (
         <EmptyState
-          icon="bi-person-check"
+          icon="user-check"
           title={items.length === 0 ? 'Tady zatím nikdo není' : 'Nikdo neodpovídá hledání'}
           hint={items.length === 0 && !job ? 'Začněte tlačítkem „Načíst návrhy ze SLČR“.' : undefined}
         />
@@ -308,7 +309,7 @@ function PairRow({ item, busy, onDecide }) {
       onClick={() => onDecide(item, action)}
       disabled={Boolean(busy)}
     >
-      {busy === action ? <ButtonSpinner /> : <i className={`bi ${icon} me-1`} />}
+      {busy === action ? <ButtonSpinner /> : <Icon name={icon} className="me-1" />}
       {label}
     </button>
   );
@@ -325,7 +326,7 @@ function PairRow({ item, busy, onDecide }) {
         {slcr ? (
           <>
             <a href={slcr.url} target="_blank" rel="noopener noreferrer" className="fw-semibold">
-              {slcr.surname} {slcr.name} <i className="bi bi-box-arrow-up-right small" />
+              {slcr.surname} {slcr.name} <Icon name="external-link" className="small" />
             </a>
             <div>
               <small className="text-muted">
@@ -353,20 +354,20 @@ function PairRow({ item, busy, onDecide }) {
         {item.note && <small className="text-muted">{item.note}</small>}
         {changeLabels(item).length > 0 && (
           <div className="small mt-1">
-            <i className="bi bi-pencil-square me-1 text-primary" />
+            <Icon name="pencil" className="me-1 text-primary" />
             {item.status === PAIR_STATUS.confirmed ? 'K převzetí z evidence: ' : 'Potvrzení u nás změní: '}
             <span className="fw-semibold">{changeLabels(item).join(', ')}</span>
           </div>
         )}
         {appliedLabels(item).length > 0 && (
           <div className="small text-muted mt-1">
-            <i className="bi bi-check2 me-1" />Převzato z evidence ({appliedLabels(item).join(', ')})
+            <Icon name="check" className="me-1" />Převzato z evidence ({appliedLabels(item).join(', ')})
           </div>
         )}
         {warnings.map((warning) => (
           <div key={warning.key}>
             <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle mt-1 text-wrap text-start">
-              <i className="bi bi-exclamation-triangle me-1" />{warning.text}
+              <Icon name="warning" className="me-1" />{warning.text}
             </span>
           </div>
         ))}
@@ -374,12 +375,12 @@ function PairRow({ item, busy, onDecide }) {
       <td className="text-end text-nowrap">
         {item.status === PAIR_STATUS.suggested && (
           <>
-            {button('confirm', 'Potvrdit', 'btn-success', 'bi-check-lg')}
-            {button('reject', 'Odmítnout', 'btn-outline-danger', 'bi-x-lg')}
+            {button('confirm', 'Potvrdit', 'btn-success', 'check')}
+            {button('reject', 'Odmítnout', 'btn-outline-danger', 'close')}
           </>
         )}
         {(item.status === PAIR_STATUS.confirmed || item.status === PAIR_STATUS.rejected) && (
-          button('undo', 'Vrátit', 'btn-outline-secondary', 'bi-arrow-counterclockwise')
+          button('undo', 'Vrátit', 'btn-outline-secondary', 'undo')
         )}
       </td>
     </tr>

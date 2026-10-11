@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import Alert from '../ui/Alert.jsx';
 import { TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import Icon from '../ms/Icon/Icon.jsx';
 
 export default function TimekeeperLogin() {
   const [email, setEmail] = useState('');
@@ -37,7 +38,7 @@ export default function TimekeeperLogin() {
               borderRadius: '18px',
               boxShadow: '0 8px 24px rgba(233, 69, 96, 0.4)'
             }}>
-              <i className="bi bi-stopwatch-fill text-white" style={{ fontSize: '36px' }}></i>
+              <Icon name="stopwatch" className="text-white" style={{ fontSize: '36px' }} />
             </div>
             <h2 className="text-white fw-bold mb-1">JMLP Časomíra</h2>
             <p className="text-white-50">Zadávání časů a správa závodů</p>
@@ -50,7 +51,7 @@ export default function TimekeeperLogin() {
                   type="danger" 
                   message={
                     <>
-                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                      <Icon name="warning" className="me-2" />
                       {error}
                     </>
                   }
@@ -61,7 +62,7 @@ export default function TimekeeperLogin() {
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label htmlFor="tk-email" className="form-label fw-semibold">
-                    <i className="bi bi-envelope me-1"></i> Email
+                    <Icon name="mail" className="me-1" /> Email
                   </label>
                   <input
                     type="email"
@@ -78,7 +79,7 @@ export default function TimekeeperLogin() {
                 
                 <div className="mb-4">
                   <label htmlFor="tk-password" className="form-label fw-semibold">
-                    <i className="bi bi-lock me-1"></i> Heslo
+                    <Icon name="lock" className="me-1" /> Heslo
                   </label>
                   <input
                     type="password"
@@ -110,7 +111,7 @@ export default function TimekeeperLogin() {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-box-arrow-in-right me-2"></i>
+                      <Icon name="login" className="me-2" />
                       Přihlásit se
                     </>
                   )}
@@ -121,7 +122,7 @@ export default function TimekeeperLogin() {
           
           <div className="text-center mt-3">
             <a href="/" className="text-white-50 text-decoration-none small">
-              <i className="bi bi-arrow-left me-1"></i> Zpět na web
+              <Icon name="arrow-left" className="me-1" /> Zpět na web
             </a>
           </div>
         </div>
