@@ -1,0 +1,36 @@
+.layout {
+  display: flex;
+  min-block-size: 100dvh;
+  background: var(--ms-surface-page);
+}
+
+.sidebar {
+  flex-shrink: 0;
+}
+
+.mobileBar {
+  display: none;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+/* Pod 1024 px horní lišta s menu místo postranního panelu. */
+@media (max-width: 1023.98px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .mobileBar {
+    display: flex;
+    flex-shrink: 0;
+  }
+}

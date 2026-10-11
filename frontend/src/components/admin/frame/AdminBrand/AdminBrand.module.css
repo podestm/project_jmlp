@@ -1,0 +1,53 @@
+/* AdminDashboard / AdminMobilPrehled: znak a dva řádky na navy-deep. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-inline-size: 0;
+  color: var(--ms-on-dark);
+}
+
+.logo {
+  flex-shrink: 0;
+  inline-size: 38px;
+  block-size: 38px;
+  object-fit: contain;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-md);
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  overflow: hidden;
+  font-size: var(--ms-fs-xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ms-ice);
+}
+
+.sm {
+  gap: 10px;
+}
+
+.sm .logo {
+  inline-size: 34px;
+  block-size: 34px;
+}
+
+.sm .name {
+  font-size: var(--ms-fs-sm);
+}

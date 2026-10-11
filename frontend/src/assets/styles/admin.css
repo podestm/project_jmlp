@@ -273,49 +273,6 @@ body.theme-backoffice .admin-layout-content > .container-fluid > .container-flui
   padding-right: 0;
 }
 
-/* Tmavé menu - text v něm zůstává bílý */
-body.theme-backoffice :is(.admin-sidebar, .timekeeper-sidebar) .nav-link { color: #fff !important; }
-body.theme-backoffice .admin-sidebar .nav-link:hover:not(.active) { background: rgba(255, 255, 255, 0.08); }
-body.theme-backoffice .admin-sidebar .nav-pills { --bs-nav-pills-link-active-bg: var(--adm-primary); }
-body.theme-backoffice .admin-sidebar .border-secondary { border-color: rgba(255, 255, 255, 0.15) !important; }
-/* Bootstrapových 50 % bílé má na tmavém menu jen 4.3:1 */
-body.theme-backoffice :is(.admin-sidebar, .timekeeper-sidebar) .text-white-50 { color: rgba(255, 255, 255, 0.72) !important; }
-
-/* Přepínač Admin / Časomíra dole v menu obou sekcí (ui/SectionSwitch.jsx).
-   Zapnutá polovina má barvu své sekce - bílý text na ní má přes 5:1. */
-body.theme-backoffice .section-switch {
-  display: flex;
-  gap: 3px;
-  padding: 3px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-body.theme-backoffice .section-switch-option {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.5rem;
-  border-radius: 7px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-  color: rgba(255, 255, 255, 0.72) !important;
-  text-decoration: none !important;
-}
-body.theme-backoffice a.section-switch-option:hover,
-body.theme-backoffice a.section-switch-option:focus-visible {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.1);
-}
-body.theme-backoffice .section-switch-option.is-active { color: #fff !important; cursor: default; }
-body.theme-backoffice .section-switch-option.is-active.is-admin { background: var(--adm-primary); }
-body.theme-backoffice .section-switch-option.is-active.is-timekeeper { background: var(--tk-accent-fill); }
-
 /* Odkazy v obsahu - veřejný web jim vnucuje bílou barvu */
 body.theme-backoffice .admin-layout-content .nav-link,
 body.theme-backoffice .modal .nav-link {

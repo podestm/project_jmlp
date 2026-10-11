@@ -54,7 +54,7 @@ const SECTIONS = [
     name: 'administrace',
     items: adminNav,
     routes: () => routesOf(read('components/admin/AdminRoutes.jsx'), '/admin'),
-    layout: 'components/admin/AdminLayout.jsx',
+    layout: 'components/admin/frame/AdminNav/AdminNav.jsx',
     prefix: '/admin',
   },
   {
@@ -113,6 +113,7 @@ describe('veřejná navigace', () => {
     'components/site/SiteFooter/SiteFooter.jsx',
     'components/timekeeper/frame/TabBar/TabBar.jsx',
     'components/timekeeper/frame/TkMobileMenu/TkMobileMenu.jsx',
+    'components/admin/frame/AdminNav/AdminNav.jsx',
   ])('%s čte odkazy z navItems', (file) => {
     expect(read(file)).toContain('navItems');
   });

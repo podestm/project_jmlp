@@ -1,0 +1,120 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+/* AdminDashboard: bílá lišta 68 px pod hranou okna. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  flex-shrink: 0;
+  min-block-size: 68px;
+  padding: 10px var(--ms-space-8);
+  border-bottom: 1px solid var(--ms-line);
+  background: var(--ms-surface-card);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px var(--ms-space-4);
+  min-inline-size: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: var(--ms-fs-3xl);
+  line-height: 1.2;
+  color: var(--ms-ink);
+}
+
+.meta {
+  margin: 0;
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+/* Popis jen na mobilu (AdminMobilPrehled), na šířce stačí meta. */
+.description {
+  display: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+  flex-grow: 1;
+  padding: var(--ms-space-6) var(--ms-space-8);
+}
+
+@media (max-width: 1023.98px) {
+  .head,
+  .body {
+    padding-inline: var(--ms-space-6);
+  }
+}
+
+/* AdminMobilPrehled: nadtitulek, H1 28 px, popis; akce pod záhlavím. */
+@media (max-width: 767.98px) {
+  .head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ms-space-3);
+    min-block-size: 0;
+    padding: 20px var(--ms-space-4) 0;
+    border-bottom: 0;
+    background: transparent;
+  }
+
+  .heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .title {
+    font-size: var(--ms-fs-3xl);
+    line-height: 1.15;
+  }
+
+  .meta {
+    order: -1;
+    font-family: var(--ms-font-display);
+    font-weight: 700;
+    font-size: var(--ms-fs-2xs);
+    letter-spacing: 0.15em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .description {
+    display: block;
+    margin: 0;
+    font-size: var(--ms-fs-lg);
+    line-height: 1.5;
+    color: var(--ms-ink-body);
+  }
+
+  .actions {
+    margin-inline-start: 0;
+  }
+
+  .body {
+    gap: var(--ms-space-6);
+    padding: 20px var(--ms-space-4) var(--ms-space-7);
+  }
+}

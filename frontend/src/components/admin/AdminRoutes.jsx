@@ -4,10 +4,11 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../config/auth.jsx';
 import { useBodyClass } from '../../hooks/useBodyClass.js';
-import LoadingState from '../ui/LoadingState.jsx';
-import AdminLogin from './AdminLogin.jsx';
+import { LegacyIsland, LoadingState, Screen } from '../ms/index.js';
+import AdminLogin from './AdminLogin/AdminLogin.jsx';
 import AdminRegister from './AdminRegister.jsx';
-import AdminLayout from './AdminLayout.jsx';
+import AdminLayout from './frame/AdminLayout/AdminLayout.jsx';
+import AdminNotFound from './frame/AdminNotFound/AdminNotFound.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import RaceManagement from './RaceManagement.jsx';
 import RacerManagement from './RacerManagement.jsx';
@@ -23,34 +24,41 @@ import SlcrPairing from './SlcrPairing.jsx';
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return <LoadingState variant="fullscreen" />;
+  if (loading) return <LoadingState variant="fullscreen" label="Ověřuji přihlášení…" />;
   if (!isAuthenticated) return <AdminLogin />;
 
   return <AdminLayout>{children}</AdminLayout>;
 };
 
 const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
+// Nepřevedená obrazovka: staré obaly pro staré CSS (zmizí s Fází 4B).
+const legacy = (element) => protect(<LegacyIsland variant="admin">{element}</LegacyIsland>);
 
 export default function AdminRoutes() {
-  // Světlé téma administrace pro celou stránku včetně modálních oken.
+  // Světlé téma starých obrazovek administrace včetně jejich modálních oken
+  // (do převedení poslední z nich).
   useBodyClass('theme-backoffice');
 
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={protect(<AdminDashboard />)} />
-        <Route path="/races" element={protect(<RaceManagement />)} />
-        <Route path="/racers" element={protect(<RacerManagement />)} />
-        <Route path="/racers/slcr" element={protect(<SlcrPairing />)} />
-        <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
-        <Route path="/documents" element={protect(<DocumentLibrary />)} />
-        <Route path="/posts" element={protect(<PostManagement />)} />
-        <Route path="/categories" element={protect(<CategoryManagement />)} />
-        <Route path="/seasons" element={protect(<SeasonManagement />)} />
-        <Route path="/clubs" element={protect(<ClubManagement />)} />
-        <Route path="/club-requests" element={protect(<ClubRequests />)} />
-        <Route path="/register" element={protect(<AdminRegister />)} />
-      </Routes>
-    </AuthProvider>
+    // Screen: světlé pozadí celé stránky (body.ms-page) místo tmavé fotky starého CSS.
+    <Screen>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={legacy(<AdminDashboard />)} />
+          <Route path="/races" element={legacy(<RaceManagement />)} />
+          <Route path="/racers" element={legacy(<RacerManagement />)} />
+          <Route path="/racers/slcr" element={legacy(<SlcrPairing />)} />
+          <Route path="/races/:raceId/registrations" element={legacy(<RaceRegistrations />)} />
+          <Route path="/documents" element={legacy(<DocumentLibrary />)} />
+          <Route path="/posts" element={legacy(<PostManagement />)} />
+          <Route path="/categories" element={legacy(<CategoryManagement />)} />
+          <Route path="/seasons" element={legacy(<SeasonManagement />)} />
+          <Route path="/clubs" element={legacy(<ClubManagement />)} />
+          <Route path="/club-requests" element={legacy(<ClubRequests />)} />
+          <Route path="/register" element={legacy(<AdminRegister />)} />
+          <Route path="*" element={protect(<AdminNotFound />)} />
+        </Routes>
+      </AuthProvider>
+    </Screen>
   );
 }

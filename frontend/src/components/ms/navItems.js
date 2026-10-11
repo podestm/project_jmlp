@@ -6,7 +6,8 @@
 // Nová obrazovka = nová položka tady (nebo výjimka v testu s důvodem).
 
 // `hint` je druhý řádek v mobilním menu (MobilMenu), `alsoActive` prefixy
-// dalších adres, kde je položka aktivní (detail závodu patří pod Závody).
+// dalších adres, kde je položka aktivní (detail závodu patří pod Závody),
+// `count` klíč počtu, který rámec ukáže jako odznak (žádosti o kluby).
 export const publicNav = [
   { to: '/', label: 'Úvod', end: true },
   { to: '/zavody', label: 'Závody', hint: 'Kalendář sezóny', alsoActive: ['/zavod/'] },
@@ -48,7 +49,7 @@ export const adminNav = [
   { to: '/admin', label: 'Přehled', icon: 'dashboard', end: true },
   { to: '/admin/races', label: 'Závody', icon: 'calendar' },
   { to: '/admin/racers', label: 'Závodníci', icon: 'user' },
-  { to: '/admin/club-requests', label: 'Žádosti o kluby', icon: 'home' },
+  { to: '/admin/club-requests', label: 'Žádosti o kluby', icon: 'home', count: 'clubRequests' },
   { to: '/admin/documents', label: 'Dokumenty', icon: 'file' },
   { to: '/admin/posts', label: 'Aktuality', icon: 'news' },
   { to: '/admin/seasons', label: 'Sezóny', icon: 'trophy', group: 'settings' },

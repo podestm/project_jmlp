@@ -1,0 +1,37 @@
+/* AdminDashboard: panel 256 px, přilepený k oknu, při malé výšce se roluje. */
+.sidebar {
+  position: sticky;
+  inset-block-start: 0;
+  display: flex;
+  flex-direction: column;
+  inline-size: 256px;
+  block-size: 100dvh;
+  overflow-y: auto;
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  padding: 18px 18px var(--ms-space-4);
+  border-bottom: 1px solid var(--ms-navy);
+  color: var(--ms-on-dark);
+  text-decoration: none;
+}
+
+.nav {
+  flex-grow: 1;
+}
+
+.switch {
+  flex-shrink: 0;
+  padding: 0 18px 14px;
+}
+
+.user {
+  flex-shrink: 0;
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--ms-navy);
+}

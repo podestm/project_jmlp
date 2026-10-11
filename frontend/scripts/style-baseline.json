@@ -6,10 +6,10 @@
     "legacyImports": 1
   },
   "src/assets/styles/admin.css": {
-    "bootstrap": 348,
-    "bs": 175,
-    "legacyVars": 403,
-    "themeBackoffice": 189
+    "bootstrap": 342,
+    "bs": 174,
+    "legacyVars": 400,
+    "themeBackoffice": 177
   },
   "src/assets/styles/base.css": {
     "bootstrap": 15,
@@ -40,21 +40,12 @@
     "bootstrap": 308,
     "legacyImports": 1
   },
-  "src/components/admin/AdminLayout.jsx": {
-    "bootstrap": 120,
-    "legacyImports": 1
-  },
-  "src/components/admin/AdminLogin.jsx": {
-    "bootstrap": 30,
-    "legacyImports": 1
-  },
   "src/components/admin/AdminRegister.jsx": {
     "bootstrap": 61,
     "legacyImports": 1
   },
   "src/components/admin/AdminRoutes.jsx": {
-    "themeBackoffice": 1,
-    "legacyImports": 1
+    "themeBackoffice": 1
   },
   "src/components/admin/CategoryManagement.jsx": {
     "bootstrap": 29,

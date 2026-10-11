@@ -3,7 +3,8 @@ import { act, render, renderHook, screen, waitFor } from '@testing-library/react
 import { migrateLegacySession, SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
 import { AuthProvider, useAuth } from './auth.jsx';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from './timekeeperAuth.jsx';
-import AdminLogin from '../components/admin/AdminLogin.jsx';
+import { MemoryRouter } from 'react-router-dom';
+import AdminLogin from '../components/admin/AdminLogin/AdminLogin.jsx';
 
 vi.mock('./timekeeperApi.js', () => ({ startTimekeeperSync: () => () => {} }));
 
@@ -113,7 +114,7 @@ describe('jedno přihlášení pro administraci i časomíru', () => {
     localStorage.setItem(SESSION_TOKEN_KEY, 'shared-token');
     vi.stubGlobal('fetch', mockServer({ id: 5, email: 'renata@x.cz', role: 'timekeeper' }));
 
-    render(<AuthProvider><AdminLogin /></AuthProvider>);
+    render(<MemoryRouter><AuthProvider><AdminLogin /></AuthProvider></MemoryRouter>);
 
     expect(await screen.findByText(/smí jen do časomíry/)).toHaveTextContent('renata@x.cz');
   });

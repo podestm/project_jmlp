@@ -1,0 +1,90 @@
+/* AdminNeznama */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ms-space-4);
+  border-top: 4px solid var(--ms-navy);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: var(--ms-fs-3xl);
+  line-height: 1.2;
+  color: var(--ms-ink);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--ms-navy);
+}
+
+.text {
+  max-inline-size: 640px;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ms-ink-body);
+}
+
+.path {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ms-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-block-size: var(--ms-target);
+  padding: var(--ms-space-3) var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+  color: var(--ms-navy);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  line-height: 1.3;
+  text-decoration: none;
+}
+
+.shortcut:hover {
+  border-color: var(--ms-navy);
+}
+
+@media (max-width: 767.98px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
