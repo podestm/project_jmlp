@@ -5,7 +5,7 @@ import znak from '../../../assets/images/jmlp_znak_88.png';
 import { Container, IconButton, LivePill } from '../../ms/index.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
 import MobileMenu from '../MobileMenu/MobileMenu.jsx';
-import { CUP_NAME, currentSeasonInfo } from '../siteInfo.js';
+import { CUP_NAME, useSeasonInfo } from '../siteInfo.js';
 import styles from './SiteHeader.module.css';
 
 const MENU_ID = 'hlavni-menu-mobil';
@@ -19,7 +19,7 @@ export default function SiteHeader() {
   const { pathname } = useLocation();
   const liveRace = useLiveStatus();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
 
   return (
     <header className={styles.header}>

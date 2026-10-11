@@ -3,10 +3,11 @@ import {
   Alert, Badge, BibDate, Button, ButtonLink, Container, DataRow, EmptyState, Field, LoadingState, PageHeader, Paska, Screen,
   SegmentedControl, Select,
 } from '../../ms/index.js';
+import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { formatSeasonShort, getCurrentSeasonId, seasonEdition, toRoman } from '../../../utils/season.js';
-import { raceDate, raceMethod, raceOrder, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
+import { formatSeasonShort, seasonEdition, toRoman } from '../../../utils/season.js';
+import { defaultSeasonId, raceDate, raceMethod, raceOrder, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
 import { standingsEyebrow } from './standings.js';
 import { useStandings } from './useStandings.js';
 import StandingsList from './StandingsList.jsx';
@@ -99,8 +100,8 @@ export default function Results() {
   const calendar = useRaceCalendar();
   const seasons = seasonsOf(calendar.races);
   const [chosen, setChosen] = useState(null);
-  const current = getCurrentSeasonId();
-  const seasonId = chosen ?? (seasons.includes(current) || seasons.length === 0 ? current : seasons[0]);
+  const { seasonId: currentSeasonId } = useCurrentSeason();
+  const seasonId = chosen ?? defaultSeasonId(seasons, currentSeasonId);
   const { standings, status, reload } = useStandings(seasonId);
   const today = startOfToday();
   const pastRaces = calendar.races

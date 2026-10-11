@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mockGet = vi.fn();
 const mockPost = vi.fn();
 const mockDelete = vi.fn();
+const mockPublicGet = vi.fn();
 vi.mock('../../../config/api.js', () => ({
   AdminAPI: {
     get: (...args) => mockGet(...args),
@@ -14,6 +15,7 @@ vi.mock('../../../config/api.js', () => ({
     delete: (...args) => mockDelete(...args),
   },
   adminAuthHeaders: () => ({}),
+  API: { get: (...args) => mockPublicGet(...args) },
 }));
 // Přílohy jsou samostatná obrazovka (Dokumenty), tady jen náhrada.
 vi.mock('../Attachments/AttachmentManager.jsx', () => ({
@@ -21,6 +23,7 @@ vi.mock('../Attachments/AttachmentManager.jsx', () => ({
 }));
 
 const { default: RaceManagement } = await import('./RaceManagement.jsx');
+const { resetCurrentSeason } = await import('../../../hooks/useCurrentSeason.js');
 
 const RACES = [
   {
@@ -45,6 +48,9 @@ describe('správa závodů', () => {
     mockGet.mockReset().mockResolvedValue(RACES);
     mockPost.mockReset().mockResolvedValue({});
     mockDelete.mockReset().mockResolvedValue({});
+    // Bez odpovědi serveru platí sezóna podle data.
+    resetCurrentSeason();
+    mockPublicGet.mockReset().mockRejectedValue(new Error('offline'));
   });
 
   it('vypíše závody v tabulce se souhrnem, finále a dokumenty', async () => {
@@ -71,6 +77,14 @@ describe('správa závodů', () => {
     expect(within(table).queryByText('Hlinsko')).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Sezóna' }), '');
     expect(within(screen.getByRole('table', { name: 'Závody' })).getByText('Hlinsko')).toBeInTheDocument();
+  });
+
+  it('výchozí filtr je sezóna nastavená jako aktuální ve správě sezón', async () => {
+    mockPublicGet.mockResolvedValue({ current_season_id: 2025, edition: 19 });
+    mockGet.mockResolvedValue([...RACES, { ...RACES[0], id: 3, datum: '2025-12-01', race_nr: 'JMLP2025-01', season_id: 2025, areal_name: 'Hlinsko' }]);
+    renderScreen();
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Sezóna' })).toHaveValue('2025'));
+    expect(within(await screen.findByRole('table', { name: 'Závody' })).getByText('Hlinsko')).toBeInTheDocument();
   });
 
   it('přepínač v řádku změní stav registrace', async () => {

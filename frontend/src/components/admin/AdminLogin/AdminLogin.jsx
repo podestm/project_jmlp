@@ -4,7 +4,7 @@ import { useAuth } from '../../../config/auth.jsx';
 import trat from '../../../assets/images/trat.jpg';
 import znak from '../../../assets/images/jmlp_znak_88.png';
 import { Alert, Button, Field, Icon, Input, PasswordInput } from '../../ms/index.js';
-import { CUP_NAME, currentSeasonInfo } from '../../site/siteInfo.js';
+import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
 import styles from './AdminLogin.module.css';
 
 /**
@@ -20,7 +20,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [deniedHidden, setDeniedHidden] = useState(false);
   const { login, deniedUser } = useAuth();
-  const { edition } = currentSeasonInfo();
+  const { edition } = useSeasonInfo();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

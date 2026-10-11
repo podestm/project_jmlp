@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AdminAPI } from '../../../config/api.js';
+import { loadCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { deleteSeasonConfirm } from './dialogs/deleteSeasonConfirm.jsx';
+import { setCurrentSeasonConfirm } from './dialogs/setCurrentSeasonConfirm.js';
 import { emptySeasonForm, seasonForm, seasonPayload } from './seasons.js';
 
 /**
  * Data a akce správy sezón: načtení, formulář nové / upravované sezóny,
- * smazání s potvrzením a rozbalené dokumenty jedné sezóny.
+ * nastavení aktuální sezóny a smazání (obojí s potvrzením) a rozbalené
+ * dokumenty jedné sezóny.
  * @param {{confirm: Function}} options - confirm z useConfirm komponenty
  */
 export function useSeasonManagement({ confirm }) {
@@ -65,6 +68,20 @@ export function useSeasonManagement({ confirm }) {
     }
   };
 
+  const setCurrentSeason = async (season) => {
+    const current = seasons.find((other) => other.is_current);
+    if (!await confirm(setCurrentSeasonConfirm(season, current))) return;
+    try {
+      await AdminAPI.post(`/api/admin/seasons/${season.id}/current`);
+      setMessage({ type: 'success', text: `Aktuální sezóna je teď ${season.season_label}` });
+      await load();
+      // Hlavička administrace a výchozí filtry berou sezónu ze sdíleného hooku.
+      loadCurrentSeason({ force: true });
+    } catch (err) {
+      setMessage({ type: 'danger', text: err.message });
+    }
+  };
+
   const deleteSeason = async (season) => {
     if (!await confirm(deleteSeasonConfirm(season))) return;
     try {
@@ -81,6 +98,6 @@ export function useSeasonManagement({ confirm }) {
   return {
     seasons, loading, saving, message, setMessage,
     showForm, editing, formData, setFormData, openCreate, openEdit, closeForm, handleSubmit,
-    deleteSeason, expandedSeason, toggleDocuments, reload: load,
+    setCurrentSeason, deleteSeason, expandedSeason, toggleDocuments, reload: load,
   };
 }

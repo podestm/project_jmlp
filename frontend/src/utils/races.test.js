@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { czechPlural, raceDate, raceMethod, raceOrder, raceSeasonId, registrationState, startOfToday } from './races.js';
+import { czechPlural, defaultSeasonId, raceDate, raceMethod, raceOrder, raceSeasonId, registrationState, startOfToday } from './races.js';
 
 const today = startOfToday(new Date('2026-10-03T15:00:00'));
 
@@ -27,5 +27,11 @@ describe('races', () => {
     expect(czechPlural(1, ['závod', 'závody', 'závodů'])).toBe('závod');
     expect(czechPlural(3, ['závod', 'závody', 'závodů'])).toBe('závody');
     expect(czechPlural(0, ['závod', 'závody', 'závodů'])).toBe('závodů');
+  });
+
+  it('výchozí sezóna výběru je aktuální, pokud má závody', () => {
+    expect(defaultSeasonId([2026, 2025], 2025)).toBe(2025);
+    expect(defaultSeasonId([2025, 2024], 2026)).toBe(2025);
+    expect(defaultSeasonId([], 2026)).toBe(2026);
   });
 });

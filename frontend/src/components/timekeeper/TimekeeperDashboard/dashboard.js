@@ -1,6 +1,6 @@
 // Výběr závodu časomíry (TkVyberZavodu): čisté funkce nad GET /api/timekeeper/races.
 import { raceDate, startOfToday } from '../../../utils/races.js';
-import { getCurrentSeasonId } from '../../../utils/season.js';
+import { seasonIdForDate } from '../../../utils/season.js';
 
 /**
  * Nadcházející (od dneška včetně, nejbližší první) a proběhlé závody
@@ -30,13 +30,13 @@ export const isRaceToday = (race, today = startOfToday()) => {
  * bez data) a starší, které se ukážou až na požádání – jinak by výběr
  * zavalilo přes sto závodů z minulých let. Pořadí zůstává.
  */
-export const splitRecentPast = (past, today = startOfToday()) => {
-  const oldestShown = getCurrentSeasonId(today) - 1;
+export const splitRecentPast = (past, currentSeasonId) => {
+  const oldestShown = currentSeasonId - 1;
   const recent = [];
   const older = [];
   past.forEach((race) => {
     const date = raceDate(race);
-    const season = race.season_id ?? (date ? getCurrentSeasonId(date) : null);
+    const season = race.season_id ?? (date ? seasonIdForDate(date) : null);
     (season == null || season >= oldestShown ? recent : older).push(race);
   });
   return { recent, older };

@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { currentSeasonInfo } from './siteInfo.js';
+import { seasonInfo } from './siteInfo.js';
 
-describe('currentSeasonInfo', () => {
-  it('v říjnu 2026 je XX. ročník, sezóna 2026/27', () => {
-    expect(currentSeasonInfo(new Date(2026, 9, 11))).toEqual({
+describe('seasonInfo', () => {
+  it('sezóna 2026 s XX. ročníkem', () => {
+    expect(seasonInfo({ seasonId: 2026, edition: 20 }, new Date(2026, 9, 11))).toEqual({
       edition: 'XX.',
       season: '2026/27',
       copyright: '© 2006–2026 Jihomoravský lyžařský pohár',
     });
   });
 
-  it('v červenci 2027 je to pořád sezóna 2026/27', () => {
-    expect(currentSeasonInfo(new Date(2027, 6, 31)).season).toBe('2026/27');
+  it('ročník bere ze sezóny, ne z data', () => {
+    const info = seasonInfo({ seasonId: 2025, edition: 19 }, new Date(2026, 9, 11));
+    expect(info.edition).toBe('XIX.');
+    expect(info.season).toBe('2025/26');
   });
 });

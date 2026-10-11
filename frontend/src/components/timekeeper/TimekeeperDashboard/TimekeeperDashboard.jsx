@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Button, EmptyState, Grid, Icon, LoadingState, PageHeader, Panel, Paska } from '../../ms/index.js';
 import { czechPlural } from '../../../utils/races.js';
-import { currentSeasonInfo } from '../../site/siteInfo.js';
+import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
+import { seasonInfo } from '../../site/siteInfo.js';
 import TkPage from '../frame/TkPage/TkPage.jsx';
 import { readSelectedRaceId, storeSelectedRaceId } from '../frame/selectedRace.js';
 import { czechDateParts } from '../../ms/BibDate/czechDate.js';
@@ -21,7 +22,8 @@ import styles from './TimekeeperDashboard.module.css';
 export default function TimekeeperDashboard() {
   const { races, loading, error, clearError, loadRaces, toggleLive } = useTimekeeperRaces();
   const navigate = useNavigate();
-  const { edition, season } = currentSeasonInfo();
+  const currentSeason = useCurrentSeason();
+  const { edition, season } = seasonInfo(currentSeason);
   const [showOlder, setShowOlder] = useState(false);
 
   const selectRace = (raceId) => {
@@ -54,7 +56,7 @@ export default function TimekeeperDashboard() {
 
   const { upcoming, past } = splitRaces(races);
   // Starší než předchozí sezóna jen na požádání (jinak přes sto řádků).
-  const { recent, older } = splitRecentPast(past);
+  const { recent, older } = splitRecentPast(past, currentSeason.seasonId);
   const shownPast = showOlder ? past : recent;
   const selectedId = readSelectedRaceId();
   const lastRace = races.find((race) => String(race.id) === String(selectedId));

@@ -31,7 +31,7 @@ describe('výběr závodu', () => {
       { id: 4, datum: '2025-02-01', season_id: 2025 },
       { id: 5, datum: null },
     ];
-    const { recent, older } = splitRecentPast(past, today);
+    const { recent, older } = splitRecentPast(past, 2026);
     expect(recent.map((r) => r.id)).toEqual([1, 2, 4, 5]);
     expect(older.map((r) => r.id)).toEqual([3]);
   });

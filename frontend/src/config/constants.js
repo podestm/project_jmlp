@@ -40,7 +40,7 @@ export const SEASON_CONFIG = {
   SEASON_START_MONTH: 8, // srpen
   SEASON_START_DAY: 1,
 
-  getCurrentSeasonId: (referenceDate = new Date()) => {
+  seasonIdForDate: (referenceDate = new Date()) => {
     const year = referenceDate.getFullYear();
     const month = referenceDate.getMonth() + 1; // JavaScript months jsou 0-indexed
 

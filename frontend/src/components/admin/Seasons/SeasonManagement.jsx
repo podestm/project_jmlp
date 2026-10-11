@@ -1,12 +1,12 @@
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
 import { OWNER, ROLE } from '../../../config/attachmentsApi.js';
-import { getCurrentSeasonId } from '../../../utils/season.js';
+import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { Alert, Button, EmptyState, LoadingState, Paska } from '../../ms/index.js';
 import AttachmentManager from '../Attachments/AttachmentManager.jsx';
 import AdminPage from '../frame/AdminPage/AdminPage.jsx';
 import SeasonCard from './SeasonCard/SeasonCard.jsx';
 import SeasonDialog from './SeasonDialog/SeasonDialog.jsx';
-import { seasonsMeta, splitSeasons } from './seasons.js';
+import { currentSeasonOf, seasonsMeta, splitSeasons } from './seasons.js';
 import { useSeasonManagement } from './useSeasonManagement.js';
 import styles from './SeasonManagement.module.css';
 
@@ -18,13 +18,15 @@ const SEASON_ROLES = [[ROLE.prubezne, ROLE.vysledky], ROLE.document];
 /**
  * Sezóny (AdminSezony, AdminDialogSezona, AdminDialogSmazatSezonu): běžící
  * a připravené ročníky, pod nimi archiv; u každého dokumenty (rozbalí se),
- * úprava v dialogu a smazání s potvrzením. Data drží useSeasonManagement.
+ * úprava v dialogu, nastavení aktuální sezóny a smazání s potvrzením.
+ * Data drží useSeasonManagement.
  */
 export default function SeasonManagement() {
   // Hook sám nic nerenderuje, dialog proto vlastní tahle komponenta.
   const { confirm, confirmElement } = useConfirm();
   const sm = useSeasonManagement({ confirm });
-  const currentSeasonId = getCurrentSeasonId();
+  const { seasonId: fallbackSeasonId } = useCurrentSeason();
+  const currentSeasonId = currentSeasonOf(sm.seasons, fallbackSeasonId);
   const { upcoming, archive } = splitSeasons(sm.seasons, currentSeasonId);
 
   const renderCard = (season, compact) => (
@@ -36,6 +38,7 @@ export default function SeasonManagement() {
       expanded={sm.expandedSeason === season.id}
       onToggle={sm.toggleDocuments}
       onEdit={sm.openEdit}
+      onSetCurrent={sm.setCurrentSeason}
       onDelete={sm.deleteSeason}
     >
       <AttachmentManager

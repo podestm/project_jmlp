@@ -3,7 +3,7 @@ import {
   Alert, Badge, BibDate, Button, ButtonLink, Container, DataRow, EmptyState, Icon, LoadingState, Panel, Paska, Screen,
 } from '../../ms/index.js';
 import PostCard from '../../site/PostCard/PostCard.jsx';
-import { currentSeasonInfo } from '../../site/siteInfo.js';
+import { useSeasonInfo } from '../../site/siteInfo.js';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
 import { fixEncoding } from '../../../utils/text.js';
 import { REGISTRATION_STATE, raceDate, raceMethod, registrationState, startOfToday } from '../../../utils/races.js';
@@ -14,7 +14,7 @@ import styles from './Home.module.css';
 const registerPath = (race) => (race?.registration ? `/zavod/${race.id}#prihlaska` : '/zavody');
 
 function Hero({ openRace }) {
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
   return (
     <div className={styles.hero}>
       <Container className={styles.heroInner}>
@@ -72,7 +72,7 @@ function NextRace({ race }) {
 }
 
 function SeasonRaces({ races, today }) {
-  const { season } = currentSeasonInfo();
+  const { season } = useSeasonInfo();
   let content;
   if (races.status === 'loading') content = <LoadingState variant="inline" label="Načítám závody…" />;
   else if (races.status === 'error') {

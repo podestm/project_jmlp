@@ -4,7 +4,7 @@ import svazLogo from '../../../assets/images/svaz_logo_88.png';
 import { Container } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { publicFooterColumns, publicFooterLinks, publicNav } from '../../ms/navItems.js';
-import { CUP_NAME, currentSeasonInfo } from '../siteInfo.js';
+import { CUP_NAME, useSeasonInfo } from '../siteInfo.js';
 import styles from './SiteFooter.module.css';
 
 /**
@@ -13,7 +13,7 @@ import styles from './SiteFooter.module.css';
  * varianta (MobilZavody): znak, šest odkazů ve dvou sloupcích, copyright.
  */
 export default function SiteFooter({ full = false }) {
-  const { edition, season, copyright } = currentSeasonInfo();
+  const { edition, season, copyright } = useSeasonInfo();
 
   return (
     <footer className={cx(styles.footer, full && styles.full)}>

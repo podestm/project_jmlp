@@ -1,4 +1,4 @@
-import { Button, Checkbox, Field, Input, Modal } from '../../../ms/index.js';
+import { Button, Field, Input, Modal } from '../../../ms/index.js';
 import { editionPreview, seasonRange } from '../seasons.js';
 import styles from './SeasonDialog.module.css';
 
@@ -44,7 +44,6 @@ export default function SeasonDialog({ editing, formData, setFormData, saving, o
         <Field label="Název seriálu" required>
           <Input size="sm" value={formData.name} onChange={(e) => set('name', e.target.value)} />
         </Field>
-        <Checkbox label="Aktivní" checked={formData.active} onChange={(e) => set('active', e.target.checked)} />
       </form>
     </Modal>
   );

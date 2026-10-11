@@ -5,7 +5,7 @@ import znak from '../../../assets/images/jmlp_znak_88.png';
 import { Icon, useDialog } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
-import { currentSeasonInfo } from '../siteInfo.js';
+import { useSeasonInfo } from '../siteInfo.js';
 import styles from './MobileMenu.module.css';
 
 /**
@@ -19,7 +19,7 @@ export default function MobileMenu({ id, open, onClose }) {
   const { pathname } = useLocation();
   const liveRace = useLiveStatus();
   const dialogProps = useDialog({ open, onClose });
-  const { edition, season, copyright } = currentSeasonInfo();
+  const { edition, season, copyright } = useSeasonInfo();
 
   // Zpět/vpřed v prohlížeči změní adresu bez kliknutí na odkaz.
   const pathnameRef = useRef(pathname);

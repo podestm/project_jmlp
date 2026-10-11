@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { resetCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import RaceCalendar from './RaceCalendar.jsx';
 
 /**
@@ -41,6 +42,7 @@ beforeEach(() => {
   // Jen Date - časovače zůstávají skutečné, jinak by se nedočkalo findBy*
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date('2026-09-15T12:00:00'));
+  resetCurrentSeason();
   vi.stubGlobal('fetch', vi.fn((url) => {
     const cesta = String(url);
     if (cesta.startsWith('/season-results/')) return jsonResponse(VYSLEDKY);
@@ -79,6 +81,22 @@ describe('RaceCalendar - výsledky sezóny', () => {
     await userEvent.selectOptions(await screen.findByLabelText('Sezóna'), '2024');
 
     expect(screen.getByRole('button', { name: /Celkové výsledky/ })).toBeDisabled();
+  });
+});
+
+describe('RaceCalendar - výchozí sezóna', () => {
+  it('ukáže sezónu, kterou správce nastavil jako aktuální, ne sezónu podle data', async () => {
+    fetch.mockImplementation((url) => {
+      const cesta = String(url);
+      if (cesta.startsWith('/races/season/current')) return jsonResponse({ current_season_id: 2025, edition: 19 });
+      if (cesta.startsWith('/season-results/')) return jsonResponse(VYSLEDKY);
+      return jsonResponse(ZAVODY);
+    });
+    renderCalendar();
+
+    const vyber = await screen.findByLabelText('Sezóna');
+    await waitFor(() => expect(vyber).toHaveValue('2025'));
+    expect(screen.getByRole('link', { name: /Celkové výsledky/ })).toBeInTheDocument();
   });
 });
 

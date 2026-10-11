@@ -85,6 +85,8 @@ Frontend (React + Nginx)  ←→  Backend (FastAPI)  ←→  MySQL 8.0
 
 **Season logic**: Seasons run Aug 1 – Jul 31. Use `get_current_season_id(date)` from `utils.py`. `season_id` is the season's **starting** year: if date >= Aug 1, season = current_year; otherwise season = current_year - 1 (e.g. season 2025 = 1. 8. 2025 – 31. 7. 2026). Season metadata (edition, name) lives in `fuj_jmlp_season`.
 
+**Current season** ("aktuální sezóna"): exactly one season can be flagged `fuj_jmlp_season.is_current` (migration 014 renamed the meaningless `active` column; set via `POST /api/admin/seasons/{id}/current`, a single `UPDATE … SET is_current = (id = :id)` because MyISAM has no transactions). Use `services/seasons.current_season_id(db)` wherever "the current season" is meant — flagged season, falling back to the date logic when none is flagged. Keep `get_current_season_id(date)` / `calculate_season_for_date` only for date → season conversion. Frontend: `hooks/useCurrentSeason.js` (one cached request to `/races/season/current`, last value in localStorage, date fallback); `utils/season.seasonIdForDate` is date conversion only.
+
 **`fix_encoding()` utility**: Legacy data may have double-encoded UTF-8. Use this helper when reading racer names, club names, etc. from older records.
 
 **BitBoolean**: Custom SQLAlchemy type in `models.py` for MySQL `BIT(1)` columns. Use it (not `Boolean`) for any boolean field in models.

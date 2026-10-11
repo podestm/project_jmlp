@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { formatSeason, formatSeasonShort, generateRaceNumber, getCurrentSeasonId, getSeasonIdForRace, seasonEdition, toRoman } from './season.js';
+import { formatSeason, formatSeasonShort, generateRaceNumber, seasonIdForDate, getSeasonIdForRace, seasonEdition, toRoman } from './season.js';
 import { pointsForRank, POINTS_TABLE } from './points.js';
 
-describe('getCurrentSeasonId', () => {
+describe('seasonIdForDate', () => {
   it('od 1. srpna patří datum do sezóny toho roku', () => {
-    expect(getCurrentSeasonId(new Date(2026, 7, 1))).toBe(2026);
-    expect(getCurrentSeasonId(new Date(2026, 11, 31))).toBe(2026);
+    expect(seasonIdForDate(new Date(2026, 7, 1))).toBe(2026);
+    expect(seasonIdForDate(new Date(2026, 11, 31))).toBe(2026);
   });
 
   it('do 31. července patří ještě do sezóny loňské', () => {
-    expect(getCurrentSeasonId(new Date(2026, 6, 31))).toBe(2025);
-    expect(getCurrentSeasonId(new Date(2026, 0, 17))).toBe(2025);
+    expect(seasonIdForDate(new Date(2026, 6, 31))).toBe(2025);
+    expect(seasonIdForDate(new Date(2026, 0, 17))).toBe(2025);
   });
 
   it('hranice sezóny sedí na den', () => {
-    expect(getCurrentSeasonId(new Date(2025, 6, 31))).toBe(2024);
-    expect(getCurrentSeasonId(new Date(2025, 7, 1))).toBe(2025);
+    expect(seasonIdForDate(new Date(2025, 6, 31))).toBe(2024);
+    expect(seasonIdForDate(new Date(2025, 7, 1))).toBe(2025);
   });
 });
 

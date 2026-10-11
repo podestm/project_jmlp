@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Badge, Icon } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { adminNav, isNavActive } from '../../../ms/navItems.js';
-import { currentSeasonInfo } from '../../../site/siteInfo.js';
+import { useSeasonInfo } from '../../../site/siteInfo.js';
 import AdminBrand from '../AdminBrand/AdminBrand.jsx';
 import styles from './AdminMobileBar.module.css';
 
@@ -19,7 +19,7 @@ const waitingText = (count) => {
  */
 export default function AdminMobileBar({ menuId, menuOpen, onOpenMenu, pendingClubRequests = 0, className }) {
   const { pathname } = useLocation();
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
   const current = adminNav.find((item) => isNavActive(item, pathname));
   const subtitle = [current?.label, `${edition} ročník ${season}`].filter(Boolean).join(' · ');
   const label = pendingClubRequests > 0

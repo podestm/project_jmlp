@@ -5,17 +5,19 @@ import styles from './SeasonCard.module.css';
 
 /**
  * Sezóna v seznamu (AdminSezony): ročník, roky, název, počty, stav slovy
- * a akce. Rozbalená ukáže `children` (dokumenty sezóny). Sezónu se závody
+ * a akce. Rozbalená ukáže `children` (dokumenty sezóny). Jinou než aktuální
+ * sezónu jde nastavit jako aktuální. Sezónu se závody ani aktuální sezónu
  * smazat nejde – tlačítko je zamčené a říká proč.
  * - compact: řádek archivu (menší, bez lišty)
  */
-export default function SeasonCard({ season, currentSeasonId, expanded, compact = false, onToggle, onEdit, onDelete, children }) {
+export default function SeasonCard({ season, currentSeasonId, expanded, compact = false, onToggle, onEdit, onSetCurrent, onDelete, children }) {
   const state = seasonState(season, currentSeasonId);
-  const locked = season.races_count > 0;
+  const isCurrent = state === 'Aktuální sezóna';
+  const lockReason = (season.races_count > 0 && 'má závody') || (isCurrent && 'je aktuální') || null;
   const documentsId = `sezona-${season.id}-dokumenty`;
 
   return (
-    <article className={cx(styles.card, compact && styles.compact, state === 'Aktuální sezóna' && styles.current)} aria-label={`Sezóna ${season.season_label}`}>
+    <article className={cx(styles.card, compact && styles.compact, isCurrent && styles.current)} aria-label={`Sezóna ${season.season_label}`}>
       <div className={styles.row}>
         <span className={styles.edition}>
           {!compact && <span className={styles.editionLabel}>Ročník</span>}
@@ -28,8 +30,7 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
           </span>
           <span className={styles.meta}>{seasonRange(season.year_start)} · {seasonCounts(season)}</span>
           <span className={styles.badges}>
-            {state !== 'Archiv' && <Badge size="sm" tone={state === 'Aktuální sezóna' ? 'open' : 'neutral'}>{state}</Badge>}
-            {!season.active && <Badge size="sm" tone="dry">Neaktivní</Badge>}
+            {state !== 'Archiv' && <Badge size="sm" tone={isCurrent ? 'open' : 'neutral'}>{state}</Badge>}
           </span>
         </span>
         <span className={styles.actions}>
@@ -42,14 +43,19 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
           >
             {expanded ? 'Sbalit' : 'Dokumenty'}
           </Button>
+          {!isCurrent && (
+            <Button size="sm" icon="check" onClick={() => onSetCurrent(season)} aria-label={`Nastavit sezónu ${season.season_label} jako aktuální`}>
+              Nastavit jako aktuální
+            </Button>
+          )}
           <Button size="sm" onClick={() => onEdit(season)} aria-label={`Upravit sezónu ${season.season_label}`}>Upravit</Button>
           <Button
             size="sm"
             variant="danger"
             icon="trash"
-            disabled={locked}
-            title={locked ? 'Sezóna má závody a nelze ji smazat' : undefined}
-            aria-label={locked ? `Sezóna ${season.season_label} má závody a nelze ji smazat` : `Smazat sezónu ${season.season_label}`}
+            disabled={Boolean(lockReason)}
+            title={lockReason ? `Sezóna ${lockReason} a nelze ji smazat` : undefined}
+            aria-label={lockReason ? `Sezóna ${season.season_label} ${lockReason} a nelze ji smazat` : `Smazat sezónu ${season.season_label}`}
             onClick={() => onDelete(season)}
           >
             Smazat

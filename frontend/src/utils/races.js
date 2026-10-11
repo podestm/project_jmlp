@@ -67,5 +67,13 @@ export const seasonsOf = (races) => (
   [...new Set(races.map(raceSeasonId).filter((id) => id !== null))].sort((a, b) => b - a)
 );
 
+/**
+ * Výchozí sezóna výběru: aktuální, pokud má závody (nebo žádná sezóna závody
+ * nemá); jinak nejnovější se závody, aby výběr nezůstal prázdný.
+ */
+export const defaultSeasonId = (seasons, currentSeasonId) => (
+  seasons.length === 0 || seasons.includes(currentSeasonId) ? currentSeasonId : seasons[0]
+);
+
 /** „2026/27 — XX. ročník“ */
 export const seasonLabel = (seasonId) => `${formatSeasonShort(seasonId)} — ${toRoman(seasonEdition(seasonId))}. ročník`;

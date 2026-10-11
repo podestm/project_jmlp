@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Alert, Button, ButtonLink, Container, EmptyState, Icon, LoadingState, Panel, Paska, Screen } from '../../ms/index.js';
-import { formatSeasonShort, getCurrentSeasonId } from '../../../utils/season.js';
+import { formatSeasonShort } from '../../../utils/season.js';
+import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { raceSeasonId, registrationState, startOfToday } from '../../../utils/races.js';
 import { raceTitle } from './raceDetail.js';
 import { useRaceDetail, useRaceDetailRevalidation, useRaceRegistrations, useUpcomingRaces } from './useRaceDetail.js';
@@ -81,6 +82,7 @@ function ListAfterOpening() {
 export default function RaceDetail() {
   const { raceId } = useParams();
   const { race, status, reload } = useRaceDetail(raceId);
+  const { seasonId: currentSeasonId } = useCurrentSeason();
   const [refreshToken, setRefreshToken] = useState(0);
   const state = race ? registrationState(race, startOfToday()) : null;
   const registrations = useRaceRegistrations(raceId, { enabled: status === 'ready' && state !== 'past', refreshToken });
@@ -115,7 +117,7 @@ export default function RaceDetail() {
 
   const others = upcoming.filter((other) => other.id !== race.id);
   const nextOpenRace = others.find((other) => other.registration);
-  const pastSeason = (raceSeasonId(race) ?? race.season_id) < getCurrentSeasonId();
+  const pastSeason = (raceSeasonId(race) ?? race.season_id) < currentSeasonId;
   const registered = registrations.registrations?.total_racers ?? 0;
 
   return (

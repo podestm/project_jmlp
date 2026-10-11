@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Button, Modal, RadioList } from '../../../ms/index.js';
+import { useCurrentSeason } from '../../../../hooks/useCurrentSeason.js';
 import { defaultSeason, seasonChoices } from '../documents.js';
 import styles from './PublishDialog.module.css';
 
@@ -9,8 +10,9 @@ import styles from './PublishDialog.module.css';
  * Dialog se montuje jen pro otevřený soubor, výběr tak vždy začíná znovu.
  */
 export default function PublishDialog({ file, seasons, onPublish, onClose }) {
-  const choices = seasonChoices(seasons);
-  const [year, setYear] = useState(() => defaultSeason(seasons));
+  const { seasonId: currentSeasonId } = useCurrentSeason();
+  const choices = seasonChoices(seasons, currentSeasonId);
+  const [year, setYear] = useState(() => defaultSeason(seasons, currentSeasonId));
   const selected = choices.find((choice) => choice.value === year);
 
   return (

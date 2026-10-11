@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import znak from '../../../../assets/images/jmlp_znak_88.png';
-import { currentSeasonInfo } from '../../../site/siteInfo.js';
+import { useSeasonInfo } from '../../../site/siteInfo.js';
 import RaceSwitcher from '../RaceSwitcher/RaceSwitcher.jsx';
 import StatusChips from '../StatusChips/StatusChips.jsx';
 import styles from './TopBar.module.css';
@@ -10,7 +10,7 @@ import styles from './TopBar.module.css';
  * stavy. Pod 1280 px ze značky zůstane jen znak.
  */
 export default function TopBar({ race }) {
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
 
   return (
     <div className={styles.top}>

@@ -3,10 +3,11 @@ import {
   Alert, Button, ButtonLink, Container, EmptyState, Field, Icon, LoadingState, PageHeader, Screen, SegmentedControl,
   Select, Stack,
 } from '../../ms/index.js';
-import { formatSeasonShort, getCurrentSeasonId, seasonEdition, toRoman } from '../../../utils/season.js';
+import { formatSeasonShort, seasonEdition, toRoman } from '../../../utils/season.js';
 import { formatDate } from '../../../utils/date.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
+import { defaultSeasonId, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
+import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
 import { METHOD_FILTERS, matchesFilter, splitByDate } from './raceCalendar.js';
 import RaceRow from './RaceRow.jsx';
@@ -19,7 +20,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || '';
  * (celkové / průběžné), jinak vypnuté tlačítko – skončená sezóna „Celkové“,
  * běžící „Průběžné“.
  */
-function SeasonResultsButton({ seasonId, result }) {
+function SeasonResultsButton({ seasonId, currentSeasonId, result }) {
   if (result) {
     const label = result.final_results === 1 ? 'Celkové výsledky' : 'Průběžné výsledky';
     return (
@@ -28,7 +29,7 @@ function SeasonResultsButton({ seasonId, result }) {
       </ButtonLink>
     );
   }
-  const label = seasonId < getCurrentSeasonId() ? 'Celkové výsledky' : 'Průběžné výsledky';
+  const label = seasonId < currentSeasonId ? 'Celkové výsledky' : 'Průběžné výsledky';
   return <Button size="sm" icon="trophy" disabled title={`${label} zatím nejsou k dispozici`}>{label}</Button>;
 }
 
@@ -47,10 +48,11 @@ export default function RaceCalendar() {
   const { races, seasonResults, status, reload } = useRaceCalendar();
   const [chosenSeason, setChosenSeason] = useState(null);
   const [filter, setFilter] = useState('all');
+  const { seasonId: currentSeasonId } = useCurrentSeason();
   const today = startOfToday();
 
   const seasons = useMemo(() => seasonsOf(races), [races]);
-  const seasonId = chosenSeason ?? seasons[0] ?? getCurrentSeasonId();
+  const seasonId = chosenSeason ?? defaultSeasonId(seasons, currentSeasonId);
   const seasonRaces = useMemo(() => races.filter((race) => raceSeasonId(race) === seasonId), [races, seasonId]);
 
   if (status === 'loading') {
@@ -112,7 +114,7 @@ export default function RaceCalendar() {
           <Stack gap={7}>
             <div className={styles.toolbar}>
               <SegmentedControl label="Typ závodu" fill options={filterOptions} value={filter} onChange={setFilter} />
-              <SeasonResultsButton seasonId={seasonId} result={seasonResults[seasonId]} />
+              <SeasonResultsButton seasonId={seasonId} currentSeasonId={currentSeasonId} result={seasonResults[seasonId]} />
             </div>
 
             {filtered.length === 0 ? (

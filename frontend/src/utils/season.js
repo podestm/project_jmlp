@@ -3,12 +3,14 @@
 import { SEASON_CONFIG } from '../config/constants.js';
 
 /**
- * Season id for a given date (defaults to now).
+ * Sezóna, do které patří datum (hranice 1. 8.). Na otázku „která sezóna je
+ * teď“ odpovídá useCurrentSeason – aktuální sezónu volí správce; tohle je jen
+ * převod data a záloha, dokud server neodpoví.
  * @param {Date} [referenceDate]
  * @returns {number}
  */
-export const getCurrentSeasonId = (referenceDate = new Date()) => (
-  SEASON_CONFIG.getCurrentSeasonId(referenceDate)
+export const seasonIdForDate = (referenceDate = new Date()) => (
+  SEASON_CONFIG.seasonIdForDate(referenceDate)
 );
 
 /**
@@ -17,7 +19,7 @@ export const getCurrentSeasonId = (referenceDate = new Date()) => (
  * @returns {number}
  */
 export const getSeasonIdForRace = (raceDate) => (
-  getCurrentSeasonId(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
+  seasonIdForDate(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
 );
 
 /**
@@ -67,7 +69,7 @@ export const generateRaceNumber = (existingRaces, seasonId) => {
 };
 
 export default {
-  getCurrentSeasonId,
+  seasonIdForDate,
   seasonEdition,
   formatSeasonShort,
   getSeasonIdForRace,

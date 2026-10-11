@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon, useDialog } from '../../../ms/index.js';
-import { currentSeasonInfo } from '../../../site/siteInfo.js';
+import { useSeasonInfo } from '../../../site/siteInfo.js';
 import SectionSwitch from '../../../backoffice/SectionSwitch/SectionSwitch.jsx';
 import AdminBrand from '../AdminBrand/AdminBrand.jsx';
 import AdminNav from '../AdminNav/AdminNav.jsx';
@@ -17,7 +17,7 @@ import styles from './AdminMobileMenu.module.css';
 export default function AdminMobileMenu({ id, open, onClose, admin, counts, onLogout }) {
   const { pathname } = useLocation();
   const dialogProps = useDialog({ open, onClose });
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
 
   // Zpět/vpřed v prohlížeči změní adresu bez kliknutí na odkaz.
   const pathnameRef = useRef(pathname);

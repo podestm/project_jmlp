@@ -1,12 +1,11 @@
 // Čisté funkce správy sezón (AdminSezony) – bez Reactu, s testem.
-import { SEASON_CONFIG } from '../../../config/constants.js';
 import { czechPlural } from '../../../utils/races.js';
-import { seasonEdition, toRoman } from '../../../utils/season.js';
+import { seasonEdition, seasonIdForDate, toRoman } from '../../../utils/season.js';
 
-/** Prázdný formulář nové sezóny: aktuální rok a jeho ročník. */
+/** Prázdný formulář nové sezóny: sezóna podle dnešního data a její ročník. */
 export const emptySeasonForm = () => {
-  const yearStart = SEASON_CONFIG.getCurrentSeasonId();
-  return { year_start: yearStart, edition: seasonEdition(yearStart), name: 'Jihomoravský lyžařský pohár', active: true };
+  const yearStart = seasonIdForDate();
+  return { year_start: yearStart, edition: seasonEdition(yearStart), name: 'Jihomoravský lyžařský pohár' };
 };
 
 /** Formulář úpravy podle uložené sezóny. */
@@ -14,14 +13,12 @@ export const seasonForm = (season) => ({
   year_start: season.year_start,
   edition: season.edition ?? '',
   name: season.name,
-  active: season.active,
 });
 
 /** Tělo požadavku: rok se posílá jen u nové sezóny. */
 export const seasonPayload = (formData, isNew) => ({
   edition: formData.edition === '' ? null : Number(formData.edition),
   name: formData.name,
-  active: formData.active,
   ...(isNew ? { year_start: Number(formData.year_start) } : {}),
 });
 
@@ -30,6 +27,14 @@ export const editionPreview = (edition) => (edition === '' || edition == null ? 
 
 /** „1. 8. 2026 – 31. 7. 2027“ */
 export const seasonRange = (yearStart) => `1. 8. ${yearStart} – 31. 7. ${Number(yearStart) + 1}`;
+
+/**
+ * Aktuální sezóna seznamu: ta, kterou správce označil; dokud žádná označená
+ * není, `fallbackId` (useCurrentSeason – podle data).
+ */
+export const currentSeasonOf = (seasons, fallbackId) => (
+  seasons.find((season) => season.is_current)?.year_start ?? fallbackId
+);
 
 /** Běžící a připravené (od aktuální dál) a archiv (starší). */
 export const splitSeasons = (seasons, currentSeasonId) => ({

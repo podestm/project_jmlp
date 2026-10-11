@@ -33,6 +33,6 @@ describe('knihovna dokumentů', () => {
     expect(choices[3].description).toBe('teď 1 dokument');
     expect(defaultSeason(SEASONS, 2026)).toBe(2026);
     expect(defaultSeason(SEASONS, 2030)).toBe(2027);
-    expect(defaultSeason([])).toBeNull();
+    expect(defaultSeason([], 2026)).toBeNull();
   });
 });

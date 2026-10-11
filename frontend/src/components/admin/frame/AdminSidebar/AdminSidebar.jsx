@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { cx } from '../../../ms/cx.js';
-import { currentSeasonInfo } from '../../../site/siteInfo.js';
+import { useSeasonInfo } from '../../../site/siteInfo.js';
 import SectionSwitch from '../../../backoffice/SectionSwitch/SectionSwitch.jsx';
 import AdminBrand from '../AdminBrand/AdminBrand.jsx';
 import AdminNav from '../AdminNav/AdminNav.jsx';
@@ -13,7 +13,7 @@ import styles from './AdminSidebar.module.css';
  * a odhlášení. Od 1024 px; pod tím AdminMobileBar a AdminMobileMenu.
  */
 export default function AdminSidebar({ admin, counts, onLogout, className }) {
-  const { edition, season } = currentSeasonInfo();
+  const { edition, season } = useSeasonInfo();
 
   return (
     <aside className={cx(styles.sidebar, className)} aria-label="Menu administrace">
