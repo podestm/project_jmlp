@@ -6,7 +6,7 @@
  * Pořadí a body se počítají lokálně stejně jako na obrazovce výsledků, aby
  * listina seděla i s časy, které se ještě nestihly odeslat na server.
  */
-import { rankEntriesByTime } from '../../components/timekeeper/ResultsTable.jsx';
+import { rankEntriesByTime } from '../../utils/results.js';
 import { categoryCode, setName } from './clubList.js';
 
 /** Startovní číslo, které má závodník na dresu; bez přiděleného dresu pořadí startu. */
