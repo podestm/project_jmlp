@@ -36,6 +36,10 @@
   color: var(--ms-ink);
 }
 
+.offline {
+  margin-inline-end: var(--ms-space-1);
+}
+
 .club {
   font-size: var(--ms-fs-xs);
   color: var(--ms-ink-body);

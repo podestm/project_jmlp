@@ -6,6 +6,7 @@ import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeep
 import { LoadingState, Screen } from '../ms/index.js';
 import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
+import TimekeeperReauthModal from './frame/TimekeeperReauthModal/TimekeeperReauthModal.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
 import StartListManager from './StartList/StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
@@ -23,7 +24,13 @@ const ProtectedTimekeeperRoute = ({ children }) => {
   if (loading) return <LoadingState variant="fullscreen" label="Ověřuji přihlášení…" />;
   if (!isAuthenticated) return <TimekeeperLogin />;
 
-  return <TimekeeperLayout>{children}</TimekeeperLayout>;
+  // Vypršelé přihlášení = okno na místě nad otevřenou obrazovkou, ne odhlášení.
+  return (
+    <>
+      <TimekeeperLayout>{children}</TimekeeperLayout>
+      <TimekeeperReauthModal />
+    </>
+  );
 };
 
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;

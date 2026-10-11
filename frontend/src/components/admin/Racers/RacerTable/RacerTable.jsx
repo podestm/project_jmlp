@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Badge, Button, IconButton, Table, TableScroll } from '../../../ms/index.js';
 import { racerName, sexLabel } from '../racers.js';
+import SlcrName from '../SlcrName/SlcrName.jsx';
 import styles from './RacerTable.module.css';
 
 /**
@@ -15,7 +16,7 @@ const RacerRow = memo(function RacerRow({ racer, onEdit, onDelete }) {
   const name = racerName(racer);
   return (
     <tr>
-      <td className={styles.name}>{name}</td>
+      <td className={styles.name}><SlcrName racer={racer}>{name}</SlcrName></td>
       <td>{sexLabel(racer.sex) && <Badge size="sm">{sexLabel(racer.sex)}</Badge>}</td>
       <td data-numeric>{racer.birthYear}</td>
       <td>{racer.category_name ? <Badge size="sm">{racer.category_name}</Badge> : '–'}</td>

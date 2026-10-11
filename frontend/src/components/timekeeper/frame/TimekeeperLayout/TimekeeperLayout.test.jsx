@@ -19,6 +19,7 @@ vi.mock('../../../../offline/useSyncStatus.js', () => ({
   }),
 }));
 vi.mock('../../../../pdf/pdfmake.js', () => ({ preloadPdfMake: () => Promise.resolve(true) }));
+vi.mock('../../../../offline/racerRegistry.js', () => ({ preloadOfflineRacerData: () => Promise.resolve() }));
 
 const { default: TimekeeperLayout } = await import('./TimekeeperLayout.jsx');
 

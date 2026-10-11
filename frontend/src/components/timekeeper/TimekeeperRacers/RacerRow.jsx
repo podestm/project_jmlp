@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Badge, Button } from '../../ms/index.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
+import OfflineBadge from '../OfflineBadge/OfflineBadge.jsx';
 import { isExcluded } from '../startListHelpers.js';
 import { getSexLabel, getSexLetter } from './racers.js';
 import styles from './RacerRow.module.css';
@@ -25,6 +26,7 @@ const RacerRow = memo(function RacerRow({ entry, onEdit }) {
         <span className={styles.racer}>
           <span className={styles.nameRow}>
             <span className={excluded ? styles.excludedName : styles.name}>{name}</span>
+            <OfflineBadge entry={entry} />
             {excluded && <Badge tone="navy" size="sm">vyřazen</Badge>}
           </span>
           <span className={styles.club}>{entry.club_name || 'Bez oddílu'}</span>

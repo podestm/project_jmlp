@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { IconButton, VisuallyHidden } from '../../../ms/index.js';
 import { racerName, sexLabel } from '../racers.js';
+import SlcrName from '../SlcrName/SlcrName.jsx';
 import styles from './RacerList.module.css';
 
 /** Řádek závodníka: ročník v boxu, jméno, pod ním údaje, vpravo úprava a smazání. */
@@ -19,7 +20,7 @@ const RacerItem = memo(function RacerItem({ racer, onEdit, onDelete }) {
         <VisuallyHidden>ročník </VisuallyHidden>{racer.birthYear}
       </span>
       <span className={styles.text}>
-        <span className={styles.name}>{name}</span>
+        <span className={styles.name}><SlcrName racer={racer}>{name}</SlcrName></span>
         <span className={styles.details}>{details}</span>
       </span>
       <IconButton icon="pencil" label={`Upravit závodníka ${name}`} onClick={() => onEdit(racer)} />

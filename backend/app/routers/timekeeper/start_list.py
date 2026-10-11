@@ -591,10 +591,43 @@ def search_racers_for_start_list(
     } for row in rows]
 
 
+@router.get("/racers/snapshot")
+def racers_snapshot(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """Celý registr závodníků v kompaktní podobě pro offline hledání.
+
+    Časomíra si ho drží v IndexedDB: na kopci často není signál a přidat
+    závodníka z registru (dohláška na místě) musí jít i bez něj. Jen to, co
+    hledání a formulář potřebují - žádné kontakty.
+    """
+    rows = db.execute(text(f"""
+        SELECT r.id,
+               {convert_utf8_field('r.name')} as name,
+               {convert_utf8_field('r.surname')} as surname,
+               r.year, r.sex, r.slcr_id,
+               {convert_utf8_field('c.name')} as club_name
+        FROM fuj_jmlp_racer r
+        LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
+        ORDER BY r.surname, r.name
+    """)).fetchall()
+    return [{
+        "id": row.id,
+        "name": fix_encoding(row.name).strip() if row.name else "",
+        "surname": fix_encoding(row.surname).strip() if row.surname else "",
+        "year": row.year,
+        "sex": row.sex,
+        "club_name": fix_encoding(row.club_name).strip() if row.club_name else None,
+        "slcr_id": (row.slcr_id or "").strip() or None,
+    } for row in rows]
+
+
 @router.post("/races/{race_id}/start-list/entry")
 def add_manual_start_list_entry(
     race_id: int,
     data: Dict[str, Any] = Body(default={}),
+    x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
@@ -611,7 +644,24 @@ def add_manual_start_list_entry(
         "racer_slcr_id": "12345",  // optional
         "club_name": "SKI klub"    // required for new racer, optional snapshot override
     }
+
+    Idempotentní podle X-Idempotency-Key: časomíra přidává závodníky i offline
+    a fronta zápis po výpadku pošle znovu. Opakovaný požadavek vrátí původní
+    odpověď (i s id řádku, na které se přemapuje dočasné lokální id) a nového
+    závodníka nezaloží podruhé. `client_temp_id` v těle je dočasné id z
+    časomíry; server ho jen vrací zpátky.
     """
+    endpoint = f"/api/timekeeper/races/{race_id}/start-list/entry"
+    replay = try_get_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+    )
+    if replay:
+        return {**replay, "idempotency_replayed": True}
+
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
         raise StandardExceptions.race_not_found()
@@ -623,6 +673,30 @@ def add_manual_start_list_entry(
         models.StartListEntry.race_id == race_id,
         models.StartListEntry.racer_id == racer_id
     ).first()
+    if existing_entry and data.get("client_temp_id") and not existing_entry.excluded:
+        # Offline dohláška z časomíry, ale závodník už na startovce mezitím je
+        # (přidalo ho jiné zařízení nebo se přihlásil online). Je to tentýž
+        # řádek - časomíra na něj přemapuje své dočasné id i s naměřenými
+        # časy. Konflikt by tu nic nerozhodoval.
+        response_payload = {
+            "message": "Závodník už na startovní listině byl - offline dohláška spojena s jeho záznamem",
+            "id": existing_entry.id,
+            "start_number": existing_entry.start_number,
+            "entry": _get_start_list_entry_payload(existing_entry.id, db),
+            "client_temp_id": data.get("client_temp_id"),
+            "merged_existing": True,
+            "idempotency_replayed": False,
+        }
+        db.commit()
+        store_idempotent_response(
+            db=db,
+            idempotency_key=x_idempotency_key,
+            admin_id=int(current_admin.id),
+            method="POST",
+            endpoint=endpoint,
+            response_payload=response_payload,
+        )
+        return response_payload
     if existing_entry:
         if existing_entry.excluded:
             # Pozdě dorazivšího závodníka časoměřič zkusí přidat znovu - řádek
@@ -671,10 +745,21 @@ def add_manual_start_list_entry(
     db.add(entry)
     db.commit()
     db.refresh(entry)
-    
-    return {
+
+    response_payload = {
         "message": "Nový závodník byl vytvořen a přidán na startovní listinu" if created_new_racer else "Závodník přidán na startovní listinu",
         "id": entry.id,
         "start_number": start_number,
         "entry": _get_start_list_entry_payload(entry.id, db),
+        "client_temp_id": data.get("client_temp_id"),
+        "idempotency_replayed": False,
     }
+    store_idempotent_response(
+        db=db,
+        idempotency_key=x_idempotency_key,
+        admin_id=int(current_admin.id),
+        method="POST",
+        endpoint=endpoint,
+        response_payload=response_payload,
+    )
+    return response_payload

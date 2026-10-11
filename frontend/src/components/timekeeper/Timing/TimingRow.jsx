@@ -1,6 +1,7 @@
 import { memo, useCallback } from 'react';
 import { cx } from '../../ms/cx.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
+import OfflineBadge from '../OfflineBadge/OfflineBadge.jsx';
 import RaceFlag, { FLAGS } from '../StartList/RaceFlag.jsx';
 import { formatSystemRaceNumber } from '../../../utils/raceNumbers.js';
 import styles from './TimingRow.module.css';
@@ -68,7 +69,7 @@ const TimingRow = memo(function TimingRow({
       </td>
       {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů. */}
       <td className={styles.racerCell}>
-        <span className={styles.name} title={racerName}>{racerName}</span>
+        <span className={styles.name} title={racerName}><OfflineBadge entry={entry} className={styles.offline} />{racerName}</span>
         <span className={styles.club}>
           {entry.club_name || 'Bez klubu'}{showCategory ? ` · ${entry.category_name || '?'}` : ''} ({entry.racer_year})
         </span>

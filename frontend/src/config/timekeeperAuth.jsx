@@ -3,15 +3,30 @@
 // v jedné sekci, je přihlášený i v druhé a odhlášení platí pro obě. Časomíru
 // smí správce i časoměřič. Vlastní zůstává offline chování: tablet na závodě
 // musí zůstat přihlášený i bez sítě.
+//
+// Pravidla pro závodní den:
+//  - Token se klouzavě prodlužuje (config/tokenRefresh.js), dokud je zařízení
+//    občas online - přihlášení ráno nevyprší uprostřed závodu.
+//  - Časomíra nikoho sama NEODHLÁSÍ. Vypršelé nebo neplatné přihlášení (401)
+//    jen otevře okno pro přihlášení na místě (reauthRequired): obrazovka,
+//    rozepsané časy, sériový port i offline fronta zůstávají, jak jsou, a po
+//    přihlášení fronta pokračuje. Offline se okno ani neukazuje - přihlásit se
+//    stejně nejde a měřit se dá dál.
+//  - Odhlásit jde jen ručně (tlačítko v menu, s varováním, když ve frontě
+//    něco čeká).
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createTokenStore, fetchProfile, isNetworkError, loginWithCredentials } from './authCore.js';
 import { AUTH_EXPIRED_EVENT } from './api.js';
 import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
-import { startTimekeeperSync } from './timekeeperApi.js';
+import { startTimekeeperSync, TimekeeperAPI } from './timekeeperApi.js';
+import { startTokenRefresh } from './tokenRefresh.js';
+import { releaseAuthParked } from '../offline/syncQueue.js';
+import { AUTH_EXPIRED_MESSAGE } from '../offline/sync.js';
 
 const TimekeeperAuthContext = createContext();
 const store = createTokenStore(SESSION_TOKEN_KEY);
 const USER_KEY = SESSION_USER_KEY;
+const REFRESH_ENDPOINT = '/api/timekeeper/auth/refresh';
 
 const readCachedUser = () => {
   const stored = localStorage.getItem(USER_KEY);
@@ -33,6 +48,8 @@ const cacheUser = (user) => {
 
 const isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine;
 
+const isAuthStatus = (error) => error?.status === 401;
+
 export const useTimekeeperAuth = () => {
   const context = useContext(TimekeeperAuthContext);
   if (!context) {
@@ -45,31 +62,54 @@ export const TimekeeperAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(() => store.getToken());
+  // Přihlášení vypršelo, ale nikoho neodhlašujeme - čeká se na přihlášení
+  // v okně na místě (TimekeeperReauthModal).
+  const [reauthRequired, setReauthRequired] = useState(false);
 
+  /** Ruční odhlášení (tlačítko v menu). Automaticky se nevolá nikdy. */
   const logout = useCallback(() => {
     store.clear();
     localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
+    setReauthRequired(false);
   }, []);
+
+  /**
+   * Přihlášení přestalo platit. S uloženým profilem zůstává časomíra
+   * otevřená a jen se ukáže okno pro přihlášení; bez něj (první spuštění)
+   * není co zachraňovat a ukáže se běžná přihlašovací stránka.
+   */
+  const requireReauth = useCallback(() => {
+    const cached = readCachedUser();
+    if (cached) {
+      setUser((current) => current || cached);
+      setReauthRequired(true);
+    } else {
+      logout();
+    }
+  }, [logout]);
 
   useEffect(() => {
     const initialToken = store.getToken();
     if (!initialToken) {
-      setLoading(false);
-      return;
-    }
-    // Online + expired → force re-login. Offline + expired → keep cached user
-    // so race-day timing isn't disrupted; backend 401 on next sync will clear it.
-    if (store.isExpired() && !isOffline()) {
-      logout();
+      // Token smazala 401 v jiné části aplikace, ale profil zůstal - stejné
+      // jako vypršení: okno na místě, ne odhlášení.
+      if (readCachedUser()) requireReauth();
       setLoading(false);
       return;
     }
 
-    // When offline, trust the stored token — don't log the user out.
+    // Offline: věřit uloženému tokenu i profilu, i když token vypršel -
+    // měření na kopci bez signálu nesmí nic přerušit.
     if (isOffline()) {
       setUser(readCachedUser() || { email: 'offline', role: 'timekeeper' });
+      setLoading(false);
+      return;
+    }
+
+    if (store.isExpired()) {
+      requireReauth();
       setLoading(false);
       return;
     }
@@ -83,43 +123,35 @@ export const TimekeeperAuthProvider = ({ children }) => {
       })
       .catch((error) => {
         if (cancelled) return;
-        // Network error while online — still trust the cached user.
-        if (isNetworkError(error)) {
-          const cached = readCachedUser();
-          if (cached) setUser(cached);
-          else logout();
+        if (isAuthStatus(error)) {
+          requireReauth();
           return;
         }
-        console.error('Timekeeper auth check failed:', error);
-        logout();
+        // Výpadek sítě nebo serveru - věřit uloženému profilu.
+        const cached = readCachedUser();
+        if (cached) setUser(cached);
+        else if (!isNetworkError(error)) console.error('Timekeeper auth check failed:', error);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
     return () => { cancelled = true; };
-  }, [logout]);
+  }, [requireReauth]);
 
   /**
-   * Odhlášení po vypršení tokenu.
-   *
-   * Časoměřičská sekce se schválně nepřesměrovává tvrdým `window.location`:
-   * reload zavře otevřený Web Serial port časomíry a rozjetý závod přijde
-   * o měření. API klient proto jen smaže token a vyšle událost - odhlásit
-   * musí někdo, kdo to umí bez navigace, tedy tenhle kontext.
-   *
-   * `tokenCleared` odlišuje požadavek na popředí (token je pryč, uživatel
-   * musí znovu dovnitř) od 401 na pozadí ze synchronizační fronty, kde token
-   * zůstává a fronta jen čeká.
+   * 401 z API (na popředí i z fronty na pozadí). Schválně se NIKDY
+   * neodhlašuje a nenaviguje: reload zavře sériový port časomíry a odhlášení
+   * by schovalo obrazovku s rozepsanými časy. Jen se otevře okno pro
+   * přihlášení na místě.
    */
   useEffect(() => {
     const onAuthExpired = (event) => {
-      const detail = event?.detail || {};
-      if (detail.section === '/timekeeper' && detail.tokenCleared) logout();
+      if (event?.detail?.section === '/timekeeper') requireReauth();
     };
     window.addEventListener(AUTH_EXPIRED_EVENT, onAuthExpired);
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onAuthExpired);
-  }, [logout]);
+  }, [requireReauth]);
 
   // The offline sync loop opens IndexedDB and runs a timer, so it must only
   // start once an actual timekeeper is signed in - never for public visitors.
@@ -127,6 +159,14 @@ export const TimekeeperAuthProvider = ({ children }) => {
     if (!user) return undefined;
     return startTimekeeperSync();
   }, [user]);
+
+  // Klouzavé prodlužování platného tokenu (při startu, návratu do záložky,
+  // po obnovení připojení a periodicky).
+  useEffect(() => {
+    if (!user || reauthRequired) return undefined;
+    const refresher = startTokenRefresh({ endpoint: REFRESH_ENDPOINT, store, onRefreshed: setToken });
+    return refresher.stop;
+  }, [user, reauthRequired]);
 
   const login = useCallback(async (email, password) => {
     try {
@@ -140,6 +180,11 @@ export const TimekeeperAuthProvider = ({ children }) => {
       setToken(access_token);
       setUser(userData);
       cacheUser(userData);
+      setReauthRequired(false);
+      // Fronta, která čekala na přihlášení, se pošle hned.
+      releaseAuthParked(AUTH_EXPIRED_MESSAGE)
+        .then(() => TimekeeperAPI.flushQueue())
+        .catch(() => {});
       return { success: true };
     } catch (error) {
       console.error('Timekeeper login failed:', error);
@@ -152,9 +197,10 @@ export const TimekeeperAuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    reauthRequired,
     isAuthenticated: !!user,
     token
-  }), [user, loading, login, logout, token]);
+  }), [user, loading, login, logout, reauthRequired, token]);
 
   return (
     <TimekeeperAuthContext.Provider value={value}>

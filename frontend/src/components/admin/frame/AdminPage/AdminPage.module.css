@@ -16,27 +16,6 @@
   background: var(--ms-surface-card);
 }
 
-/* AdminParovaniSlcr: odkaz zpět, svislá čára mezi ním a H1. */
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ms-space-1);
-  flex-shrink: 0;
-  min-block-size: var(--ms-target);
-  margin-inline-start: -6px;
-  padding: 0 var(--ms-space-3) 0 6px;
-  border-right: 1px solid var(--ms-line);
-  font-family: var(--ms-font-display);
-  font-weight: 600;
-  font-size: var(--ms-fs-base);
-  color: var(--ms-navy);
-  text-decoration: none;
-}
-
-.back:hover {
-  text-decoration: underline;
-}
-
 .heading {
   display: flex;
   align-items: baseline;
@@ -99,11 +78,6 @@
     padding: 20px var(--ms-space-4) 0;
     border-bottom: 0;
     background: transparent;
-  }
-
-  .back {
-    align-self: flex-start;
-    border-right: 0;
   }
 
   .heading {

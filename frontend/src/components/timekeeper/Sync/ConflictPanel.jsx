@@ -1,6 +1,6 @@
 import { Button, Table } from '../../ms/index.js';
 import { formatDateTimeShort } from '../../../utils/date.js';
-import { CONFLICT_FIELDS, formatConflictField, localConflictEntry } from './queueView.js';
+import { CONFLICT_FIELDS, createdRacerName, formatConflictField, isCreateEntry, localConflictEntry } from './queueView.js';
 import styles from './ConflictPanel.module.css';
 
 /** Přepsat server i Nechat server jsou nevratné – fokus (a Enter) dostane Zrušit. */
@@ -19,10 +19,38 @@ const DROP_CONFIRM = {
   icon: 'close',
 };
 
+// Offline dohláška, kterou server odmítl (obsazené číslo, chybný údaj…):
+// „force“ ji pošle bez zvoleného čísla, „drop“ zahodí závodníka i jeho časy.
+const FORCE_CREATE_CONFIRM = {
+  title: 'Přidat závodníka bez zvoleného čísla?',
+  message: 'Server přidělí nejbližší volné systémové číslo. Číslo dresu pak zkontrolujte ve Startovní listině.',
+  confirmLabel: 'Přidat bez čísla',
+  icon: 'upload',
+};
+const DROP_CREATE_CONFIRM = {
+  title: 'Zahodit offline přidaného závodníka?',
+  message: 'Zmizí ze startovky i s časy, které mu byly naměřeny na tomto zařízení. Zpátky to nejde.',
+  confirmLabel: 'Zahodit závodníka',
+  danger: true,
+  icon: 'trash',
+};
+
+/** Tlačítka konfliktu dohlášky – srovnání časů tu nedává smysl. */
+function CreateConflictActions({ conflict, api, resolveConfirmed }) {
+  return (
+    <div className={styles.actions}>
+      <Button size="sm" onClick={() => api.resolve(conflict.id, 'retry')}>Vrátit do fronty</Button>
+      <Button size="sm" variant="primary" onClick={() => resolveConfirmed(conflict.id, 'force', FORCE_CREATE_CONFIRM)}>Přidat bez čísla</Button>
+      <Button size="sm" variant="danger" onClick={() => resolveConfirmed(conflict.id, 'drop', DROP_CREATE_CONFIRM)}>Zahodit závodníka</Button>
+    </div>
+  );
+}
+
 /**
  * Otevřené konflikty (TkSynchronizace vpravo): co je ve frontě a co na
  * serveru vedle sebe a tři volby – vrátit do fronty, přepsat server, nechat
- * server. Dvě nevratné se ještě zeptají.
+ * server. Dvě nevratné se ještě zeptají. Odmítnutá offline dohláška má
+ * vlastní volby (CreateConflictActions).
  */
 export default function ConflictPanel({ api, confirm }) {
   const { conflicts, expandedConflictId, serverSnapshotByConflict } = api;
@@ -44,6 +72,18 @@ export default function ConflictPanel({ api, confirm }) {
         const expanded = expandedConflictId === conflict.id;
         const local = localConflictEntry(conflict) || {};
         const server = serverSnapshotByConflict[conflict.id] || {};
+        if (isCreateEntry(conflict)) {
+          return (
+            <article key={conflict.id} className={styles.conflict}>
+              <header className={styles.head}>
+                <span className={styles.name}>Dohláška: {createdRacerName(conflict)}</span>
+                <span className={styles.when}>{formatDateTimeShort(conflict.created_at)}</span>
+              </header>
+              <p className={styles.text}>{conflict.error_message}</p>
+              <CreateConflictActions conflict={conflict} api={api} resolveConfirmed={resolveConfirmed} />
+            </article>
+          );
+        }
         return (
           <article key={conflict.id} className={styles.conflict}>
             <header className={styles.head}>

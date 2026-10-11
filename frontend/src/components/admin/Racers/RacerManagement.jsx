@@ -1,5 +1,5 @@
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
-import { Alert, Button, ButtonLink, EmptyState, LoadingState } from '../../ms/index.js';
+import { Alert, Button, EmptyState, LoadingState } from '../../ms/index.js';
 import AdminPage from '../frame/AdminPage/AdminPage.jsx';
 import RacerFilters from './RacerFilters/RacerFilters.jsx';
 import RacerForm from './RacerForm/RacerForm.jsx';
@@ -35,8 +35,8 @@ function RacerResults({ rm }) {
 /**
  * Závodníci (AdminZavodnici, AdminDialogZavodnik, AdminDialogSmazatZavodnika):
  * databáze závodníků napříč ročníky s filtrem a výpisem po stovkách, formulář
- * v dialogu, mazání s potvrzením. Párování se SLČR je podstránka
- * /admin/racers/slcr (v bočním menu záměrně není). Data drží useRacerManagement.
+ * v dialogu, mazání s potvrzením. Jméno propojeného závodníka vede na kartu
+ * člena v evidenci SLČR (SlcrName). Data drží useRacerManagement.
  */
 export default function RacerManagement() {
   // Hook sám nic nerenderuje, dialog proto vlastní tahle komponenta.
@@ -44,17 +44,14 @@ export default function RacerManagement() {
   const rm = useRacerManagement({ confirm });
 
   const actions = (
-    <>
-      <ButtonLink to="/admin/racers/slcr" size="sm" icon="user-check" className={styles.action}>Párování SLČR</ButtonLink>
-      <Button variant="primary" size="sm" icon="plus" onClick={rm.openNew} className={styles.action}>Nový závodník</Button>
-    </>
+    <Button variant="primary" size="sm" icon="plus" onClick={rm.openNew} className={styles.action}>Nový závodník</Button>
   );
 
   return (
     <AdminPage
       title="Závodníci"
       meta="databáze napříč ročníky"
-      description="Úprava, mazání a párování závodníků se SLČR."
+      description="Úprava a mazání závodníků, jméno vede na kartu člena SLČR."
       actions={actions}
     >
       {rm.loading ? (

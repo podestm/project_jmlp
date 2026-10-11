@@ -68,4 +68,25 @@ describe('závodníci závodu', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Zrušit filtry' }));
     expect(screen.getByText('Svobodová Tereza')).toBeInTheDocument();
   });
+
+  it('hledá v lokálním registru po slovech a offline přidaný závodník je hned ve startovce', async () => {
+    const registry = [{ id: 90, name: 'Radka', surname: 'More', year: 2016, sex: 2, club_name: 'SK Meteor Brno', slcr_id: null }];
+    api.get.mockImplementation(async (url) => (url === '/api/timekeeper/racers/snapshot' ? registry : GET[url] ?? []));
+    // Offline: fronta zápis přijala, server žádný řádek nevrátil.
+    api.post.mockResolvedValue({ queued: true, message: 'Uloženo offline' });
+    renderScreen();
+    await screen.findByText('Svobodová Tereza');
+
+    await userEvent.type(screen.getByLabelText('Příjmení', { selector: '#tk-racer-surname' }), 'Mor');
+    await userEvent.type(screen.getByLabelText('Jméno', { selector: '#tk-racer-name' }), 'Radka');
+    await userEvent.click(await screen.findByRole('button', { name: /Radka More/ }));
+    expect(api.get).not.toHaveBeenCalledWith('/api/timekeeper/racers/search', expect.anything());
+
+    await userEvent.click(screen.getByRole('button', { name: 'Přidat do závodu' }));
+    expect(api.post).toHaveBeenCalledWith('/api/timekeeper/races/7/start-list/entry', expect.objectContaining({
+      racer_id: 90, racer_surname: 'More', client_temp_id: expect.any(Number),
+    }));
+    const row = (await screen.findByText('More Radka')).closest('tr');
+    expect(within(row).getByText('offline')).toBeInTheDocument();
+  });
 });

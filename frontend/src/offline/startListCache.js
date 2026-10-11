@@ -1,6 +1,7 @@
 import { timekeeperDb } from './db.js';
 import { getQueuedEntryIds, getQueuedExcludedEntryIds } from './entryTargets.js';
 import { computeTimeSum } from './localEdits.js';
+import { getLocalTempEntries } from './offlineEntries.js';
 
 const nowIso = () => new Date().toISOString();
 
@@ -106,6 +107,20 @@ const overlayUnsyncedEdits = async (rows) => {
 };
 
 /**
+ * Doplní závodníky přidané offline, o kterých server ještě neví.
+ *
+ * Dočasný řádek žije ve snímku od přidání do přemapování na serverové id
+ * (nebo do zahození v Sync centru), takže čerstvá odpověď serveru ho nesmí
+ * schovat - jinak by zmizel ze startovky i ze zadávání časů.
+ */
+const withLocalTempEntries = async (raceId, rows) => {
+  const temps = await getLocalTempEntries(raceId);
+  if (!temps.length) return rows;
+  const known = new Set(rows.map((row) => Number(row?.id)));
+  return [...rows, ...temps.filter((temp) => !known.has(Number(temp.id)))];
+};
+
+/**
  * Zahodí lokální snímek závodu - nakešované odpovědi i řádky startovky.
  *
  * Volá se po nevratném smazání na serveru. Bez toho zůstane v IndexedDB
@@ -141,7 +156,9 @@ export const dropRaceSnapshot = async (raceId) => {
 export const cacheGetResponse = async (endpoint, params = null, data = null) => {
   const key = buildCacheKey(endpoint, params);
   const raceId = parseRaceIdFromStartListEndpoint(endpoint);
-  const stored = raceId != null && Array.isArray(data) ? await overlayUnsyncedEdits(data) : data;
+  const stored = raceId != null && Array.isArray(data)
+    ? await withLocalTempEntries(raceId, await overlayUnsyncedEdits(data))
+    : data;
 
   await timekeeperDb.cache.put({
     key,

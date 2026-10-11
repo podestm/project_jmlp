@@ -8,10 +8,22 @@ import {
   resolveCategoryPreview,
   sortStartListEntries,
 } from '../startListHelpers.js';
+import { buildLocalEntry, loadRacerRegistry, searchRacers } from '../../../offline/racerRegistry.js';
+import {
+  addLocalEntry,
+  ENTRY_REMAPPED_EVENT,
+  newTempEntryId,
+  remapEntriesInState,
+} from '../../../offline/offlineEntries.js';
 import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries, racerSearchQuery } from './racers.js';
 
 /**
  * Závodníci jednoho závodu – přidání a inline oprava bez zápisu do registrací.
+ *
+ * Dohláška musí jít i OFFLINE (na kopci často není signál): hledá se
+ * v lokální kopii registru (offline/racerRegistry.js) a závodník přidaný bez
+ * signálu dostane dočasné id, hned je ve startovce a jde mu měřit. Po
+ * synchronizaci se přemapuje na serverové id (offline/offlineEntries.js).
  *
  * Pravidla startovních čísel, řazení listiny i náhled kategorie jsou ve
  * `startListHelpers.js` – platí i na obrazovce Startovní listina a rozejít se
@@ -41,6 +53,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const [registry, setRegistry] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedRacer, setSelectedRacer] = useState(null);
   const [raceNumberOptions, setRaceNumberOptions] = useState([]);
@@ -78,6 +91,20 @@ export const useTimekeeperRacers = (selectedRaceId) => {
     loadClubs();
     loadCategories();
     loadRaceNumberOptions();
+    loadRacerRegistry().then(setRegistry).catch(() => setRegistry([]));
+  }, []);
+
+  // Offline přidaný závodník dostal od serveru skutečné id (nebo byl
+  // v Sync centru zahozen) – přepsat ho i tady.
+  useEffect(() => {
+    const onRemapped = (event) => {
+      const detail = event?.detail;
+      if (!detail) return;
+      setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, detail)));
+      setEditingId((current) => (current != null && Number(current) === Number(detail.tempId) ? detail.serverId : current));
+    };
+    window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+    return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
   }, []);
 
   useEffect(() => {
@@ -106,6 +133,13 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       return undefined;
     }
 
+    // Lokální kopie registru: funguje i bez signálu a je okamžitá.
+    if (registry.length > 0) {
+      setSearchResults(searchRacers(registry, query));
+      setIsSearching(false);
+      return undefined;
+    }
+
     const timeoutId = setTimeout(async () => {
       try {
         setIsSearching(true);
@@ -119,7 +153,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
     }, 250);
 
     return () => clearTimeout(timeoutId);
-  }, [formData.name, formData.surname, formData.slcr_id]);
+  }, [formData.name, formData.surname, formData.slcr_id, registry]);
 
   // Kluby jdou přes TimekeeperAPI jako zbytek obrazovky, aby byly offline
   // v IndexedDB. Veřejný klient je dřív měl offline jen díky keši service
@@ -299,6 +333,10 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       };
 
       if (selectedRacer?.id) payload.racer_id = selectedRacer.id;
+      // Dočasné id pro případ, že se zápis uloží do fronty (offline nebo
+      // výpadek) – server ho vrátí a časomíra podle něj přemapuje řádek.
+      const tempId = newTempEntryId();
+      payload.client_temp_id = tempId;
       if (formData.telefon.trim()) payload.racer_telefon = formData.telefon.trim();
       if (formData.email.trim()) payload.racer_email = formData.email.trim();
       if (formData.slcr_id.trim()) payload.racer_slcr_id = formData.slcr_id.trim();
@@ -309,15 +347,29 @@ export const useTimekeeperRacers = (selectedRaceId) => {
         payload
       );
 
-      // Offline zápis nemá `entry` - kategorii ani startovní číslo přiděluje
-      // server, takže do listiny nic nedopisujeme, jen uklidíme formulář.
+      // Offline (zápis čeká ve frontě): závodník se hned objeví ve startovce
+      // s dočasným id a jde mu měřit; kategorii, startovní číslo i dres
+      // navrhneme lokálně, po synchronizaci je potvrdí server.
       if (!result?.entry) {
-        resetForm(startList);
-        setMessage({ type: 'info', text: 'Závodník bude přidán po obnovení připojení.' });
+        const localEntry = buildLocalEntry({
+          tempId, raceId: selectedRaceId, payload, startList, categories, raceNumberOptions,
+        });
+        await addLocalEntry(selectedRaceId, localEntry);
+        const withLocal = sortStartListEntries([...startList, localEntry]);
+        setStartList(withLocal);
+        resetForm(withLocal);
+        setMessage({
+          type: 'info',
+          text: 'Závodník přidán offline – je ve startovce a jde mu měřit čas. Na server se odešle po obnovení připojení.',
+        });
         return;
       }
 
-      const updatedEntries = sortStartListEntries([...startList, result.entry]);
+      // Server může offline dohlášku spojit s řádkem, který už existoval.
+      const updatedEntries = sortStartListEntries([
+        ...startList.filter((entry) => Number(entry.id) !== Number(result.entry.id)),
+        result.entry,
+      ]);
       setStartList(updatedEntries);
       resetForm(updatedEntries);
       setMessage({ type: 'success', text: result.message });

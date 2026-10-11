@@ -157,7 +157,7 @@ export const applyLocalMutation = async (
   }
 
   if (method === 'PUT') {
-    const timeMatch = endpoint.match(/^\/api\/timekeeper\/start-list\/(\d+)\/time$/);
+    const timeMatch = endpoint.match(/^\/api\/timekeeper\/start-list\/(-?\d+)\/time$/);
     if (timeMatch) {
       await writeEntry(Number(timeMatch[1]), payload, {});
       return;
@@ -166,7 +166,7 @@ export const applyLocalMutation = async (
     // Zápis na řádek bez /time mění startovní číslo. Tělo požadavku není celý
     // řádek, takže bez serverovy podoby není co promítnout - offline se tahle
     // změna do snímku nedostane vůbec.
-    const entryMatch = endpoint.match(/^\/api\/timekeeper\/start-list\/(\d+)$/);
+    const entryMatch = endpoint.match(/^\/api\/timekeeper\/start-list\/(-?\d+)$/);
     if (entryMatch && serverEntry) {
       await writeEntry(Number(entryMatch[1]), serverEntry, {});
     }

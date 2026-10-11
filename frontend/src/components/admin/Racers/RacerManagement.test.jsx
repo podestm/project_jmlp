@@ -9,7 +9,7 @@ vi.mock('../../../config/api.js', () => ({ AdminAPI: mockApi }));
 const { default: RacerManagement } = await import('./RacerManagement.jsx');
 
 const RACERS = [
-  { id: 1, firstName: 'Matyáš', lastName: 'Novák', sex: 1, birthYear: 2013, club_id: 5, category_id: 3, idSlcr: '204118', club_name: 'SKI KLUB JUNIOR BRNO', category_name: 'Starší žáci' },
+  { id: 1, firstName: 'Matyáš', lastName: 'Novák', sex: 1, birthYear: 2013, club_id: 5, category_id: 3, idSlcr: '204118', club_name: 'SKI KLUB JUNIOR BRNO', category_name: 'Starší žáci', slcr_url: 'https://evidence.czech-ski.com/clenove/7/novak-matyas' },
   { id: 2, firstName: 'Eliška', lastName: 'Nováková', sex: 2, birthYear: 2016, club_id: 6, category_id: 4, idSlcr: null, club_name: 'FreeSki Academy Brno', category_name: 'Předžačky' },
   { id: 3, firstName: 'Ondřej', lastName: 'Říha', sex: 1, birthYear: 2012, club_id: null, category_id: 3, idSlcr: null, club_name: null, category_name: null },
 ];
@@ -31,14 +31,15 @@ describe('závodníci v administraci', () => {
     respond();
   });
 
-  it('načte závodníky a ukáže tabulku s odkazem na párování SLČR', async () => {
+  it('načte závodníky a ukáže tabulku, propojené jméno vede na kartu SLČR', async () => {
     renderScreen();
     expect(screen.getByText('Načítám závodníky…')).toBeInTheDocument();
     const rows = within(await table()).getAllByRole('row');
     expect(rows).toHaveLength(4);
     expect(rows[1]).toHaveTextContent('Novák MatyášMuž2013Starší žáciSKI KLUB JUNIOR BRNO204118');
     expect(rows[3]).toHaveTextContent('Říha OndřejMuž2012–Bez klubu–');
-    expect(screen.getByRole('link', { name: 'Párování SLČR' })).toHaveAttribute('href', '/admin/racers/slcr');
+    expect(within(rows[1]).getByRole('link', { name: 'Novák Matyáš' })).toHaveAttribute('href', 'https://evidence.czech-ski.com/clenove/7/novak-matyas');
+    expect(within(rows[3]).queryByRole('link')).not.toBeInTheDocument();
     expect(screen.getByText(/Zobrazeno/)).toHaveTextContent('Zobrazeno 3 z 3');
     expect(screen.queryByRole('button', { name: 'Zrušit filtry' })).not.toBeInTheDocument();
   });

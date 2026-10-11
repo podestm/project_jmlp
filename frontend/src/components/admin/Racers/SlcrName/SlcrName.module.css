@@ -1,0 +1,11 @@
+/* Odkaz drží písmo jména; podtržení odliší propojené jméno i bez barvy. */
+.link {
+  color: var(--ms-navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  text-decoration-thickness: 2px;
+}

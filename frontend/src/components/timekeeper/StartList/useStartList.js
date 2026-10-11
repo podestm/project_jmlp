@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { ENTRY_REMAPPED_EVENT, remapEntriesInState } from '../../../offline/offlineEntries.js';
 import { dropRaceSnapshot } from '../../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../../offline/useSyncStatus.js';
@@ -69,6 +70,16 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
       storeSelectedRaceId(selectedRaceId);
     }
   }, [selectedRaceId]);
+
+  // Offline přidaný závodník: dostal serverové id (nebo byl zahozen), případně
+  // ho právě přidala obrazovka Závodníci v jiné záložce.
+  useEffect(() => {
+    const onRemapped = (event) => {
+      if (event?.detail) setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, event.detail)));
+    };
+    window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+    return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+  }, []);
 
   /**
    * Smazání celé startovní listiny.

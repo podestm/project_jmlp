@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from ...database import get_db
 from ... import models, schemas, auth
 from ...utils import fix_encoding, category_display_sql, get_category_snapshot_for_birth_year
-from ...services import slcr_sync
+from ...services.slcr_links import MemberLinks
 
 router = APIRouter(tags=["admin-racers"])
 
@@ -88,6 +88,7 @@ def get_racers(
     
     result = db.execute(text(query), {"limit": limit, "skip": skip}).fetchall()
     
+    links = MemberLinks(db)
     racers = []
     for row in result:
         # Fix encoding for names
@@ -111,7 +112,9 @@ def get_racers(
             "name": first_name,
             "surname": last_name,
             "year": row.birthYear,
-            "slcr_id": row.idSlcr
+            "slcr_id": row.idSlcr,
+            # Odkaz na kartu člena v evidenci SLČR, je-li závodník propojený.
+            "slcr_url": links.url_for(last_name, first_name, row.birthYear, row.idSlcr),
         }
         racers.append(racer_data)
     
@@ -212,6 +215,5 @@ def delete_racer(
         )
     
     db.delete(db_racer)
-    slcr_sync.forget_racer(db, racer_id)
     db.commit()
     return {"message": "Závodník úspěšně smazán"}

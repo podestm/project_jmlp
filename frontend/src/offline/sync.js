@@ -1,6 +1,7 @@
 import { timekeeperDb } from './db.js';
 import { mutationKeys } from './entryTargets.js';
 import { applySyncedRevisions } from './localEdits.js';
+import { createTempIdOf, remapTempEntry } from './offlineEntries.js';
 import {
   getQueueCandidates,
   MAX_RETRIES,
@@ -15,7 +16,7 @@ const SYNC_INTERVAL_MS = 10000;
 const LEADER_LEASE_KEY = 'timekeeper_sync_leader';
 const LEADER_LEASE_TTL_MS = SYNC_INTERVAL_MS * 3;
 
-const AUTH_EXPIRED_MESSAGE = 'Přihlášení vypršelo – fronta čeká na nové přihlášení.';
+export const AUTH_EXPIRED_MESSAGE = 'Přihlášení vypršelo – fronta čeká na nové přihlášení.';
 
 let syncLoopStarted = false;
 let syncInProgress = false;
@@ -25,6 +26,14 @@ const tabId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
 
 const calculateBackoffMs = (retryCount) => (2 ** Math.min(retryCount, 6)) * 1000;
+
+/**
+ * Odmítnutí serverem, které opakování nespraví: obsazené startovní číslo,
+ * závodník už na startovce, neexistující řádek, souběžná změna (409).
+ * Takový zápis jde rovnou do Sync centra jako konflikt - nikdy se tiše
+ * neztratí ani se zbytečně nepřehrává do 'dead'.
+ */
+const CONFLICT_STATUSES = new Set([400, 404, 409, 422]);
 
 const extractStatusCode = (error) => {
   if (typeof error?.status === 'number') return error.status;
@@ -59,8 +68,13 @@ export const processSyncQueue = async (executor) => {
     const isBlocked = (row) => keysOf(row).some((key) => blockedKeys.has(key));
     const block = (row) => keysOf(row).forEach((key) => blockedKeys.add(key));
 
-    for (const { row, ready } of candidates) {
-      if (isBlocked(row)) continue;
+    for (const { row: listedRow, ready } of candidates) {
+      // Čerstvě z databáze: přidání offline závodníka odeslané o kus dřív
+      // v tomtéž průchodu mohlo položce přepsat dočasné id na serverové
+      // (offlineEntries.remapTempEntry) - poslat i orazítkovat revizí se musí
+      // už ta přepsaná podoba.
+      const row = (await timekeeperDb.syncQueue.get(listedRow.id)) || listedRow;
+      if (isBlocked(row) || isBlocked(listedRow)) continue;
 
       if (!ready) {
         block(row);
@@ -87,6 +101,12 @@ export const processSyncQueue = async (executor) => {
           next_retry_at: null
         });
         await applySyncedRevisions(row, response);
+        // Offline přidaný závodník je na serveru - dočasné id všude nahradit
+        // serverovým, ať navazující zápisy (časy, vyřazení) jdou na něj.
+        const tempId = createTempIdOf(row.method, row.endpoint, row.payload);
+        if (tempId != null && response?.entry) {
+          await remapTempEntry(tempId, response.entry);
+        }
         await supersedeParkedOpsFor(row.method, row.endpoint, row.payload, row.created_at);
         changed = true;
       } catch (error) {
@@ -106,7 +126,7 @@ export const processSyncQueue = async (executor) => {
           break;
         }
 
-        if (statusCode === 409) {
+        if (CONFLICT_STATUSES.has(statusCode)) {
           await saveConflict(row, error, statusCode);
           await timekeeperDb.syncQueue.update(row.id, {
             status: 'conflict',

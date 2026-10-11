@@ -8,6 +8,7 @@ import json
 from typing import Any, Dict
 
 from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -166,7 +167,22 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
         category_id=category_id,
     )
     db.add(racer)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        # Souběžný požadavek (dvě zařízení, přehraná fronta) téhož závodníka
+        # právě založil - unikátní klíč jméno+příjmení+ročník+pohlaví hlídá,
+        # aby nevznikl dvakrát. Použijeme ten jeho.
+        db.rollback()
+        existing_racer = db.query(models.Racer).filter(
+            models.Racer.name == racer_name,
+            models.Racer.surname == racer_surname,
+            models.Racer.year == racer_year,
+            models.Racer.sex == racer_sex,
+        ).first()
+        if existing_racer is None:
+            raise
+        return existing_racer, _get_racer_source_snapshot(existing_racer.id, db), False
 
     source_snapshot = _get_racer_source_snapshot(racer.id, db)
     return racer, source_snapshot, True

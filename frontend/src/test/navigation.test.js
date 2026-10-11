@@ -42,7 +42,6 @@ const legacyLinksOf = (source) => new Set([
  * jinak je to zapomenutý odkaz, ne záměr.
  */
 const VYJIMKY = {
-  '/admin/racers/slcr': 'podagenda Závodníků - otevírá se tlačítkem na obrazovce Závodníci, v menu být nemá',
   '/__ms': 'katalog kitu Modré stopy, jen v dev buildu',
   '/archiv-zprav': 'stará adresa, přesměruje na /aktuality',
   '/livetiming': 'stará adresa, přesměruje na /zive',

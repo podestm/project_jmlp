@@ -15,9 +15,11 @@ export const QUEUE_STATUS = {
 
 export const queueStatus = (status) => QUEUE_STATUS[status] || { tone: 'neutral', icon: 'info', text: status || '—' };
 
-const TIME_ENDPOINT = /\/start-list\/(\d+)\/time$/;
+// Záporné id = závodník přidaný offline, ještě bez serverového řádku.
+const TIME_ENDPOINT = /\/start-list\/(-?\d+)\/time$/;
 const BULK_ENDPOINT = /\/races\/\d+\/times$/;
-const EXCLUDED_ENDPOINT = /\/start-list\/(\d+)\/excluded$/;
+const EXCLUDED_ENDPOINT = /\/start-list\/(-?\d+)\/excluded$/;
+const CREATE_ENDPOINT = /\/start-list\/entry$/;
 
 const present = (value) => value !== null && value !== undefined && value !== '';
 
@@ -30,9 +32,18 @@ export const describeTimes = (values = {}) => {
   return parts.length ? parts.join(' · ') : 'bez času a příznaku';
 };
 
+/** Přidání závodníka do startovky (dohláška, i offline) – zápis fronty nebo konflikt. */
+export const isCreateEntry = (item) => CREATE_ENDPOINT.test(item?.endpoint || '');
+
+/** „Novák Jan“ z těla dohlášky. */
+export const createdRacerName = (item) => {
+  const payload = item?.payload || {};
+  return [payload.racer_surname, payload.racer_name].filter(Boolean).join(' ') || 'nový závodník';
+};
+
 /**
  * Co položka fronty nese, česky: zápis času jednoho záznamu, Uložit vše,
- * vyřazení ze startovky, nebo surová metoda a adresa.
+ * vyřazení ze startovky, dohláška, nebo surová metoda a adresa.
  */
 export const describeQueueItem = (item) => {
   const endpoint = item?.endpoint || '';
@@ -45,6 +56,7 @@ export const describeQueueItem = (item) => {
   }
   match = EXCLUDED_ENDPOINT.exec(endpoint);
   if (match) return `Záznam #${match[1]}: ${payload.excluded ? 'vyřazení ze startovky' : 'návrat na startovku'}`;
+  if (isCreateEntry(item)) return `Dohláška: ${createdRacerName(item)}`;
   return `${item?.method || ''} ${endpoint}`.trim();
 };
 

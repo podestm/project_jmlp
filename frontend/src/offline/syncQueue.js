@@ -1,4 +1,5 @@
 import { timekeeperDb } from './db.js';
+import { createTempIdOf, removeLocalEntry } from './offlineEntries.js';
 import {
   excludedEntryId,
   getQueuedMutationKeys,
@@ -177,6 +178,10 @@ export const getQueueCandidates = async () => {
 };
 
 export const saveConflict = async (queueItem, error, statusCode) => {
+  // Server říká česky, co je špatně ("Číslo 12 už má ..."), to je pro
+  // rozhodčího užitečnější než "API Error: 400".
+  const detail = error?.detail;
+  const readable = typeof detail === 'string' ? detail : (typeof detail?.message === 'string' ? detail.message : null);
   await timekeeperDb.conflicts.add({
     queue_item_id: queueItem.id,
     op_id: queueItem.op_id,
@@ -184,7 +189,7 @@ export const saveConflict = async (queueItem, error, statusCode) => {
     method: queueItem.method,
     payload: queueItem.payload,
     status_code: statusCode,
-    error_message: error?.message || 'Conflict detected',
+    error_message: readable || error?.message || 'Conflict detected',
     conflict_detail: error?.detail || null,
     created_at: nowIso(),
     resolved: 0
@@ -209,6 +214,28 @@ export const getSyncQueueStats = async () => {
     total: pending + failed + processing + conflict + dead
   };
 };
+
+/**
+ * Po novém přihlášení: zápisy, které fronta odložila kvůli vypršelému
+ * přihlášení (401), se pošlou hned, ne až po minutovém odkladu.
+ * @param {string} authMessage last_error, kterým je sync.js označuje
+ */
+export const releaseAuthParked = async (authMessage) => {
+  const rows = await timekeeperDb.syncQueue.where('status').equals('pending').toArray();
+  const parked = rows.filter((row) => row.last_error === authMessage);
+  await Promise.all(parked.map((row) => timekeeperDb.syncQueue.update(row.id, {
+    next_retry_at: null,
+    last_error: null,
+    updated_at: nowIso()
+  })));
+  if (parked.length) notifyQueueChanged();
+  return parked.length;
+};
+
+/** Kolik zápisů ještě nedorazilo na server (čeká, selhal, odesílá se, konflikt). */
+export const countUnsyncedQueueItems = async () => (
+  timekeeperDb.syncQueue.where('status').anyOf('pending', 'failed', 'processing', 'conflict', 'dead').count()
+);
 
 export const getRecentQueueItems = async (limit = 100) => (
   timekeeperDb.syncQueue.orderBy('created_at').reverse().limit(limit).toArray()
@@ -259,6 +286,34 @@ const forcePayload = (payload, entryId) => {
   return { ...payload, force_apply: true };
 };
 
+/**
+ * Zahozené přidání offline závodníka: dočasný řádek zmizí ze startovky
+ * a navazující zápisy (časy, vyřazení s jeho dočasným id) se zahodí taky -
+ * bez řádku nemají kam dorazit. Rozhoduje o tom rozhodčí výslovně (Drop).
+ */
+const dropDependentsOfCreate = async (queueItemId) => {
+  const item = await timekeeperDb.syncQueue.get(queueItemId);
+  const tempId = item ? createTempIdOf(item.method, item.endpoint, item.payload) : null;
+  if (tempId == null) return;
+  const keys = new Set([`entry:${tempId}`, `excluded:${tempId}`]);
+  const rows = await timekeeperDb.syncQueue.where('status').anyOf('pending', 'failed', 'conflict', 'dead').toArray();
+  for (const row of rows) {
+    if (row.id === queueItemId) continue;
+    if (!mutationKeys(row.method, row.endpoint, row.payload).some((key) => keys.has(key))) continue;
+    await timekeeperDb.syncQueue.update(row.id, {
+      status: 'dropped',
+      updated_at: nowIso(),
+      last_error: 'Zahozeno spolu s offline přidaným závodníkem.'
+    });
+    const open = await timekeeperDb.conflicts.where('queue_item_id').equals(row.id)
+      .filter((conflict) => !conflict.resolved).toArray();
+    await Promise.all(open.map((conflict) => timekeeperDb.conflicts.update(conflict.id, {
+      resolved: 1, resolved_at: nowIso(), resolution_action: 'drop'
+    })));
+  }
+  await removeLocalEntry(tempId);
+};
+
 export const resolveConflict = async (conflictId, action = 'drop') => {
   const conflict = await timekeeperDb.conflicts.get(conflictId);
   if (!conflict) return;
@@ -276,7 +331,12 @@ export const resolveConflict = async (conflictId, action = 'drop') => {
       await timekeeperDb.syncQueue.update(queueItemId, requeue);
     } else if (action === 'force') {
       const queueItem = await timekeeperDb.syncQueue.get(queueItemId);
-      if (queueItem) {
+      if (queueItem && createTempIdOf(queueItem.method, queueItem.endpoint, queueItem.payload) != null) {
+        // Přidání offline závodníka narazilo typicky na obsazené číslo:
+        // "vynutit" = poslat bez čísla, server přidělí nejbližší volné.
+        const { race_number_display, start_number, ...rest } = queueItem.payload || {};
+        await timekeeperDb.syncQueue.update(queueItemId, { ...requeue, payload: rest });
+      } else if (queueItem) {
         await timekeeperDb.syncQueue.update(queueItemId, {
           ...requeue,
           payload: forcePayload(queueItem.payload || {}, conflict?.conflict_detail?.entry_id)
@@ -287,6 +347,7 @@ export const resolveConflict = async (conflictId, action = 'drop') => {
         status: 'dropped',
         updated_at: nowIso()
       });
+      await dropDependentsOfCreate(queueItemId);
     }
   }
 

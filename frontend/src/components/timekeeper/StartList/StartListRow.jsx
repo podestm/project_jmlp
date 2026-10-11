@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Badge, Button, IconButton } from '../../ms/index.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
+import OfflineBadge from '../OfflineBadge/OfflineBadge.jsx';
 import { isExcluded } from '../startListHelpers.js';
 import RaceFlag, { flagOf } from './RaceFlag.jsx';
 import styles from './StartListRow.module.css';
@@ -30,6 +31,7 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
         <span className={styles.racer}>
           <span className={styles.nameRow}>
             <span className={excluded ? styles.excludedName : styles.name}>{racerName}</span>
+            <OfflineBadge entry={entry} />
             {excluded && (
               <Badge tone="navy" size="sm">vyřazen</Badge>
             )}

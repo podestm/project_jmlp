@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeQueueItem, formatConflictField, isAuthExpired, localConflictEntry, queueStatus } from './queueView.js';
+import { describeQueueItem, formatConflictField, isAuthExpired, isCreateEntry, localConflictEntry, queueStatus } from './queueView.js';
 
 describe('synchronizace – fronta slovy', () => {
   it('popíše zápis času, Uložit vše a vyřazení', () => {
@@ -29,5 +29,26 @@ describe('synchronizace – fronta slovy', () => {
   it('vypršelé přihlášení pozná z fronty', () => {
     expect(isAuthExpired([{ status: 'pending', last_error: 'Přihlášení vypršelo – …' }])).toBe(true);
     expect(isAuthExpired([{ status: 'dead', last_error: 'Přihlášení vypršelo' }])).toBe(false);
+  });
+});
+
+describe('dohláška ve frontě a v konfliktech', () => {
+  const create = {
+    method: 'POST',
+    endpoint: '/api/timekeeper/races/133/start-list/entry',
+    payload: { racer_surname: 'More', racer_name: 'Radka', client_temp_id: -5 },
+  };
+
+  it('pozná přidání závodníka a popíše ho jménem', () => {
+    expect(isCreateEntry(create)).toBe(true);
+    expect(isCreateEntry({ endpoint: '/api/timekeeper/start-list/1/time' })).toBe(false);
+    expect(describeQueueItem(create)).toBe('Dohláška: More Radka');
+  });
+
+  it('zápisy s dočasným id offline závodníka popíše jako ostatní', () => {
+    expect(describeQueueItem({ endpoint: '/api/timekeeper/start-list/-5/time', payload: { time1: '34.07' } }))
+      .toBe('Záznam #-5: kolo 1 34.07');
+    expect(describeQueueItem({ endpoint: '/api/timekeeper/start-list/-5/excluded', payload: { excluded: true } }))
+      .toBe('Záznam #-5: vyřazení ze startovky');
   });
 });

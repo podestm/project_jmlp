@@ -45,6 +45,7 @@ class Racer(RacerBase):
     idSlcr: Optional[str] = None
     club_name: Optional[str] = None
     category_name: Optional[str] = None
+    slcr_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

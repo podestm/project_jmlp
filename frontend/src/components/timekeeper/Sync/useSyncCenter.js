@@ -7,7 +7,7 @@ import { isAuthExpired } from './queueView.js';
 
 const RESOLVE_MESSAGES = {
   retry: 'Konflikt vrácen do fronty.',
-  force: 'Konflikt bude odeslán v režimu force apply.',
+  force: 'Zápis se odešle znovu v režimu force (u dohlášky bez zvoleného čísla).',
   drop: 'Konflikt označen jako uzavřený.',
 };
 

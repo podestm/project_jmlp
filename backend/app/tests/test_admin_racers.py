@@ -183,3 +183,24 @@ def test_zalozeni_duplicitniho_zavodnika_hlasi_duplicitu(client, db, admin_heade
         "firstName": "Viktorie", "lastName": "Bezděková", "sex": 2, "birthYear": 2012,
     })
     assert odpoved.status_code == 409
+
+
+def test_seznam_zavodniku_odkazuje_na_kartu_clena_slcr(client, db, admin_headers):
+    """Jméno je odkaz na kartu člena SLČR, když sedí ID, nebo přesně jméno a ročník (i s diakritikou)."""
+    from sqlalchemy import text
+    db.execute(text("""INSERT INTO fuj_jmlp_slcr_member (member_id, slug, race_code, surname, name, year) VALUES
+        (42073, 'valeska-viktorie', 890521, 'Valeská', 'Viktorie', 2019),
+        (5038, 'podestova-renata', 806816, 'Podešťová', 'Renata', 1973)"""))
+    db.commit()
+    podle_id = _zavodnik(db, name="Viki", surname="Valeská", year=2019, sex=2, slcr_id="890521")
+    podle_jmena = _zavodnik(db, name="Renata", surname="Podešťová", year=1973, sex=2, slcr_id="-")
+    # Registr je k diakritice lhostejný (unikátní klíč), proto jiné pohlaví.
+    bez_diakritiky = _zavodnik(db, name="Renata", surname="Podestova", year=1973, sex=1)
+    jiny_rocnik = _zavodnik(db, name="Renata", surname="Podešťová", year=1974, sex=2)
+
+    urls = {r["id"]: r["slcr_url"] for r in client.get("/api/admin/racers", headers=admin_headers).json()}
+
+    assert urls[podle_id.id] == "https://evidence.czech-ski.com/clenove/42073/valeska-viktorie"
+    assert urls[podle_jmena.id] == "https://evidence.czech-ski.com/clenove/5038/podestova-renata"
+    assert urls[bez_diakritiky.id] is None
+    assert urls[jiny_rocnik.id] is None

@@ -1,4 +1,5 @@
 import { timekeeperDb } from './db.js';
+import { createTempIdOf } from './offlineEntries.js';
 
 /**
  * Které řádky startovky daná mutace mění.
@@ -7,7 +8,8 @@ import { timekeeperDb } from './db.js';
  * ve frontě, který zaparkovaný konflikt už je překonaný, kterou revizi zapsat
  * po synchronizaci. Proto je to jedno místo a ne čtyři podobné regexy.
  */
-const SINGLE_ENTRY_ENDPOINT = /^\/api\/timekeeper\/start-list\/(\d+)(?:\/time)?$/;
+// `-?`: offline přidaný závodník má dočasné záporné id (offlineEntries.js).
+const SINGLE_ENTRY_ENDPOINT = /^\/api\/timekeeper\/start-list\/(-?\d+)(?:\/time)?$/;
 const BATCH_TIMES_ENDPOINT = /^\/api\/timekeeper\/races\/(\d+)\/times$/;
 
 /**
@@ -23,12 +25,12 @@ export const affectedEntryIds = (method, endpoint = '', payload = null) => {
 
   if (method === 'POST' && BATCH_TIMES_ENDPOINT.test(endpoint) && Array.isArray(payload?.entries)) {
     return {
-      // `> 0` schválně: Number(null) je 0, takže položka s prázdným entry_id
+      // `!== 0` schválně: Number(null) je 0, takže položka s prázdným entry_id
       // by jinak prošla jako fantomový řádek 0 a blokovala frontu pro id,
-      // které neexistuje.
+      // které neexistuje. Záporné id je offline přidaný závodník.
       ids: payload.entries
         .map((entry) => Number(entry?.entry_id))
-        .filter((id) => Number.isFinite(id) && id > 0),
+        .filter((id) => Number.isFinite(id) && id !== 0),
       batch: true
     };
   }
@@ -36,7 +38,7 @@ export const affectedEntryIds = (method, endpoint = '', payload = null) => {
   return { ids: [], batch: false };
 };
 
-const EXCLUDED_ENDPOINT = /^\/api\/timekeeper\/start-list\/(\d+)\/excluded$/;
+const EXCLUDED_ENDPOINT = /^\/api\/timekeeper\/start-list\/(-?\d+)\/excluded$/;
 
 /**
  * Řádek, kterému zápis mění vyřazení ze startky, jinak null.
@@ -61,6 +63,10 @@ export const excludedEntryId = (method, endpoint = '') => {
  * má vlastní `excluded:<id>` - viz excludedEntryId.
  */
 export const mutationKeys = (method, endpoint = '', payload = null) => {
+  // Přidání offline závodníka drží obě řady jeho dočasného id: časy
+  // i vyřazení musí počkat, až server řádek založí (offlineEntries.js).
+  const tempId = createTempIdOf(method, endpoint, payload);
+  if (tempId != null) return [`entry:${tempId}`, `excluded:${tempId}`];
   const excludedId = excludedEntryId(method, endpoint);
   if (excludedId != null) return [`excluded:${excludedId}`];
   return affectedEntryIds((method || '').toUpperCase(), endpoint || '', payload)
