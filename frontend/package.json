@@ -14,8 +14,12 @@
     "check:orphans": "node scripts/check-orphans.mjs"
   },
   "dependencies": {
+    "@fontsource/archivo": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/source-sans-3": "^5.3.1",
     "chart.js": "^4.5.1",
     "dexie": "^4.3.0",
+    "lucide-react": "^1.55.0",
     "pdfmake": "^0.2.23",
     "react": "18.2.0",
     "react-chartjs-2": "^5.3.0",

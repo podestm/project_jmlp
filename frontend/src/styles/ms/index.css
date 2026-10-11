@@ -1,0 +1,4 @@
+/* Vstup stylů Modré stopy: tokeny, písma, základ. Načítá se v main.jsx po starém CSS. */
+@import './tokens.css';
+@import './fonts.css';
+@import './base.css';

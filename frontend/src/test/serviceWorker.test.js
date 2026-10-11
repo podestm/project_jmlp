@@ -118,6 +118,7 @@ const SHELL_HTML = `<!doctype html><html><head>
 <script type="module" crossorigin src="/assets/index-3SAYDQoP.js"></script>
 <link rel="modulepreload" crossorigin href="/assets/vendor-BoizPTuT.js">
 <link rel="stylesheet" crossorigin href="/assets/index-CJzQrQV0.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/archivo-latin-ext-700-normal-Bx3kQ9aZ.woff2">
 <link rel="icon" href="/favicon.ico">
 </head><body><div id="root"></div></body></html>`;
 
@@ -297,6 +298,8 @@ describe('instalace a aktivace', () => {
     expect(worker.caches.peek('/assets/index-3SAYDQoP.js')).toBeDefined();
     expect(worker.caches.peek('/assets/vendor-BoizPTuT.js')).toBeDefined();
     expect(worker.caches.peek('/assets/index-CJzQrQV0.css')).toBeDefined();
+    // Písma Modré stopy (preload z vite/fontPreload.js) - offline start časomíry.
+    expect(worker.caches.peek('/assets/archivo-latin-ext-700-normal-Bx3kQ9aZ.woff2')).toBeDefined();
     expect(worker.self.skipWaiting).toHaveBeenCalled();
   });
 
@@ -334,7 +337,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v4']);
+    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v5']);
   });
 
   it('aktivace smaže starší keše i s daty, která v nich zůstala', async () => {
@@ -345,7 +348,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v4']);
+    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v5']);
     expect(worker.caches.peek('/races/')).toBeUndefined();
     expect(worker.self.clients.claim).toHaveBeenCalled();
   });

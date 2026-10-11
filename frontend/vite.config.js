@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import fontPreload from './vite/fontPreload.js'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), fontPreload()],
   server: {
     port: 3000,
     host: true,
