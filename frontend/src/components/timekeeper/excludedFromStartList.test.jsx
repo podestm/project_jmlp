@@ -119,7 +119,8 @@ describe('Listina - Vyřadit / Vrátit', () => {
 
     await userEvent.click(within(dvorakova).getByRole('button', { name: 'Vyřadit' }));
 
-    expect(putCalls()).toHaveLength(1);
+    // Zápis odchází asynchronně po kliknutí – pod zátěží celé sady ho nestačí čekat synchronně.
+    await waitFor(() => expect(putCalls()).toHaveLength(1));
     const [url, options] = putCalls()[0];
     expect(url).toBe('/api/timekeeper/start-list/2/excluded');
     expect(JSON.parse(options.body)).toEqual({ excluded: true });
