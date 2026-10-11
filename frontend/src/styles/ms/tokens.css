@@ -42,7 +42,7 @@
   --ms-overlay: rgb(0 41 62 / 0.6);
   --ms-shadow-dialog: 0 24px 64px rgb(0 41 62 / 0.45);
 
-  /* ── Sady startovních čísel: skutečné barvy dresů, bílý text (admin.css --tk-set-*) ── */
+  /* ── Sady startovních čísel: skutečné barvy dresů, bílý text (hodnoty ze starého admin.css) ── */
   --ms-bib-rose: #BE123C;      /* bílá 6,29:1 */
   --ms-bib-blue: #2563EB;      /* bílá 5,17:1 */
   --ms-bib-emerald: #047857;   /* bílá 5,48:1 */

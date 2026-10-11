@@ -6,7 +6,7 @@ import styles from './Split.module.css';
  * Dva sloupce vedle sebe (filtry + výpis, tabulka + schránka). `columns` je
  * grid-template-columns, např. "320px minmax(0, 1fr)". Pod `stackBelow`
  * (768 | 1024 | 1280) se složí pod sebe; `reverse` pak dá druhý sloupec
- * nahoru (místo Bootstrap order-*).
+ * nahoru (místo přeskládání pořadím v markupu).
  */
 export default function Split({
   as: Tag = 'div', columns = 'minmax(0, 1fr) minmax(0, 1fr)', gap = 10, stackBelow = 1024, reverse = false,

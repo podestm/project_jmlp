@@ -102,7 +102,7 @@
 
 /*
  * Omezený pohyb. Zatím jen v novém UI, aby se nezměnilo chování starých
- * obrazovek (spinnery Bootstrapu); ve Fázi 6 platí pro celý dokument.
+ * obrazovek (jejich spinnery); ve Fázi 6 platí pro celý dokument.
  */
 @media (prefers-reduced-motion: reduce) {
   :where(.ms-scope) *,

@@ -1,0 +1,454 @@
+{
+  "index.html": {
+    "legacyVars": 40
+  },
+  "src/Router.jsx": {
+    "bootstrap": 5,
+    "legacyImports": 2
+  },
+  "src/assets/styles/admin.css": {
+    "bootstrap": 348,
+    "bi": 3,
+    "bs": 175,
+    "legacyVars": 404,
+    "themeBackoffice": 194
+  },
+  "src/assets/styles/base.css": {
+    "bootstrap": 15,
+    "bs": 2,
+    "legacyVars": 13
+  },
+  "src/assets/styles/components.css": {
+    "bootstrap": 72,
+    "legacyVars": 1
+  },
+  "src/assets/styles/layout.css": {
+    "bootstrap": 9
+  },
+  "src/assets/styles/main.css": {
+    "bootstrap": 29,
+    "bs": 63
+  },
+  "src/assets/styles/utilities.css": {
+    "bootstrap": 117,
+    "bs": 31
+  },
+  "src/assets/styles/variables.css": {
+    "bootstrap": 6,
+    "bs": 12,
+    "legacyVars": 8
+  },
+  "src/components/admin/AdminDashboard.jsx": {
+    "bootstrap": 309,
+    "bi": 52,
+    "legacyImports": 1
+  },
+  "src/components/admin/AdminLayout.jsx": {
+    "bootstrap": 120,
+    "bi": 26,
+    "legacyImports": 1
+  },
+  "src/components/admin/AdminLogin.jsx": {
+    "bootstrap": 32,
+    "bi": 4,
+    "legacyImports": 1
+  },
+  "src/components/admin/AdminRegister.jsx": {
+    "bootstrap": 61,
+    "legacyImports": 1
+  },
+  "src/components/admin/AdminRoutes.jsx": {
+    "themeBackoffice": 1,
+    "legacyImports": 1
+  },
+  "src/components/admin/CategoryManagement.jsx": {
+    "bootstrap": 29,
+    "bi": 17,
+    "legacyImports": 2
+  },
+  "src/components/admin/ClubDeleteDialog.jsx": {
+    "bootstrap": 8,
+    "bi": 1,
+    "legacyImports": 1
+  },
+  "src/components/admin/ClubManagement.jsx": {
+    "bootstrap": 46,
+    "bi": 9,
+    "legacyImports": 3
+  },
+  "src/components/admin/ClubRequests.jsx": {
+    "bootstrap": 82,
+    "bi": 4,
+    "legacyImports": 2
+  },
+  "src/components/admin/DocumentLibrary.jsx": {
+    "bootstrap": 103,
+    "bi": 13,
+    "legacyImports": 3
+  },
+  "src/components/admin/PostManagement.jsx": {
+    "bootstrap": 13
+  },
+  "src/components/admin/RaceManagement.jsx": {
+    "bootstrap": 8,
+    "bi": 2
+  },
+  "src/components/admin/RaceRegistrations.jsx": {
+    "bootstrap": 80,
+    "bi": 16,
+    "legacyImports": 1
+  },
+  "src/components/admin/RacerManagement.jsx": {
+    "bootstrap": 127,
+    "bi": 25,
+    "legacyImports": 3
+  },
+  "src/components/admin/SeasonManagement.jsx": {
+    "bootstrap": 76,
+    "bi": 16,
+    "legacyImports": 3
+  },
+  "src/components/admin/SlcrPairing.jsx": {
+    "bootstrap": 112,
+    "bi": 21,
+    "legacyImports": 3
+  },
+  "src/components/admin/VisitsChart.jsx": {
+    "bootstrap": 35,
+    "bi": 6
+  },
+  "src/components/admin/attachments/AttachmentList.jsx": {
+    "bootstrap": 52,
+    "bi": 6,
+    "legacyImports": 1
+  },
+  "src/components/admin/attachments/AttachmentManager.jsx": {
+    "bootstrap": 13,
+    "bi": 2,
+    "legacyImports": 2
+  },
+  "src/components/admin/attachments/AttachmentSlot.jsx": {
+    "bootstrap": 62,
+    "bi": 4,
+    "legacyImports": 1
+  },
+  "src/components/admin/attachments/LibraryPicker.jsx": {
+    "bootstrap": 36,
+    "bi": 1,
+    "legacyImports": 2
+  },
+  "src/components/admin/category/CategoryForm.jsx": {
+    "bootstrap": 48,
+    "bi": 2
+  },
+  "src/components/admin/category/CategoryTable.jsx": {
+    "bootstrap": 38,
+    "bi": 10,
+    "legacyImports": 1
+  },
+  "src/components/admin/category/CoverageReport.jsx": {
+    "bootstrap": 187,
+    "bi": 30
+  },
+  "src/components/admin/category/RecalculateSummary.jsx": {
+    "bootstrap": 69,
+    "bi": 8
+  },
+  "src/components/admin/post/PostFilters.jsx": {
+    "bootstrap": 21,
+    "emoji": 5,
+    "legacyImports": 1
+  },
+  "src/components/admin/post/PostForm.jsx": {
+    "bootstrap": 33,
+    "legacyImports": 1
+  },
+  "src/components/admin/post/PostTable.jsx": {
+    "bootstrap": 60,
+    "bi": 10,
+    "emoji": 1
+  },
+  "src/components/admin/race/RaceFilters.jsx": {
+    "bootstrap": 10,
+    "bi": 2,
+    "legacyImports": 1
+  },
+  "src/components/admin/race/RaceForm.jsx": {
+    "bootstrap": 81
+  },
+  "src/components/admin/race/RaceTable.jsx": {
+    "bootstrap": 52,
+    "bi": 15
+  },
+  "src/components/admin/slcrPairing.js": {
+    "bootstrap": 4
+  },
+  "src/components/layouts/Layout.jsx": {
+    "bootstrap": 19,
+    "bi": 4
+  },
+  "src/components/layouts/Navigation.jsx": {
+    "bootstrap": 39,
+    "bi": 7,
+    "legacyVars": 2
+  },
+  "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
+    "bootstrap": 7
+  },
+  "src/components/pages/Contacts.jsx": {
+    "bootstrap": 44,
+    "bi": 12,
+    "legacyVars": 10
+  },
+  "src/components/pages/Documents.jsx": {
+    "bootstrap": 22,
+    "bi": 9,
+    "legacyVars": 8,
+    "legacyImports": 2
+  },
+  "src/components/pages/Homepage.jsx": {
+    "bootstrap": 113,
+    "bi": 24,
+    "legacyVars": 13,
+    "emoji": 3
+  },
+  "src/components/pages/LiveTiming.jsx": {
+    "bootstrap": 69,
+    "bi": 12,
+    "emoji": 3
+  },
+  "src/components/pages/NewsArchive.jsx": {
+    "bootstrap": 14,
+    "bi": 2,
+    "legacyImports": 1
+  },
+  "src/components/pages/RaceCalendar.jsx": {
+    "bootstrap": 72,
+    "bi": 20,
+    "legacyVars": 4,
+    "emoji": 2
+  },
+  "src/components/pages/RaceDetail.jsx": {
+    "bootstrap": 61,
+    "bi": 18,
+    "legacyVars": 10,
+    "emoji": 2,
+    "legacyImports": 1
+  },
+  "src/components/pages/RegisteredRacersCard.jsx": {
+    "bootstrap": 25,
+    "bi": 4,
+    "legacyVars": 2,
+    "legacyImports": 1
+  },
+  "src/components/pages/Registration.jsx": {
+    "bootstrap": 42,
+    "bi": 12,
+    "legacyVars": 11,
+    "legacyImports": 1
+  },
+  "src/components/pages/news/NewsFilters.jsx": {
+    "bootstrap": 28,
+    "bi": 8
+  },
+  "src/components/pages/news/NewsPagination.jsx": {
+    "bootstrap": 10,
+    "bi": 4
+  },
+  "src/components/pages/news/PostCard.jsx": {
+    "bootstrap": 29,
+    "bi": 4
+  },
+  "src/components/pages/news/PostsList.jsx": {
+    "bi": 1,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/BridgeEventRow.jsx": {
+    "bootstrap": 63,
+    "bi": 4,
+    "emoji": 5
+  },
+  "src/components/timekeeper/ConflictDialogMessage.jsx": {
+    "bootstrap": 6
+  },
+  "src/components/timekeeper/PdfPreviewModal.jsx": {
+    "bootstrap": 22,
+    "bi": 2,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/RaceHeaderForm.jsx": {
+    "bootstrap": 78,
+    "bi": 11,
+    "legacyImports": 2
+  },
+  "src/components/timekeeper/RaceNumberBadge.jsx": {
+    "bootstrap": 11
+  },
+  "src/components/timekeeper/RaceNumbersManager.jsx": {
+    "bootstrap": 194,
+    "bi": 24
+  },
+  "src/components/timekeeper/ResultsPrintButtons.jsx": {
+    "bootstrap": 10,
+    "bi": 2,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/ResultsTable.jsx": {
+    "bootstrap": 66,
+    "bi": 4
+  },
+  "src/components/timekeeper/ResultsView.jsx": {
+    "bootstrap": 98,
+    "bi": 25,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/SerialInboxPanel.jsx": {
+    "bootstrap": 81,
+    "bi": 8
+  },
+  "src/components/timekeeper/SerialStatusBar.jsx": {
+    "bootstrap": 168,
+    "bi": 20
+  },
+  "src/components/timekeeper/StartListManager.jsx": {
+    "bootstrap": 184,
+    "bi": 39,
+    "emoji": 2,
+    "legacyImports": 2
+  },
+  "src/components/timekeeper/StartListRow.jsx": {
+    "bootstrap": 37,
+    "bi": 4
+  },
+  "src/components/timekeeper/SyncCenter.jsx": {
+    "bootstrap": 182,
+    "bi": 10
+  },
+  "src/components/timekeeper/TimekeeperChrome.jsx": {
+    "bootstrap": 20,
+    "bi": 6,
+    "legacyVars": 4
+  },
+  "src/components/timekeeper/TimekeeperDashboard.jsx": {
+    "bootstrap": 111,
+    "bi": 14,
+    "legacyVars": 2,
+    "emoji": 1
+  },
+  "src/components/timekeeper/TimekeeperLayout.jsx": {
+    "bootstrap": 128,
+    "bi": 31,
+    "themeBackoffice": 3,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/TimekeeperLogin.jsx": {
+    "bootstrap": 52,
+    "bi": 12,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/TimekeeperRacerRow.jsx": {
+    "bootstrap": 12,
+    "bi": 2
+  },
+  "src/components/timekeeper/TimekeeperRacers.jsx": {
+    "bootstrap": 183,
+    "bi": 20,
+    "legacyVars": 3,
+    "legacyImports": 4
+  },
+  "src/components/timekeeper/TimekeeperRoutes.jsx": {
+    "themeBackoffice": 1,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/TimingDeviceSettings.jsx": {
+    "bootstrap": 128,
+    "bi": 25,
+    "emoji": 3
+  },
+  "src/components/timekeeper/TimingEntry.jsx": {
+    "bootstrap": 16,
+    "bi": 5,
+    "legacyImports": 2
+  },
+  "src/components/timekeeper/TimingRow.jsx": {
+    "bootstrap": 51
+  },
+  "src/components/timekeeper/TimingTable.jsx": {
+    "bootstrap": 15,
+    "bi": 8,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/TimingToolbar.jsx": {
+    "bootstrap": 151,
+    "bi": 16,
+    "legacyImports": 1
+  },
+  "src/components/timekeeper/inboxMatching.js": {
+    "emoji": 3
+  },
+  "src/components/timekeeper/useInboxEvents.js": {
+    "bi": 3,
+    "emoji": 4
+  },
+  "src/components/timekeeper/useTimeSaving.jsx": {
+    "bi": 2
+  },
+  "src/components/ui/Alert.jsx": {
+    "bootstrap": 7
+  },
+  "src/components/ui/ConfirmDialog.jsx": {
+    "bootstrap": 23,
+    "bi": 1
+  },
+  "src/components/ui/EmptyState.jsx": {
+    "bootstrap": 15,
+    "bi": 3
+  },
+  "src/components/ui/LoadingState.jsx": {
+    "bootstrap": 26
+  },
+  "src/components/ui/RegistrationForm.jsx": {
+    "bootstrap": 21,
+    "bi": 4,
+    "legacyVars": 5
+  },
+  "src/components/ui/SearchableSelect.jsx": {
+    "bootstrap": 12,
+    "bi": 8,
+    "legacyVars": 5
+  },
+  "src/components/ui/SectionSwitch.jsx": {
+    "bi": 3
+  },
+  "src/components/ui/registration/RacerSearchResults.jsx": {
+    "bootstrap": 30,
+    "bi": 6
+  },
+  "src/components/ui/registration/RegistrationFormFields.jsx": {
+    "bootstrap": 87,
+    "bi": 20,
+    "legacyVars": 10
+  },
+  "src/components/ui/registration/RegistrationMessage.jsx": {
+    "bootstrap": 9,
+    "emoji": 2
+  },
+  "src/hooks/useBodyClass.js": {
+    "themeBackoffice": 1
+  },
+  "src/hooks/useConfirm.jsx": {
+    "legacyImports": 1
+  },
+  "src/hooks/useRegistration.js": {
+    "emoji": 3
+  },
+  "src/offline/bridgeInbox.js": {
+    "emoji": 1
+  },
+  "src/utils/files.js": {
+    "bootstrap": 13
+  },
+  "src/utils/raceNumbers.js": {
+    "legacyVars": 6
+  }
+}
