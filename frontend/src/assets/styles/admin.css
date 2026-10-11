@@ -815,40 +815,6 @@ body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(1
    jen pro .timekeeper-section (s .text-warning #ffc107 na bílé 1.6:1
    a vynuceně tmavým textem i na tmavých prvcích). */
 
-/* Pole časů K1/K2 při zadávání. Pole nemělo minimální šířku, takže při užší
-   tabulce (notebook 1366 px, tablet) ustupovalo jako první a z času "38.42"
-   zbylo "38." - na 1280 px měl sloupec 23 px. Šipky pro krokování čísla
-   zabíraly další místo a při zapisování časů nejsou k ničemu. */
-.timekeeper-section .timing-time-input {
-  min-width: calc(6ch + 14px);
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-/* Zadávání časů: nižší řádky, ať se na obrazovku vejde víc závodníků.
-   Výšku řádku určovala pole časů (min-height z .form-control-sm) a dva
-   řádky textu se standardním řádkováním ve jméně i u dresu. */
-.timekeeper-section .timing-table .timing-time-input {
-  min-height: 0;
-  height: 24px;
-  padding-top: 1px !important;
-  padding-bottom: 1px !important;
-}
-
-.timekeeper-section .timing-table td {
-  line-height: 1.15;
-}
-
-.timekeeper-section .timing-table td small {
-  font-size: 0.7rem;
-}
-
-.timekeeper-section .timing-time-input::-webkit-outer-spin-button,
-.timekeeper-section .timing-time-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
 /* Přehled závodů - závod na jeden řádek, pruh vlevo odlišuje nadcházející
    a proběhlé. body.theme-backoffice kvůli pravidlům karet v tématu výše. */
 body.theme-backoffice .timekeeper-section .timekeeper-race-card {

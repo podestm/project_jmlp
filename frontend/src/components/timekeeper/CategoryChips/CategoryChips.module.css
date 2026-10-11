@@ -1,0 +1,83 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+}
+
+.caps {
+  flex-shrink: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  padding: 0 var(--ms-space-4);
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.sm {
+  min-block-size: 36px;
+  padding: 0 var(--ms-space-3);
+  border-radius: var(--ms-radius-pill);
+  font-size: var(--ms-fs-sm);
+}
+
+.md {
+  min-block-size: 48px;
+}
+
+.chip:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.count {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767.98px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ms-space-2);
+  }
+
+  /* Na telefonu jedna posuvná řada místo pěti řádků kategorií. */
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-block-end: var(--ms-space-1);
+  }
+
+  .chip {
+    flex-shrink: 0;
+  }
+}

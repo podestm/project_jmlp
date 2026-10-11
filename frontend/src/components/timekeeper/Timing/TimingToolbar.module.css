@@ -1,0 +1,115 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--ms-space-4) 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.row + .row {
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--ms-line);
+}
+
+.caps {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px var(--ms-space-2);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-dry-bg);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-dry-ink);
+}
+
+.hint {
+  margin-inline-start: auto;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.kbd {
+  padding: 1px 6px;
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink);
+}
+
+.categories {
+  flex: 1 1 480px;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.bar {
+  inline-size: 180px;
+  block-size: 8px;
+  border: 0;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-sunken);
+  accent-color: var(--ms-navy);
+  appearance: none;
+}
+
+.bar::-webkit-progress-bar {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-sunken);
+}
+
+.bar::-webkit-progress-value {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-navy);
+}
+
+.bar::-moz-progress-bar {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-navy);
+}
+
+.percent {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+@media (max-width: 767.98px) {
+  .hint {
+    margin-inline-start: 0;
+  }
+
+  .bar {
+    inline-size: 120px;
+  }
+}

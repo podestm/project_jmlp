@@ -1,0 +1,13 @@
+.table {
+  min-inline-size: 720px;
+}
+
+.narrow {
+  inline-size: 1%;
+  white-space: nowrap;
+}
+
+/* Hlavička zamčeného kola: zašedlá, ale čitelná; zámek říká, proč. */
+.lockedHead {
+  color: var(--ms-ink-muted);
+}

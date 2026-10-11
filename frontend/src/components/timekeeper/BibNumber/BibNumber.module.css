@@ -27,3 +27,10 @@
   font-family: var(--ms-font-mono);
   color: var(--ms-ink-muted);
 }
+
+/* Schránka impulzů: menší box, ať se do řádku vejde čas i stav. */
+.sm {
+  min-inline-size: 52px;
+  block-size: 30px;
+  font-size: var(--ms-fs-lg);
+}

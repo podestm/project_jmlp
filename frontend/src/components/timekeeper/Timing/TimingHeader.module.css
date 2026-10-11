@@ -1,0 +1,19 @@
+.lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--ms-line-control);
+  flex-shrink: 0;
+}
+
+.dotOn {
+  background: var(--ms-open);
+}

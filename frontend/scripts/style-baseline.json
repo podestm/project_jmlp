@@ -158,29 +158,12 @@
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
     "bootstrap": 4
   },
-  "src/components/timekeeper/BridgeEventRow.jsx": {
-    "bootstrap": 63,
-    "emoji": 5
-  },
-  "src/components/timekeeper/RaceNumberBadge.jsx": {
-    "bootstrap": 11
-  },
-  "src/components/timekeeper/ResultsPrintButtons.jsx": {
-    "bootstrap": 10,
-    "legacyImports": 1
-  },
   "src/components/timekeeper/ResultsTable.jsx": {
     "bootstrap": 66
   },
   "src/components/timekeeper/ResultsView.jsx": {
     "bootstrap": 97,
     "legacyImports": 1
-  },
-  "src/components/timekeeper/SerialInboxPanel.jsx": {
-    "bootstrap": 81
-  },
-  "src/components/timekeeper/SerialStatusBar.jsx": {
-    "bootstrap": 168
   },
   "src/components/timekeeper/SyncCenter.jsx": {
     "bootstrap": 182
@@ -194,21 +177,6 @@
   "src/components/timekeeper/TimingDeviceSettings.jsx": {
     "bootstrap": 128,
     "emoji": 3
-  },
-  "src/components/timekeeper/TimingEntry.jsx": {
-    "bootstrap": 16,
-    "legacyImports": 2
-  },
-  "src/components/timekeeper/TimingRow.jsx": {
-    "bootstrap": 51
-  },
-  "src/components/timekeeper/TimingTable.jsx": {
-    "bootstrap": 15,
-    "legacyImports": 1
-  },
-  "src/components/timekeeper/TimingToolbar.jsx": {
-    "bootstrap": 151,
-    "legacyImports": 1
   },
   "src/components/timekeeper/inboxMatching.js": {
     "emoji": 3

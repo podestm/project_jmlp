@@ -11,7 +11,7 @@ import { resetTimekeeperDb, setOnline, startListEntry } from '../../test/helpers
 import { SerialSessionProvider } from './SerialSessionProvider.jsx';
 import StartListManager from './StartList/StartListManager.jsx';
 import { SELECTED_RACE_KEY } from './frame/selectedRace.js';
-import TimingEntry from './TimingEntry.jsx';
+import TimingEntry from './Timing/TimingEntry.jsx';
 
 /**
  * Vyřazení ze startky na obrazovkách časoměřiče.

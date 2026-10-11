@@ -660,11 +660,12 @@ export function useInboxEvents({
   const clearResolvedInbox = async () => {
     if (!selectedRaceId || resolvedInboxCount === 0) return;
     const ok = await confirm({
-      title: 'Smazat vyřízené události?',
-      message: `Smaže se ${resolvedInboxCount} řádků: potvrzené a prokazatelně odeslané na server + ručně zamítnuté. Zůstane ${liveInboxCount} řádků – nepotvrzené, čekající na synchronizaci, chybové i varovné. Ty obsahují naměřené časy, které nejsou zapsané nikde jinde.`,
-      confirmLabel: `Smazat ${resolvedInboxCount}`,
-      variant: 'warning',
-      icon: 'erase',
+      title: `Smazat ${resolvedInboxCount} vyřízených řádků ze schránky?`,
+      message: `Smažou se řádky potvrzené a prokazatelně odeslané na server a zamítnuté. Časy zapsané v listině zůstanou. Zůstane ${liveInboxCount} řádků – nepotvrzené, čekající na synchronizaci, chybové i varovné. Ty obsahují naměřené časy, které nejsou zapsané nikde jinde.`,
+      confirmLabel: `Smazat ${resolvedInboxCount} řádků`,
+      // Mazání: Enter ho nesmí potvrdit, fokus dostane Zrušit.
+      variant: 'danger',
+      icon: 'trash',
     });
     if (!ok) return;
     try {
@@ -678,11 +679,10 @@ export function useInboxEvents({
   const dismissUnparsedInbox = async () => {
     if (!selectedRaceId || unparsedInboxCount === 0) return;
     const ok = await confirm({
-      title: 'Odbavit nerozpoznané řádky?',
+      title: `Odbavit ${unparsedInboxCount} nerozpoznané řádky?`,
       message: `${unparsedInboxCount} řádků z časomíry se nepodařilo rozpoznat. Potvrzením prohlásíte, že to nejsou naměřené časy – zůstanou uložené jako zamítnuté a půjdou pak smazat tlačítkem „Smazat vyřízené“.`,
-      confirmLabel: 'Odbavit',
-      variant: 'warning',
-      icon: 'question',
+      confirmLabel: `Odbavit ${unparsedInboxCount} řádky`,
+      icon: 'check',
     });
     if (!ok) return;
     try {
@@ -696,11 +696,11 @@ export function useInboxEvents({
   const clearWholeInbox = async () => {
     if (!selectedRaceId) return;
     const ok = await confirm({
-      title: 'Smazat celý inbox?',
+      title: `Smazat celou schránku – všech ${inboxEvents.length} událostí?`,
       message: liveInboxCount > 0
         ? `Smaže se ${inboxEvents.length} řádků včetně ${liveInboxCount} nevyřízených – naměřené časy, které zatím nikdo nezapsal${unassignedInboxCount > 0 ? ` (z toho ${unassignedInboxCount} zatím nepřiřazených k žádnému závodu)` : ''}. Akci nelze vrátit zpět.`
         : `Smaže se všech ${inboxEvents.length} uložených událostí. Akci nelze vrátit zpět.`,
-      confirmLabel: 'Smazat vše',
+      confirmLabel: `Smazat ${inboxEvents.length} událostí`,
       variant: 'danger',
       icon: 'trash',
     });

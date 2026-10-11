@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SerialInboxPanel from './SerialInboxPanel.jsx';
-import { INBOX_RENDER_LIMIT } from './useInboxEvents.js';
+import { INBOX_RENDER_LIMIT } from '../../useInboxEvents.js';
 
 /**
  * Log časomíry se vykresluje jen do limitu, ale celý musí jít kdykoli projít -

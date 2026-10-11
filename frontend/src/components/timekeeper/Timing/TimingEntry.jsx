@@ -1,32 +1,38 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { TimekeeperAPI } from '../../config/timekeeperApi.js';
-import { useConfirm } from '../../hooks/useConfirm.jsx';
-import { useRacePdf } from '../../hooks/useRacePdf.js';
-import { pdfErrorMessage } from '../../pdf/pdfmake.js';
-import LoadingState from '../ui/LoadingState.jsx';
-import EmptyState from '../ui/EmptyState.jsx';
-import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
-import { useSerialSession } from './SerialSessionProvider.jsx';
-import { START_LIST_REVISION_EVENT } from '../../offline/localEdits.js';
-import { loadTimingDrafts } from '../../offline/timingDrafts.js';
-import { useTimingDrafts } from './useTimingDrafts.js';
-import { useInboxEvents } from './useInboxEvents.js';
-import { useTabWriteLock } from './useTabWriteLock.js';
-import { useTimeSaving } from './useTimeSaving.jsx';
+import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { useConfirm } from '../../../hooks/useConfirm.jsx';
+import { useRacePdf } from '../../../hooks/useRacePdf.js';
+import { pdfErrorMessage } from '../../../pdf/pdfmake.js';
+import { Alert, LoadingState, Select } from '../../ms/index.js';
+import { readSelectedRaceId, storeSelectedRaceId } from '../frame/selectedRace.js';
+import { useSerialSession } from '../SerialSessionProvider.jsx';
+import { START_LIST_REVISION_EVENT } from '../../../offline/localEdits.js';
+import { loadTimingDrafts } from '../../../offline/timingDrafts.js';
+import { useTimingDrafts } from '../useTimingDrafts.js';
+import { useInboxEvents } from '../useInboxEvents.js';
+import { useTabWriteLock } from '../useTabWriteLock.js';
+import { useTimeSaving } from '../useTimeSaving.jsx';
 import {
   mergeRestoredDrafts,
-} from './timingRules.js';
+} from '../timingRules.js';
 import {
   forgetWriter,
   markWriterAlive,
   WRITER_HEARTBEAT_MS,
-} from './writerPresence.js';
-import { activeEntries, groupEntriesByCategory } from './startListHelpers.js';
-import PdfPreviewModal from './PdfPreviewModal.jsx';
-import SerialInboxPanel from './SerialInboxPanel.jsx';
+} from '../writerPresence.js';
+import { activeEntries, groupEntriesByCategory } from '../startListHelpers.js';
+import { formatDateLong } from '../../../utils/date.js';
+import PdfPreviewModal from '../PdfPreviewModal.jsx';
+import TimekeeperMessage from '../TimekeeperMessage.jsx';
+import TkPage from '../frame/TkPage/TkPage.jsx';
+import { TAKE_OVER_CONFIRM } from '../dialogs/TakeOverMessage.jsx';
+import SerialInboxPanel from './Inbox/SerialInboxPanel.jsx';
+import DevicePanel from './DevicePanel.jsx';
+import SerialAlerts from './SerialAlerts.jsx';
+import TimingHeader from './TimingHeader.jsx';
 import TimingTable from './TimingTable.jsx';
 import TimingToolbar from './TimingToolbar.jsx';
-import Icon from '../ms/Icon/Icon.jsx';
+import styles from './TimingEntry.module.css';
 
 /**
  * Zadávání časů: ruční tabulka vlevo, inbox událostí z časomíry vpravo.
@@ -413,50 +419,59 @@ export default function TimingEntry() {
     hasWriteLock,
   });
 
+  /** Převzetí portu od jiné karty – až po potvrzení (TkDialogPrevzitCasomiru). */
+  const takeOverDevice = async () => {
+    if (await confirm(TAKE_OVER_CONFIRM)) serial.reconnect();
+  };
+
+  const showWork = !loading && selectedRaceId;
+
   return (
-    <div>
-      <TimingToolbar
-        races={races}
-        selectedRace={selectedRace}
-        selectedRaceId={selectedRaceId}
-        setSelectedRaceId={setSelectedRaceId}
+    <TkPage>
+      <TimingHeader
+        race={selectedRace}
         startListLength={activeStartList.length}
-        categoryList={categoryList}
-        categoryFilteredLength={categoryFiltered.length}
-        completedCount={completedCount}
-        filter={filter}
-        setFilter={setFilter}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        activeRound={activeRound}
-        setActiveRound={setActiveRound}
-        saving={saving}
-        saveAllTimes={saveAllTimes}
         hasWriteLock={hasWriteLock}
-        loading={loading}
-        message={message}
-        onDismissMessage={() => setMessage(null)}
-        serial={serial}
-        bridgeTargetRound={bridgeTargetRound}
-        setBridgeTargetRound={setBridgeTargetRound}
-        liveInboxCount={liveInboxCount}
-        resolvedInboxCount={resolvedInboxCount}
-        unassignedInboxCount={unassignedInboxCount}
-        unparsedStreakAlert={UNPARSED_STREAK_ALERT}
-        onPrintResults={printResults}
-        printBusy={pdf.generating}
+        saving={saving}
+        onSaveAll={saveAllTimes}
       />
 
-      {loading && <LoadingState variant="timekeeper" />}
+      <SerialAlerts
+        serial={serial}
+        selectedRaceId={selectedRaceId}
+        hasWriteLock={hasWriteLock}
+        unparsedStreakAlert={UNPARSED_STREAK_ALERT}
+        onTakeOver={takeOverDevice}
+      />
 
-      {!loading && selectedRaceId && (
-        <div className="row g-3 align-items-start">
-          <div className="col-12 col-xl-7">
+      {showWork && activeStartList.length > 0 && (
+        <TimingToolbar
+          startListLength={activeStartList.length}
+          categoryList={categoryList}
+          categoryFilteredLength={categoryFiltered.length}
+          completedCount={completedCount}
+          filter={filter}
+          setFilter={setFilter}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          activeRound={activeRound}
+          setActiveRound={setActiveRound}
+          onPrintResults={printResults}
+          printBusy={pdf.generating}
+        />
+      )}
+
+      <TimekeeperMessage message={message} onDismiss={() => setMessage(null)} />
+
+      {loading && <LoadingState label="Načítám startovní listinu…" />}
+
+      {showWork && (
+        <div className={styles.work}>
+          <div className={styles.table}>
             {excludedCount > 0 && (
-              <div className="small text-muted mb-1">
-                <Icon name="user-minus" className="me-1" />
+              <p className={styles.excluded}>
                 Vyřazení ze startovní listiny ({excludedCount}) se tu nezobrazují – vrátit je jde v Listině.
-              </div>
+              </p>
             )}
             <TimingTable
               entries={filteredList}
@@ -473,42 +488,60 @@ export default function TimingEntry() {
             />
           </div>
 
-          <div className="col-12 col-xl-5">
-            <SerialInboxPanel
-              events={inboxEvents}
-              visibleEvents={visibleInboxEvents}
-              hiddenCount={hiddenInboxCount}
-              showAll={showAllInbox}
-              onShowAllChange={setShowAllInbox}
-              resolutions={inboxResolutions}
-              targetRound={bridgeTargetRound}
-              unparsedCount={unparsedInboxCount}
-              resolvedCount={resolvedInboxCount}
-              onCycle={cycleBridgeCandidate}
-              onConfirm={confirmBridgeEvent}
-              onReject={rejectBridgeEvent}
-              onRejectAuto={rejectAutoWrittenEvent}
-              autoWrite={autoWrite}
-              onAutoWriteChange={setAutoWrite}
-              onDismissUnparsed={dismissUnparsedInbox}
-              onClearResolved={clearResolvedInbox}
-              onClearAll={clearWholeInbox}
-            />
-          </div>
+          <SerialInboxPanel
+            events={inboxEvents}
+            visibleEvents={visibleInboxEvents}
+            hiddenCount={hiddenInboxCount}
+            showAll={showAllInbox}
+            onShowAllChange={setShowAllInbox}
+            resolutions={inboxResolutions}
+            targetRound={bridgeTargetRound}
+            unparsedCount={unparsedInboxCount}
+            resolvedCount={resolvedInboxCount}
+            onCycle={cycleBridgeCandidate}
+            onConfirm={confirmBridgeEvent}
+            onReject={rejectBridgeEvent}
+            onRejectAuto={rejectAutoWrittenEvent}
+            autoWrite={autoWrite}
+            onAutoWriteChange={setAutoWrite}
+            onDismissUnparsed={dismissUnparsedInbox}
+            onClearResolved={clearResolvedInbox}
+            onClearAll={clearWholeInbox}
+          />
         </div>
       )}
 
+      {showWork && (
+        <DevicePanel
+          serial={serial}
+          bridgeTargetRound={bridgeTargetRound}
+          setBridgeTargetRound={setBridgeTargetRound}
+          liveInboxCount={liveInboxCount}
+          resolvedInboxCount={resolvedInboxCount}
+          unassignedInboxCount={unassignedInboxCount}
+        />
+      )}
+
       {!selectedRaceId && (
-        <>
+        <section className={styles.noRace} aria-label="Bez vybraného závodu">
+          <Alert type="info" compact title="Vyberte závod pro zadávání časů">
+            Tabulka ani schránka se zatím nevykreslí. Závod jde vybrat i tady – jakmile ho vyberete, seznam zmizí.
+          </Alert>
+          <label className={styles.caps} htmlFor="tk-timing-race">Závod</label>
+          <Select id="tk-timing-race" value={selectedRaceId} onChange={(e) => setSelectedRaceId(e.target.value)}>
+            <option value="">— Vyberte závod —</option>
+            {races.map((race) => (
+              <option key={race.id} value={race.id}>
+                {race.race_nr || `#${race.id}`} — {race.areal_name || '?'} ({formatDateLong(race.datum)})
+              </option>
+            ))}
+          </Select>
           {inboxEvents.length > 0 && (
-            <div className="alert alert-info py-2 small" role="alert">
-              <Icon name="inbox" className="me-2" />
-              Časomíra už poslala {inboxEvents.length} událostí, které zatím nepatří k žádnému závodu.
-              Vyberte závod – zobrazí se zde a půjdou potvrdit. Nic se neztratilo.
-            </div>
+            <Alert type="info" compact title={`Časomíra už poslala ${inboxEvents.length} událostí, které zatím nepatří k žádnému závodu`}>
+              Nic se neztratilo – čekají ve schránce a přiřadí se, jakmile závod vyberete.
+            </Alert>
           )}
-          <EmptyState icon="pointer" title="Vyberte závod pro zadávání časů" />
-        </>
+        </section>
       )}
 
       {pdf.objectUrl && (
@@ -522,6 +555,6 @@ export default function TimingEntry() {
       )}
 
       {confirmElement}
-    </div>
+    </TkPage>
   );
 }

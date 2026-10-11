@@ -1,0 +1,132 @@
+.start {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.bib {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.system {
+  font-size: var(--ms-fs-2xs);
+  color: var(--ms-ink-muted);
+  white-space: nowrap;
+}
+
+/* max-inline-size 0 dovolí buňce jít pod šířku textu – jinak by zkrácení
+   trojtečkou nezabralo a tabulka by přetekla do strany. */
+.racerCell {
+  max-inline-size: 0;
+  inline-size: 100%;
+}
+
+.name,
+.club {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.club {
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink-body);
+}
+
+/* Pole časů K1/K2 (dřív admin.css). Bez minimální šířky ustupovalo pole při
+   užší tabulce jako první a z času „38.42“ zbylo „38.“ – na 1280 px měl
+   sloupec 23 px. Šipky pro krokování čísla zabíraly další místo a při
+   zapisování časů nejsou k ničemu. */
+.time {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: calc(6ch + 14px);
+  block-size: var(--ms-target);
+  padding: 0 var(--ms-space-2);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-xl);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+  appearance: textfield;
+}
+
+.time::-webkit-outer-spin-button,
+.time::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.time:focus-visible {
+  outline: var(--ms-focus-width) solid var(--ms-focus-color);
+  outline-offset: 0;
+}
+
+/* Zamčené kolo: zašedlé, ale čitelné (dřív opacity 0.6 = kontrast 3.87:1,
+   na slunci na svahu se naměřený čas nedal přečíst). */
+.time:disabled {
+  border-color: var(--ms-line);
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink-body);
+}
+
+.locked {
+  border-style: dashed;
+}
+
+.flags {
+  display: inline-flex;
+  gap: var(--ms-space-1);
+}
+
+.flag {
+  min-inline-size: var(--ms-target);
+  block-size: var(--ms-target);
+  padding: 0 6px;
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.04em;
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.flag:hover:not(:disabled) {
+  background: var(--ms-surface-sunken);
+}
+
+.flag[aria-pressed='true'] {
+  border-color: var(--ms-navy-deep);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+.flag:disabled {
+  border-color: var(--ms-line);
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}
+
+.sum {
+  font-size: var(--ms-fs-xl);
+  white-space: nowrap;
+}
+
+.time::placeholder {
+  color: var(--ms-line-control);
+  font-weight: 400;
+}

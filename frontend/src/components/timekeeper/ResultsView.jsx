@@ -9,7 +9,7 @@ import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
-import ResultsPrintButtons from './ResultsPrintButtons.jsx';
+import ResultsPrintButtons from './PrintRunButtons/PrintRunButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
 import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 import Icon from '../ms/Icon/Icon.jsx';

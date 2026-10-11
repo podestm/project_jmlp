@@ -5,8 +5,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { timekeeperDb } from '../../offline/db.js';
 import { appendInboxEvent } from '../../offline/bridgeInbox.js';
 import { resetTimekeeperDb, startListEntry } from '../../test/helpers.js';
-import BridgeEventRow from './BridgeEventRow.jsx';
-import SerialInboxPanel from './SerialInboxPanel.jsx';
+import BridgeEventRow from './Timing/Inbox/BridgeEventRow.jsx';
+import SerialInboxPanel from './Timing/Inbox/SerialInboxPanel.jsx';
 import { AUTO_WRITE_KEY, useInboxEvents } from './useInboxEvents.js';
 
 /**
@@ -22,7 +22,7 @@ beforeEach(resetTimekeeperDb);
 const RACE_ID = '10';
 
 /** Totéž zapojení jako v TimingEntry, jen bez obrazovky. */
-const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '1', drafts = {} }) => {
+const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '1', drafts = {}, confirm = vi.fn() }) => {
   const [inboxEvents, setInboxEvents] = useState([]);
   const [message, setMessage] = useState(null);
   const [editedTimes, setEditedTimes] = useState(drafts);
@@ -50,7 +50,7 @@ const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '
     startListById,
     selectedRaceId: RACE_ID,
     queueSave,
-    confirm: vi.fn(),
+    confirm,
     setMessage,
     setEditedTimes,
     startListRef,
@@ -308,6 +308,16 @@ describe('Zamítnout u automaticky zapsané události', () => {
     return { ...hook, queueSave };
   };
 
+  it('„Smazat vyřízené“ je nebezpečná volba – Enter ji nepotvrdí', async () => {
+    const confirm = vi.fn(async () => null);
+    const { result } = await autoWritten({ confirm });
+
+    await act(async () => { await result.current.clearResolvedInbox(); });
+
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ variant: 'danger' }));
+    expect((await storedRow()).status).toBe('saved');
+  });
+
   it('vrátí kolo na hodnotu před zápisem a událost označí jako zamítnutou', async () => {
     const { result, queueSave } = await autoWritten();
     const id = result.current.inboxEvents[0].id;
@@ -381,8 +391,8 @@ describe('řádek automaticky zapsané události', () => {
     renderRow({ ...baseEvent, status: 'saved', auto_written: true }, { onRejectAuto });
 
     expect(screen.getByText('Zapsáno automaticky')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '✓' })).toBeNull();
-    expect(screen.queryByRole('button', { name: '✕' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Přiřadit a uložit' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Zamítnout událost' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Zamítnout' }));
     expect(onRejectAuto).toHaveBeenCalledWith(5);
   });
@@ -401,7 +411,7 @@ describe('řádek automaticky zapsané události', () => {
 
     expect(screen.getByText('Kolo obsazené')).toBeInTheDocument();
     expect(screen.getByText(/Kolo je obsazené/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '✓' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Přiřadit a uložit' })).toBeEnabled();
   });
 
   it('přepínač v inboxu volá změnu', async () => {
