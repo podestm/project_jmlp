@@ -15,6 +15,7 @@ const CONTROLLER_ADDRESS = `${ORGANIZER.street}, ${ORGANIZER.district}, ${ORGANI
 
 // Dotazy vyřizuje soutěžní výbor; jeho kontakty jsou jen na stránce Kontakty.
 const CONTACTS = link('Kontakty', { to: '/kontakty#vybor' });
+const COMMITTEE = link('soutěžního výboru', { to: '/kontakty#vybor' });
 
 export const PRIVACY_INTRO = 'Jaké osobní údaje o závodnících a návštěvnících webu zpracováváme, proč, jak dlouho a jaká máte práva.';
 
@@ -76,8 +77,8 @@ export const PRIVACY_SECTIONS = [
     list: [
       ['Výsledky a účast na závodech trvale, jako archiv soutěže. Kdo chce být v poháru hodnocen, nemůže své výsledky '
         + 'zpětně odstranit – jsou součástí zveřejněného celkového pořadí, i v PDF.'],
-      ['Telefon a e-mail jen po dobu potřebnou pro sezónu: ', todo('DOPLNIT lhůtu, např. do konce sezóny'), '.'],
-      ['Záznamy o návštěvnosti webu: ', todo('DOPLNIT lhůtu, navrhujeme 12 měsíců'), '.'],
+      ['Telefon a e-mail do konce sezóny, pro kterou byly zadány.'],
+      ['Záznamy o návštěvnosti webu 12 měsíců.'],
     ],
   },
   {
@@ -98,7 +99,7 @@ export const PRIVACY_SECTIONS = [
       ['na výmaz – s výjimkou zveřejněných výsledků, které zůstávají v archivu soutěže z oprávněného zájmu na úplném a dohledatelném hodnocení;'],
       ['podat stížnost u Úřadu pro ochranu osobních údajů (', link('www.uoou.gov.cz', { href: 'https://www.uoou.gov.cz' }), ').'],
     ],
-    after: [['Své právo uplatníte e-mailem komukoli ze soutěžního výboru (sekce ', CONTACTS, ') nebo dopisem na adresu sídla správce.']],
+    after: [['Své právo uplatníte kontaktováním ', COMMITTEE, ' nebo dopisem na adresu sídla správce.']],
   },
 ];
 
