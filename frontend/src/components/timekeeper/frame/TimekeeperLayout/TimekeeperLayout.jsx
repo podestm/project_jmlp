@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../../config/timekeeperAuth.jsx';
+import { useConfirm } from '../../../../hooks/useConfirm.jsx';
+import { useSyncStatus } from '../../../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../../../pdf/pdfmake.js';
 import { cx } from '../../../ms/cx.js';
+import { logoutConfirm } from '../../dialogs/logoutConfirm.jsx';
 import { useSelectedRace } from '../selectedRace.js';
 import TabBar from '../TabBar/TabBar.jsx';
 import TkMobileMenu from '../TkMobileMenu/TkMobileMenu.jsx';
@@ -19,6 +23,20 @@ export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
   const { race } = useSelectedRace();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isOnline, queueStats } = useSyncStatus();
+  const { confirm, confirmElement } = useConfirm();
+  const navigate = useNavigate();
+
+  // Odhlášení s neodeslanou frontou se nejdřív zeptá (jen dotaz, fronta
+  // zůstává v zařízení tak jako tak).
+  const handleLogout = async () => {
+    if (queueStats.total > 0) {
+      const choice = await confirm(logoutConfirm({ queueTotal: queueStats.total, isOnline }));
+      if (choice === 'sync') navigate('/timekeeper/sync');
+      if (choice !== 'logout') return;
+    }
+    logout();
+  };
 
   // Tiskové balíky (pdfmake, písma) se načtou na pozadí hned po přihlášení:
   // první tisk je pak okamžitý a funguje i po výpadku sítě (service worker
@@ -33,7 +51,7 @@ export default function TimekeeperLayout({ children }) {
       <header className={cx('ms-scope', styles.header)}>
         <TopBar race={race} menuId={MENU_ID} menuOpen={menuOpen} onOpenMenu={() => setMenuOpen(true)} />
         <div className={styles.tabs}>
-          <TabBar user={user} onLogout={logout} />
+          <TabBar user={user} onLogout={handleLogout} />
         </div>
         <TkMobileMenu
           id={MENU_ID}
@@ -41,10 +59,11 @@ export default function TimekeeperLayout({ children }) {
           onClose={() => setMenuOpen(false)}
           race={race}
           user={user}
-          onLogout={logout}
+          onLogout={handleLogout}
         />
       </header>
       <main id="obsah" className={styles.main}>{children}</main>
+      {confirmElement}
     </div>
   );
 }

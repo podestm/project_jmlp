@@ -1,18 +1,21 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { SerialSessionProvider } from '../../SerialSessionProvider.jsx';
 
 let mockUser = null;
+let mockQueueTotal = 0;
+const mockLogout = vi.fn();
 
 vi.mock('../../../../config/timekeeperAuth.jsx', () => ({
-  useTimekeeperAuth: () => ({ user: mockUser, logout: () => {} }),
+  useTimekeeperAuth: () => ({ user: mockUser, logout: mockLogout }),
 }));
 vi.mock('../../../../offline/useSyncStatus.js', () => ({
   useSyncStatus: () => ({
     isOnline: true,
     syncState: 'online',
-    queueStats: { pending: 0, failed: 0, processing: 0, conflict: 0, dead: 0, total: 0 },
+    queueStats: { pending: mockQueueTotal, failed: 0, processing: 0, conflict: 0, dead: 0, total: mockQueueTotal },
   }),
 }));
 vi.mock('../../../../pdf/pdfmake.js', () => ({ preloadPdfMake: () => Promise.resolve(true) }));
@@ -59,5 +62,32 @@ describe('rámec časomíry', () => {
     renderLayout();
 
     expect(screen.getByRole('link', { name: /Závod není vybraný/ })).toHaveAttribute('href', '/timekeeper');
+  });
+
+  it('odhlášení s neodeslanou frontou se zeptá a Enter neodhlásí', async () => {
+    mockUser = { full_name: 'Časoměřič', role: 'timekeeper' };
+    mockQueueTotal = 3;
+    mockLogout.mockClear();
+    renderLayout();
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Odhlásit se' })[0]);
+    const dialog = await screen.findByRole('dialog', { name: /čekají 3 neodeslané změny/ });
+    await userEvent.keyboard('{Enter}');
+    expect(mockLogout).not.toHaveBeenCalled();
+    expect(dialog).not.toBeVisible();
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Odhlásit se' })[0]);
+    await userEvent.click(await screen.findByRole('button', { name: 'Odhlásit se i tak' }));
+    expect(mockLogout).toHaveBeenCalledTimes(1);
+    mockQueueTotal = 0;
+  });
+
+  it('s prázdnou frontou odhlásí hned', async () => {
+    mockUser = { full_name: 'Časoměřič', role: 'timekeeper' };
+    mockLogout.mockClear();
+    renderLayout();
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Odhlásit se' })[0]);
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 });
