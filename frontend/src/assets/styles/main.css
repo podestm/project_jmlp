@@ -9,9 +9,6 @@
 /* 2. Base Styles */
 @import './base.css' layer(legacy);
 
-/* 3. Admin Styles */
-@import './admin.css' layer(legacy);
-
 /* 3. Layout Components */
 @import './layout.css' layer(legacy);
 

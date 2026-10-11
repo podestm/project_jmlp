@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { LiveStatusProvider } from './contexts/LiveStatusContext.jsx';
 import SiteLayout from './components/site/SiteLayout/SiteLayout.jsx';
-import LoadingState from './components/ui/LoadingState.jsx';
+import LoadingState from './components/ms/LoadingState/LoadingState.jsx';
 import Home from './components/pages/Home/Home.jsx';
 import RaceCalendar from './components/pages/RaceCalendar/RaceCalendar.jsx';
 import News from './components/pages/News/News.jsx';
@@ -49,7 +49,7 @@ const RouterContent = () => {
       <Route
         path="/admin/*"
         element={
-          <Suspense fallback={<LoadingState variant="fullscreen" />}>
+          <Suspense fallback={<LoadingState variant="fullscreen" className="ms-scope" />}>
             <AdminRoutes />
           </Suspense>
         }
@@ -58,7 +58,7 @@ const RouterContent = () => {
       <Route
         path="/timekeeper/*"
         element={
-          <Suspense fallback={<LoadingState variant="fullscreen" />}>
+          <Suspense fallback={<LoadingState variant="fullscreen" className="ms-scope" />}>
             <TimekeeperRoutes />
           </Suspense>
         }

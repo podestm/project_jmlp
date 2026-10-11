@@ -1,4 +1,0 @@
-/* Starý .alert měl odstup 1rem pod sebou; staré obrazovky na něj spoléhají. */
-.legacyGap {
-  margin-block-end: var(--ms-space-4);
-}

@@ -3,8 +3,7 @@
 // boundary is what stops a public visitor from downloading the admin console.
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../config/auth.jsx';
-import { useBodyClass } from '../../hooks/useBodyClass.js';
-import { LegacyIsland, LoadingState, Screen } from '../ms/index.js';
+import { LoadingState, Screen } from '../ms/index.js';
 import AdminLogin from './AdminLogin/AdminLogin.jsx';
 import AdminRegister from './AdminRegister/AdminRegister.jsx';
 import AdminLayout from './frame/AdminLayout/AdminLayout.jsx';
@@ -31,14 +30,8 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
-// Nepřevedená obrazovka: staré obaly pro staré CSS (zmizí s Fází 4B).
-const legacy = (element) => protect(<LegacyIsland variant="admin">{element}</LegacyIsland>);
 
 export default function AdminRoutes() {
-  // Světlé téma starých obrazovek administrace včetně jejich modálních oken
-  // (do převedení poslední z nich).
-  useBodyClass('theme-backoffice');
-
   return (
     // Screen: světlé pozadí celé stránky (body.ms-page) místo tmavé fotky starého CSS.
     <Screen>

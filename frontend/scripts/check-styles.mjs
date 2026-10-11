@@ -18,7 +18,7 @@
  *
  * Pravidla:
  * 1. Počty smí jen klesat proti scripts/style-baseline.json.
- * 2. components/ms/** (kromě LegacyIsland) a každý soubor se *.module.css
+ * 2. components/ms/** a každý soubor se *.module.css
  *    (modul sám i komponenta, která ho importuje) mají všude nulu.
  * 3. V components/ms/** a *.module.css navíc nesmí být: hexy (mimo tokens.js),
  *    !important, @media mimo 768/1024/1280/1440, z-index mimo var(--ms-z-*),
@@ -161,7 +161,7 @@ export const countFile = (relPath, source) => {
 
 // ── Pravidla kitu ──
 
-const isKitFile = (rel) => rel.startsWith('src/components/ms/') && !rel.startsWith('src/components/ms/LegacyIsland/');
+const isKitFile = (rel) => rel.startsWith('src/components/ms/');
 const isModuleCss = (rel) => rel.endsWith('.module.css');
 const importsModuleCss = (source) => /from\s*['"][^'"]+\.module\.css['"]/.test(source);
 

@@ -11,8 +11,7 @@ const MENU_ID = 'admin-menu-mobil';
 /**
  * Rámec administrace (AdminDashboard): od 1024 px postranní panel 256 px
  * a obsah vedle, pod 1024 px horní lišta s menu (AdminMobilPrehled,
- * AdminMobilMenu). Obsah je obrazovka s kořenem AdminPage, nepřevedená
- * obrazovka v LegacyIsland variant="admin".
+ * AdminMobilMenu). Obsah je obrazovka s kořenem AdminPage.
  */
 export default function AdminLayout({ children }) {
   const { admin, logout } = useAuth();

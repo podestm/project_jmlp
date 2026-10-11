@@ -23,4 +23,5 @@
 .fullscreen {
   justify-content: center;
   min-block-size: 100dvh;
+  background: var(--ms-surface-page);
 }

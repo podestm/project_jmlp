@@ -19,7 +19,6 @@ export { default as Grid } from './Grid/Grid.jsx';
 export { default as Icon } from './Icon/Icon.jsx';
 export { default as IconButton } from './IconButton/IconButton.jsx';
 export { default as Input } from './Input/Input.jsx';
-export { default as LegacyIsland } from './LegacyIsland/LegacyIsland.jsx';
 export { default as LivePill } from './LivePill/LivePill.jsx';
 export { default as LoadingState } from './LoadingState/LoadingState.jsx';
 export { default as Modal } from './Modal/Modal.jsx';
