@@ -85,8 +85,8 @@ export const PRIVACY_SECTIONS = [
     id: 'predani',
     title: 'Komu údaje předáváme',
     paragraphs: [
-      ['Svazu lyžařů ČR, pokud jde o registrační čísla a výsledky: ', todo('DOPLNIT dle skutečnosti'), '. '
-        + 'Jinak údaje nikomu dalšímu nepředáváme. Web běží na serverech v Evropské unii.'],
+      ['Údaje nikomu nepředáváme. Zveřejněné výsledky jsou veřejně dostupné na tomto webu. '
+        + 'Web běží na serverech v Evropské unii.'],
     ],
   },
   {
@@ -103,4 +103,5 @@ export const PRIVACY_SECTIONS = [
   },
 ];
 
-export const PRIVACY_EFFECTIVE = ['Tyto informace platí od ', todo('DOPLNIT datum účinnosti'), '.'];
+// Datum se doplní při nasazení redesignu na produkci (jmlp.cz) – platí od toho dne.
+export const PRIVACY_EFFECTIVE = ['Tyto informace platí od ', todo('DOPLNIT datum nasazení na produkci'), '.'];
