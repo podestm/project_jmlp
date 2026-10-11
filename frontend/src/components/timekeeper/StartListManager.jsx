@@ -10,7 +10,8 @@ import { SECOND_RUN_BY_RESULTS, SECOND_RUN_SAME } from '../../pdf/liza/adapters.
 import { dropRaceSnapshot } from '../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
+import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
+import { SelectedRaceBar, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 import TimekeeperMessage from './TimekeeperMessage.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
@@ -44,9 +45,7 @@ export default function StartListManager() {
   const { confirm, confirmElement } = useConfirm();
   const { isOnline, queueStats } = useSyncStatus();
   const [races, setRaces] = useState([]);
-  const [selectedRaceId] = useState(
-    localStorage.getItem(SELECTED_RACE_KEY) || ''
-  );
+  const [selectedRaceId] = useState(readSelectedRaceId);
   const [startList, setStartList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -83,7 +82,7 @@ export default function StartListManager() {
     if (selectedRaceId) {
       loadStartList();
       loadRaceNumberOptions();
-      localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
+      storeSelectedRaceId(selectedRaceId);
     }
   }, [selectedRaceId]);
 

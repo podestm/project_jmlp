@@ -5,7 +5,7 @@ import { useRacePdf } from '../../hooks/useRacePdf.js';
 import { pdfErrorMessage } from '../../pdf/pdfmake.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY } from './TimekeeperChrome.jsx';
+import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
 import { useSerialSession } from './SerialSessionProvider.jsx';
 import { START_LIST_REVISION_EVENT } from '../../offline/localEdits.js';
 import { loadTimingDrafts } from '../../offline/timingDrafts.js';
@@ -57,7 +57,7 @@ export default function TimingEntry() {
   const { confirm, confirmElement } = useConfirm();
 
   const [races, setRaces] = useState([]);
-  const [selectedRaceId, setSelectedRaceId] = useState(localStorage.getItem(SELECTED_RACE_KEY) || '');
+  const [selectedRaceId, setSelectedRaceId] = useState(readSelectedRaceId);
   const [startList, setStartList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -109,7 +109,7 @@ export default function TimingEntry() {
     selectedRaceIdRef.current = selectedRaceId;
     if (selectedRaceId) {
       loadStartList(selectedRaceId);
-      localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
+      storeSelectedRaceId(selectedRaceId);
     }
   }, [selectedRaceId]);
 

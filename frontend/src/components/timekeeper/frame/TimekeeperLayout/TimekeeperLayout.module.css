@@ -1,0 +1,24 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  background: var(--ms-surface-page);
+}
+
+.header {
+  flex-shrink: 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+/* Pod 1024 px se sekce přepínají v mobilním menu. */
+@media (max-width: 1023.98px) {
+  .tabs {
+    display: none;
+  }
+}

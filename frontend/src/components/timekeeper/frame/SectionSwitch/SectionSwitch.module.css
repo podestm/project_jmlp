@@ -1,0 +1,71 @@
+.switch {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+  inline-size: 214px;
+  padding: 3px;
+  border: 1.5px solid var(--ms-ice);
+  border-radius: var(--ms-radius-card);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.block {
+  inline-size: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  min-block-size: var(--ms-target);
+  border-radius: var(--ms-radius-inner);
+  color: var(--ms-on-dark);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.option:hover {
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+.option svg {
+  color: var(--ms-ice);
+}
+
+.active,
+.active:hover {
+  background: var(--ms-ice);
+  color: var(--ms-ink);
+  font-weight: 700;
+}
+
+.active svg {
+  color: var(--ms-ink);
+}
+
+/* Pod 1280 px v liště jen ikony; jméno sekce zůstane v title a pro čtečku. */
+@media (max-width: 1279.98px) {
+  .compact {
+    inline-size: auto;
+  }
+
+  .compact .option {
+    min-inline-size: var(--ms-target);
+  }
+
+  .compact .label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

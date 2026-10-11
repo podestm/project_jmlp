@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY, SelectedRaceBar } from './TimekeeperChrome.jsx';
+import { readSelectedRaceId } from './frame/selectedRace.js';
+import { SelectedRaceBar } from './TimekeeperChrome.jsx';
 import TimekeeperMessage from './TimekeeperMessage.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
@@ -41,7 +42,7 @@ const toFormRun = (run) => ({
 export default function RaceHeaderForm() {
   const [races, setRaces] = useState([]);
   // Závod se vybírá v Přehledu, tady se jen čte - stejně jako ve Výsledcích.
-  const [selectedRaceId] = useState(localStorage.getItem(SELECTED_RACE_KEY) || '');
+  const [selectedRaceId] = useState(readSelectedRaceId);
   const [detail, setDetail] = useState(null);
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { TimekeeperAuthProvider } from '../config/timekeeperAuth.jsx';
@@ -9,7 +9,7 @@ import ResultsView from '../components/timekeeper/ResultsView.jsx';
 import StartListManager from '../components/timekeeper/StartListManager.jsx';
 import SyncCenter from '../components/timekeeper/SyncCenter.jsx';
 import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard.jsx';
-import TimekeeperLayout from '../components/timekeeper/TimekeeperLayout.jsx';
+import TimekeeperLayout from '../components/timekeeper/frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers.jsx';
 import TimingEntry from '../components/timekeeper/TimingEntry.jsx';
 import TimingDeviceSettings from '../components/timekeeper/TimingDeviceSettings.jsx';
@@ -73,9 +73,11 @@ describe('rozložení časoměřiče', () => {
 
     // Kdyby menu spadlo, uživatel se nedostane nikam - přesně tenhle příznak
     // hlásil provoz: "kliknu na závodníky a nic se neděje".
-    expect(screen.getByText('Závodníci')).toBeInTheDocument();
-    expect(screen.getByText('Listina')).toBeInTheDocument();
-    expect(screen.getByText('Údaje')).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Časomíra' });
+    expect(within(nav).getByRole('link', { name: 'Závodníci' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Startovní listina' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Detail závodu' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Stav časomíry' })).toBeInTheDocument();
     expect(screen.getByText('obsah')).toBeInTheDocument();
   });
 });

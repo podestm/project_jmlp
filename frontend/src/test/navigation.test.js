@@ -61,7 +61,7 @@ const SECTIONS = [
     name: 'časoměřiče',
     items: timekeeperNav,
     routes: () => routesOf(read('components/timekeeper/TimekeeperRoutes.jsx'), '/timekeeper'),
-    layout: 'components/timekeeper/TimekeeperLayout.jsx',
+    layout: 'components/timekeeper/frame/TabBar/TabBar.jsx',
     prefix: '/timekeeper',
   },
 ];
@@ -111,13 +111,15 @@ describe('veřejná navigace', () => {
     'components/site/SiteHeader/SiteHeader.jsx',
     'components/site/MobileMenu/MobileMenu.jsx',
     'components/site/SiteFooter/SiteFooter.jsx',
+    'components/timekeeper/frame/TabBar/TabBar.jsx',
+    'components/timekeeper/frame/TkMobileMenu/TkMobileMenu.jsx',
   ])('%s čte odkazy z navItems', (file) => {
     expect(read(file)).toContain('navItems');
   });
 });
 
 describe('položky menu', () => {
-  it.each([...publicNav, ...adminNav].filter((item) => item.icon))('$to má ikonu z registru kitu', (item) => {
+  it.each([...publicNav, ...adminNav, ...timekeeperNav].filter((item) => item.icon))('$to má ikonu z registru kitu', (item) => {
     expect(ICONS[item.icon]).toBeTruthy();
   });
 });

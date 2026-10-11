@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
@@ -15,9 +16,7 @@ import Icon from '../ms/Icon/Icon.jsx';
 
 export default function ResultsView() {
   const [races, setRaces] = useState([]);
-  const [selectedRaceId] = useState(
-    localStorage.getItem('timekeeper_selected_race') || ''
-  );
+  const [selectedRaceId] = useState(readSelectedRaceId);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -33,7 +32,7 @@ export default function ResultsView() {
   useEffect(() => {
     if (selectedRaceId) {
       loadResults();
-      localStorage.setItem('timekeeper_selected_race', selectedRaceId);
+      storeSelectedRaceId(selectedRaceId);
     }
   }, [selectedRaceId]);
 

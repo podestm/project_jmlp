@@ -5,7 +5,8 @@ import RegistrationFormFields from '../ui/registration/RegistrationFormFields.js
 import RacerSearchResults from '../ui/registration/RacerSearchResults.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
-import { SELECTED_RACE_KEY, SelectedRaceBar, TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
+import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
+import { SelectedRaceBar, TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 import TimekeeperMessage from './TimekeeperMessage.jsx';
 import TimekeeperRacerRow, { getSexLabel } from './TimekeeperRacerRow.jsx';
 import {
@@ -44,9 +45,7 @@ const createEmptyForm = (raceNumberDisplay = '') => ({
 export default function TimekeeperRacers() {
   const navigate = useNavigate();
   const [races, setRaces] = useState([]);
-  const [selectedRaceId] = useState(
-    localStorage.getItem(SELECTED_RACE_KEY) || ''
-  );
+  const [selectedRaceId] = useState(readSelectedRaceId);
   const [startList, setStartList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [clubs, setClubs] = useState([]);
@@ -101,7 +100,7 @@ export default function TimekeeperRacers() {
 
   useEffect(() => {
     if (!selectedRaceId) return;
-    localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
+    storeSelectedRaceId(selectedRaceId);
     loadStartList(selectedRaceId);
   }, [selectedRaceId]);
 

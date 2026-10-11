@@ -10,7 +10,7 @@ import { readCachedResponse } from '../../offline/startListCache.js';
 import { resetTimekeeperDb, setOnline, startListEntry } from '../../test/helpers.js';
 import { SerialSessionProvider } from './SerialSessionProvider.jsx';
 import StartListManager from './StartListManager.jsx';
-import { SELECTED_RACE_KEY } from './TimekeeperChrome.jsx';
+import { SELECTED_RACE_KEY } from './frame/selectedRace.js';
 import TimingEntry from './TimingEntry.jsx';
 
 /**

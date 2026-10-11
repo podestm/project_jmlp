@@ -202,17 +202,12 @@
   },
   "src/components/timekeeper/TimekeeperChrome.jsx": {
     "bootstrap": 7,
-    "legacyVars": 4
+    "legacyVars": 1
   },
   "src/components/timekeeper/TimekeeperDashboard.jsx": {
     "bootstrap": 111,
     "legacyVars": 2,
     "emoji": 1
-  },
-  "src/components/timekeeper/TimekeeperLayout.jsx": {
-    "bootstrap": 127,
-    "themeBackoffice": 3,
-    "legacyImports": 1
   },
   "src/components/timekeeper/TimekeeperLogin.jsx": {
     "bootstrap": 51,

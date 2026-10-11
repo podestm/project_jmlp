@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
+import { readSelectedRaceId, storeSelectedRaceId } from './frame/selectedRace.js';
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
@@ -25,7 +26,7 @@ export default function TimekeeperDashboard() {
   };
 
   const selectRace = (raceId) => {
-    localStorage.setItem('timekeeper_selected_race', raceId);
+    storeSelectedRaceId(raceId);
     navigate('/timekeeper/start-list');
   };
 
@@ -63,7 +64,7 @@ export default function TimekeeperDashboard() {
 
   const upcomingRaces = races.filter(r => isUpcoming(r.datum));
   const pastRaces = races.filter(r => isPast(r.datum));
-  const lastSelectedRaceId = localStorage.getItem('timekeeper_selected_race') || '';
+  const lastSelectedRaceId = readSelectedRaceId();
 
   // Závod na jeden řádek - dřív to byly vysoké karty ve dvou sloupcích.
   const renderRaceCard = (race, status) => {

@@ -5,8 +5,9 @@ import { Routes, Route } from 'react-router-dom';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useBodyClass } from '../../hooks/useBodyClass.js';
 import LoadingState from '../ui/LoadingState.jsx';
+import { LegacyIsland } from '../ms/index.js';
 import TimekeeperLogin from './TimekeeperLogin.jsx';
-import TimekeeperLayout from './TimekeeperLayout.jsx';
+import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard.jsx';
 import StartListManager from './StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers.jsx';
@@ -29,6 +30,9 @@ const ProtectedTimekeeperRoute = ({ children }) => {
 
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;
 
+/** Nepřevedená obrazovka: staré obaly a styly časomíry uvnitř nového rámce. */
+const legacy = (element) => protect(<LegacyIsland variant="tk">{element}</LegacyIsland>);
+
 export default function TimekeeperRoutes() {
   // Stejné světlé téma jako administrace, včetně modálních oken.
   useBodyClass('theme-backoffice');
@@ -38,15 +42,15 @@ export default function TimekeeperRoutes() {
       {/* Wraps <Routes>, so the serial port stays open across screen changes. */}
       <SerialSessionProvider>
         <Routes>
-          <Route path="/" element={protect(<TimekeeperDashboard />)} />
-          <Route path="/start-list" element={protect(<StartListManager />)} />
-          <Route path="/racers" element={protect(<TimekeeperRacers />)} />
-          <Route path="/timing" element={protect(<TimingEntry />)} />
-          <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
-          <Route path="/results" element={protect(<ResultsView />)} />
-          <Route path="/race-numbers" element={protect(<RaceNumbersManager />)} />
-          <Route path="/sync" element={protect(<SyncCenter />)} />
-          <Route path="/device" element={protect(<TimingDeviceSettings />)} />
+          <Route path="/" element={legacy(<TimekeeperDashboard />)} />
+          <Route path="/start-list" element={legacy(<StartListManager />)} />
+          <Route path="/racers" element={legacy(<TimekeeperRacers />)} />
+          <Route path="/timing" element={legacy(<TimingEntry />)} />
+          <Route path="/race-detail" element={legacy(<RaceHeaderForm />)} />
+          <Route path="/results" element={legacy(<ResultsView />)} />
+          <Route path="/race-numbers" element={legacy(<RaceNumbersManager />)} />
+          <Route path="/sync" element={legacy(<SyncCenter />)} />
+          <Route path="/device" element={legacy(<TimingDeviceSettings />)} />
         </Routes>
       </SerialSessionProvider>
     </TimekeeperAuthProvider>

@@ -1,0 +1,89 @@
+/* TkPrehled: navy lišta 58 px, aktivní položka navy-deep s bílou linkou dole. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ms-space-4);
+  block-size: 58px;
+  padding-inline: var(--ms-space-6);
+  background: var(--ms-navy);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.nav {
+  display: flex;
+  align-items: stretch;
+  min-inline-size: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  padding-inline: 15px;
+  border-bottom: 3px solid transparent;
+  color: var(--ms-ice);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.tab:hover {
+  color: var(--ms-on-dark);
+}
+
+.tab[aria-current='page'] {
+  border-bottom-color: var(--ms-on-dark);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.icon {
+  display: none;
+}
+
+.divider {
+  flex-shrink: 0;
+  align-self: center;
+  inline-size: 1px;
+  block-size: 26px;
+  margin-inline: 9px;
+  background: var(--ms-ice);
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+.end .divider {
+  margin-inline: 0;
+}
+
+/* Pod 1280 px jen ikony (TkPrehled „Zúžený rám“); název zůstane v title a pro čtečku. */
+@media (max-width: 1279.98px) {
+  .tab {
+    justify-content: center;
+    min-inline-size: 58px;
+    padding-inline: var(--ms-space-4);
+  }
+
+  .icon {
+    display: block;
+  }
+
+  .label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

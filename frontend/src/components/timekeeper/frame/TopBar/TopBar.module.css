@@ -1,0 +1,124 @@
+/* TkPrehled: navy-deep lišta 76 px – identita · vybraný závod · tři stavy. */
+.top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'brand center chips';
+  align-items: center;
+  gap: var(--ms-space-6);
+  block-size: 76px;
+  padding-inline: var(--ms-space-6);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  grid-area: brand;
+  min-block-size: 48px;
+  color: var(--ms-on-dark);
+  text-decoration: none;
+}
+
+.logo {
+  flex-shrink: 0;
+  inline-size: 40px;
+  block-size: 40px;
+  object-fit: contain;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  letter-spacing: var(--ms-tracking-paska);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.season {
+  font-size: var(--ms-fs-xs);
+  line-height: 1.2;
+  color: var(--ms-ice);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  grid-area: center;
+  min-inline-size: 0;
+}
+
+.chips {
+  grid-area: chips;
+}
+
+.compactRace,
+.top .menuButton {
+  display: none;
+}
+
+.top .menuButton {
+  grid-area: menu;
+  border-color: transparent;
+}
+
+/* Pod 1280 px zůstane ze značky jen znak. */
+@media (max-width: 1279.98px) {
+  .top {
+    gap: var(--ms-space-4);
+    padding-inline: var(--ms-space-4);
+  }
+
+  .brandText {
+    display: none;
+  }
+}
+
+/* Pod 1024 px (TkMobilPrehled): znak, závod a hamburger, pod nimi stavy. */
+@media (max-width: 1023.98px) {
+  .top {
+    grid-template-areas:
+      'brand race menu'
+      'chips chips chips';
+    gap: 0 10px;
+    block-size: auto;
+    padding: 0 var(--ms-space-1) var(--ms-space-3) var(--ms-space-4);
+  }
+
+  .brand {
+    block-size: 72px;
+  }
+
+  .logo {
+    inline-size: 36px;
+    block-size: 36px;
+  }
+
+  .center {
+    display: none;
+  }
+
+  .compactRace {
+    display: flex;
+    grid-area: race;
+  }
+
+  .chips {
+    padding-inline-end: var(--ms-space-3);
+  }
+
+  .top .menuButton {
+    display: inline-flex;
+    inline-size: 52px;
+    block-size: 52px;
+  }
+}
