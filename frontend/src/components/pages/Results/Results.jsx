@@ -6,7 +6,7 @@ import {
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { formatSeasonShort, seasonEdition, toRoman } from '../../../utils/season.js';
+import { formatSeasonShort } from '../../../utils/season.js';
 import { defaultSeasonId, raceDate, raceMethod, raceOrder, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
 import { standingsEyebrow } from './standings.js';
 import { useStandings } from './useStandings.js';
@@ -60,7 +60,7 @@ function Standings({ standings }) {
 
   return (
     <section className={styles.section} aria-labelledby="poradi">
-      <Paska id="poradi" aside={<span className={styles.note}>Body a pořadí podle soutěžního řádu – stejně jako v PDF, které zveřejňuje časomíra.</span>}>
+      <Paska id="poradi">
         {title}
       </Paska>
       {standings.races_without_results > 0 && (
@@ -111,7 +111,6 @@ export default function Results() {
     .filter((race) => raceSeasonId(race) === seasonId && raceDate(race) && raceDate(race) < today)
     .sort((a, b) => raceDate(b) - raceDate(a));
   const previousSeason = seasons.find((id) => id < seasonId);
-  const oldest = seasons[seasons.length - 1];
 
   let content;
   if (status === 'loading') content = <LoadingState label="Načítám pořadí poháru…" />;
@@ -144,7 +143,6 @@ export default function Results() {
         <PageHeader
           eyebrow={standings && status === 'ready' ? standingsEyebrow(standings) : `Sezóna ${formatSeasonShort(seasonId)}`}
           title="Výsledky a pořadí"
-          description={oldest ? `Záznamy máme od ${toRoman(seasonEdition(oldest))}. ročníku (${formatSeasonShort(oldest)}), pohár se jezdí od roku 2006.` : undefined}
           actions={(
             <>
               {seasons.length > 0 && (
