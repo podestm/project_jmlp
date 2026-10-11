@@ -1,0 +1,78 @@
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search {
+  inline-size: 340px;
+}
+
+.category {
+  inline-size: 240px;
+}
+
+.club {
+  inline-size: 280px;
+}
+
+.sex {
+  inline-size: 130px;
+}
+
+.count {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2) var(--ms-space-3);
+  min-block-size: var(--ms-target);
+  margin: 0 0 0 auto;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.summary strong {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+/* Užší obrazovky: pole po dvou, hledání přes celou šířku. */
+@media (max-width: 1279.98px) {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search,
+  .category,
+  .club,
+  .sex {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mobil: vše pod sebou, souhrn pod poli. */
+@media (max-width: 767.98px) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ms-space-3);
+  }
+
+  .summary {
+    margin: 0;
+    font-size: var(--ms-fs-md);
+  }
+}

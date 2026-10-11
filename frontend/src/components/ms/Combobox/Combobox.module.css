@@ -14,6 +14,15 @@
   border-radius: var(--ms-radius-control);
 }
 
+/* Filtry administrace: stejná výška jako Input/Select size="sm". */
+.sm {
+  block-size: var(--ms-target);
+}
+
+.sm .input {
+  font-size: var(--ms-fs-lg);
+}
+
 .field:focus-within {
   outline: var(--ms-focus-width) solid var(--ms-focus-color);
   outline-offset: var(--ms-focus-offset);

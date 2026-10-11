@@ -14,10 +14,11 @@ import styles from './Combobox.module.css';
  * - onChange(value | null): křížek „Zrušit výběr“ pošle null
  * - noMatchText(query): věta, když nic neodpovídá
  * - footer: řádek pod seznamem (např. „Můj klub tu není – napíšu ho ručně“)
+ * - size: lg 52 px (veřejný formulář) | sm 44 px (filtry administrace, AdminDialogVyberKlubu)
  */
 const Combobox = forwardRef(function Combobox({
   options, value, onChange, placeholder, noMatchText = () => 'Nic neodpovídá hledání.', footer,
-  clearLabel = 'Zrušit výběr', toggleLabel = 'Zobrazit seznam', disabled = false, className, ...inputProps
+  clearLabel = 'Zrušit výběr', toggleLabel = 'Zobrazit seznam', disabled = false, size = 'lg', className, ...inputProps
 }, ref) {
   const listId = useId();
   const wrapRef = useRef(null);
@@ -56,7 +57,7 @@ const Combobox = forwardRef(function Combobox({
 
   return (
     <div ref={wrapRef} className={cx(styles.combobox, className)} onBlur={onBlur}>
-      <span className={styles.field}>
+      <span className={cx(styles.field, styles[size])}>
         <Icon name="search" size={18} className={styles.searchIcon} />
         <input
           ref={ref}
