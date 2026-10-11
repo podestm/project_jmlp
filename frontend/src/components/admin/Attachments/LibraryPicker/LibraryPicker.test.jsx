@@ -2,9 +2,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LibraryPicker from './LibraryPicker.jsx';
-import { AttachmentsAPI } from '../../../config/attachmentsApi.js';
+import { AttachmentsAPI } from '../../../../config/attachmentsApi.js';
 
-vi.mock('../../../config/attachmentsApi.js', () => ({ AttachmentsAPI: { library: vi.fn() } }));
+vi.mock('../../../../config/attachmentsApi.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  AttachmentsAPI: { library: vi.fn() },
+}));
 
 const SOUBORY = [
   { id: 1, original_filename: 'propozice-kohoutovice.pdf', file_size: 2048, uploaded_at: '2026-09-01T10:00:00', usage_info: [] },

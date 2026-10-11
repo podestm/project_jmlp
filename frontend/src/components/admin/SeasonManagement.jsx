@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AdminAPI } from '../../config/api.js';
 import { OWNER, ROLE } from '../../config/attachmentsApi.js';
-import AttachmentManager from './attachments/AttachmentManager.jsx';
+import AttachmentManager from './Attachments/AttachmentManager.jsx';
 import Alert from '../ui/Alert.jsx';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';

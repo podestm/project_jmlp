@@ -1,0 +1,49 @@
+.manager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  min-inline-size: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+/* Sloty vedle sebe (AdminPrilohy „Místa pro dokumenty“), seznam přes celou šířku. */
+.slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Neuložená věc (AdminPrilohy „Obrázek článku“): vysvětlení místo slotů. */
+.unsaved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  padding: var(--ms-space-3) var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-sunken);
+}
+
+.unsavedText {
+  margin: 0;
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 767.98px) {
+  .slots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

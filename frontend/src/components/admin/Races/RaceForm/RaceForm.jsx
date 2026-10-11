@@ -1,5 +1,5 @@
 import { OWNER, ROLE } from '../../../../config/attachmentsApi.js';
-import AttachmentManager from '../../attachments/AttachmentManager.jsx';
+import AttachmentManager from '../../Attachments/AttachmentManager.jsx';
 import { Badge, BibDate, Button, Field, Icon, IconButton, Input, Paska } from '../../../ms/index.js';
 import DeleteZone from '../DeleteZone/DeleteZone.jsx';
 import OptionTile from '../OptionTile/OptionTile.jsx';

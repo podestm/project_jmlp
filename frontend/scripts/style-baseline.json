@@ -47,9 +47,6 @@
     "bootstrap": 29,
     "legacyImports": 2
   },
-  "src/components/admin/ClubDeleteDialog.jsx": {
-    "legacyImports": 1
-  },
   "src/components/admin/ClubManagement.jsx": {
     "bootstrap": 46,
     "legacyImports": 3
@@ -58,32 +55,12 @@
     "bootstrap": 82,
     "legacyImports": 2
   },
-  "src/components/admin/DocumentLibrary.jsx": {
-    "bootstrap": 103,
-    "legacyImports": 3
-  },
   "src/components/admin/PostManagement.jsx": {
     "bootstrap": 13
   },
   "src/components/admin/SeasonManagement.jsx": {
     "bootstrap": 76,
     "legacyImports": 3
-  },
-  "src/components/admin/attachments/AttachmentList.jsx": {
-    "bootstrap": 52,
-    "legacyImports": 1
-  },
-  "src/components/admin/attachments/AttachmentManager.jsx": {
-    "bootstrap": 13,
-    "legacyImports": 2
-  },
-  "src/components/admin/attachments/AttachmentSlot.jsx": {
-    "bootstrap": 62,
-    "legacyImports": 1
-  },
-  "src/components/admin/attachments/LibraryPicker.jsx": {
-    "bootstrap": 14,
-    "legacyImports": 2
   },
   "src/components/admin/category/CategoryForm.jsx": {
     "bootstrap": 48
@@ -127,13 +104,7 @@
   "src/hooks/useBodyClass.js": {
     "themeBackoffice": 1
   },
-  "src/hooks/useConfirm.jsx": {
-    "legacyImports": 1
-  },
   "src/offline/bridgeInbox.js": {
     "emoji": 1
-  },
-  "src/utils/files.js": {
-    "bootstrap": 13
   }
 }

@@ -16,7 +16,7 @@ vi.mock('../../../config/api.js', () => ({
   adminAuthHeaders: () => ({}),
 }));
 // Přílohy jsou samostatná obrazovka (Dokumenty), tady jen náhrada.
-vi.mock('../attachments/AttachmentManager.jsx', () => ({
+vi.mock('../Attachments/AttachmentManager.jsx', () => ({
   default: ({ ownerId }) => <div data-testid="prilohy">{ownerId ?? 'nový'}</div>,
 }));
 

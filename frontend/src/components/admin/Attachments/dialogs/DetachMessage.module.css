@@ -1,0 +1,24 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--ms-fs-base);
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+}
+
+.text strong {
+  color: var(--ms-ink);
+}
+
+/* AdminDialogOdpojitPrilohu: karta souboru na sníženém podkladu. */
+.card {
+  padding: var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-page);
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { OWNER, ROLE } from '../../../config/attachmentsApi.js';
-import AttachmentManager from '../attachments/AttachmentManager.jsx';
+import AttachmentManager from '../Attachments/AttachmentManager.jsx';
 import Alert from '../../ui/Alert.jsx';
 
 // Příspěvek má nejvýše jeden obrázek a nejvýše jeden dokument - obojí řeší
