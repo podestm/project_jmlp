@@ -10,7 +10,7 @@ import AdminRegister from './AdminRegister.jsx';
 import AdminLayout from './frame/AdminLayout/AdminLayout.jsx';
 import AdminNotFound from './frame/AdminNotFound/AdminNotFound.jsx';
 import AdminDashboard from './Dashboard/AdminDashboard.jsx';
-import RaceManagement from './RaceManagement.jsx';
+import RaceManagement from './Races/RaceManagement.jsx';
 import RacerManagement from './RacerManagement.jsx';
 import DocumentLibrary from './DocumentLibrary.jsx';
 import PostManagement from './PostManagement.jsx';
@@ -45,7 +45,7 @@ export default function AdminRoutes() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={protect(<AdminDashboard />)} />
-          <Route path="/races" element={legacy(<RaceManagement />)} />
+          <Route path="/races" element={protect(<RaceManagement />)} />
           <Route path="/racers" element={legacy(<RacerManagement />)} />
           <Route path="/racers/slcr" element={legacy(<SlcrPairing />)} />
           <Route path="/races/:raceId/registrations" element={legacy(<RaceRegistrations />)} />

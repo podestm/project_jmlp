@@ -1,0 +1,10 @@
+.tile {
+  padding: 6px var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-page);
+}
+
+.tile[data-tone='open'][data-checked] {
+  border-left: 4px solid var(--ms-open);
+}

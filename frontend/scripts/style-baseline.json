@@ -65,9 +65,6 @@
   "src/components/admin/PostManagement.jsx": {
     "bootstrap": 13
   },
-  "src/components/admin/RaceManagement.jsx": {
-    "bootstrap": 8
-  },
   "src/components/admin/RaceRegistrations.jsx": {
     "bootstrap": 80,
     "legacyImports": 1
@@ -125,16 +122,6 @@
   "src/components/admin/post/PostTable.jsx": {
     "bootstrap": 60,
     "emoji": 1
-  },
-  "src/components/admin/race/RaceFilters.jsx": {
-    "bootstrap": 10,
-    "legacyImports": 1
-  },
-  "src/components/admin/race/RaceForm.jsx": {
-    "bootstrap": 81
-  },
-  "src/components/admin/race/RaceTable.jsx": {
-    "bootstrap": 52
   },
   "src/components/admin/slcrPairing.js": {
     "bootstrap": 4

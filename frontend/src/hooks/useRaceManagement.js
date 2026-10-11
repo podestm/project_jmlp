@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { AdminAPI, adminAuthHeaders } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
+import { deleteRaceConfirm } from '../components/admin/Races/dialogs/deleteRaceConfirm.jsx';
 
 /**
  * @param {{confirm?: Function}} [options] - confirm z useConfirm komponenty,
@@ -264,25 +265,21 @@ export const useRaceManagement = ({ confirm } = {}) => {
         setShowForm(true);
     };
 
+    // Vrací true po úspěšném smazání (formulář úpravy se pak zavře).
     const deleteRace = async (raceId) => {
         const race = races.find((item) => item.id === raceId);
-        const name = [race?.race_nr, race?.areal_name].filter(Boolean).join(' – ');
-        const confirmed = await confirm({
-            title: name ? `Smazat závod ${name}?` : 'Smazat závod?',
-            message: 'Závod zmizí z kalendáře i z administrace. Akci nelze vzít zpět.',
-            confirmLabel: 'Smazat závod',
-            variant: 'danger',
-            icon: 'trash'
-        });
-        if (!confirmed) return;
+        const confirmed = await confirm(deleteRaceConfirm(race));
+        if (!confirmed) return false;
         
         try {
             await AdminAPI.delete(`/api/admin/races/${raceId}`);
             setSuccess('Závod byl úspěšně smazán');
             loadRaces();
+            return true;
         } catch (err) {
             console.error('Error deleting race:', err);
             setError('Chyba při mazání závodu');
+            return false;
         }
     };
 
