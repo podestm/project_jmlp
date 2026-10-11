@@ -1,26 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Alert, Button, ButtonLink, Container, EmptyState, Icon, LoadingState, Panel, Paska, Screen } from '../../ms/index.js';
 import { formatSeasonShort } from '../../../utils/season.js';
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { raceSeasonId, registrationState, startOfToday } from '../../../utils/races.js';
 import { raceTitle } from './raceDetail.js';
 import { useRaceDetail, useRaceDetailRevalidation, useRaceRegistrations, useUpcomingRaces } from './useRaceDetail.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { useScrollToHash } from '../../../hooks/useScrollToHash.js';
+import { PAGE_META, publicTitle, raceMeta } from '../../../seo/pageMeta.js';
 import RaceHero from './RaceHero.jsx';
 import RaceResults from './RaceResults.jsx';
 import RegisteredRacers from './RegisteredRacers.jsx';
 import RegistrationClosed from './RegistrationClosed.jsx';
 import RegistrationForm from './registration/RegistrationForm.jsx';
 import styles from './RaceDetail.module.css';
-
-/** Odkaz z kalendáře „Registrovat“ vede na #prihlaska – po načtení tam sjet. */
-function useScrollToHash(ready) {
-  const { hash } = useLocation();
-  useEffect(() => {
-    if (!ready || !hash) return;
-    document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' });
-  }, [ready, hash]);
-}
 
 /** Závod minulé sezóny: upozornění a cesta na nejbližší závod letošní sezóny. */
 function PastSeasonBanner({ race, nextRace }) {
@@ -72,6 +66,13 @@ function ListAfterOpening() {
   );
 }
 
+/** Titulek detailu: závod podle dat, neexistující závod se neindexuje. */
+const detailMeta = (race, status) => {
+  if (race) return raceMeta(race);
+  if (status === 'notFound') return { title: publicTitle('Závod nenalezen'), noindex: true };
+  return { title: publicTitle('Závod'), description: PAGE_META.races.description };
+};
+
 /**
  * Detail závodu /zavod/:raceId (ZavodDetail, ZavodDetailUzavreno,
  * ZavodDetailOdjeto, PrihlaskaHledani, PrihlaskaChyby, MobilRegistrace,
@@ -89,6 +90,7 @@ export default function RaceDetail() {
   const upcoming = useUpcomingRaces(status === 'ready' && state !== 'open');
   useRaceDetailRevalidation(reload, () => setRefreshToken((token) => token + 1));
   useScrollToHash(status === 'ready');
+  usePageMeta(detailMeta(race, status));
 
   if (status === 'loading') {
     return <Screen><Container className={styles.page}><LoadingState label="Načítám závod…" /></Container></Screen>;

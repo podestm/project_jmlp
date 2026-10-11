@@ -45,6 +45,9 @@ export const publicFooterLinks = [
   { to: '/dokumenty', label: 'Dokumenty' },
 ];
 
+// Ochrana osobních údajů – ve všech variantách patičky (ne v menu).
+export const publicLegalLink = { to: '/ochrana-osobnich-udaju', label: 'Ochrana osobních údajů' };
+
 export const adminNav = [
   { to: '/admin', label: 'Přehled', icon: 'dashboard', end: true },
   { to: '/admin/races', label: 'Závody', icon: 'calendar' },

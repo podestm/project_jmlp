@@ -1,6 +1,15 @@
 // Kontakty veřejného webu (Kontakty.dc.html). Natvrdo jako dosud – žádné API
 // je nemá; seznam klubů žije odděleně od tabulky klubů v databázi.
 
+// Pořadatel poháru (ověřeno v ARES); stejný údaj uvádí stránka Ochrana osobních údajů.
+export const ORGANIZER = {
+  name: 'Krajský svaz lyžařů Jihomoravského kraje p.s.',
+  ico: '04711556',
+  street: 'Vídeňská 470/9',
+  district: 'Štýřice',
+  city: '639 00 Brno',
+};
+
 export const OFFICIALS = [
   { name: 'Roman Keznikl', position: 'Komisař soutěže', email: 'rk@rkak.cz' },
   { name: 'Renata Podešťová', position: 'Soutěžní výbor', email: 'rpodestova@seznam.cz' },

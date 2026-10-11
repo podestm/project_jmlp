@@ -113,6 +113,23 @@
   color: var(--ms-ink);
 }
 
+/* Pořadatel: karta jako u výboru, navy linka vlevo. */
+.organizer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-6);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+}
+
+.address {
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
 /* Jen ikona – tlačítko čtverec 50 × 50. */
 .mail {
   inline-size: 50px;

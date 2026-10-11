@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import { Alert, Button, Field, Icon, Input, RadioTiles } from '../../../ms/index.js';
+import { publicLegalLink } from '../../../ms/navItems.js';
 import { czechPlural } from '../../../../utils/races.js';
 import { useRegistration } from '../../../../hooks/useRegistration.js';
 import ClubField from './ClubField.jsx';
@@ -84,6 +86,11 @@ export default function RegistrationForm({ raceId, onSuccess }) {
             onChange={(event) => updateField('slcr_id', event.target.value.replace(/\D/g, '').slice(0, 6))} />
         </Field>
       </div>
+
+      <p className={styles.consent}>
+        Odesláním přihlášky berete na vědomí zpracování údajů podle zásad{' '}
+        <Link to={publicLegalLink.to}>ochrany osobních údajů</Link>.
+      </p>
 
       <div className={styles.submit}>
         <Button type="submit" variant="primary" size="lg" iconEnd="arrow-right" busy={registration.isSubmitting}>

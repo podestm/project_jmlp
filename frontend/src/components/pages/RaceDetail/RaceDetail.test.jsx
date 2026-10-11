@@ -51,6 +51,10 @@ describe('RaceDetail', () => {
     const list = await screen.findByRole('region', { name: /Přihlášení závodníci/ });
     expect(await within(list).findByText('Novák Matyáš')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Přihlásit závodníka' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'ochrany osobních údajů' })).toHaveAttribute('href', '/ochrana-osobnich-udaju');
+    expect(document.title).toBe('Brno - Kohoutovice, 3. 10. 2026 · JMLP');
+    expect(document.querySelector('meta[name="description"]').content)
+      .toBe('Závod Jihomoravského lyžařského poháru v areálu Brno - Kohoutovice dne 3. 10. 2026, pořádá FreeSki Academy Brno. Propozice, přihlášky a výsledky.');
   });
 
   it('pohlaví není předvyplněné a chyby jsou u polí', async () => {

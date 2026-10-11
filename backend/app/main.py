@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from . import models
 from .database import get_db
-from .routers import races, racers, clubs, registration, posts, analytics, season_results, documents
+from .routers import races, racers, clubs, registration, posts, analytics, season_results, documents, seo
 from .routers.admin import router as admin_router
 from .routers.timekeeper import router as timekeeper_router
 
@@ -90,6 +90,7 @@ app.include_router(posts.router)
 app.include_router(analytics.router)  # Public analytics router
 app.include_router(season_results.router)  # Season results public router
 app.include_router(documents.router)  # Public documents listing
+app.include_router(seo.router)  # robots.txt, sitemap.xml, náhledy odkazů pro boty
 app.include_router(admin_router)  # New modular admin router
 app.include_router(timekeeper_router)  # Timekeeper section
 

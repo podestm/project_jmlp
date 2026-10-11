@@ -19,4 +19,11 @@ describe('SiteFooter', () => {
     expect(screen.getByRole('link', { name: 'Živé výsledky' })).toHaveAttribute('href', '/zive');
     expect(screen.getByRole('img', { name: 'Svaz lyžařů České republiky' })).toBeInTheDocument();
   });
+
+  it.each([{}, { full: true }])('odkaz na ochranu osobních údajů na počítači i mobilu (%o)', (props) => {
+    renderFooter(props);
+    const links = screen.getAllByRole('link', { name: 'Ochrana osobních údajů' });
+    expect(links).toHaveLength(2);
+    links.forEach((link) => expect(link).toHaveAttribute('href', '/ochrana-osobnich-udaju'));
+  });
 });

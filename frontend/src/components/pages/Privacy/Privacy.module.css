@@ -1,0 +1,65 @@
+/* Ochrana osobních údajů – textová stránka ve stylu Kontaktů a Dokumentů:
+   záhlaví, oddíly s Páskou, sloupec textu do 760 px. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-10);
+  padding-block: var(--ms-space-10) var(--ms-space-14);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-8);
+  max-inline-size: 760px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+}
+
+.section > :first-child {
+  margin-block-end: var(--ms-space-1);
+}
+
+.paragraph,
+.list,
+.effective {
+  font-size: var(--ms-fs-lg);
+  line-height: 1.6;
+  color: var(--ms-ink);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding-inline-start: var(--ms-space-6);
+  list-style: disc;
+}
+
+.list li::marker {
+  color: var(--ms-navy);
+}
+
+/* Štítek „Doplnit“ v řádku textu; dlouhý text smí zalomit. */
+.todo {
+  align-self: auto;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.effective {
+  padding-block-start: var(--ms-space-5);
+  border-block-start: 1px solid var(--ms-line);
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 767.98px) {
+  .page {
+    gap: var(--ms-space-8);
+    padding-block: var(--ms-space-6) var(--ms-space-10);
+  }
+}

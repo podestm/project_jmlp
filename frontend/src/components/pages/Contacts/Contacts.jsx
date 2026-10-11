@@ -2,7 +2,10 @@ import { useMemo, useState } from 'react';
 import { Button, ButtonLink, Container, Field, Input, PageHeader, Paska, Screen } from '../../ms/index.js';
 import { normalizeForSearch } from '../../../utils/text.js';
 import { czechPlural } from '../../../utils/races.js';
-import { CLUBS, OFFICIALS } from './contacts.js';
+import { CLUBS, OFFICIALS, ORGANIZER } from './contacts.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { useScrollToHash } from '../../../hooks/useScrollToHash.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './Contacts.module.css';
 
 // Kolik klubů je vidět bez hledání před „Zobrazit všech N klubů“.
@@ -11,6 +14,8 @@ const SORTED_CLUBS = [...CLUBS].sort((a, b) => a.name.localeCompare(b.name, 'cs'
 
 /** Kontakty /kontakty (Kontakty.dc.html, MobilKontakty.dc.html). */
 export default function Contacts() {
+  usePageMeta(PAGE_META.contacts);
+  useScrollToHash();
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   const matching = useMemo(() => {
@@ -22,7 +27,16 @@ export default function Contacts() {
   return (
     <Screen>
       <Container className={styles.page}>
-        <PageHeader eyebrow="Soutěžní výbor a kluby" title="Kontakty" />
+        <PageHeader eyebrow="Pořadatel, výbor a kluby" title="Kontakty" />
+
+        <section className={styles.section} aria-labelledby="poradatel">
+          <Paska id="poradatel">Pořadatel poháru</Paska>
+          <div className={styles.organizer}>
+            <h3 className={styles.name}>{ORGANIZER.name}</h3>
+            <p className={styles.address}>{ORGANIZER.street}, {ORGANIZER.city} · IČO {ORGANIZER.ico}</p>
+            <p className={styles.note}>Jednotlivé závody poháru pořádají lyžařské kluby z pověření svazu.</p>
+          </div>
+        </section>
 
         <section className={styles.section} aria-labelledby="vybor">
           <Paska id="vybor">Soutěžní výbor</Paska>

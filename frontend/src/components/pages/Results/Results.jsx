@@ -12,6 +12,8 @@ import { standingsEyebrow } from './standings.js';
 import { useStandings } from './useStandings.js';
 import StandingsList from './StandingsList.jsx';
 import StandingsTable from './StandingsTable.jsx';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './Results.module.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
@@ -97,6 +99,7 @@ function Standings({ standings }) {
 
 /** Výsledky a pořadí /vysledky (Vysledky.dc.html, MobilVysledky.dc.html). */
 export default function Results() {
+  usePageMeta(PAGE_META.results);
   const calendar = useRaceCalendar();
   const seasons = seasonsOf(calendar.races);
   const [chosen, setChosen] = useState(null);

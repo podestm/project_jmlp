@@ -12,6 +12,7 @@ import Live from './components/pages/Live/Live.jsx';
 import RaceDetail from './components/pages/RaceDetail/RaceDetail.jsx';
 import NotFound from './components/pages/NotFound/NotFound.jsx';
 import Results from './components/pages/Results/Results.jsx';
+import Privacy from './components/pages/Privacy/Privacy.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 import { loadSection } from './utils/moduleLoad.js';
 
@@ -40,6 +41,7 @@ const RouterContent = () => {
       <Route path="/dokumenty" element={<SiteLayout><Documents /></SiteLayout>} />
       <Route path="/kontakty" element={<SiteLayout><Contacts /></SiteLayout>} />
       <Route path="/zive" element={<SiteLayout><Live /></SiteLayout>} />
+      <Route path="/ochrana-osobnich-udaju" element={<SiteLayout><Privacy /></SiteLayout>} />
 
       {/* Staré adresy ze záložek a e-mailů; přihláška je u závodu v kalendáři */}
       <Route path="/archiv-zprav" element={<Navigate to="/aktuality" replace />} />

@@ -10,6 +10,8 @@ import { POLL_MS, useCalmRaces, useLiveTiming } from './useLiveTiming.js';
 import LiveResultsList from './LiveResultsList.jsx';
 import LiveResultsTable from './LiveResultsTable.jsx';
 import { rankEntriesByTime } from '../../../utils/results.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './Live.module.css';
 
 const TIME_WITH_SECONDS = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
@@ -189,6 +191,7 @@ function Running({ data, stale, lastUpdate, refresh }) {
 
 /** Živé výsledky /zive (Zive, ZiveKlid, MobilZive, MobilZiveKlid). */
 export default function Live() {
+  usePageMeta(PAGE_META.live);
   const live = useLiveTiming();
 
   let content;

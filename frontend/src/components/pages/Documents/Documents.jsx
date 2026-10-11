@@ -4,6 +4,8 @@ import { Alert, Button, ButtonLink, Container, EmptyState, Icon, LoadingState, P
 import { formatFileSize } from '../../../utils/files.js';
 import { documentName, fileType, shortSeasonLabel } from './documents.js';
 import { useDocuments } from './useDocuments.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './Documents.module.css';
 
 // Kolik ročníků archivu je vidět před „Zobrazit starší ročníky“.
@@ -46,6 +48,7 @@ function ArchiveDocument({ season, document }) {
 
 /** Dokumenty /dokumenty (Dokumenty.dc.html, MobilDokumenty.dc.html). */
 export default function Documents() {
+  usePageMeta(PAGE_META.documents);
   const { current, archive, status, reload } = useDocuments();
   const [showAll, setShowAll] = useState(false);
   const header = <PageHeader eyebrow="Soutěžní řády a pokyny" title="Dokumenty" />;

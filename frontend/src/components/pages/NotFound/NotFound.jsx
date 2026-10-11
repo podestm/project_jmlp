@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ButtonLink, Container, Icon, Paska, Screen } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './NotFound.module.css';
 
 // Kam lidé ze staré záložky nejspíš míří (NotFound, Mobil404). Na počítači
@@ -15,6 +17,7 @@ const SUGGESTIONS = [
 
 /** Stránka 404 veřejného webu (NotFound.dc.html, Mobil404.dc.html). */
 export default function NotFound() {
+  usePageMeta(PAGE_META.notFound);
   return (
     <Screen>
       <Container className={styles.page}>

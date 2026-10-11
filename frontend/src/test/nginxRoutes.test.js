@@ -37,3 +37,52 @@ describe('nginx a routy aplikace', () => {
     expect(isSpaRoute(path)).toBe(false);
   });
 });
+
+/** Regexy jedné mapy nginxu: [{ re, value }] v pořadí (vyhrává první shoda). */
+const mapRules = (name) => {
+  const block = nginx.match(new RegExp(`map \\S+ \\$${name} \\{([\\s\\S]*?)\\n\\}`))[1];
+  return [...block.matchAll(/^\s*~(\*?)(\S+)\s+(.+?);$/gm)].map(([, insensitive, pattern, value]) => ({
+    re: new RegExp(pattern, insensitive ? 'i' : ''),
+    value: value.replace(/"/g, ''),
+  }));
+};
+/** Hodnota mapy pro vstup; null = výchozí hodnota (žádný regex nesedí). */
+const mapValue = (name, input) => mapRules(name).find(({ re }) => re.test(input))?.value ?? null;
+
+describe('nginx: náhledy odkazů pro boty a robots', () => {
+  it.each([
+    'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+    'WhatsApp/2.23.20.0',
+    'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+    'Twitterbot/1.0',
+  ])('%s je bot náhledu', (agent) => {
+    expect(mapValue('jmlp_preview_bot', agent)).toBe('1');
+  });
+
+  it.each([
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36',
+    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+  ])('%s náhled nedostane', (agent) => {
+    expect(mapValue('jmlp_preview_bot', agent)).toBeNull();
+  });
+
+  it('náhled jen pro veřejné stránky botů', () => {
+    expect(mapValue('jmlp_preview', '1/zavod/12')).toBe('1');
+    expect(mapValue('jmlp_preview', '1/kontakty')).toBe('1');
+    expect(mapValue('jmlp_preview', '1/admin/races')).toBe('0');
+    expect(mapValue('jmlp_preview', '1/timekeeper')).toBe('0');
+    expect(mapValue('jmlp_preview', '0/zavod/12')).toBeNull();
+  });
+
+  it('administrace a časomíra mají X-Robots-Tag noindex', () => {
+    expect(mapValue('jmlp_robots_tag', '/admin')).toBe('noindex, nofollow');
+    expect(mapValue('jmlp_robots_tag', '/timekeeper/timing?race=3')).toBe('noindex, nofollow');
+    expect(mapValue('jmlp_robots_tag', '/zavody')).toBeNull();
+    expect(mapValue('jmlp_robots_tag', '/administrace')).toBeNull();
+  });
+
+  it('robots.txt a sitemap.xml jdou na backend', () => {
+    expect(nginx).toMatch(/location ~ \^\/\(robots\\\.txt\|sitemap\\\.xml\)\$ \{\s*proxy_pass http:\/\/\$backend_upstream;/);
+  });
+});
+

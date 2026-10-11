@@ -3,6 +3,9 @@
 // public visitor never opens a database or starts a sync timer.
 import { Routes, Route } from 'react-router-dom';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
+import { useSectionMeta } from '../../hooks/usePageMeta.js';
+import { timekeeperTitle } from '../../seo/pageMeta.js';
+import { timekeeperNav } from '../ms/navItems.js';
 import { LoadingState, Screen } from '../ms/index.js';
 import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
@@ -36,6 +39,7 @@ const ProtectedTimekeeperRoute = ({ children }) => {
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;
 
 export default function TimekeeperRoutes() {
+  useSectionMeta(timekeeperNav, timekeeperTitle);
   return (
     <Screen>
       <TimekeeperAuthProvider>

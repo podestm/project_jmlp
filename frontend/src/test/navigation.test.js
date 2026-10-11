@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ICONS } from '../components/ms/Icon/icons.js';
 import {
-  adminNav, publicFooterColumns, publicFooterLinks, publicLiveNav, publicNav, timekeeperNav,
+  adminNav, publicFooterColumns, publicFooterLinks, publicLegalLink, publicLiveNav, publicNav, timekeeperNav,
 } from '../components/ms/navItems.js';
 
 /**
@@ -91,11 +91,11 @@ describe('veřejná navigace', () => {
   const routes = () => routesOf(read('Router.jsx'), '')
     .filter((route) => !route.startsWith('/admin') && !route.startsWith('/timekeeper'));
   const menuLinks = [...publicNav, publicLiveNav].map((item) => item.to);
-  const footerLinks = [...publicFooterLinks, ...publicFooterColumns.flatMap((column) => column.links)]
+  const footerLinks = [...publicFooterLinks, ...publicFooterColumns.flatMap((column) => column.links), publicLegalLink]
     .map((item) => item.to);
 
-  it('na každou routu vede odkaz z menu', () => {
-    const links = new Set(menuLinks);
+  it('na každou routu vede odkaz z menu nebo patičky', () => {
+    const links = new Set([...menuLinks, ...footerLinks]);
     const nedosazitelne = routes().filter((route) => !links.has(route) && !VYJIMKY[route]);
     expect(nedosazitelne, `Routy bez odkazu v menu: ${nedosazitelne.join(', ')}`).toEqual([]);
   });

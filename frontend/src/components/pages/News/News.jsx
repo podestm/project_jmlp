@@ -6,6 +6,8 @@ import PostCard from '../../site/PostCard/PostCard.jsx';
 import { useNewsArchive } from '../../../hooks/useNewsArchive.js';
 import { czechPlural } from '../../../utils/races.js';
 import NewsFilters from './NewsFilters.jsx';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './News.module.css';
 
 const postYear = (post) => (post.created_at ? new Date(post.created_at).getFullYear() : null);
@@ -23,6 +25,7 @@ const calendarLink = <ButtonLink to="/zavody" icon="calendar">Kalendář závod�
 
 /** Aktuality /aktuality (AktualityArchiv, AktualityArchivPrazdne, MobilAktuality). */
 export default function News() {
+  usePageMeta(PAGE_META.news);
   const archive = useNewsArchive();
   const header = (
     <PageHeader

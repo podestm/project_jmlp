@@ -8,6 +8,8 @@ import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
 import { fixEncoding } from '../../../utils/text.js';
 import { REGISTRATION_STATE, raceDate, raceMethod, registrationState, startOfToday } from '../../../utils/races.js';
 import { useHome } from './useHome.js';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './Home.module.css';
 
 /** Odkaz na přihlášku: na detail otevřeného závodu, jinak do kalendáře. */
@@ -142,6 +144,7 @@ function News({ posts }) {
 
 /** Úvod / (Main.dc.html, MobilUvod.dc.html). */
 export default function Home() {
+  usePageMeta(PAGE_META.home);
   const liveRace = useLiveStatus();
   const { posts, races } = useHome();
   const today = startOfToday();

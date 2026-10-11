@@ -3,6 +3,9 @@
 // boundary is what stops a public visitor from downloading the admin console.
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../config/auth.jsx';
+import { useSectionMeta } from '../../hooks/usePageMeta.js';
+import { adminTitle } from '../../seo/pageMeta.js';
+import { adminNav } from '../ms/navItems.js';
 import { LoadingState, Screen } from '../ms/index.js';
 import AdminLogin from './AdminLogin/AdminLogin.jsx';
 import AdminRegister from './AdminRegister/AdminRegister.jsx';
@@ -31,6 +34,7 @@ const ProtectedRoute = ({ children }) => {
 const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function AdminRoutes() {
+  useSectionMeta(adminNav, adminTitle);
   return (
     <Screen>
       <AuthProvider>

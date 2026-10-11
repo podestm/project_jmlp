@@ -11,6 +11,8 @@ import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
 import { METHOD_FILTERS, matchesFilter, splitByDate } from './raceCalendar.js';
 import RaceRow from './RaceRow.jsx';
+import { usePageMeta } from '../../../hooks/usePageMeta.js';
+import { PAGE_META } from '../../../seo/pageMeta.js';
 import styles from './RaceCalendar.module.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
@@ -45,6 +47,7 @@ function GroupTitle({ id, tone, children }) {
 
 /** Kalendář závodů /zavody (Zavody.dc.html, MobilZavody.dc.html). */
 export default function RaceCalendar() {
+  usePageMeta(PAGE_META.races);
   const { races, seasonResults, status, reload } = useRaceCalendar();
   const [chosenSeason, setChosenSeason] = useState(null);
   const [filter, setFilter] = useState('all');

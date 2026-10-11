@@ -105,9 +105,22 @@
   text-decoration: none;
 }
 
+/* Ochrana osobních údajů: v dolní liště úvodu a na mobilu, menší a tlumená. */
+.legalLink {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-block-size: var(--ms-target);
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-ice);
+  text-decoration: none;
+}
+
 .slimLink:hover,
 .columnLink:hover,
-.mobileLink:hover {
+.mobileLink:hover,
+.legalLink:hover {
   color: var(--ms-on-dark);
   text-decoration: underline;
 }
