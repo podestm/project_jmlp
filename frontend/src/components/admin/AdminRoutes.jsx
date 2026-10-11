@@ -18,7 +18,7 @@ import RaceRegistrations from './Registrations/RaceRegistrations.jsx';
 import CategoryManagement from './Categories/CategoryManagement.jsx';
 import SeasonManagement from './Seasons/SeasonManagement.jsx';
 import ClubManagement from './Clubs/ClubManagement.jsx';
-import ClubRequests from './ClubRequests.jsx';
+import ClubRequests from './ClubRequests/ClubRequests.jsx';
 import SlcrPairing from './Racers/SlcrPairing/SlcrPairing.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -54,7 +54,7 @@ export default function AdminRoutes() {
           <Route path="/categories" element={protect(<CategoryManagement />)} />
           <Route path="/seasons" element={protect(<SeasonManagement />)} />
           <Route path="/clubs" element={protect(<ClubManagement />)} />
-          <Route path="/club-requests" element={legacy(<ClubRequests />)} />
+          <Route path="/club-requests" element={protect(<ClubRequests />)} />
           <Route path="/register" element={legacy(<AdminRegister />)} />
           <Route path="*" element={protect(<AdminNotFound />)} />
         </Routes>

@@ -43,10 +43,6 @@
   "src/components/admin/AdminRoutes.jsx": {
     "themeBackoffice": 1
   },
-  "src/components/admin/ClubRequests.jsx": {
-    "bootstrap": 82,
-    "legacyImports": 2
-  },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
     "bootstrap": 2
   },
@@ -55,10 +51,6 @@
   },
   "src/components/timekeeper/useInboxEvents.js": {
     "emoji": 4
-  },
-  "src/components/ui/SearchableSelect.jsx": {
-    "bootstrap": 12,
-    "legacyVars": 5
   },
   "src/hooks/useBodyClass.js": {
     "themeBackoffice": 1
