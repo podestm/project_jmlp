@@ -547,11 +547,25 @@ def search_racers_for_start_list(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
-    """Search racers by name/surname for manual start list entry."""
-    if len(q) < 2:
+    """Search racers by name/surname for manual start list entry.
+
+    Hledá se po slovech: každé slovo musí sedět na jméno, příjmení nebo
+    SLČR ID (začátek i neúplné slovo), na pořadí nezáleží - "Mor Radka"
+    najde "More Radka" stejně jako "Radka More".
+    """
+    words = q.split()[:4]
+    if len(q.strip()) < 2 or not words:
         return []
-    
-    search = f"%{q}%"
+
+    conditions = []
+    params: Dict[str, Any] = {}
+    for i, word in enumerate(words):
+        params[f"w{i}"] = f"%{word}%"
+        conditions.append(
+            f"({convert_utf8_field('r.name')} LIKE :w{i}"
+            f" OR {convert_utf8_field('r.surname')} LIKE :w{i}"
+            f" OR r.slcr_id LIKE :w{i})"
+        )
     query = text(f"""
         SELECT r.id, 
                {convert_utf8_field('r.name')} as name,
@@ -560,14 +574,11 @@ def search_racers_for_start_list(
                {convert_utf8_field('c.name')} as club_name
         FROM fuj_jmlp_racer r
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
-        WHERE {convert_utf8_field('r.name')} LIKE :search
-           OR {convert_utf8_field('r.surname')} LIKE :search
-           OR CONCAT({convert_utf8_field('r.surname')}, ' ', {convert_utf8_field('r.name')}) LIKE :search
-           OR r.slcr_id LIKE :search
+        WHERE {" AND ".join(conditions)}
         ORDER BY r.surname, r.name
         LIMIT 20
     """)
-    rows = db.execute(query, {"search": search}).fetchall()
+    rows = db.execute(query, params).fetchall()
     
     return [{
         "id": row.id,
