@@ -120,7 +120,7 @@ const RaceTable = ({
                                     </button>
                                     <button 
                                         className="btn btn-outline-danger" 
-                                        onClick={() => deleteRace(race.id, race.race_nr)}
+                                        onClick={() => deleteRace(race.id)}
                                         aria-label="Smazat závod" title="Smazat závod"
                                     >
                                         <Icon name="trash" />

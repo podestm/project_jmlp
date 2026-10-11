@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ConfirmDialog from './ConfirmDialog.jsx';
 
@@ -51,5 +51,24 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Smazat' }));
     expect(onResolve).toHaveBeenCalledWith(true);
+  });
+
+  it('pořadí podle artboardu: další nebezpečná vlevo, Zrušit, hlavní bezpečná vpravo', () => {
+    renderDialog([
+      { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary' },
+      { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger' }
+    ]);
+
+    const names = within(screen.getByRole('dialog')).getAllByRole('button')
+      .map((button) => button.getAttribute('aria-label') || button.textContent);
+    expect(names).toEqual(['Zavřít dialog', 'Přepsat mojí hodnotou', 'Zrušit', 'Ponechat hodnotu ze serveru']);
+  });
+
+  it('Escape i křížek znamenají zrušit', async () => {
+    const onResolve = renderDialog([{ value: true, label: 'Smazat', variant: 'danger' }]);
+
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+    await userEvent.click(screen.getByRole('button', { name: 'Zavřít dialog' }));
+    expect(onResolve.mock.calls).toEqual([[null], [null]]);
   });
 });

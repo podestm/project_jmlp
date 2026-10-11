@@ -50,7 +50,7 @@ export default function ClubRequests() {
             setResolveState(prev => { const next = { ...prev }; delete next[registrationId]; return next; });
             window.dispatchEvent(new CustomEvent('club-request-resolved'));
         } catch (err) {
-            alert(`Chyba: ${err.message}`);
+            setError(`Žádost se nepodařilo vyřídit: ${err.message}`);
         }
     };
 

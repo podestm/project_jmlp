@@ -118,4 +118,20 @@ describe('PostManagement', () => {
     expect(await screen.findAllByRole('button', { name: 'Vybrat z knihovny' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Aktualizovat post' })).toBeInTheDocument();
   });
+
+  it('smazání se ptá dialogem a Enter nic nesmaže', async () => {
+    const user = userEvent.setup();
+    render(<PostManagement />);
+
+    await user.click(await screen.findByTitle('Smazat'));
+    expect(screen.getByRole('dialog', { name: 'Smazat příspěvek „Pozvánka na závod“?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zrušit' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(ulozeni('DELETE')).toHaveLength(0);
+
+    await user.click(screen.getByTitle('Smazat'));
+    await user.click(screen.getByRole('button', { name: 'Smazat příspěvek' }));
+    await waitFor(() => expect(ulozeni('DELETE')).toHaveLength(1));
+  });
 });

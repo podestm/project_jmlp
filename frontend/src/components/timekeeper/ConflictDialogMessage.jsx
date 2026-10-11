@@ -1,3 +1,4 @@
+import { Table, TableScroll } from '../ms/index.js';
 import { CONFLICT_FIELDS, formatConflictValue } from './timingRules.js';
 
 /**
@@ -13,31 +14,30 @@ import { CONFLICT_FIELDS, formatConflictValue } from './timingRules.js';
 export default function ConflictDialogMessage({ racerLabel, mine, fresh }) {
   return (
     <>
-    <p className="mb-2">
-      Čas závodníka <strong>{racerLabel}</strong> byl mezitím upraven jinde (jiná karta, jiné zařízení,
-      nebo přečíslování dresů). Vyberte, která hodnota platí.
-    </p>
-    <div className="table-responsive">
-      <table className="table table-sm mb-0">
-        <thead>
-          <tr>
-            <th>Pole</th>
-            <th>Vaše hodnota</th>
-            <th>Na serveru</th>
-          </tr>
-        </thead>
-        <tbody>
-          {CONFLICT_FIELDS.map(([field, label]) => (
-            <tr key={field}>
-              <td>{label}</td>
-              <td className="fw-semibold">{formatConflictValue(mine[field])}</td>
-              <td>{formatConflictValue(fresh[field])}</td>
+      <p>
+        Čas závodníka <strong>{racerLabel}</strong> byl mezitím upraven jinde (jiná karta, jiné zařízení,
+        nebo přečíslování dresů). Vyberte, která hodnota platí.
+      </p>
+      <TableScroll label="Srovnání hodnot">
+        <Table density="compact">
+          <thead>
+            <tr>
+              <th scope="col">Pole</th>
+              <th scope="col">Vaše hodnota</th>
+              <th scope="col">Na serveru</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {CONFLICT_FIELDS.map(([field, label]) => (
+              <tr key={field}>
+                <td>{label}</td>
+                <td data-numeric><strong>{formatConflictValue(mine[field])}</strong></td>
+                <td data-numeric>{formatConflictValue(fresh[field])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </TableScroll>
     </>
-        
   );
 }

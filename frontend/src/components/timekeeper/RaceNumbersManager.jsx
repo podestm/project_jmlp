@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
 export default function RaceNumbersManager() {
+  const { confirm, confirmElement } = useConfirm();
   const [sets, setSets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
@@ -125,7 +127,14 @@ export default function RaceNumbersManager() {
   };
 
   const deleteSet = async (setNumber) => {
-    if (!window.confirm(`Opravdu smazat celou sadu č. ${setNumber}?`)) return;
+    const confirmed = await confirm({
+      title: `Smazat sadu č. ${setNumber}?`,
+      message: 'Smažou se všechna čísla sady; ve startovních listinách zůstanou řádky bez čísla. Akci nelze vzít zpět.',
+      confirmLabel: 'Smazat sadu',
+      variant: 'danger',
+      icon: 'trash'
+    });
+    if (!confirmed) return;
     try {
       const result = await TimekeeperAPI.delete(`/api/timekeeper/race-number-sets/${setNumber}`);
       setMessage({ type: 'success', text: result.message });
@@ -450,6 +459,8 @@ export default function RaceNumbersManager() {
           <p className="text-muted small">Vytvořte první sadu kliknutím na "Nová sada"</p>
         </div>
       )}
+
+      {confirmElement}
     </div>
   );
 }

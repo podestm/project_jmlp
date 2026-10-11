@@ -1,28 +1,33 @@
-import Icon from '../ms/Icon/Icon.jsx';
-import { useEffect, useRef } from 'react';
+import { Button, Modal } from '../ms/index.js';
 
-/**
- * Confirmation modal rendered with Bootstrap CSS only - the project does not
- * load Bootstrap's JS bundle, so show/hide is handled here.
- *
- * @param {string} title
- * @param {React.ReactNode} message
- * @param {Array<{value: *, label: string, variant?: string, icon?: string, hint?: string,
- *   disabled?: boolean}>} choices
- *   The buttons offered besides Cancel. A single choice is the usual
- *   confirm/cancel pair; several choices replace a free-text prompt. A choice
- *   is disabled while the dialog body still needs an answer - deleting a club
- *   waits this way until a club to move its racers to is picked.
- * @param {string} [cancelLabel]
- * @param {function} onResolve - called with the chosen value, or null on cancel
- *
- * Fokus (a tedy Enter) dostane první volba, která není nebezpečná (varianta
- * danger) - když jsou nebezpečné všechny, dostane ho Zrušit. Enter se mačká
- * ze zvyku, zvlášť v časomíře při zápisu časů, a jeden stisk nesmí nic
- * smazat ani přepsat. Smazání a podobné kroky jen vědomým kliknutím.
- */
 const isDangerous = (choice) => String(choice.variant || 'primary').includes('danger');
 
+/**
+ * Potvrzovací dialog (DialogPotvrzeni) nad kit Modal. API zůstává, volají ho
+ * useConfirm a ClubDeleteDialog.
+ *
+ * @param {string} title - otázka, která jmenuje co („Smazat závod …?“)
+ * @param {React.ReactNode} message - řetězec se vykreslí jako odstavec
+ * @param {Array<{value: *, label: string, variant?: string, icon?: string, hint?: string,
+ *   disabled?: boolean}>} choices
+ *   Tlačítka vedle Zrušit. Jedna volba je obvyklé potvrzení, víc voleb
+ *   nahrazuje dotaz s volným textem. Volba je zamčená (disabled), dokud tělo
+ *   dialogu čeká na odpověď – smazání klubu čeká na výběr cílového klubu.
+ *   variant zůstává ve tvaru Bootstrapu: cokoli s „danger“ je nebezpečná
+ *   volba, ostatní jsou běžné; icon je název z components/ms/Icon/icons.js.
+ * @param {string} [cancelLabel]
+ * @param {function} onResolve - zvolená hodnota, nebo null při zrušení
+ *   (Zrušit, křížek, Escape, klik do překryvu)
+ *
+ * Fokus (a tedy Enter) dostane první volba, která není nebezpečná ani zamčená;
+ * když taková není, dostane ho Zrušit. Enter se mačká ze zvyku, zvlášť
+ * v časomíře při zápisu časů, a jeden stisk nesmí nic smazat ani přepsat.
+ *
+ * Pořadí tlačítek podle artboardu: hlavní akce úplně vpravo (bezpečná volba
+ * s fokusem, jinak poslední volba), Zrušit hned vlevo od ní, další běžné
+ * volby před Zrušit a další nebezpečné volby zvlášť na levém okraji. Plná
+ * je jen hlavní bezpečná akce; nebezpečná je vždy obrys v barvě chyby.
+ */
 export default function ConfirmDialog({
   title,
   message,
@@ -30,74 +35,47 @@ export default function ConfirmDialog({
   cancelLabel = 'Zrušit',
   onResolve
 }) {
-  const primaryRef = useRef(null);
-  const cancelRef = useRef(null);
   const focusIndex = choices.findIndex((choice) => !choice.disabled && !isDangerous(choice));
+  const mainIndex = focusIndex >= 0 ? focusIndex : choices.length - 1;
 
-  useEffect(() => {
-    (primaryRef.current || cancelRef.current)?.focus();
+  const renderChoice = (choice, index) => {
+    const dangerous = isDangerous(choice);
+    return (
+      <Button
+        key={String(choice.value)}
+        variant={dangerous ? 'danger' : index === mainIndex ? 'primary' : 'outline'}
+        icon={choice.icon}
+        disabled={choice.disabled}
+        title={choice.hint}
+        data-autofocus={index === focusIndex || undefined}
+        onClick={() => onResolve(choice.value)}
+      >
+        {choice.label}
+      </Button>
+    );
+  };
 
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') onResolve(null);
-    };
-    document.addEventListener('keydown', onKeyDown);
-
-    // Stop the page behind the modal from scrolling.
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [onResolve]);
+  const others = choices
+    .map((choice, index) => ({ choice, index }))
+    .filter(({ index }) => index !== mainIndex);
+  const dangerousOthers = others.filter(({ choice }) => isDangerous(choice));
+  const safeOthers = others.filter(({ choice }) => !isDangerous(choice));
 
   return (
-    <>
-      <div className="modal-backdrop fade show" onClick={() => onResolve(null)} />
-      <div
-        className="modal fade show d-block"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
-        onMouseDown={(e) => { if (e.target === e.currentTarget) onResolve(null); }}
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="confirm-dialog-title">{title}</h5>
-              {/* Vlastní popisek, ne cancelLabel - dvě tlačítka se stejným
-                  názvem se ve čtečce obrazovky nedají rozlišit. */}
-              <button
-                type="button"
-                className="btn-close"
-                aria-label="Zavřít"
-                onClick={() => onResolve(null)}
-              />
-            </div>
-            <div className="modal-body">{message}</div>
-            <div className="modal-footer flex-wrap gap-2">
-              <button type="button" ref={cancelRef} className="btn btn-outline-secondary" onClick={() => onResolve(null)}>
-                {cancelLabel}
-              </button>
-              {choices.map((choice, index) => (
-                <button
-                  key={String(choice.value)}
-                  type="button"
-                  ref={index === focusIndex ? primaryRef : undefined}
-                  className={`btn btn-${choice.variant || 'primary'}`}
-                  disabled={choice.disabled}
-                  onClick={() => onResolve(choice.value)}
-                  title={choice.hint}
-                >
-                  {choice.icon && <Icon name={choice.icon} className="me-1" />}
-                  {choice.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <Modal
+      open
+      title={title}
+      onClose={() => onResolve(null)}
+      footerStart={dangerousOthers.length > 0 && dangerousOthers.map(({ choice, index }) => renderChoice(choice, index))}
+      footer={(
+        <>
+          {safeOthers.map(({ choice, index }) => renderChoice(choice, index))}
+          <Button data-cancel onClick={() => onResolve(null)}>{cancelLabel}</Button>
+          {choices[mainIndex] && renderChoice(choices[mainIndex], mainIndex)}
+        </>
+      )}
+    >
+      {typeof message === 'string' ? <p>{message}</p> : message}
+    </Modal>
   );
 }

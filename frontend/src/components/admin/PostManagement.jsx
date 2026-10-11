@@ -1,10 +1,13 @@
 import { usePostManagement } from '../../hooks/usePostManagement.js';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
 import PostFilters from './post/PostFilters.jsx';
 import PostTable from './post/PostTable.jsx';
 import PostForm from './post/PostForm.jsx';
 
 const PostManagement = () => {
-    const postManagement = usePostManagement();
+    // Hook sám dialog vykreslit nemůže, proto confirm posílá dolů (viz useConfirm.jsx).
+    const { confirm, confirmElement } = useConfirm();
+    const postManagement = usePostManagement({ confirm });
 
     return (
         <div className="container-fluid admin-section">
@@ -36,6 +39,7 @@ const PostManagement = () => {
                 </>
             )}
 
+            {confirmElement}
         </div>
     );
 };

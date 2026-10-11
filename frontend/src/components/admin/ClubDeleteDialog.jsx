@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import ConfirmDialog from '../ui/ConfirmDialog.jsx';
+import { Field, Select } from '../ms/index.js';
 
 /**
  * Potvrzení smazání klubu.
@@ -34,43 +35,35 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
 
       {potrebujeCil ? (
         <>
-          <p className="mb-2">
-            Visí na něm{' '}
-            <strong>{zavodniku} {zavodniku === 1 ? 'závodník' : 'závodníků'}</strong>
+          <p>
+            Visí na něm <strong>{zavodniku} {zavodniku === 1 ? 'závodník' : 'závodníků'}</strong>
             {zavodu > 0 && <> a <strong>{zavodu} pořádaných závodů</strong></>}.
-            {' '}Vyberte klub, na který se převedou:
+            {' '}Vyberte klub, na který se převedou.
           </p>
-          <select
-            className="form-select"
-            aria-label="Převést na klub"
-            value={cil}
-            onChange={(event) => setCil(event.target.value)}
-          >
-            <option value="">— vyberte klub —</option>
-            {moznosti.map((moznost) => (
-              <option key={moznost.id} value={moznost.id}>
-                {moznost.name}{moznost.valid ? '' : ' (neplatný)'}
-              </option>
-            ))}
-          </select>
+          <Field label="Převést na klub">
+            <Select value={cil} onChange={(event) => setCil(event.target.value)}>
+              <option value="">— vyberte klub —</option>
+              {moznosti.map((moznost) => (
+                <option key={moznost.id} value={moznost.id}>
+                  {moznost.name}{moznost.valid ? '' : ' (neplatný)'}
+                </option>
+              ))}
+            </Select>
+          </Field>
         </>
       ) : (
-        <p className="mb-0 text-muted">
-          Nemá žádné závodníky ani pořádané závody, převádět není co.
-        </p>
+        <p>Nemá žádné závodníky ani pořádané závody, převádět není co.</p>
       )}
 
       {club.has_logo && (
-        <p className="mb-0 mt-2 text-muted small">
-          Logo se odpojí, samotný soubor zůstane v knihovně dokumentů.
-        </p>
+        <p>Logo se odpojí, samotný soubor zůstane v knihovně dokumentů.</p>
       )}
     </>
   );
 
   return (
     <ConfirmDialog
-      title="Smazat klub"
+      title={`Smazat klub ${club.name}?`}
       message={zprava}
       choices={[{
         value: 'smazat',

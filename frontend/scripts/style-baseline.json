@@ -62,7 +62,6 @@
     "legacyImports": 2
   },
   "src/components/admin/ClubDeleteDialog.jsx": {
-    "bootstrap": 8,
     "legacyImports": 1
   },
   "src/components/admin/ClubManagement.jsx": {
@@ -226,9 +225,6 @@
     "bootstrap": 63,
     "emoji": 5
   },
-  "src/components/timekeeper/ConflictDialogMessage.jsx": {
-    "bootstrap": 6
-  },
   "src/components/timekeeper/PdfPreviewModal.jsx": {
     "bootstrap": 22,
     "legacyImports": 1
@@ -325,9 +321,6 @@
   },
   "src/components/timekeeper/useInboxEvents.js": {
     "emoji": 4
-  },
-  "src/components/ui/ConfirmDialog.jsx": {
-    "bootstrap": 22
   },
   "src/components/ui/RegistrationForm.jsx": {
     "bootstrap": 21,

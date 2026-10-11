@@ -3,7 +3,11 @@ import { AdminAPI, adminAuthHeaders } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
-export const useRaceManagement = () => {
+/**
+ * @param {{confirm?: Function}} [options] - confirm z useConfirm komponenty,
+ *   která hook používá (hook sám dialog vykreslit nemůže)
+ */
+export const useRaceManagement = ({ confirm } = {}) => {
     // Refs for debouncing
     const arealSearchTimeoutRef = useRef(null);
     const organizerSearchTimeoutRef = useRef(null);
@@ -261,7 +265,16 @@ export const useRaceManagement = () => {
     };
 
     const deleteRace = async (raceId) => {
-        if (!window.confirm('Opravdu chcete smazat tento závod?')) return;
+        const race = races.find((item) => item.id === raceId);
+        const name = [race?.race_nr, race?.areal_name].filter(Boolean).join(' – ');
+        const confirmed = await confirm({
+            title: name ? `Smazat závod ${name}?` : 'Smazat závod?',
+            message: 'Závod zmizí z kalendáře i z administrace. Akci nelze vzít zpět.',
+            confirmLabel: 'Smazat závod',
+            variant: 'danger',
+            icon: 'trash'
+        });
+        if (!confirmed) return;
         
         try {
             await AdminAPI.delete(`/api/admin/races/${raceId}`);
