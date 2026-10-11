@@ -68,10 +68,17 @@
   padding: 0;
 }
 
-/* Odkaz bez podtržení, podtrhne se při najetí; komponenty si to řídí třídou. */
+/* Odkaz v textu (bez vlastní třídy) je podtržený, aby bylo vidět, že je to
+   odkaz. Komponenty (tlačítka, karty, menu) si vzhled řídí svou třídou. */
 :where(a) {
   color: var(--ms-navy);
   text-decoration: none;
+}
+
+:where(a:not([class])) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 :where(a:hover) {

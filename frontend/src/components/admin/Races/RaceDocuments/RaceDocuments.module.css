@@ -10,6 +10,9 @@
   gap: 5px;
   font-size: var(--ms-fs-md);
   color: var(--ms-navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 .none {

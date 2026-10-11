@@ -24,7 +24,9 @@
 
 .link {
   color: var(--ms-navy);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
 }
 
 .link:hover {
