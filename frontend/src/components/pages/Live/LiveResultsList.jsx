@@ -1,7 +1,7 @@
 import { Badge } from '../../ms/index.js';
 import { formatResultTime } from '../../../utils/results.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { STATUS_LABEL, formatDiff } from './LiveResultsTable.jsx';
+import { formatDiff } from './LiveResultsTable.jsx';
 import styles from './LiveResultsList.module.css';
 
 /**
@@ -19,7 +19,7 @@ export default function LiveResultsList({ ranked, className }) {
             <span className={styles.meta}>{[fixEncoding(entry.club_name), entry.race_number_actual != null && `dres ${entry.race_number_actual}`].filter(Boolean).join(' · ')}</span>
           </span>
           {entry.status ? (
-            <Badge tone="dry" size="sm">{STATUS_LABEL[entry.status] ?? entry.status} · {entry.status}</Badge>
+            <Badge tone="dry" size="sm">{entry.status}</Badge>
           ) : (
             <span className={styles.times}>
               <span className={styles.total}>{formatResultTime(entry.time_sum)}</span>

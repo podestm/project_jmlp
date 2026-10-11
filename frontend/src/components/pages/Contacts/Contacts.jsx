@@ -25,7 +25,7 @@ export default function Contacts() {
         <PageHeader eyebrow="Soutěžní výbor a kluby" title="Kontakty" />
 
         <section className={styles.section} aria-labelledby="vedeni">
-          <Paska id="vedeni">Vedení soutěže</Paska>
+          <Paska id="vybor">Soutěžní výbor</Paska>
           <ul className={styles.officials}>
             {OFFICIALS.map((official, index) => (
               <li key={official.email} className={styles.official} data-lead={index === 0 || undefined}>

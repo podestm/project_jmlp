@@ -3,7 +3,7 @@ import { cx } from '../../ms/cx.js';
 import { formatResultTime, rankEntriesByTime } from '../../../utils/results.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
 import RaceFlag from '../StartList/RaceFlag.jsx';
-import { formatLoss, sharedRanks, STATUS_LABEL } from './resultsView.js';
+import { formatLoss, sharedRanks } from './resultsView.js';
 import styles from './ResultsTable.module.css';
 
 /** Pořadí: první tři v boxu (1 navy, 2 led, 3 jantar), dál jen číslo. */
@@ -53,7 +53,7 @@ export default function ResultsTable({ entries, showPoints = false }) {
               <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time1)}</td>
               <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time2)}</td>
               <td data-numeric data-align="end" className={styles.total}>
-                {entry.status ? <span className={styles.statusText}>{STATUS_LABEL[entry.status]}</span> : formatResultTime(entry.time_sum)}
+                {entry.status ? <span className={styles.statusText}>{entry.status}</span> : formatResultTime(entry.time_sum)}
               </td>
               <td data-numeric data-align="end" className={styles.loss}>{formatLoss(entry)}</td>
               {showPoints && (

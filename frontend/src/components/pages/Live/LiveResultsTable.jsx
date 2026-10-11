@@ -4,7 +4,6 @@ import { formatResultTime } from '../../../utils/results.js';
 import { fixEncoding } from '../../../utils/text.js';
 import styles from './LiveResultsTable.module.css';
 
-export const STATUS_LABEL = { DNF: 'Nedokončil', DNS: 'Nestartoval', DSQ: 'Diskvalifikován' };
 
 /** Ztráta na vedoucího „+0.61“, u vedoucího a bez času pomlčka. */
 export const formatDiff = (diff) => (diff != null ? `+${diff.toFixed(2)}` : '—');
@@ -56,7 +55,7 @@ export default function LiveResultsTable({ category, ranked, className }) {
               <td data-align="end" data-numeric>{entry.status ? '—' : formatResultTime(entry.time2)}</td>
               <td data-align="end" data-numeric className={styles.total}>
                 {entry.status
-                  ? <Badge tone="dry" size="sm">{STATUS_LABEL[entry.status] ?? entry.status} · {entry.status}</Badge>
+                  ? <Badge tone="dry" size="sm">{entry.status}</Badge>
                   : formatResultTime(entry.time_sum)}
               </td>
               <td data-align="end" data-numeric>{formatDiff(entry.display_diff)}</td>

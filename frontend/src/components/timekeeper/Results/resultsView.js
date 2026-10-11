@@ -1,7 +1,6 @@
 // Výsledky v časomíře (TkVysledky): čisté funkce nad seřazenými řádky
 // z rankEntriesByTime. Pořadí samo počítá utils/results.js.
 
-export const STATUS_LABEL = { DNF: 'Nedokončil', DNS: 'Nestartoval', DSQ: 'Diskvalifikován' };
 
 /** Ztráta na vítěze „+0.52“; vítěz „vítěz“, bez času pomlčka. */
 export const formatLoss = (entry) => {
