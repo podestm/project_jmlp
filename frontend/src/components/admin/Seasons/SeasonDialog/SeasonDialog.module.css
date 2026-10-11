@@ -1,0 +1,32 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+/* Ročník číslem a vedle něj římsky (AdminDialogSezona). */
+.edition {
+  display: flex;
+}
+
+.edition > input {
+  flex-grow: 1;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.roman {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 72px;
+  padding: 0 var(--ms-space-3);
+  border: 1.5px solid var(--ms-line-control);
+  border-inline-start: 0;
+  border-radius: 0 var(--ms-radius-control) var(--ms-radius-control) 0;
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}

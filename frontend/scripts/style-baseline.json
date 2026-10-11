@@ -55,10 +55,6 @@
     "bootstrap": 82,
     "legacyImports": 2
   },
-  "src/components/admin/SeasonManagement.jsx": {
-    "bootstrap": 76,
-    "legacyImports": 3
-  },
   "src/components/admin/category/CategoryForm.jsx": {
     "bootstrap": 48
   },
