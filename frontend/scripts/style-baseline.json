@@ -156,52 +156,7 @@
     "bootstrap": 4
   },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
-    "bootstrap": 7
-  },
-  "src/components/pages/Contacts.jsx": {
-    "bootstrap": 44,
-    "legacyVars": 10
-  },
-  "src/components/pages/Documents.jsx": {
-    "bootstrap": 21,
-    "legacyVars": 8,
-    "legacyImports": 2
-  },
-  "src/components/pages/Homepage.jsx": {
-    "bootstrap": 112,
-    "legacyVars": 13,
-    "emoji": 3
-  },
-  "src/components/pages/LiveTiming.jsx": {
-    "bootstrap": 69,
-    "emoji": 3
-  },
-  "src/components/pages/NewsArchive.jsx": {
-    "bootstrap": 14,
-    "legacyImports": 1
-  },
-  "src/components/pages/RaceDetail.jsx": {
-    "bootstrap": 61,
-    "legacyVars": 10,
-    "emoji": 2,
-    "legacyImports": 1
-  },
-  "src/components/pages/RegisteredRacersCard.jsx": {
-    "bootstrap": 25,
-    "legacyVars": 2,
-    "legacyImports": 1
-  },
-  "src/components/pages/news/NewsFilters.jsx": {
-    "bootstrap": 28
-  },
-  "src/components/pages/news/NewsPagination.jsx": {
-    "bootstrap": 10
-  },
-  "src/components/pages/news/PostCard.jsx": {
-    "bootstrap": 29
-  },
-  "src/components/pages/news/PostsList.jsx": {
-    "legacyImports": 1
+    "bootstrap": 4
   },
   "src/components/timekeeper/BridgeEventRow.jsx": {
     "bootstrap": 63,
@@ -299,10 +254,6 @@
   },
   "src/components/timekeeper/useInboxEvents.js": {
     "emoji": 4
-  },
-  "src/components/ui/RegistrationForm.jsx": {
-    "bootstrap": 21,
-    "legacyVars": 5
   },
   "src/components/ui/SearchableSelect.jsx": {
     "bootstrap": 12,

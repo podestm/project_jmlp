@@ -81,6 +81,7 @@
  * místo tmavé fotky ze starého CSS. Ve Fázi 6 platí pro celý dokument.
  */
 body.ms-page {
+  margin: 0;
   background: var(--ms-surface-page);
 }
 
