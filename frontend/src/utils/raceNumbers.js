@@ -1,12 +1,25 @@
-// `solid` nese bílé číslo, proto jde přes téma back-office (admin.css, --tk-set-*),
-// které dosadí tmavší odstín s kontrastem aspoň 4.5:1. Původní barva zůstává
-// jako výchozí hodnota pro místa bez tématu (veřejný Live timing).
+// Sady startovních čísel mají skutečné barvy dresů (tokeny --ms-bib-*,
+// components/ms/tokens.js). `solid` nese bílé číslo, `soft` a `border` jsou
+// z téže barvy namíchané s průhlednou – pro podklad a rámeček.
+import { bibVar } from '../components/ms/tokens.js';
+
+const bib = (value, label) => {
+  const solid = `var(${bibVar(value)})`;
+  return {
+    value,
+    label,
+    solid,
+    soft: `color-mix(in srgb, ${solid} 10%, transparent)`,
+    border: `color-mix(in srgb, ${solid} 35%, transparent)`,
+  };
+};
+
 const SET_COLOR_OPTIONS = [
-  { value: 'rose', label: 'Ruzova', solid: 'var(--tk-set-rose, #e94560)', soft: 'rgba(233, 69, 96, 0.10)', border: 'rgba(233, 69, 96, 0.35)' },
-  { value: 'blue', label: 'Modra', solid: 'var(--tk-set-blue, #2563eb)', soft: 'rgba(37, 99, 235, 0.10)', border: 'rgba(37, 99, 235, 0.35)' },
-  { value: 'emerald', label: 'Zelena', solid: 'var(--tk-set-emerald, #059669)', soft: 'rgba(5, 150, 105, 0.10)', border: 'rgba(5, 150, 105, 0.35)' },
-  { value: 'amber', label: 'Oranzova', solid: 'var(--tk-set-amber, #d97706)', soft: 'rgba(217, 119, 6, 0.10)', border: 'rgba(217, 119, 6, 0.35)' },
-  { value: 'violet', label: 'Fialova', solid: 'var(--tk-set-violet, #7c3aed)', soft: 'rgba(124, 58, 237, 0.10)', border: 'rgba(124, 58, 237, 0.35)' },
+  bib('rose', 'Růžová'),
+  bib('blue', 'Modrá'),
+  bib('emerald', 'Zelená'),
+  bib('amber', 'Oranžová'),
+  bib('violet', 'Fialová'),
 ];
 
 const DEFAULT_THEME = SET_COLOR_OPTIONS[0];
@@ -15,11 +28,15 @@ export const getSetColorTheme = (setColor) => (
   SET_COLOR_OPTIONS.find((option) => option.value === setColor) || DEFAULT_THEME
 );
 
+/** Barva sady jako hodnota CSS (var(--ms-bib-…)); neznámá sada = výchozí. */
+export const setColorVar = (setColor) => getSetColorTheme(setColor).solid;
+
+/** Inline vzhled odznaku čísla pro nepřevedené obrazovky (Live, schránka impulzů). */
 export const getRaceNumberBadgeStyle = (setColor) => {
   const theme = getSetColorTheme(setColor);
   return {
     background: theme.solid,
-    color: '#ffffff',
+    color: 'var(--ms-on-dark)',
     border: `1px solid ${theme.border}`,
     fontSize: '0.78rem',
     letterSpacing: '0.02em',

@@ -11,7 +11,7 @@ import StartListManager from '../components/timekeeper/StartListManager.jsx';
 import SyncCenter from '../components/timekeeper/SyncCenter.jsx';
 import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard/TimekeeperDashboard.jsx';
 import TimekeeperLayout from '../components/timekeeper/frame/TimekeeperLayout/TimekeeperLayout.jsx';
-import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers.jsx';
+import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from '../components/timekeeper/TimingEntry.jsx';
 import TimingDeviceSettings from '../components/timekeeper/TimingDeviceSettings.jsx';
 import { resetTimekeeperDb } from './helpers.js';

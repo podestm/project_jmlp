@@ -1,0 +1,58 @@
+/* TkZavodnici: bílý panel vlevo. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ms-space-3);
+}
+
+.bib {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-sm);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.bibRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  min-block-size: var(--ms-target);
+}
+
+.set {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.submit {
+  flex-grow: 1;
+}

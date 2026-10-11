@@ -200,14 +200,6 @@
     "bootstrap": 7,
     "legacyVars": 1
   },
-  "src/components/timekeeper/TimekeeperRacerRow.jsx": {
-    "bootstrap": 12
-  },
-  "src/components/timekeeper/TimekeeperRacers.jsx": {
-    "bootstrap": 183,
-    "legacyVars": 3,
-    "legacyImports": 4
-  },
   "src/components/timekeeper/TimekeeperRoutes.jsx": {
     "themeBackoffice": 1
   },
@@ -240,13 +232,6 @@
     "bootstrap": 12,
     "legacyVars": 5
   },
-  "src/components/ui/registration/RacerSearchResults.jsx": {
-    "bootstrap": 30
-  },
-  "src/components/ui/registration/RegistrationFormFields.jsx": {
-    "bootstrap": 87,
-    "legacyVars": 10
-  },
   "src/hooks/useBodyClass.js": {
     "themeBackoffice": 1
   },
@@ -258,8 +243,5 @@
   },
   "src/utils/files.js": {
     "bootstrap": 13
-  },
-  "src/utils/raceNumbers.js": {
-    "legacyVars": 6
   }
 }

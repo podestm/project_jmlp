@@ -1,0 +1,55 @@
+/* TkZavodnici: rozbalený řádek na --ms-dry-bg. */
+.row {
+  background: var(--ms-dry-bg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 100px repeat(2, minmax(0, 1fr)) 90px 120px minmax(0, 1.4fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding-block: var(--ms-space-3) var(--ms-space-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--ms-space-2);
+  padding-block-start: 27px;
+}
+
+.category {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px var(--ms-space-3);
+  padding-block-end: var(--ms-space-3);
+  font-size: var(--ms-fs-md);
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+}
+
+.note {
+  color: var(--ms-dry-ink);
+}
+
+@media (max-width: 1279.98px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .actions {
+    padding-block-start: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

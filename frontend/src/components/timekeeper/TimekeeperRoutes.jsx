@@ -9,7 +9,7 @@ import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
 import StartListManager from './StartListManager.jsx';
-import TimekeeperRacers from './TimekeeperRacers.jsx';
+import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from './TimingEntry.jsx';
 import ResultsView from './ResultsView.jsx';
 import RaceHeaderForm from './RaceHeaderForm/RaceHeaderForm.jsx';
@@ -43,7 +43,7 @@ export default function TimekeeperRoutes() {
         <Routes>
           <Route path="/" element={protect(<TimekeeperDashboard />)} />
           <Route path="/start-list" element={legacy(<StartListManager />)} />
-          <Route path="/racers" element={legacy(<TimekeeperRacers />)} />
+          <Route path="/racers" element={protect(<TimekeeperRacers />)} />
           <Route path="/timing" element={legacy(<TimingEntry />)} />
           <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
           <Route path="/results" element={legacy(<ResultsView />)} />

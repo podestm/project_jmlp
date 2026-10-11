@@ -1,0 +1,11 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  min-inline-size: 0;
+}
+
+.note {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
