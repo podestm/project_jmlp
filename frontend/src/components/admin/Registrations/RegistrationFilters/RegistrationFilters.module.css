@@ -1,0 +1,104 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+}
+
+.controls {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search {
+  inline-size: 280px;
+}
+
+.select {
+  inline-size: 220px;
+}
+
+.export {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  margin: 0 0 0 auto;
+  padding-block-end: 12px;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+/* Na šířce je export tlačítkem v záhlaví, odkaz tu jen na mobilu. */
+.exportIcon,
+.exportLink {
+  display: none;
+}
+
+.exportLink {
+  align-items: center;
+  min-block-size: var(--ms-target);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-navy);
+  white-space: nowrap;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3);
+  margin: 0;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.result strong {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+/* AdminMobilPrihlasky: hledání přes celou šířku, výběry dva vedle sebe. */
+@media (max-width: 767.98px) {
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ms-space-3) 10px;
+  }
+
+  .search,
+  .select {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+
+  .search,
+  .export {
+    grid-column: 1 / -1;
+  }
+
+  .export {
+    margin: 0;
+    padding: 10px var(--ms-space-3);
+    border-radius: var(--ms-radius-card);
+    background: var(--ms-surface-sunken);
+    font-size: var(--ms-fs-md);
+    line-height: 1.45;
+  }
+
+  .export > span {
+    flex-grow: 1;
+  }
+
+  .exportIcon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .exportLink {
+    display: inline-flex;
+  }
+}

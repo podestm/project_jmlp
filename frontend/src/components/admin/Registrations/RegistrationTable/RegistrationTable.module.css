@@ -1,0 +1,50 @@
+.narrow {
+  inline-size: 120px;
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+  font-size: var(--ms-fs-lg);
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+/* Řádek skupiny: název klubu navy verzálkami a počet. */
+tr.group > th {
+  padding: 10px 16px;
+  background: var(--ms-surface-sunken);
+  text-transform: none;
+}
+
+.groupName {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-sm);
+  letter-spacing: 0.06em;
+  color: var(--ms-navy);
+}
+
+.groupCount {
+  margin-inline-start: 10px;
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-size: var(--ms-fs-sm);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+/* AdminMobilPrihlasky: místo tabulky seznam (RegistrationList). */
+@media (max-width: 767.98px) {
+  .wrap {
+    display: none;
+  }
+}

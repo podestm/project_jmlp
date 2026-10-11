@@ -1,5 +1,7 @@
-import { BibDate, Icon } from '../../../ms/index.js';
-import { raceSubtitle, registrationsWord } from '../raceList.js';
+import { Icon } from '../../../ms/index.js';
+import RaceInfo from '../../shared/RaceInfo/RaceInfo.jsx';
+import { raceSubtitle } from '../../shared/raceText.js';
+import { registrationsWord } from '../raceList.js';
 import styles from './DeleteRaceMessage.module.css';
 
 /**
@@ -13,19 +15,16 @@ export default function DeleteRaceMessage({ race }) {
 
   return (
     <div className={styles.body}>
-      <div className={styles.card} data-open={race.registration || undefined}>
-        {race.datum && <BibDate date={race.datum} variant="table" />}
-        <span className={styles.text}>
-          <span className={styles.name}>{race.areal_name || race.race_nr}</span>
-          <span className={styles.meta}>
-            {raceSubtitle(race)} · registrace {race.registration ? 'otevřená' : 'uzavřená'}
-          </span>
-        </span>
-        <span className={styles.count}>
-          <span className={styles.number}>{count}</span>
-          <span className={styles.caps}>{registrationsWord(count)}</span>
-        </span>
-      </div>
+      <RaceInfo
+        race={race}
+        meta={`${raceSubtitle(race)} · registrace ${race.registration ? 'otevřená' : 'uzavřená'}`}
+        aside={(
+          <>
+            <span className={styles.number}>{count}</span>
+            <span className={styles.caps}>{registrationsWord(count)}</span>
+          </>
+        )}
+      />
 
       <p className={styles.caps}>Se závodem zmizí</p>
       <ul className={styles.list}>

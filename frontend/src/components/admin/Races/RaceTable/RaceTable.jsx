@@ -1,6 +1,6 @@
 import { Badge, BibDate, Button, ButtonLink, IconButton, Switch, Table, TableScroll } from '../../../ms/index.js';
 import RaceDocuments from '../RaceDocuments/RaceDocuments.jsx';
-import { raceSubtitle } from '../raceList.js';
+import { raceSubtitle } from '../../shared/raceText.js';
 import styles from './RaceTable.module.css';
 
 /**

@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { listSummary, methodLabel, orderLabel, raceSubtitle, seasonMeta, seasonOptionLabel } from './raceList.js';
+import { listSummary, orderLabel, seasonMeta, seasonOptionLabel } from './raceList.js';
 
 describe('texty obrazovky Závody', () => {
-  it('způsob závodu a druhý řádek', () => {
-    expect(methodLabel({ race_method_id: 2 })).toBe('suchý slalom');
-    expect(methodLabel({ race_method_id: 1 })).toBe('závod na sněhu');
-    expect(raceSubtitle({ organizer_name: 'FreeSki', race_method_id: 2 })).toBe('FreeSki · suchý slalom');
-    expect(raceSubtitle({ race_method_id: 1 })).toBe('závod na sněhu');
-  });
-
   it('souhrn nad seznamem skloňuje', () => {
     expect(listSummary([{ registration: true }, { registration: false }])).toBe('2 závody · 1 s otevřenou registrací');
     expect(listSummary([])).toBe('0 závodů · 0 s otevřenou registrací');

@@ -2,12 +2,6 @@
 import { czechPlural, raceOrder, seasonLabel } from '../../../utils/races.js';
 import { formatSeasonShort } from '../../../utils/season.js';
 
-/** race_method_id 2 = suchý slalom, cokoli jiného = závod na sněhu (výchozí). */
-export const methodLabel = (race) => (race.race_method_id === 2 ? 'suchý slalom' : 'závod na sněhu');
-
-/** „FreeSki Academy Brno · suchý slalom“ – druhý řádek u názvu závodu. */
-export const raceSubtitle = (race) => [race.organizer_name, methodLabel(race)].filter(Boolean).join(' · ');
-
 export const registrationsWord = (count) => czechPlural(count, ['přihláška', 'přihlášky', 'přihlášek']);
 
 /** „2 závody · 1 s otevřenou registrací“ */

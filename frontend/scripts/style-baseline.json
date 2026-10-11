@@ -65,10 +65,6 @@
   "src/components/admin/PostManagement.jsx": {
     "bootstrap": 13
   },
-  "src/components/admin/RaceRegistrations.jsx": {
-    "bootstrap": 80,
-    "legacyImports": 1
-  },
   "src/components/admin/RacerManagement.jsx": {
     "bootstrap": 126,
     "legacyImports": 3

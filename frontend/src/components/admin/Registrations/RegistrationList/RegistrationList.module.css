@@ -1,0 +1,117 @@
+.list {
+  display: none;
+}
+
+/* AdminMobilPrihlasky: seznam přes celou šířku místo tabulky. */
+@media (max-width: 767.98px) {
+  .list {
+    display: flex;
+    flex-direction: column;
+    margin-inline: calc(-1 * var(--ms-space-4));
+    border-bottom: 1px solid var(--ms-line);
+    background: var(--ms-surface-card);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-block-size: var(--ms-target);
+    padding: var(--ms-space-2) var(--ms-space-4);
+    border-block: 1px solid var(--ms-line);
+    background: var(--ms-surface-sunken);
+  }
+
+  .title {
+    flex-grow: 1;
+    margin: 0;
+    font-family: var(--ms-font-display);
+    font-weight: 700;
+    font-size: var(--ms-fs-sm);
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: var(--ms-navy);
+  }
+
+  .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 30px;
+    block-size: 26px;
+    padding: 0 6px;
+    border: 1px solid var(--ms-line);
+    border-radius: var(--ms-radius-inner);
+    background: var(--ms-surface-card);
+    font-family: var(--ms-font-mono);
+    font-weight: 600;
+    font-size: var(--ms-fs-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--ms-ink);
+  }
+
+  .rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--ms-space-3);
+    min-block-size: 60px;
+    padding: 9px var(--ms-space-4) 9px var(--ms-space-3);
+    border-left: 4px solid transparent;
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--ms-line);
+  }
+
+  /* Čeká na klub: lišta vlevo, řečeno i odznakem. */
+  .row[data-waiting] {
+    border-left-color: var(--ms-dry-ink);
+  }
+
+  .year {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 50px;
+    block-size: 34px;
+    border-radius: var(--ms-radius-inner);
+    background: var(--ms-surface-sunken);
+    font-family: var(--ms-font-mono);
+    font-weight: 600;
+    font-size: var(--ms-fs-md);
+    font-variant-numeric: tabular-nums;
+    color: var(--ms-ink);
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-inline-size: 0;
+  }
+
+  .name {
+    overflow: hidden;
+    font-weight: 700;
+    font-size: var(--ms-fs-lg);
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ms-ink);
+  }
+
+  .details {
+    font-size: var(--ms-fs-sm);
+    line-height: 1.35;
+    color: var(--ms-ink-body);
+  }
+}

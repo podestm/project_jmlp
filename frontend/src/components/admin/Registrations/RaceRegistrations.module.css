@@ -1,0 +1,6 @@
+/* AdminMobilPrihlasky: export je odkazem u filtru, v záhlaví jen Zpět. */
+@media (max-width: 767.98px) {
+  a.export {
+    display: none;
+  }
+}
