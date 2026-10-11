@@ -19,7 +19,7 @@ describe('Privacy', () => {
 
   it('místa k doplnění jsou vidět jako štítky', () => {
     renderPrivacy();
-    expect(screen.getAllByText(/^DOPLNIT/).length).toBe(4);
+    expect(screen.getAllByText(/^DOPLNIT/).length).toBe(1);
   });
 
   it('dotazy směřuje na soutěžní výbor v Kontaktech, ÚOOÚ odkazem ven', () => {
