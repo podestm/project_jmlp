@@ -6,6 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createTokenStore, fetchProfile, loginWithCredentials } from './authCore.js';
 import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
+import { startTokenRefresh } from './tokenRefresh.js';
 
 const AuthContext = createContext();
 const store = createTokenStore(SESSION_TOKEN_KEY);
@@ -86,6 +87,13 @@ export const AuthProvider = ({ children }) => {
 
     return () => { cancelled = true; };
   }, [acceptProfile, logout]);
+
+  // Klouzavé prodlužování společného přihlášení (viz config/tokenRefresh.js).
+  useEffect(() => {
+    if (!admin) return undefined;
+    const refresher = startTokenRefresh({ endpoint: '/api/admin/auth/refresh', store, onRefreshed: setToken });
+    return refresher.stop;
+  }, [admin]);
 
   const login = useCallback(async (email, password) => {
     try {

@@ -7,6 +7,7 @@ import { useBodyClass } from '../../hooks/useBodyClass.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import TimekeeperLogin from './TimekeeperLogin.jsx';
 import TimekeeperLayout from './TimekeeperLayout.jsx';
+import TimekeeperReauthModal from './TimekeeperReauthModal.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard.jsx';
 import StartListManager from './StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers.jsx';
@@ -24,7 +25,13 @@ const ProtectedTimekeeperRoute = ({ children }) => {
   if (loading) return <LoadingState variant="fullscreen" />;
   if (!isAuthenticated) return <TimekeeperLogin />;
 
-  return <TimekeeperLayout>{children}</TimekeeperLayout>;
+  // Vypršelé přihlášení = okno na místě nad otevřenou obrazovkou, ne odhlášení.
+  return (
+    <>
+      <TimekeeperLayout>{children}</TimekeeperLayout>
+      <TimekeeperReauthModal />
+    </>
+  );
 };
 
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;

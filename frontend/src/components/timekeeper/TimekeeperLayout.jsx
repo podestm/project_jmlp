@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { useConfirm } from '../../hooks/useConfirm.jsx';
+import { countUnsyncedQueueItems } from '../../offline/syncQueue.js';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
@@ -7,6 +9,29 @@ import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
+  const { confirm, confirmElement } = useConfirm();
+
+  // Ruční odhlášení s varováním, když ve frontě něco čeká - po odhlášení by se
+  // to odeslalo až po novém přihlášení na tomhle zařízení.
+  const handleLogout = async () => {
+    let unsynced = 0;
+    try {
+      unsynced = await countUnsyncedQueueItems();
+    } catch {
+      unsynced = 0;
+    }
+    if (unsynced > 0) {
+      const go = await confirm({
+        title: 'Odhlásit i s neodeslanými změnami?',
+        message: `Ve frontě čeká ${unsynced} neodeslaných změn (časy, závodníci). Zůstanou v zařízení a odešlou se až po dalším přihlášení. Pokud je to možné, počkejte na připojení.`,
+        confirmLabel: 'Přesto odhlásit',
+        variant: 'danger',
+        icon: 'bi-box-arrow-right'
+      });
+      if (!go) return;
+    }
+    logout();
+  };
   const location = useLocation();
   const { syncState, queueStats } = useSyncStatus();
 
@@ -324,7 +349,7 @@ export default function TimekeeperLayout({ children }) {
             </div>
           </div>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="btn btn-sm w-100 timekeeper-sidebar-logout-button"
             style={{ 
               borderRadius: '8px',
@@ -348,6 +373,7 @@ export default function TimekeeperLayout({ children }) {
           </div>
         </main>
       </div>
+      {confirmElement}
     </div>
   );
 }

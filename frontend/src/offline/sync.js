@@ -15,7 +15,7 @@ const SYNC_INTERVAL_MS = 10000;
 const LEADER_LEASE_KEY = 'timekeeper_sync_leader';
 const LEADER_LEASE_TTL_MS = SYNC_INTERVAL_MS * 3;
 
-const AUTH_EXPIRED_MESSAGE = 'Přihlášení vypršelo – fronta čeká na nové přihlášení.';
+export const AUTH_EXPIRED_MESSAGE = 'Přihlášení vypršelo – fronta čeká na nové přihlášení.';
 
 let syncLoopStarted = false;
 let syncInProgress = false;

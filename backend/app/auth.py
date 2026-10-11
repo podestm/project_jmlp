@@ -49,9 +49,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
+    # iat: klient podle něj pozná polovinu platnosti a token včas obnoví
+    # (klouzavé prodlužování, viz issue_token a /auth/refresh).
+    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def issue_token(admin: models.AdminUser) -> dict:
+    """Odpověď s novým tokenem - při přihlášení i při obnově platného tokenu."""
+    access_token = create_access_token(
+        data={"sub": str(admin.id), "role": admin.role},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    }
 
 
 def verify_token(token: str) -> Optional[schemas.TokenData]:

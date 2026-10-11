@@ -210,6 +210,28 @@ export const getSyncQueueStats = async () => {
   };
 };
 
+/**
+ * Po novém přihlášení: zápisy, které fronta odložila kvůli vypršelému
+ * přihlášení (401), se pošlou hned, ne až po minutovém odkladu.
+ * @param {string} authMessage last_error, kterým je sync.js označuje
+ */
+export const releaseAuthParked = async (authMessage) => {
+  const rows = await timekeeperDb.syncQueue.where('status').equals('pending').toArray();
+  const parked = rows.filter((row) => row.last_error === authMessage);
+  await Promise.all(parked.map((row) => timekeeperDb.syncQueue.update(row.id, {
+    next_retry_at: null,
+    last_error: null,
+    updated_at: nowIso()
+  })));
+  if (parked.length) notifyQueueChanged();
+  return parked.length;
+};
+
+/** Kolik zápisů ještě nedorazilo na server (čeká, selhal, odesílá se, konflikt). */
+export const countUnsyncedQueueItems = async () => (
+  timekeeperDb.syncQueue.where('status').anyOf('pending', 'failed', 'processing', 'conflict', 'dead').count()
+);
+
 export const getRecentQueueItems = async (limit = 100) => (
   timekeeperDb.syncQueue.orderBy('created_at').reverse().limit(limit).toArray()
 );

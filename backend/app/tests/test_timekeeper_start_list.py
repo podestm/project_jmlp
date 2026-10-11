@@ -1822,3 +1822,39 @@ def test_generovani_radi_kategorii_podle_poradi_prihlaseni(client, db, zavod, ka
 
     radky = sorted(_startovka(client, zavod, timekeeper_headers), key=lambda r: r["start_number"])
     assert [r["racer_surname"] for r in radky] == ["Prvni", "Druha", "StejnaA", "StejnaB", "Pozdni"]
+
+
+# --------------------------------------------------------------------------
+# Offline dohláška: idempotence a lokální kopie registru
+# --------------------------------------------------------------------------
+
+def test_rucni_pridani_se_stejnym_klicem_nezalozi_zavodnika_dvakrat(
+        client, db, zavod, kategorie, timekeeper_headers):
+    """Fronta časomíry pošle offline dohlášku po výpadku znovu se stejným klíčem."""
+    _cisla(db)
+    telo = {"racer_name": "Nova", "racer_surname": "Osoba", "racer_year": 2017,
+            "racer_sex": 2, "club_name": "Novy klub", "client_temp_id": -1700000000000}
+    hlavicky = {**timekeeper_headers, "X-Idempotency-Key": "offline-op-1"}
+
+    prvni = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry", json=telo, headers=hlavicky)
+    druha = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry", json=telo, headers=hlavicky)
+
+    assert prvni.status_code == 200 and druha.status_code == 200, druha.text
+    assert druha.json()["id"] == prvni.json()["id"]
+    assert druha.json()["client_temp_id"] == -1700000000000
+    assert druha.json()["idempotency_replayed"] is True
+    _obnov(db)
+    assert db.query(models.Racer).filter(models.Racer.surname == "Osoba").count() == 1
+    assert db.query(models.StartListEntry).filter(models.StartListEntry.race_id == zavod.id).count() == 1
+
+
+def test_kopie_registru_pro_offline_hledani(client, db, timekeeper_headers):
+    klub = _klub(db, "SK Pardubice")
+    _zavodnik(db, "Anna", "Holcicka", 2017, 2, club_id=klub.id, slcr_id="891586")
+
+    odpoved = client.get("/api/timekeeper/racers/snapshot", headers=timekeeper_headers)
+
+    assert odpoved.status_code == 200
+    [zavodnik] = odpoved.json()
+    assert zavodnik == {"id": zavodnik["id"], "name": "Anna", "surname": "Holcicka", "year": 2017,
+                        "sex": 2, "club_name": "SK Pardubice", "slcr_id": "891586"}
