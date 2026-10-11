@@ -9,13 +9,16 @@ import styles from './DataRow.module.css';
  * - tone: barva lišty – open | closed | live | navy | dry | neutral
  * - statusLabel: stav slovy pro čtečku (barva lišty sama nic neříká)
  * - as: obal řádku (li v seznamu, div jinde)
+ * - variant: list (řádek v Panel, lišta jako proužek) | card (samostatná karta
+ *   s rámečkem a lištou jako levým okrajem – kalendář závodů)
  * - children: doplňky vpravo před `value` (odznak, akce)
+ * - aside: blok vpravo, který se pod 768 px zalomí pod text na celou šířku
  */
 export default function DataRow({
-  as: Tag = 'div', tone = 'neutral', statusLabel, lead, title, meta, value, className, children,
+  as: Tag = 'div', variant = 'list', tone = 'neutral', statusLabel, lead, title, meta, value, aside, className, children,
 }) {
   return (
-    <Tag className={cx(styles.row, className)} data-tone={tone}>
+    <Tag className={cx(styles.row, styles[variant], className)} data-tone={tone}>
       <span className={styles.bar} aria-hidden="true" />
       {lead && <span className={styles.lead}>{lead}</span>}
       <span className={styles.text}>
@@ -25,6 +28,7 @@ export default function DataRow({
       </span>
       {children}
       {value !== undefined && value !== null && <span className={styles.value}>{value}</span>}
+      {aside && <div className={styles.aside}>{aside}</div>}
     </Tag>
   );
 }

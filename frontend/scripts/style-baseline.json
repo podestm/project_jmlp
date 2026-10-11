@@ -180,11 +180,6 @@
     "bootstrap": 14,
     "legacyImports": 1
   },
-  "src/components/pages/RaceCalendar.jsx": {
-    "bootstrap": 72,
-    "legacyVars": 4,
-    "emoji": 2
-  },
   "src/components/pages/RaceDetail.jsx": {
     "bootstrap": 61,
     "legacyVars": 10,

@@ -10,7 +10,7 @@ import RaceCalendar from './RaceCalendar.jsx';
  * Vzniklo po chybě z ostrého webu: sezóna 2026/27 ještě žádné výsledky neměla,
  * přesto kalendář nabízel "Průběžné výsledky" a pod nimi se stáhl soutěžní řád.
  * Backend už vrací jen skutečné výsledky (routers/season_results.py); sezóna
- * bez nich má tlačítko vypnuté.
+ * bez nich má tlačítko vypnuté. Sezóna se vybírá v <select>.
  */
 const zavod = (id, raceNr, datum) => ({
   id,
@@ -62,12 +62,12 @@ describe('RaceCalendar - výsledky sezóny', () => {
     const tlacitko = await screen.findByRole('button', { name: /Průběžné výsledky/ });
 
     expect(tlacitko).toBeDisabled();
-    expect(screen.queryByRole('link', { name: /výsledky/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /(Celkové|Průběžné) výsledky/ })).not.toBeInTheDocument();
   });
 
   it('zveřejněné výsledky jsou odkaz ke stažení', async () => {
     renderCalendar();
-    await userEvent.click(await screen.findByRole('button', { name: '2025/26' }));
+    await userEvent.selectOptions(await screen.findByLabelText('Sezóna'), '2025');
 
     const odkaz = screen.getByRole('link', { name: /Celkové výsledky/ });
 
@@ -76,8 +76,36 @@ describe('RaceCalendar - výsledky sezóny', () => {
 
   it('skončená sezóna bez výsledků má vypnuté celkové výsledky', async () => {
     renderCalendar();
-    await userEvent.click(await screen.findByRole('button', { name: '2024/25' }));
+    await userEvent.selectOptions(await screen.findByLabelText('Sezóna'), '2024');
 
     expect(screen.getByRole('button', { name: /Celkové výsledky/ })).toBeDisabled();
+  });
+});
+
+describe('RaceCalendar - seznam', () => {
+  it('rozdělí závody na nadcházející a odjeté a filtruje podle typu', async () => {
+    fetch.mockImplementation((url) => {
+      if (String(url).startsWith('/season-results/')) return jsonResponse([]);
+      return jsonResponse([
+        { ...zavod(1, 'JMLP2026-01', '2026-09-10'), areal_name: 'Kohoutovice', race_method_id: 2 },
+        { ...zavod(2, 'JMLP2026-02', '2026-12-10'), areal_name: 'Olešnice', race_method_id: 1, registration: true },
+      ]);
+    });
+    renderCalendar();
+
+    const upcoming = await screen.findByRole('region', { name: 'Nadcházející' });
+    expect(upcoming).toHaveTextContent('Olešnice');
+    expect(upcoming).toHaveTextContent('Registrace otevřena');
+    expect(screen.getByRole('region', { name: 'Odjeté závody' })).toHaveTextContent('Kohoutovice');
+
+    await userEvent.click(screen.getByRole('button', { name: /Na sněhu/ }));
+    expect(screen.queryByText('Kohoutovice')).not.toBeInTheDocument();
+  });
+
+  it('chyba načtení nabídne zkusit znovu', async () => {
+    fetch.mockImplementation(() => Promise.resolve({ ok: false, status: 500, json: async () => ({}) }));
+    renderCalendar();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Kalendář se nepodařilo načíst');
+    expect(screen.getByRole('button', { name: 'Zkusit znovu' })).toBeInTheDocument();
   });
 });

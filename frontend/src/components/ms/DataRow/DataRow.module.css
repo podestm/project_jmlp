@@ -73,3 +73,62 @@
     font-size: 17px;
   }
 }
+
+/* Karta (Zavody, MobilZavody): rámeček, lišta jako levý okraj, větší odsazení.
+   Pod 768 px se blok `aside` (stav, akce) zalomí pod text. */
+.card {
+  position: relative;
+  gap: 22px;
+  padding: 18px 22px;
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.card:last-child {
+  border-bottom: 1px solid var(--ms-line);
+}
+
+.card .bar {
+  display: none;
+}
+
+.card[data-tone='open'] { border-inline-start-color: var(--ms-open); }
+.card[data-tone='closed'],
+.card[data-tone='live'] { border-inline-start-color: var(--ms-red); }
+.card[data-tone='navy'] { border-inline-start-color: var(--ms-navy); }
+.card[data-tone='dry'] { border-inline-start-color: var(--ms-dry-ink); }
+
+.card .title {
+  font-size: 21px;
+}
+
+.aside {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .card {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ms-space-3) 14px;
+    padding: 14px 16px;
+  }
+
+  .card .text {
+    flex-basis: 0;
+  }
+
+  .card .title {
+    font-size: 18px;
+  }
+
+  .aside {
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -22,3 +22,10 @@ describe('DataRow', () => {
     expect(screen.getByText('0')).toBeInTheDocument();
   });
 });
+
+describe('DataRow – karta', () => {
+  it('vykreslí blok aside', () => {
+    render(<DataRow variant="card" tone="closed" title="Kraví hora" aside={<button type="button">Detail</button>} />);
+    expect(screen.getByRole('button', { name: 'Detail' })).toBeInTheDocument();
+  });
+});

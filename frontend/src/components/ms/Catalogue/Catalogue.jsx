@@ -113,6 +113,9 @@ function DataSection() {
           <Badge tone="closed" size="sm">Uzavřeno</Badge>
         </DataRow>
       </Panel>
+      <DataRow variant="card" tone="open" statusLabel="Registrace otevřená" lead={<BibDate date="2026-10-03" variant="list" />}
+        title="Brno – Kohoutovice" meta="FreeSki Academy Brno · 1. závod sezóny"
+        aside={<Badge tone="open" icon="check">Registrace otevřena</Badge>} />
       <TableScroll label="Ukázková tabulka">
         <Table caption="Závody sezóny 2026/27" stickyHeader>
           <thead>

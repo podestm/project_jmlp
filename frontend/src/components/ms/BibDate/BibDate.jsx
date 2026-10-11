@@ -9,6 +9,7 @@ import styles from './BibDate.module.css';
  * - card: rámeček 96 × 108, celý den, velké číslo, celý měsíc (detail závodu)
  * - table: den zkratkou, číslo, „říj 26“ (tabulky administrace)
  * - row: číslo a zkratka dne pod ním (DataRow)
+ * - list: zkratka dne, velké číslo, „říj 26“ (kalendář závodů, Zavody)
  * Čtečka dostane celé datum („sobota 3. října 2026“), zkratky jsou skryté.
  */
 export default function BibDate({ date, variant = 'table', className }) {
@@ -23,7 +24,7 @@ export default function BibDate({ date, variant = 'table', className }) {
             <span className={cx(styles.caps, styles.navy)}>{parts.month}</span>
           </>
         )}
-        {variant === 'table' && (
+        {(variant === 'table' || variant === 'list') && (
           <>
             <span className={styles.caps}>{parts.weekdayShort}</span>
             <span className={styles.number}>{parts.day}</span>

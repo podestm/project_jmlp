@@ -34,3 +34,10 @@ describe('SegmentedControl', () => {
     expect(onChange).toHaveBeenCalledWith(null);
   });
 });
+
+describe('SegmentedControl – fill', () => {
+  it('vykreslí skupinu i s fill', () => {
+    render(<SegmentedControl label="Typ" fill options={[{ value: 'a', label: 'A' }]} value="a" onChange={() => {}} />);
+    expect(screen.getByRole('group', { name: 'Typ' })).toBeInTheDocument();
+  });
+});

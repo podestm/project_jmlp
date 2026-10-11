@@ -77,3 +77,28 @@
   font-size: 24px;
   line-height: 1.05;
 }
+
+/* Kalendář závodů (Zavody: šířka 62, 11 / 33 / 11 px; MobilZavody menší). */
+.list .visual {
+  inline-size: 62px;
+}
+
+.list .caps {
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: 0.1em;
+}
+
+.list .number {
+  font-size: 33px;
+  line-height: 1.05;
+}
+
+@media (max-width: 767.98px) {
+  .list .visual {
+    inline-size: 44px;
+  }
+
+  .list .number {
+    font-size: 26px;
+  }
+}

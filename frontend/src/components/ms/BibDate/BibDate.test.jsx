@@ -24,7 +24,7 @@ describe('BibDate', () => {
     expect(screen.getByText('říj 26').closest('[aria-hidden="true"]')).toBeInTheDocument();
   });
 
-  it.each(['card', 'table', 'row'])('varianta %s vykreslí číslo dne', (variant) => {
+  it.each(['card', 'table', 'row', 'list'])('varianta %s vykreslí číslo dne', (variant) => {
     render(<BibDate date="2026-10-10" variant={variant} />);
     expect(screen.getByText('10')).toBeInTheDocument();
   });

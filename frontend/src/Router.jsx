@@ -5,7 +5,7 @@ import { LegacyIsland } from './components/ms/index.js';
 import SiteLayout from './components/site/SiteLayout/SiteLayout.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
 import Homepage from './components/pages/Homepage.jsx';
-import RaceCalendar from './components/pages/RaceCalendar.jsx';
+import RaceCalendar from './components/pages/RaceCalendar/RaceCalendar.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
@@ -44,7 +44,7 @@ const RouterContent = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={legacyPage(<Homepage />, { fluid: true, footer: 'full' })} />
-      <Route path="/zavody" element={legacyPage(<RaceCalendar />)} />
+      <Route path="/zavody" element={<SiteLayout><RaceCalendar /></SiteLayout>} />
       <Route path="/zavod/:raceId" element={legacyPage(<RaceDetail />)} />
       <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />
       <Route path="/aktuality" element={legacyPage(<NewsArchive />)} />

@@ -46,3 +46,28 @@
   color: var(--ms-ink-muted);
   cursor: not-allowed;
 }
+
+.short {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+
+  .fill {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
+
+  .fill .option {
+    justify-content: center;
+    padding: 0 var(--ms-space-2);
+  }
+}
