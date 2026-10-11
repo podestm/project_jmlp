@@ -61,7 +61,7 @@ export default [
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'vite/**/*.js'],
     languageOptions: { globals: globals.node },
   },
 ];
