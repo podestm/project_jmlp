@@ -1,4 +1,4 @@
-import { ButtonLink, EmptyState, Icon, Table, TableScroll, VisuallyHidden } from '../../ms/index.js';
+import { ButtonLink, EmptyState, Icon, Table, VisuallyHidden } from '../../ms/index.js';
 import TimingRow from './TimingRow.jsx';
 import styles from './TimingTable.module.css';
 
@@ -48,7 +48,9 @@ export default function TimingTable({
   }
 
   return (
-    <TableScroll label="Zadávání časů">
+    // Bez TableScroll: tabulka se do 720 px vejde vždy (rámec má min. 768 px),
+    // takže nevzniká posuvný box a hlavička s koly se lepí pod rámec stránky.
+    <div className={styles.card}>
       <Table density="compact" stickyHeader className={styles.table}>
         <thead>
           <tr>
@@ -79,6 +81,6 @@ export default function TimingTable({
           ))}
         </tbody>
       </Table>
-    </TableScroll>
+    </div>
   );
 }

@@ -13,12 +13,20 @@ describe('TabBar', () => {
   it('položky v pořadí závodního dne, aktivní podle adresy', () => {
     renderBar({ full_name: 'Petr Novotný', role: 'timekeeper' });
     const nav = screen.getByRole('navigation', { name: 'Časomíra' });
-    const links = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(links).toEqual([
+    const links = within(nav).getAllByRole('link');
+    const names = [
       'Přehled', 'Detail závodu', 'Závodníci', 'Startovní listina', 'Zadávání časů', 'Výsledky',
       'Čísla', 'Synchronizace', 'Zařízení',
-    ]);
+    ];
+    expect(links).toHaveLength(names.length);
+    links.forEach((link, index) => expect(link).toHaveAccessibleName(names[index]));
     expect(within(nav).getByRole('link', { name: 'Startovní listina' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('na tabletu krátký popisek, celý název pro čtečku', () => {
+    renderBar({ full_name: 'Petr Novotný', role: 'timekeeper' });
+    const link = screen.getByRole('link', { name: 'Startovní listina' });
+    expect(within(link).getByText('Startovka')).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('časoměřič nemá přepínač sekcí, správce ano', () => {

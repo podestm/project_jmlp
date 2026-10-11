@@ -80,15 +80,3 @@
 .older {
   align-self: flex-start;
 }
-
-@media (max-width: 767.98px) {
-  .last {
-    flex-direction: column;
-    align-items: stretch;
-    padding: var(--ms-space-4);
-  }
-
-  .lastIcon {
-    display: none;
-  }
-}

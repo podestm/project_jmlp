@@ -21,6 +21,7 @@
 }
 
 .run {
+  min-block-size: var(--ms-target);
   padding: 0 14px;
   border: 0;
   border-inline-start: 1px solid var(--ms-line);

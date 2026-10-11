@@ -90,13 +90,3 @@
   font-size: var(--ms-fs-2xl);
   font-variant-numeric: tabular-nums;
 }
-
-@media (max-width: 767.98px) {
-  .card {
-    padding: var(--ms-space-4);
-  }
-
-  .head {
-    gap: var(--ms-space-4);
-  }
-}

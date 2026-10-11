@@ -59,16 +59,16 @@ export const adminNav = [
 ];
 
 // Časomíra v pořadí závodního dne (TkPrehled), za oddělovačem obecné
-// nastavení nevázané k závodu. Ikony jsou pro lištu pod 1280 px a mobilní menu.
+// nastavení nevázané k závodu. Ikona a krátký popisek (short) jsou pro lištu pod 1280 px.
 export const timekeeperNav = [
   { to: '/timekeeper', label: 'Přehled', icon: 'dashboard', end: true },
-  { to: '/timekeeper/race-detail', label: 'Detail závodu', icon: 'card' },
+  { to: '/timekeeper/race-detail', label: 'Detail závodu', short: 'Detail', icon: 'card' },
   { to: '/timekeeper/racers', label: 'Závodníci', icon: 'user-plus' },
-  { to: '/timekeeper/start-list', label: 'Startovní listina', icon: 'list' },
-  { to: '/timekeeper/timing', label: 'Zadávání časů', icon: 'stopwatch' },
+  { to: '/timekeeper/start-list', label: 'Startovní listina', short: 'Startovka', icon: 'list' },
+  { to: '/timekeeper/timing', label: 'Zadávání časů', short: 'Časy', icon: 'stopwatch' },
   { to: '/timekeeper/results', label: 'Výsledky', icon: 'trophy' },
   { to: '/timekeeper/race-numbers', label: 'Čísla', icon: 'numbers', group: 'settings' },
-  { to: '/timekeeper/sync', label: 'Synchronizace', icon: 'sync', group: 'settings' },
+  { to: '/timekeeper/sync', label: 'Synchronizace', short: 'Synchr.', icon: 'sync', group: 'settings' },
   { to: '/timekeeper/device', label: 'Zařízení', icon: 'plug', group: 'settings' },
 ];
 

@@ -4,12 +4,11 @@ import { cx } from '../../../ms/cx.js';
 import styles from './StatusChip.module.css';
 
 /**
- * Jeden stavový odznak horní lišty (model ze statusChips.js). Na desktopu
- * ikona vlevo a popisek nad hodnotou (56 px), pod 1024 px dlaždice v mřížce
- * tří (TkMobilPrehled, TkMobilMenu).
+ * Jeden stavový odznak horní lišty (model ze statusChips.js): ikona vlevo
+ * a popisek nad hodnotou (56 px).
  * - to: odznak je odkaz na obrazovku, kde se stav řeší
  */
-export default function StatusChip({ chip, to, onClick }) {
+export default function StatusChip({ chip, to }) {
   const { tone, icon, label, value, valueMono, detail } = chip;
   const className = cx(styles.chip, styles[tone]);
   const content = (
@@ -30,6 +29,6 @@ export default function StatusChip({ chip, to, onClick }) {
   );
 
   return to
-    ? <Link to={to} className={className} onClick={onClick}>{content}</Link>
+    ? <Link to={to} className={className}>{content}</Link>
     : <span className={className}>{content}</span>;
 }

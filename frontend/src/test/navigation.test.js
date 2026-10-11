@@ -112,7 +112,6 @@ describe('veřejná navigace', () => {
     'components/site/MobileMenu/MobileMenu.jsx',
     'components/site/SiteFooter/SiteFooter.jsx',
     'components/timekeeper/frame/TabBar/TabBar.jsx',
-    'components/timekeeper/frame/TkMobileMenu/TkMobileMenu.jsx',
     'components/admin/frame/AdminNav/AdminNav.jsx',
   ])('%s čte odkazy z navItems', (file) => {
     expect(read(file)).toContain('navItems');

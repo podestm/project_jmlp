@@ -36,7 +36,7 @@
 }
 
 .sm {
-  min-block-size: 36px;
+  min-block-size: var(--ms-target);
   padding: 0 var(--ms-space-3);
   border-radius: var(--ms-radius-pill);
   font-size: var(--ms-fs-sm);
@@ -61,23 +61,4 @@
   font-family: var(--ms-font-mono);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 767.98px) {
-  .row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--ms-space-2);
-  }
-
-  /* Na telefonu jedna posuvná řada místo pěti řádků kategorií. */
-  .chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-block-end: var(--ms-space-1);
-  }
-
-  .chip {
-    flex-shrink: 0;
-  }
 }

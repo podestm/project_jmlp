@@ -2,6 +2,15 @@
   min-inline-size: 720px;
 }
 
+/* Karta jako TableScroll, ale bez posuvného boxu (overflow: clip jen ořízne
+   rohy), aby lepivá hlavička držela pod rámcem stránky. */
+.card {
+  overflow: clip;
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
 .narrow {
   inline-size: 1%;
   white-space: nowrap;

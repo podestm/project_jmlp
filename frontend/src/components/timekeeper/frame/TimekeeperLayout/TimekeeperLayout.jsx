@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../../config/timekeeperAuth.jsx';
 import { useConfirm } from '../../../../hooks/useConfirm.jsx';
@@ -8,21 +8,18 @@ import { cx } from '../../../ms/cx.js';
 import { logoutConfirm } from '../../dialogs/logoutConfirm.jsx';
 import { useSelectedRace } from '../selectedRace.js';
 import TabBar from '../TabBar/TabBar.jsx';
-import TkMobileMenu from '../TkMobileMenu/TkMobileMenu.jsx';
 import TopBar from '../TopBar/TopBar.jsx';
 import styles from './TimekeeperLayout.module.css';
 
-const MENU_ID = 'casomira-menu-mobil';
-
 /**
- * Rámec časomíry (TkPrehled): horní lišta s vybraným závodem a třemi stavy,
- * lišta sekce a obsah. Pod 1024 px místo lišty sekce mobilní menu.
- * Obsah je obrazovka s kořenem TkPage.
+ * Rámec časomíry (TkPrehled): horní lišta s vybraným závodem a třemi stavy
+ * a lišta sekce drží spolu nahoře, obsah (obrazovka s kořenem TkPage) se
+ * posouvá pod nimi. Časomíra je pro notebooky a tablety: telefon dostane
+ * rozvržení tabletu (min. 768 px) s vodorovným posouváním.
  */
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();
   const { race } = useSelectedRace();
-  const [menuOpen, setMenuOpen] = useState(false);
   const { isOnline, queueStats } = useSyncStatus();
   const { confirm, confirmElement } = useConfirm();
   const navigate = useNavigate();
@@ -49,18 +46,8 @@ export default function TimekeeperLayout({ children }) {
   return (
     <div className={styles.layout}>
       <header className={cx('ms-scope', styles.header)}>
-        <TopBar race={race} menuId={MENU_ID} menuOpen={menuOpen} onOpenMenu={() => setMenuOpen(true)} />
-        <div className={styles.tabs}>
-          <TabBar user={user} onLogout={handleLogout} />
-        </div>
-        <TkMobileMenu
-          id={MENU_ID}
-          open={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          race={race}
-          user={user}
-          onLogout={handleLogout}
-        />
+        <TopBar race={race} />
+        <TabBar user={user} onLogout={handleLogout} />
       </header>
       <main id="obsah" className={styles.main}>{children}</main>
       {confirmElement}

@@ -9,10 +9,8 @@ import styles from './StatusChips.module.css';
 /**
  * Spojení · Fronta · Zařízení. Samostatná komponenta, aby změny fronty
  * a sériového zařízení překreslily jen odznaky, ne celý rámec s obrazovkou.
- * Na desktopu řada, pod 1024 px mřížka tří dlaždic.
- * - onNavigate: klik na odkaz (mobilní menu se po něm zavře)
  */
-export default function StatusChips({ onNavigate, className }) {
+export default function StatusChips({ className }) {
   const { isOnline, syncState, queueStats } = useSyncStatus();
   const offlineSince = useOfflineSince(isOnline);
   const serial = useSerialSession();
@@ -20,8 +18,8 @@ export default function StatusChips({ onNavigate, className }) {
   return (
     <div role="group" aria-label="Stav časomíry" className={cx(styles.chips, className)}>
       <StatusChip chip={connectionChip({ syncState, offlineSince })} />
-      <StatusChip chip={queueChip(queueStats)} to="/timekeeper/sync" onClick={onNavigate} />
-      <StatusChip chip={deviceChip(serial)} to="/timekeeper/device" onClick={onNavigate} />
+      <StatusChip chip={queueChip(queueStats)} to="/timekeeper/sync" />
+      <StatusChip chip={deviceChip(serial)} to="/timekeeper/device" />
     </div>
   );
 }

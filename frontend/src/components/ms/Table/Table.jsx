@@ -8,7 +8,8 @@ import styles from './Table.module.css';
  *   data-numeric navíc přepne na Plex Mono s tabulkovými číslicemi
  * - <tr data-state="error|warning|open|muted"> nakreslí 4px lištu vlevo;
  *   stav musí být řečen i textem v řádku
- * - stickyHeader: hlavička zůstane nahoře při posouvání
+ * - stickyHeader: hlavička zůstane nahoře při posouvání (pod lepivým rámcem
+ *   stránky odsazená o --ms-sticky-top, které nastaví rámec)
  * - density: md (12 px řádky) | compact (8 px, časomíra)
  * - fixed: table-layout fixed (sjednocené sloupce startovní listiny)
  */

@@ -32,13 +32,3 @@
   font-size: var(--ms-fs-sm);
   color: var(--ms-ink-body);
 }
-
-@media (max-width: 767.98px) {
-  .row > * {
-    flex-grow: 1;
-  }
-
-  .clear {
-    margin-inline-start: 0;
-  }
-}

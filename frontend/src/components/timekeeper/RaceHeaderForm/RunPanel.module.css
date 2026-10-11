@@ -60,20 +60,3 @@
     grid-column: 1 / -1;
   }
 }
-
-@media (max-width: 767.98px) {
-  .head {
-    flex-wrap: wrap;
-    padding-inline: var(--ms-space-4);
-  }
-
-  .note {
-    flex-basis: 100%;
-    font-size: var(--ms-fs-sm);
-  }
-
-  .fields {
-    grid-template-columns: minmax(0, 1fr);
-    padding: var(--ms-space-4);
-  }
-}

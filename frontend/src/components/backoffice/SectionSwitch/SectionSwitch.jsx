@@ -10,7 +10,7 @@ const SECTIONS = [
 
 /**
  * Přepínač Admin / Časomíra na navy ploše (TkPrehled „Přihlášený v roli
- * Admin“, TkMobilMenu, postranní panel administrace). Jen pro roli admin – časoměřiče server do
+ * Admin“, postranní panel a mobilní menu administrace). Jen pro roli admin – časoměřiče server do
  * administrace nepustí. Přihlášení je společné, takže přepnutí je bez
  * nového přihlášení.
  * - current: sekce, ve které uživatel je

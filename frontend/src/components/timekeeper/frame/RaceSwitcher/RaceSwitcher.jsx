@@ -8,9 +8,8 @@ import styles from './RaceSwitcher.module.css';
 /**
  * „Měříme závod“ v horní liště: vybraný závod a odkaz do Přehledu, kde se
  * závod přepíná (jinde se přepnout nedá).
- * - layout bar: rámeček s „Přepnout“ (desktop), plain: jen text (mobilní hlavička a menu)
  */
-export default function RaceSwitcher({ race, layout = 'bar', className }) {
+export default function RaceSwitcher({ race, className }) {
   const info = race ? (
     <>
       <span className={styles.name}>{race.areal_name || `Závod ${race.race_nr || race.id}`}</span>
@@ -24,15 +23,6 @@ export default function RaceSwitcher({ race, layout = 'bar', className }) {
   ) : (
     <span className={styles.name}>Závod není vybraný</span>
   );
-
-  if (layout !== 'bar') {
-    return (
-      <span className={cx(styles.plain, styles[layout], className)}>
-        <span className={styles.caps}>{layout === 'compact' ? 'Časomíra · měříme závod' : 'Měříme závod'}</span>
-        {info}
-      </span>
-    );
-  }
 
   return (
     <Link to="/timekeeper" className={cx(styles.switcher, className)}>

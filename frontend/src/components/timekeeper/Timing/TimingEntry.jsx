@@ -489,6 +489,7 @@ export default function TimingEntry() {
           </div>
 
           <SerialInboxPanel
+            className={styles.inbox}
             events={inboxEvents}
             visibleEvents={visibleInboxEvents}
             hiddenCount={hiddenInboxCount}

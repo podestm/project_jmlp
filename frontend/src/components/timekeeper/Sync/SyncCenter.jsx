@@ -10,7 +10,7 @@ import { useSyncCenter } from './useSyncCenter.js';
 import styles from './SyncCenter.module.css';
 
 /**
- * Synchronizace (TkSynchronizace, TkMobilSynchronizace): počty fronty
+ * Synchronizace (TkSynchronizace): počty fronty
  * a Odeslat teď, fronta změn, otevřené konflikty a záloha. Data a akce
  * drží useSyncCenter.
  */

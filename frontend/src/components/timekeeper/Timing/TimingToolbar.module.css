@@ -103,13 +103,3 @@
   font-weight: 600;
   color: var(--ms-ink);
 }
-
-@media (max-width: 767.98px) {
-  .hint {
-    margin-inline-start: 0;
-  }
-
-  .bar {
-    inline-size: 120px;
-  }
-}

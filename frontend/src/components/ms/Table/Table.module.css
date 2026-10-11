@@ -78,7 +78,7 @@
 
 .sticky thead th {
   position: sticky;
-  inset-block-start: 0;
+  inset-block-start: var(--ms-sticky-top, 0);
   z-index: var(--ms-z-sticky);
   background: var(--ms-surface-sunken);
 }

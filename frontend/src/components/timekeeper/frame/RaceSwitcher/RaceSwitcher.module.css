@@ -101,45 +101,21 @@
   line-height: 1.2;
 }
 
-/* ── Bez rámečku (mobil): jen text ── */
-.plain {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-inline-size: 0;
-}
-
-.plain .caps {
-  font-size: var(--ms-fs-2xs);
-}
-
-.plain .name {
-  font-size: 20px;
-}
-
-.plain .date {
-  gap: 5px;
-}
-
-.plain .mono {
-  font-size: var(--ms-fs-sm);
-}
-
-.compact {
-  gap: 2px;
-}
-
-.compact .name {
-  font-size: 17px;
-}
-
-.compact .mono {
-  font-size: var(--ms-fs-xs);
-}
-
 /* Pod 1280 px zůstane z rámečku jen název a „Přepnout“. */
 @media (max-width: 1279.98px) {
   .switcher .date {
+    display: none;
+  }
+}
+
+/* Pod 1024 px (tablet na výšku) dostane místo název závodu, ne ikona. */
+@media (max-width: 1023.98px) {
+  .switcher {
+    gap: var(--ms-space-3);
+    padding-inline: var(--ms-space-3);
+  }
+
+  .tag {
     display: none;
   }
 }

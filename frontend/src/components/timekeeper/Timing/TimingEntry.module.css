@@ -40,3 +40,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Vedle tabulky schránka drží pod rámcem; výpis impulzů se zkrátí, aby se
+   panel i s tlačítky vešel na výšku okna. */
+@media (min-width: 1280px) {
+  .inbox {
+    position: sticky;
+    inset-block-start: calc(var(--ms-sticky-top, 0px) + var(--ms-space-4));
+    max-block-size: calc(100dvh - var(--ms-sticky-top, 0px) - var(--ms-space-8));
+  }
+}

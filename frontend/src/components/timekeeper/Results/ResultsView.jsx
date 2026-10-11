@@ -6,7 +6,6 @@ import TkPage from '../frame/TkPage/TkPage.jsx';
 import PdfPreviewModal from '../PdfPreviewModal.jsx';
 import TimekeeperMessage from '../TimekeeperMessage.jsx';
 import ResultsInfo from './ResultsInfo.jsx';
-import ResultsList from './ResultsList.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import ResultsToolbar from './ResultsToolbar.jsx';
 import { hasAnyResult } from './resultsView.js';
@@ -79,10 +78,7 @@ export default function ResultsView() {
             />
           )}
           {selectedCategory && (
-            <>
-              <div className={styles.wide}><ResultsTable entries={selectedCategory.entries} showPoints /></div>
-              <div className={styles.narrow}><ResultsList entries={selectedCategory.entries} /></div>
-            </>
+            <ResultsTable entries={selectedCategory.entries} showPoints />
           )}
         </section>
       )}

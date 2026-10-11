@@ -61,16 +61,6 @@
   grid-area: chips;
 }
 
-.compactRace,
-.top .menuButton {
-  display: none;
-}
-
-.top .menuButton {
-  grid-area: menu;
-  border-color: transparent;
-}
-
 /* Pod 1280 px zůstane ze značky jen znak. */
 @media (max-width: 1279.98px) {
   .top {
@@ -78,47 +68,12 @@
     padding-inline: var(--ms-space-4);
   }
 
+  .brand {
+    justify-content: center;
+    min-inline-size: var(--ms-target);
+  }
+
   .brandText {
     display: none;
-  }
-}
-
-/* Pod 1024 px (TkMobilPrehled): znak, závod a hamburger, pod nimi stavy. */
-@media (max-width: 1023.98px) {
-  .top {
-    grid-template-areas:
-      'brand race menu'
-      'chips chips chips';
-    gap: 0 10px;
-    block-size: auto;
-    padding: 0 var(--ms-space-1) var(--ms-space-3) var(--ms-space-4);
-  }
-
-  .brand {
-    block-size: 72px;
-  }
-
-  .logo {
-    inline-size: 36px;
-    block-size: 36px;
-  }
-
-  .center {
-    display: none;
-  }
-
-  .compactRace {
-    display: flex;
-    grid-area: race;
-  }
-
-  .chips {
-    padding-inline-end: var(--ms-space-3);
-  }
-
-  .top .menuButton {
-    display: inline-flex;
-    inline-size: 52px;
-    block-size: 52px;
   }
 }

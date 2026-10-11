@@ -8,6 +8,8 @@
 .option {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-inline-size: var(--ms-target);
   gap: 7px;
   padding: 0 16px;
   background: var(--ms-surface-card);

@@ -1,4 +1,5 @@
 import { Button, EmptyState, IconButton, Switch } from '../../../ms/index.js';
+import { cx } from '../../../ms/cx.js';
 import { EMPTY_RESOLUTION } from '../../inboxMatching.js';
 import { INBOX_RENDER_LIMIT } from '../../useInboxEvents.js';
 import BridgeEventRow from './BridgeEventRow.jsx';
@@ -24,6 +25,7 @@ import styles from './SerialInboxPanel.module.css';
  * @param {boolean} autoWrite        zapisovat jednoznačné události bez potvrzení
  * @param {function} onAutoWriteChange přepne automatický zápis
  * @param {function} onRejectAuto    „Zamítnout“ u automaticky zapsané události
+ * @param {string}   className       umístění v obrazovce (lepivý panel vedle tabulky)
  */
 export default function SerialInboxPanel({
   events,
@@ -44,6 +46,7 @@ export default function SerialInboxPanel({
   onDismissUnparsed,
   onClearResolved,
   onClearAll,
+  className,
 }) {
   const { decide, done } = groupInboxEvents(visibleEvents);
   const summary = autoWriteSummary(events);
@@ -69,7 +72,7 @@ export default function SerialInboxPanel({
   };
 
   return (
-    <section className={styles.panel} aria-labelledby="schranka-impulzu">
+    <section className={cx(styles.panel, className)} aria-labelledby="schranka-impulzu">
       <header className={styles.header}>
         <h2 id="schranka-impulzu" className={styles.title}>Schránka impulzů</h2>
         <span className={styles.round}>Kolo {targetRound}</span>
