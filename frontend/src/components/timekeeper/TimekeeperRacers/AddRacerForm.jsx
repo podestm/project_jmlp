@@ -62,7 +62,7 @@ export default function AddRacerForm({ racers }) {
 
       <div className={styles.status}>
         {selectedRacer && (
-          <Badge tone="navy" size="sm" icon="check">Vybrán: {selectedRacer.name} {selectedRacer.surname}</Badge>
+          <Badge tone="navy" size="sm" icon="check">Vybrán: {selectedRacer.surname} {selectedRacer.name}</Badge>
         )}
         <Badge tone="dry" size="sm" icon="tag">Kategorie: {categoryPreview(formData.year, formData.sex)}</Badge>
       </div>

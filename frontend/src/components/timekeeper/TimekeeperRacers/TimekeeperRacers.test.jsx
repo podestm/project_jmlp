@@ -79,14 +79,14 @@ describe('závodníci závodu', () => {
 
     await userEvent.type(screen.getByLabelText('Příjmení', { selector: '#tk-racer-surname' }), 'Mor');
     await userEvent.type(screen.getByLabelText('Jméno', { selector: '#tk-racer-name' }), 'Radka');
-    await userEvent.click(await screen.findByRole('button', { name: /Radka More/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /More Radka/ }));
     expect(api.get).not.toHaveBeenCalledWith('/api/timekeeper/racers/search', expect.anything());
 
     await userEvent.click(screen.getByRole('button', { name: 'Přidat do závodu' }));
     expect(api.post).toHaveBeenCalledWith('/api/timekeeper/races/7/start-list/entry', expect.objectContaining({
       racer_id: 90, racer_surname: 'More', client_temp_id: expect.any(Number),
     }));
-    const row = (await screen.findByText('More Radka')).closest('tr');
+    const row = await screen.findByRole('row', { name: /More Radka/ });
     expect(within(row).getByText('offline')).toBeInTheDocument();
   });
 });
