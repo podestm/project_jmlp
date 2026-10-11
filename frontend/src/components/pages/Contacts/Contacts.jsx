@@ -24,7 +24,7 @@ export default function Contacts() {
       <Container className={styles.page}>
         <PageHeader eyebrow="Soutěžní výbor a kluby" title="Kontakty" />
 
-        <section className={styles.section} aria-labelledby="vedeni">
+        <section className={styles.section} aria-labelledby="vybor">
           <Paska id="vybor">Soutěžní výbor</Paska>
           <ul className={styles.officials}>
             {OFFICIALS.map((official, index) => (
@@ -32,7 +32,7 @@ export default function Contacts() {
                 <p className={styles.position}>{official.position}</p>
                 <h3 className={styles.name}>{official.name}</h3>
                 <p className={styles.email}>{official.email}</p>
-                <ButtonLink href={`mailto:${official.email}`} variant={index === 0 ? 'primary' : 'outline'} icon="mail" block
+                <ButtonLink href={`mailto:${official.email}`} variant="outline" icon="mail" block
                   aria-label={`Napsat e-mail – ${official.name}`}>
                   Napsat e-mail
                 </ButtonLink>
