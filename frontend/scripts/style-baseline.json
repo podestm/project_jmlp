@@ -8,8 +8,8 @@
   "src/assets/styles/admin.css": {
     "bootstrap": 348,
     "bs": 175,
-    "legacyVars": 404,
-    "themeBackoffice": 194
+    "legacyVars": 403,
+    "themeBackoffice": 189
   },
   "src/assets/styles/base.css": {
     "bootstrap": 15,
@@ -156,20 +156,7 @@
     "bootstrap": 4
   },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
-    "bootstrap": 4
-  },
-  "src/components/timekeeper/SyncCenter.jsx": {
-    "bootstrap": 182
-  },
-  "src/components/timekeeper/TimekeeperChrome.jsx": {
-    "legacyVars": 1
-  },
-  "src/components/timekeeper/TimekeeperRoutes.jsx": {
-    "themeBackoffice": 1
-  },
-  "src/components/timekeeper/TimingDeviceSettings.jsx": {
-    "bootstrap": 128,
-    "emoji": 3
+    "bootstrap": 2
   },
   "src/components/timekeeper/inboxMatching.js": {
     "emoji": 3

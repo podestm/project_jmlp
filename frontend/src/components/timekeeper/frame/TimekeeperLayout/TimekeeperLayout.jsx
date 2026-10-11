@@ -13,7 +13,7 @@ const MENU_ID = 'casomira-menu-mobil';
 /**
  * Rámec časomíry (TkPrehled): horní lišta s vybraným závodem a třemi stavy,
  * lišta sekce a obsah. Pod 1024 px místo lišty sekce mobilní menu.
- * Obsah je převedená obrazovka (kořen TkPage) nebo LegacyIsland variant="tk".
+ * Obsah je obrazovka s kořenem TkPage.
  */
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();

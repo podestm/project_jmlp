@@ -2,8 +2,8 @@
    ADMINISTRACE (/admin) A ČASOMĚŘIČ (/timekeeper) - světlé téma
    ═══════════════════════════════════════════════════════════════════════
 
-   Zapíná ho třída .theme-backoffice na <body> (useBodyClass v AdminRoutes
-   a TimekeeperRoutes), takže platí pro všechno, co se v obou sekcích
+   Zapíná ho třída .theme-backoffice na <body> (useBodyClass v AdminRoutes;
+   časomíra je od Fáze 5 celá na Modré stopě a téma nepoužívá), takže platí pro všechno, co se v obou sekcích
    vykreslí: stránky, modální okna, výběr z knihovny, rozbalovací seznamy
    i přihlášení.
 
@@ -261,7 +261,7 @@ body.theme-backoffice .border-info { border-color: var(--adm-info) !important; }
 
 /* ── Rozložení ───────────────────────────────────────────────────────── */
 
-body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) {
+body.theme-backoffice .admin-layout-content {
   background: var(--adm-bg) !important;
   color: var(--adm-text);
 }
@@ -317,12 +317,12 @@ body.theme-backoffice .section-switch-option.is-active.is-admin { background: va
 body.theme-backoffice .section-switch-option.is-active.is-timekeeper { background: var(--tk-accent-fill); }
 
 /* Odkazy v obsahu - veřejný web jim vnucuje bílou barvu */
-body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) .nav-link,
+body.theme-backoffice .admin-layout-content .nav-link,
 body.theme-backoffice .modal .nav-link {
   color: var(--adm-primary) !important;
 }
 
-body.theme-backoffice :is(.admin-layout-content, .timekeeper-section) .nav-link.active,
+body.theme-backoffice .admin-layout-content .nav-link.active,
 body.theme-backoffice .modal .nav-link.active {
   color: var(--adm-text) !important;
 }
@@ -808,106 +808,4 @@ body.theme-backoffice .dashboard-upcoming-race .badge { background-color: rgba(1
   body.theme-backoffice .admin-layout-content .fs-3 {
     font-size: 1.25rem !important;
   }
-}
-
-/* ── Časoměřič: komponenty ───────────────────────────────────────────────
-   Barvy řeší sdílené téma výše. Dřív tu byla vlastní kopie přebarvení
-   jen pro .timekeeper-section (s .text-warning #ffc107 na bílé 1.6:1
-   a vynuceně tmavým textem i na tmavých prvcích). */
-
-/* Přehled závodů - závod na jeden řádek, pruh vlevo odlišuje nadcházející
-   a proběhlé. body.theme-backoffice kvůli pravidlům karet v tématu výše. */
-body.theme-backoffice .timekeeper-section .timekeeper-race-card {
-  border-radius: 10px !important;
-  transition: box-shadow 0.18s ease;
-}
-
-body.theme-backoffice .timekeeper-section .timekeeper-race-card:hover {
-  box-shadow: 0 0.35rem 1rem rgba(15, 23, 42, 0.1) !important;
-}
-
-body.theme-backoffice .timekeeper-section .timekeeper-race-card.is-upcoming {
-  border-left: 4px solid var(--tk-accent, #e94560) !important;
-}
-
-body.theme-backoffice .timekeeper-section .timekeeper-race-card.is-past {
-  border-left: 4px solid #94a3b8 !important;
-}
-
-.timekeeper-section .timekeeper-race-number-grid {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  min-width: max-content;
-}
-
-.timekeeper-section .timekeeper-race-number-column {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 82px;
-}
-
-.timekeeper-section .timekeeper-race-number-column-header {
-  font-size: 0.64rem;
-  font-weight: 700;
-  color: #6c757d !important;
-  text-align: center;
-  padding-bottom: 0.1rem;
-}
-
-.timekeeper-section .timekeeper-race-number-item {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.3rem;
-  width: 100%;
-  padding: 0.22rem 0.38rem;
-  border: 1px solid var(--set-border, #dee2e6);
-  border-radius: 7px;
-  background: var(--set-bg, #fff) !important;
-  font-size: 0.74rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
-}
-
-.timekeeper-section .timekeeper-race-number-item:hover {
-  filter: brightness(0.98);
-}
-
-.timekeeper-section .timekeeper-race-number-item.is-active {
-  border-color: var(--set-border, rgba(233, 69, 96, 0.35));
-  background: var(--set-bg, rgba(233, 69, 96, 0.06)) !important;
-}
-
-.timekeeper-section .timekeeper-race-number-item.is-inactive {
-  /* Neaktivní sada má být zašedlá, ale pořád čitelná: při 0.55 vycházel
-     kontrast 3.56:1, což je pod hranicí čitelnosti. 0.7 dává 5.5:1. */
-  opacity: 0.7;
-  border-color: #e9ecef;
-  background: #f8f9fa !important;
-}
-
-.timekeeper-section .timekeeper-race-number-item:disabled {
-  cursor: wait;
-}
-
-.timekeeper-section .timekeeper-race-number-state {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--set-solid, #e94560);
-  flex-shrink: 0;
-}
-
-.timekeeper-section .timekeeper-race-number-item.is-inactive .timekeeper-race-number-state {
-  background: #adb5bd;
-}
-
-.timekeeper-section .timekeeper-race-number-display {
-  min-width: 18px;
-}
-
-.timekeeper-section .timekeeper-race-number-actual {
-  font-size: 0.6rem;
 }

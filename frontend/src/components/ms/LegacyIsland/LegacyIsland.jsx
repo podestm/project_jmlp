@@ -3,7 +3,6 @@
  * obaly, na kterých stojí staré CSS (ve vrstvě legacy), aby obrazovka vypadala
  * jako dnes.
  * - admin: admin-layout-content s odsazením a container-fluid
- * - tk: timekeeper-section (pravidla časomíry v admin.css) s container-fluid
  *
  * Jediná komponenta kitu se třídami Bootstrapu – check:styles ji má jako
  * výjimku. Na předcích ostrova nesmí být transform, filter, backdrop-filter,
@@ -14,13 +13,6 @@ export default function LegacyIsland({ variant, children }) {
   if (variant === 'admin') {
     return (
       <div className="admin-layout-content p-4">
-        <div className="container-fluid">{children}</div>
-      </div>
-    );
-  }
-  if (variant === 'tk') {
-    return (
-      <div className="timekeeper-section p-4">
         <div className="container-fluid">{children}</div>
       </div>
     );
