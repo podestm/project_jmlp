@@ -15,7 +15,8 @@ from ..database import get_db
 from .. import models
 from ..models import AttachmentOwner, AttachmentRole
 from ..services import attachments as attachment_service
-from ..utils import get_current_season_id, to_roman
+from ..services import seasons as season_service
+from ..utils import to_roman
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 def list_documents(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Zveřejněné dokumenty seskupené po sezónách, od nejnovější."""
     seasons = db.query(models.Season).order_by(models.Season.year_start.desc()).all()
-    current_season_id = get_current_season_id()
+    current_season_id = season_service.current_season_id(db)
 
     groups: List[Dict[str, Any]] = []
     for season in seasons:

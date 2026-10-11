@@ -296,7 +296,8 @@ class Season(Base):
     year_end: Mapped[int] = mapped_column(Integer, nullable=False)
     edition: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 19 -> "XIX."
     name: Mapped[str] = mapped_column(String(160, collation='utf8mb4_unicode_ci'), nullable=False)
-    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Aktuální sezóna (nejvýš jedna) - viz services/seasons.py
+    is_current: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

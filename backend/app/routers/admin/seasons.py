@@ -14,6 +14,7 @@ from ...database import get_db
 from ... import models, schemas, auth
 from ...models import AttachmentOwner
 from ...services import attachments as attachment_service
+from ...services import seasons as season_service
 from ...utils import to_roman
 
 router = APIRouter(prefix="/seasons", tags=["admin-seasons"])
@@ -33,7 +34,7 @@ def _season_dict(season: models.Season, db: Session) -> Dict[str, Any]:
         "edition_label": f"{to_roman(season.edition)}." if season.edition else None,
         "season_label": f"{season.year_start}/{season.year_end}",
         "name": season.name,
-        "active": bool(season.active),
+        "is_current": bool(season.is_current),
         "races_count": races_count,
         "documents_count": documents_count,
     }
@@ -73,7 +74,6 @@ def create_season(
         year_end=payload.year_end or payload.year_start + 1,
         edition=payload.edition,
         name=payload.name,
-        active=payload.active,
     )
     db.add(season)
     db.commit()
@@ -99,6 +99,19 @@ def update_season(
     return _season_dict(season, db)
 
 
+@router.post("/{season_id}/current", response_model=schemas.Season)
+def set_current_season(
+    season_id: int,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Nastaví sezónu jako aktuální; ostatním příznak zruší."""
+    season = _get_season(db, season_id)
+    season_service.set_current_season(db, season.id)
+    db.refresh(season)
+    return _season_dict(season, db)
+
+
 @router.delete("/{season_id}")
 def delete_season(
     season_id: int,
@@ -106,6 +119,12 @@ def delete_season(
     db: Session = Depends(get_db),
 ):
     season = _get_season(db, season_id)
+
+    if season.is_current:
+        raise HTTPException(
+            status_code=409,
+            detail="Aktuální sezónu nelze smazat. Nejdřív nastavte jako aktuální jinou.",
+        )
 
     races_count = db.query(models.Race).filter(models.Race.season_id == season.year_start).count()
     if races_count:

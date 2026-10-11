@@ -52,7 +52,7 @@ def _zavod(db, race_nr="JMLP2026-01", datum=date(2026, 1, 17), season_id=2026):
 def _sezona(db, year_start=2025):
     season = models.Season(
         year_start=year_start, year_end=year_start + 1, edition=19,
-        name=f"Sezóna {year_start}/{year_start + 1}", active=True,
+        name=f"Sezóna {year_start}/{year_start + 1}",
     )
     db.add(season)
     db.commit()

@@ -68,12 +68,8 @@ def get_current_season_id(reference_date: Optional[date] = None) -> int:
     return season_id
 
 
-def get_current_season(reference_date: Optional[date] = None) -> dict:
-    season_id = get_current_season_id(reference_date)
-    return {
-        'year_start': season_id,
-        'year_end': season_id + 1
-    }
+# Pohár se jezdí od roku 2006: sezóna 2025 = XIX. ročník (edition = year_start - 2006)
+EDITION_BASE_YEAR = 2006
 
 
 _ROMAN_NUMERALS = (

@@ -409,7 +409,6 @@ class SeasonBase(BaseModel):
     year_end: Optional[int] = None       # dopočítá se jako year_start + 1
     edition: Optional[int] = None        # 19 -> "XIX."
     name: str = "Jihomoravský lyžařský pohár"
-    active: bool = True
 
 
 class SeasonCreate(SeasonBase):
@@ -421,12 +420,12 @@ class SeasonUpdate(BaseModel):
     year_end: Optional[int] = None
     edition: Optional[int] = None
     name: Optional[str] = None
-    active: Optional[bool] = None
 
 
 class Season(SeasonBase):
     id: int
     year_end: int
+    is_current: bool = False              # aktuální sezóna (nastavuje se zvlášť)
     edition_label: Optional[str] = None   # "XIX."
     season_label: Optional[str] = None    # "2025/2026"
     races_count: int = 0

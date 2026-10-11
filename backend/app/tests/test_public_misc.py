@@ -586,6 +586,18 @@ def test_dokumenty_deli_aktualni_sezonu_a_archiv(client, db):
     assert all(g["is_current"] is False for g in data["archive"])
 
 
+
+def test_dokumenty_berou_aktualni_sezonu_oznacenou_ve_sprave(client, db):
+    lonska, _ = _sezona_s_dokumentem(db, AKTUALNI_SEZONA - 1, "document")
+    _sezona_s_dokumentem(db, AKTUALNI_SEZONA, "document")
+    lonska.is_current = True
+    db.commit()
+
+    data = client.get("/documents").json()
+
+    assert data["current"]["season_year_start"] == AKTUALNI_SEZONA - 1
+    assert [g["season_year_start"] for g in data["archive"]] == [AKTUALNI_SEZONA]
+
 def test_dokumenty_sezony_nesou_nazev_a_odkaz_ke_stazeni(client, db):
     _sezona(db, AKTUALNI_SEZONA, edition=19, name="XIX. ročník JMLP")
     soubor = _soubor(db, "Soutezni rad.pdf", filename="sezona-rad.pdf", file_size=4096)

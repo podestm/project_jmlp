@@ -263,7 +263,7 @@ CREATE TABLE `fuj_jmlp_season` (
   `year_end` int NOT NULL,
   `edition` int DEFAULT NULL,
   `name` varchar(160) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `is_current` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

@@ -21,7 +21,8 @@ from .. import models
 from ..models import AttachmentOwner, AttachmentRole
 from ..services import attachments as attachment_service
 from ..services import standings as standings_service
-from ..utils import get_current_season, to_roman
+from ..services import seasons as season_service
+from ..utils import to_roman
 
 router = APIRouter(prefix="/season-results", tags=["season-results"])
 
@@ -65,7 +66,7 @@ def get_all_season_results(db: Session = Depends(get_db)) -> List[Dict[str, Any]
 @router.get("/current")
 def get_current_season_result(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Výsledky aktuální sezóny."""
-    year_start = get_current_season()["year_start"]
+    year_start = season_service.current_season_id(db)
     season = db.query(models.Season).filter(models.Season.year_start == year_start).first()
     payload = _season_payload(season, db) if season else None
     if not payload:
