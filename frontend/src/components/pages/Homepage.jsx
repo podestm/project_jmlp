@@ -104,7 +104,7 @@ function Homepage() {
 
   return (
     <div>
-      <style>{`
+      <style>{`@layer legacy {
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
@@ -122,7 +122,7 @@ function Homepage() {
           transform: translateY(-3px);
           box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
         }
-      `}</style>
+      }`}</style>
 
       <div className="content-wrapper">
         <div className="row justify-content-center">

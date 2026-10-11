@@ -404,7 +404,7 @@ export default function TimekeeperRacers() {
 
   return (
     <div>
-      <style>{`
+      <style>{`@layer legacy {
         .timekeeper-racers-panel .form-label {
           font-size: 0.78rem;
           margin-bottom: 0.2rem;
@@ -438,7 +438,7 @@ export default function TimekeeperRacers() {
           font-size: 0.72rem;
           line-height: 1.1;
         }
-      `}</style>
+      }`}</style>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="fw-bold mb-0">

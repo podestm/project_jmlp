@@ -69,7 +69,7 @@ export default function TimekeeperLayout({ children }) {
 
   return (
     <div className="d-flex" style={{ minHeight: '100vh' }}>
-      <style>{`
+      <style>{`@layer legacy {
         .timekeeper-sidebar {
           width: clamp(88px, 16vw, 260px);
           flex: 0 0 clamp(88px, 16vw, 260px);
@@ -166,7 +166,7 @@ export default function TimekeeperLayout({ children }) {
             font-size: 0.68rem;
           }
         }
-      `}</style>
+      }`}</style>
       {/* Sidebar */}
       <div 
         className="text-white d-flex flex-column timekeeper-sidebar"

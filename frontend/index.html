@@ -15,6 +15,8 @@
     
     <!-- JMLP Custom Colors - Override Bootstrap CDN -->
     <style>
+      /* Staré CSS je ve vrstvě legacy (redesign Modrá stopa, D0) */
+      @layer legacy {
       /* Primary Color - Blue */
       :root {
         --jmlp-primary: #2664EB;
@@ -122,6 +124,7 @@
       .nav-link {
         color: white !important;
       }
+      } /* @layer legacy */
     </style>
   </head>
   <body>

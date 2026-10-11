@@ -133,12 +133,12 @@ export default function TimekeeperDashboard() {
 
   return (
     <div>
-      <style>{`
+      <style>{`@layer legacy {
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
         }
-      `}</style>
+      }`}</style>
 
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center gap-2 mb-3">

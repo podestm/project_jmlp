@@ -29,7 +29,7 @@ const RegistrationFormFields = ({
     };
 
     // Globální styl pro placeholdery a select
-    const placeholderStyles = `
+    const placeholderStyles = `@layer legacy {
         .registration-input::placeholder {
             color: rgba(255, 255, 255, 0.55) !important;
             opacity: 1 !important;
@@ -38,7 +38,7 @@ const RegistrationFormFields = ({
             color: #212529 !important;
             background: white !important;
         }
-    `;
+    }`;
 
     return (
         <>
