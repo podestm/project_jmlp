@@ -4,7 +4,7 @@ import { LiveStatusProvider } from './contexts/LiveStatusContext.jsx';
 import { LegacyIsland } from './components/ms/index.js';
 import SiteLayout from './components/site/SiteLayout/SiteLayout.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
-import Homepage from './components/pages/Homepage.jsx';
+import Home from './components/pages/Home/Home.jsx';
 import RaceCalendar from './components/pages/RaceCalendar/RaceCalendar.jsx';
 import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
@@ -43,7 +43,7 @@ const RouterContent = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={legacyPage(<Homepage />, { fluid: true, footer: 'full' })} />
+      <Route path="/" element={<SiteLayout footer="full"><Home /></SiteLayout>} />
       <Route path="/zavody" element={<SiteLayout><RaceCalendar /></SiteLayout>} />
       <Route path="/zavod/:raceId" element={<SiteLayout><RaceDetail /></SiteLayout>} />
       <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />

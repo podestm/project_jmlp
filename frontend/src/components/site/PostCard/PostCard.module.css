@@ -1,0 +1,157 @@
+/* AktualityArchiv „Karta příspěvku – čtyři polohy obrázku“ a Main „Aktuality“. */
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  overflow: hidden;
+}
+
+.media {
+  min-inline-size: 0;
+}
+
+.image {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  /* contain: v příspěvcích bývají i loga a plakáty, nesmí se oříznout */
+  object-fit: contain;
+  background: var(--ms-surface-sunken);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 22px 26px 26px;
+  min-inline-size: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.date {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+.attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 600;
+  color: var(--ms-ink-body);
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-2xl);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.text {
+  font-size: var(--ms-fs-lg);
+  line-height: 1.6;
+  color: var(--ms-ink-body);
+  overflow-wrap: anywhere;
+}
+
+.download {
+  margin-block-start: var(--ms-space-2);
+}
+
+/* Obrázek nahoře přes celou šířku karty. */
+.card[data-image='top'] .image {
+  block-size: 240px;
+}
+
+/* Obrázek vlevo / vpravo ve sloupci 320 px. */
+.full[data-image='left'] {
+  grid-template-columns: 320px minmax(0, 1fr);
+}
+
+.full[data-image='right'] {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.full[data-image='right'] .media {
+  order: 1;
+}
+
+.full[data-image='left'] .media,
+.full[data-image='right'] .media {
+  padding: var(--ms-space-5);
+}
+
+.full[data-image='left'] .image,
+.full[data-image='right'] .image {
+  block-size: auto;
+  max-block-size: 320px;
+  border-radius: var(--ms-radius-control);
+}
+
+/* Upoutávka na úvodu: menší obrázek a písmo. */
+.teaser[data-image='top'] .image {
+  block-size: 160px;
+}
+
+.teaser .body {
+  padding: 18px 20px 20px;
+}
+
+.teaser .title {
+  font-size: var(--ms-fs-xl);
+}
+
+.teaser .text {
+  font-size: var(--ms-fs-base);
+  line-height: 1.55;
+}
+
+.teaser .download {
+  align-self: stretch;
+}
+
+@media (max-width: 767.98px) {
+  .full[data-image='left'],
+  .full[data-image='right'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .full[data-image='right'] .media {
+    order: 0;
+  }
+
+  .full[data-image='left'] .media,
+  .full[data-image='right'] .media {
+    padding: 0;
+  }
+
+  .full[data-image='left'] .image,
+  .full[data-image='right'] .image {
+    border-radius: 0;
+    max-block-size: 220px;
+  }
+
+  .body {
+    padding: 16px 16px 20px;
+  }
+
+  .title {
+    font-size: var(--ms-fs-xl);
+  }
+}
