@@ -1,0 +1,79 @@
+/* MobilVysledky: řádky pořadí od kraje ke kraji. */
+.list {
+  list-style: none;
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  padding: 14px var(--ms-space-4);
+}
+
+.row + .row {
+  border-block-start: 1px solid var(--ms-line);
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.rank[data-podium] {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.name {
+  font-size: var(--ms-fs-lg);
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.total {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-xl);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.unit {
+  font-family: var(--ms-font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}

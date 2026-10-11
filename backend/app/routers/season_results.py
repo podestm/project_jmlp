@@ -20,6 +20,7 @@ from ..database import get_db
 from .. import models
 from ..models import AttachmentOwner, AttachmentRole
 from ..services import attachments as attachment_service
+from ..services import standings as standings_service
 from ..utils import get_current_season, to_roman
 
 router = APIRouter(prefix="/season-results", tags=["season-results"])
@@ -73,6 +74,72 @@ def get_current_season_result(db: Session = Depends(get_db)) -> Dict[str, Any]:
             detail=f"Celkové výsledky pro sezónu {year_start}/{year_start + 1} nebyly nalezeny",
         )
     return payload
+
+
+def _public_cell(cell: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Buňka pořadí pro web: místo textu „2/80“ (formát listiny LIP) zvlášť
+    místo a body, u DSQ/DNF jen stav."""
+    if cell is None:
+        return None
+    rank, _, points = cell["text"].partition("/")
+    if points:
+        return {"rank": int(rank), "points": int(points), "status": None, "counted": cell["counted"]}
+    return {"rank": None, "points": 0, "status": cell["text"] or None, "counted": cell["counted"]}
+
+
+@router.get("/{season_id}/standings")
+def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Pořadí poháru pro veřejnou stránku Výsledky (jen čtení).
+
+    Počítá stejná služba jako náhled časomíry (services/standings.py), takže
+    web, PDF i časomíra mají stejné body i pořadí. Celkové výsledky (final)
+    jen tehdy, když jsou u sezóny zveřejněné celkové výsledky; jinak průběžné.
+    Sezóna bez odjetého závodu s výsledky vrátí prázdný seznam kategorií.
+    """
+    season = db.query(models.Season).filter(models.Season.year_start == season_id).first()
+    if not season:
+        raise HTTPException(status_code=404, detail="Sezóna nenalezena")
+
+    document = _season_payload(season, db)
+    final = bool(document and document["final_results"] == 1)
+    data = standings_service.season_standings(db, season_id, final=final)
+
+    return {
+        "season_id": season_id,
+        "season_label": f"{season_id}/{(season_id + 1) % 100:02d}",
+        "edition_label": f"{to_roman(season.edition)}." if season.edition else None,
+        "final": final,
+        "document": {
+            "url": f"/{document['document_file_path']}",
+            "final": final,
+        } if document else None,
+        "races": [
+            {key: race[key] for key in ("id", "kind", "datum", "race_nr", "areal_name")}
+            for race in data["races"]
+        ],
+        "races_without_results": len(data["races_without_results"]),
+        "categories": [
+            {
+                "category_id": category["category_id"],
+                "name": category["name"],
+                "rows": [
+                    {
+                        "rank": row["rank"],
+                        "surname": row["surname"],
+                        "name": row["name"],
+                        "year": row["year"],
+                        "club": row["club"],
+                        "cells": [_public_cell(cell) for cell in row["cells"]],
+                        "prep_points": row["prep_points"],
+                        "snow_points": row["snow_points"],
+                        "total": row["total"],
+                    }
+                    for row in category["rows"]
+                ],
+            }
+            for category in data["categories"]
+        ],
+    }
 
 
 @router.get("/{season_year_start}/{season_year_end}")

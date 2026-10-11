@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useRevalidateOnFocus } from '../../../hooks/useRevalidateOnFocus.js';
+import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 /** Výsledky sezón z /season-results/ podle roku začátku sezóny. */
 const bySeason = (results) => Object.fromEntries(results.map((result) => [result.season_year_start, result]));

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { matchesFilter, seasonLabel, seasonsOf, seasonSummary, splitByDate } from './raceCalendar.js';
+import { matchesFilter, seasonSummary, splitByDate } from './raceCalendar.js';
+import { seasonLabel, seasonsOf } from '../../../utils/races.js';
 
 const race = (nr, datum, method = 2) => ({ race_nr: nr, datum, race_method_id: method });
 

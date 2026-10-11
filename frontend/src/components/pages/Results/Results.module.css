@@ -1,10 +1,129 @@
-/* Vysledky.dc.html: obsah 44 px pod hlavičkou i nad patičkou. */
+/* Vysledky.dc.html a MobilVysledky.dc.html. */
 .page {
-  padding-block: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-10);
+  padding-block: 44px var(--ms-space-14);
+}
+
+.season {
+  inline-size: 232px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.note {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.categories {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ms-space-4);
+}
+
+.categoriesLabel {
+  flex-shrink: 0;
+  padding-block-start: 14px;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-4) var(--ms-space-5);
+  background: var(--ms-surface-sunken);
+  border-radius: var(--ms-radius-card);
+  font-size: var(--ms-fs-md);
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-2);
+  color: var(--ms-ink);
+}
+
+.swatch {
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-start: var(--ms-space-3);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-card);
+}
+
+.swatch:first-child {
+  margin-inline-start: 0;
+}
+
+.swatch[data-kind='P'] {
+  background: var(--ms-dry-bg);
+}
+
+.swatch[data-kind='S'] {
+  background: var(--ms-surface-sunken);
+  border-color: var(--ms-line-control);
+}
+
+.raceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  list-style: none;
+}
+
+.raceActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-3);
+}
+
+.categorySelect,
+.mobileOnly {
+  display: none;
 }
 
 @media (max-width: 767.98px) {
   .page {
-    padding-block: var(--ms-space-5) var(--ms-space-8);
+    gap: var(--ms-space-8);
+    padding-block: var(--ms-space-5) var(--ms-space-10);
+  }
+
+  .season {
+    inline-size: 100%;
+  }
+
+  .categories,
+  .desktopOnly {
+    display: none;
+  }
+
+  .categorySelect {
+    display: flex;
+  }
+
+  .mobileOnly {
+    display: block;
+  }
+
+  .raceActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }

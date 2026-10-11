@@ -1,0 +1,85 @@
+/* Vysledky „Celkové výsledky“: tabulka pořadí jedné kategorie. */
+.table {
+  min-inline-size: 900px;
+}
+
+.raceHead {
+  font-size: var(--ms-fs-2xs);
+  line-height: 1.25;
+}
+
+.raceHead span {
+  display: block;
+}
+
+.raceDate {
+  font-family: var(--ms-font-mono);
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 30px;
+  block-size: 30px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.rank[data-podium] {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.name {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.year {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.club {
+  color: var(--ms-ink-body);
+}
+
+.cell {
+  color: var(--ms-ink-body);
+}
+
+/* Započtený závod: přípravný jantarově, na sněhu a finále modře. */
+.cell[data-counted] {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.cell[data-counted='P'] {
+  background: var(--ms-dry-bg);
+}
+
+.cell[data-counted='S'],
+.cell[data-counted='F'] {
+  background: var(--ms-surface-sunken);
+}
+
+.cell[data-status] {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  color: var(--ms-live-ink);
+}
+
+.sum {
+  color: var(--ms-ink-body);
+}
+
+.total {
+  font-size: var(--ms-fs-xl);
+  font-weight: 700;
+  color: var(--ms-ink);
+}

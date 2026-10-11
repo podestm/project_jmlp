@@ -1,5 +1,7 @@
-// Stav a popis závodu pro veřejný web (kalendář, detail, úvod). Jen čisté
-// funkce nad daty z GET /races/ – obrazovky z nich skládají řádky a odznaky.
+// Stav a popis závodu pro veřejný web (kalendář, detail, úvod, výsledky).
+// Jen čisté funkce nad daty z GET /races/ – obrazovky z nich skládají řádky
+// a odznaky.
+import { formatSeasonShort, seasonEdition, toRoman } from './season.js';
 
 /** Dnešek o půlnoci – závod „dnes“ ještě není odjetý. */
 export const startOfToday = (now = new Date()) => {
@@ -59,3 +61,11 @@ export const czechPlural = (count, [one, few, many]) => {
   if (count >= 2 && count <= 4) return few;
   return many;
 };
+
+/** Sezóny, které mají závod s číslem, od nejnovější. */
+export const seasonsOf = (races) => (
+  [...new Set(races.map(raceSeasonId).filter((id) => id !== null))].sort((a, b) => b - a)
+);
+
+/** „2026/27 — XX. ročník“ */
+export const seasonLabel = (seasonId) => `${formatSeasonShort(seasonId)} — ${toRoman(seasonEdition(seasonId))}. ročník`;

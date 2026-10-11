@@ -6,9 +6,9 @@ import {
 import { formatSeasonShort, getCurrentSeasonId, seasonEdition, toRoman } from '../../../utils/season.js';
 import { formatDate } from '../../../utils/date.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { raceSeasonId, startOfToday } from '../../../utils/races.js';
-import { METHOD_FILTERS, matchesFilter, seasonLabel, seasonsOf, seasonSummary, splitByDate } from './raceCalendar.js';
-import { useRaceCalendar } from './useRaceCalendar.js';
+import { raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
+import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
+import { METHOD_FILTERS, matchesFilter, seasonSummary, splitByDate } from './raceCalendar.js';
 import RaceRow from './RaceRow.jsx';
 import styles from './RaceCalendar.module.css';
 

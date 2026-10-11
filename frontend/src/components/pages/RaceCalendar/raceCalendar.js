@@ -1,15 +1,6 @@
 // Čisté funkce kalendáře závodů: sezóny, filtr podle typu, rozdělení na
 // nadcházející a odjeté a souhrnná věta nad seznamem.
-import { formatSeasonShort, seasonEdition, toRoman } from '../../../utils/season.js';
-import { czechPlural, raceDate, raceMethod, raceSeasonId } from '../../../utils/races.js';
-
-/** Sezóny, které mají závod s číslem, od nejnovější. */
-export const seasonsOf = (races) => (
-  [...new Set(races.map(raceSeasonId).filter((id) => id !== null))].sort((a, b) => b - a)
-);
-
-/** „2026/27 — XX. ročník“ */
-export const seasonLabel = (seasonId) => `${formatSeasonShort(seasonId)} — ${toRoman(seasonEdition(seasonId))}. ročník`;
+import { czechPlural, raceDate, raceMethod } from '../../../utils/races.js';
 
 /** Filtr Vše / Na sněhu / Suché (race_method_id 1 = sníh, jinak suché). */
 export const METHOD_FILTERS = [
