@@ -49,3 +49,10 @@
     display: none;
   }
 }
+
+/* Vedle přepínače sekcí (admin) se jméno mezi 1280 a 1440 px do lišty nevejde. */
+@media (max-width: 1439.98px) {
+  .compact .text {
+    display: none;
+  }
+}

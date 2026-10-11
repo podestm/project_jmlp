@@ -2,17 +2,18 @@ import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Icon } from '../../../ms/index.js';
 import { isNavActive, timekeeperNav } from '../../../ms/navItems.js';
-import SectionSwitch from '../SectionSwitch/SectionSwitch.jsx';
+import SectionSwitch from '../../../backoffice/SectionSwitch/SectionSwitch.jsx';
 import UserBlock from '../UserBlock/UserBlock.jsx';
 import styles from './TabBar.module.css';
 
 /**
  * Dolní lišta rámce (TkPrehled): šest kroků závodního dne, oddělovač,
  * obecné nastavení; vpravo přepínač sekcí (jen admin) a uživatel.
- * Pod 1280 px jen ikony, pod 1024 px ji nahradí mobilní menu.
+ * U admina pod 1440 px přepínač a uživatel bez popisků, pod 1280 px i taby jen ikony, pod 1024 px ji nahradí mobilní menu.
  */
 export default function TabBar({ user, onLogout }) {
   const { pathname } = useLocation();
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className={styles.bar}>
@@ -36,13 +37,13 @@ export default function TabBar({ user, onLogout }) {
       </nav>
 
       <div className={styles.end}>
-        {user?.role === 'admin' && (
+        {isAdmin && (
           <>
             <SectionSwitch current="timekeeper" compact />
             <span className={styles.divider} aria-hidden="true" />
           </>
         )}
-        <UserBlock user={user} onLogout={onLogout} />
+        <UserBlock user={user} onLogout={onLogout} compact={isAdmin} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../config/auth.jsx';
 import { AdminAPI } from '../../config/api.js';
-import SectionSwitch from '../ui/SectionSwitch.jsx';
+import SectionSwitch from '../backoffice/SectionSwitch/SectionSwitch.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
 export default function AdminLayout({ children }) {

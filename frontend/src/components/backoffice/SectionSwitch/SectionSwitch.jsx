@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Icon } from '../../../ms/index.js';
-import { cx } from '../../../ms/cx.js';
+import { Icon } from '../../ms/index.js';
+import { cx } from '../../ms/cx.js';
 import styles from './SectionSwitch.module.css';
 
 const SECTIONS = [
@@ -10,12 +10,12 @@ const SECTIONS = [
 
 /**
  * Přepínač Admin / Časomíra na navy ploše (TkPrehled „Přihlášený v roli
- * Admin“, TkMobilMenu). Jen pro roli admin – časoměřiče server do
+ * Admin“, TkMobilMenu, postranní panel administrace). Jen pro roli admin – časoměřiče server do
  * administrace nepustí. Přihlášení je společné, takže přepnutí je bez
  * nového přihlášení.
  * - current: sekce, ve které uživatel je
  * - block: na celou šířku (mobilní menu)
- * - compact: pod 1280 px jen ikony (lišta)
+ * - compact: pod 1440 px jen ikony (lišta časomíry)
  */
 export default function SectionSwitch({ current, block = false, compact = false, onNavigate, className }) {
   return (

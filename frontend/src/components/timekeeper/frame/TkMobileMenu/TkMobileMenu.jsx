@@ -6,9 +6,9 @@ import { cx } from '../../../ms/cx.js';
 import { isNavActive, timekeeperNav } from '../../../ms/navItems.js';
 import { currentSeasonInfo } from '../../../site/siteInfo.js';
 import RaceSwitcher from '../RaceSwitcher/RaceSwitcher.jsx';
-import SectionSwitch from '../SectionSwitch/SectionSwitch.jsx';
+import SectionSwitch from '../../../backoffice/SectionSwitch/SectionSwitch.jsx';
 import StatusChips from '../StatusChips/StatusChips.jsx';
-import { initialsOf, roleLabel } from '../user.js';
+import { initialsOf, roleLabel } from '../../../backoffice/user.js';
 import styles from './TkMobileMenu.module.css';
 
 const raceDay = timekeeperNav.filter((item) => item.group !== 'settings');

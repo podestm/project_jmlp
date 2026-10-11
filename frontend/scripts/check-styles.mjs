@@ -21,7 +21,7 @@
  * 2. components/ms/** (kromě LegacyIsland) a každý soubor se *.module.css
  *    (modul sám i komponenta, která ho importuje) mají všude nulu.
  * 3. V components/ms/** a *.module.css navíc nesmí být: hexy (mimo tokens.js),
- *    !important, @media mimo 768/1024/1280, z-index mimo var(--ms-z-*),
+ *    !important, @media mimo 768/1024/1280/1440, z-index mimo var(--ms-z-*),
  *    globální selektory (:global, selektor bez třídy) a style={{}} s čímkoli
  *    jiným než custom properties.
  *
@@ -168,7 +168,7 @@ const importsModuleCss = (source) => /from\s*['"][^'"]+\.module\.css['"]/.test(s
 /** Soubor, který musí mít všechny počty nulové. */
 export const mustBeClean = (rel, source) => isKitFile(rel) || isModuleCss(rel) || (!rel.endsWith('.css') && importsModuleCss(source));
 
-const ALLOWED_MEDIA_PX = new Set(['767.98', '768', '1023.98', '1024', '1279.98', '1280']);
+const ALLOWED_MEDIA_PX = new Set(['767.98', '768', '1023.98', '1024', '1279.98', '1280', '1439.98', '1440']);
 
 /** Porušení pravidel kitu v jednom souboru (seznam textů). */
 export const kitViolations = (rel, source) => {
@@ -186,7 +186,7 @@ export const kitViolations = (rel, source) => {
   if (isCss) {
     for (const media of code.matchAll(/@media([^{]*)\{/g)) {
       for (const px of media[1].matchAll(/([\d.]+)px/g)) {
-        if (!ALLOWED_MEDIA_PX.has(px[1])) problems.push(`@media s ${px[1]}px – jen 768/1024/1280`);
+        if (!ALLOWED_MEDIA_PX.has(px[1])) problems.push(`@media s ${px[1]}px – jen 768/1024/1280/1440`);
       }
     }
     for (const z of code.matchAll(/z-index\s*:\s*([^;}]+)/g)) {
