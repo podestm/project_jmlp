@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Alert, Badge, BibDate, Button, ButtonLink, Checkbox, CloseButton, Cluster, Container, DataRow, EmptyState,
-  Field, Grid, Icon, IconButton, Input, LoadingState, Modal, PageHeader, Pagination, Panel, Paska,
+  Field, Grid, Icon, IconButton, Input, LoadingState, Modal, PageHeader, Pagination, Panel, Paska, PasswordInput,
   SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, VisuallyHidden,
 } from '../index.js';
 import { cx } from '../cx.js';
@@ -146,6 +146,7 @@ function FormsSection() {
         </Field>
         <Field label="Čas 1. kola"><Input mono size="sm" defaultValue="57,37" /></Field>
         <Field label="Vypnuté pole"><Input disabled defaultValue="Nelze měnit" /></Field>
+        <Field label="Heslo"><PasswordInput /></Field>
         <Field label="Poznámka"><Textarea placeholder="Text příspěvku" /></Field>
       </Grid>
       <Cluster gap={8}>

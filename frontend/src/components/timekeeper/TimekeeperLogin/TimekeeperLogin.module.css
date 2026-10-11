@@ -1,0 +1,279 @@
+/* TkLogin: vlevo navy-deep panel 900 px, vpravo formulář 500 px na ploše stránky. */
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 9fr) minmax(0, 7fr);
+  min-block-size: 100dvh;
+}
+
+/* ── Levý panel ── */
+.intro {
+  position: relative;
+  overflow: hidden;
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100%;
+  object-fit: cover;
+  opacity: 0.2;
+}
+
+.introBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--ms-space-10);
+  block-size: 100%;
+  padding: var(--ms-space-14) 72px;
+  background: linear-gradient(180deg, rgb(0 41 62 / 0.9) 0%, rgb(0 41 62 / 0.97) 100%);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  inline-size: 46px;
+  block-size: 46px;
+  object-fit: contain;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.brandName {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  letter-spacing: var(--ms-tracking-paska);
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.brandSeason {
+  font-size: var(--ms-fs-md);
+  line-height: 1.3;
+  color: var(--ms-ice);
+}
+
+.claim {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-inline-size: 640px;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: 48px;
+  line-height: 1.1;
+}
+
+.lead {
+  font-size: var(--ms-fs-xl);
+  line-height: 1.6;
+  color: var(--ms-ice);
+  text-wrap: pretty;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-inline-size: 660px;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  color: var(--ms-ice);
+}
+
+.featureText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: var(--ms-fs-lg);
+  line-height: 1.5;
+  color: var(--ms-ice);
+}
+
+.featureTitle {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--ms-on-dark);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 9px;
+  min-block-size: var(--ms-target);
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ice);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--ms-on-dark);
+}
+
+/* ── Formulář ── */
+.formSide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ms-space-10) var(--ms-space-6);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  inline-size: 100%;
+  max-inline-size: 500px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.connection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: var(--ms-target);
+  padding: var(--ms-space-2) 14px;
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-md);
+  line-height: 1.3;
+}
+
+.online {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.offline {
+  background: var(--ms-amber);
+  color: var(--ms-amber-ink);
+}
+
+.submit {
+  block-size: 64px;
+  font-size: var(--ms-fs-xl);
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ms-space-3);
+  padding: var(--ms-space-4) 18px;
+  border-inline-start: 4px solid var(--ms-dry-ink);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.hintIcon {
+  flex-shrink: 0;
+  margin-block-start: 2px;
+}
+
+.hintText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  font-size: var(--ms-fs-base);
+  line-height: 1.5;
+}
+
+.hintTitle {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  font-size: var(--ms-fs-base);
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+}
+
+.note a {
+  font-weight: 600;
+}
+
+.noteIcon {
+  flex-shrink: 0;
+  margin-block-start: 3px;
+}
+
+/* Pod 1024 px pod sebou: krátký navy pruh se značkou a nadpisem, pak formulář. */
+@media (max-width: 1023.98px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .intro {
+    flex-shrink: 0;
+  }
+
+  .introBody {
+    block-size: auto;
+    gap: var(--ms-space-6);
+    padding: var(--ms-space-6) var(--ms-space-4);
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .lead,
+  .features {
+    display: none;
+  }
+
+  .formSide {
+    flex-grow: 1;
+    align-items: flex-start;
+    padding: var(--ms-space-6) var(--ms-space-4) var(--ms-space-10);
+  }
+
+  .card {
+    padding: 20px var(--ms-space-4);
+  }
+}

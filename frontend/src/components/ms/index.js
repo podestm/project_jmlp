@@ -27,6 +27,7 @@ export { default as PageHeader } from './PageHeader/PageHeader.jsx';
 export { default as Pagination } from './Pagination/Pagination.jsx';
 export { default as Panel } from './Panel/Panel.jsx';
 export { default as Paska } from './Paska/Paska.jsx';
+export { default as PasswordInput } from './PasswordInput/PasswordInput.jsx';
 export { default as RadioTiles } from './RadioTiles/RadioTiles.jsx';
 export { default as Screen } from './Screen/Screen.jsx';
 export { default as SegmentedControl } from './SegmentedControl/SegmentedControl.jsx';

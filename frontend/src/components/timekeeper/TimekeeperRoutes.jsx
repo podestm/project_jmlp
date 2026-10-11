@@ -4,9 +4,8 @@
 import { Routes, Route } from 'react-router-dom';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useBodyClass } from '../../hooks/useBodyClass.js';
-import LoadingState from '../ui/LoadingState.jsx';
-import { LegacyIsland } from '../ms/index.js';
-import TimekeeperLogin from './TimekeeperLogin.jsx';
+import { LegacyIsland, LoadingState } from '../ms/index.js';
+import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard.jsx';
 import StartListManager from './StartListManager.jsx';
@@ -22,7 +21,7 @@ import { SerialSessionProvider } from './SerialSessionProvider.jsx';
 const ProtectedTimekeeperRoute = ({ children }) => {
   const { isAuthenticated, loading } = useTimekeeperAuth();
 
-  if (loading) return <LoadingState variant="fullscreen" />;
+  if (loading) return <LoadingState variant="fullscreen" label="Ověřuji přihlášení…" />;
   if (!isAuthenticated) return <TimekeeperLogin />;
 
   return <TimekeeperLayout>{children}</TimekeeperLayout>;
