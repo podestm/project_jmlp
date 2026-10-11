@@ -1,0 +1,45 @@
+.slcr {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  line-height: 1.35;
+  color: var(--ms-navy);
+  text-decoration: underline;
+}
+
+.details {
+  font-size: var(--ms-fs-md);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.altItem {
+  white-space: nowrap;
+}
+
+.alt {
+  font-weight: 600;
+  color: var(--ms-navy);
+  text-decoration: underline;
+}
+
+.num {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.missing {
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}

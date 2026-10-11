@@ -1,0 +1,69 @@
+/* AdminParovaniSlcr: bílý pruh nad záložkami. */
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-3) var(--ms-space-4);
+  padding: 14px 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.text {
+  font-size: var(--ms-fs-md);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.num {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  font-weight: 600;
+  color: var(--ms-live-ink);
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+  min-inline-size: 200px;
+}
+
+.track {
+  display: flex;
+  block-size: 6px;
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-sunken);
+  overflow: hidden;
+}
+
+.bar {
+  inline-size: var(--progress);
+  background: var(--ms-navy);
+}
+
+/* Mobil: rozsah i tlačítko přes celou šířku. */
+@media (max-width: 767.98px) {
+  .panel {
+    padding: var(--ms-space-3) 14px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    inline-size: 100%;
+  }
+}

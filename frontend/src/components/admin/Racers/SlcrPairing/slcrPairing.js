@@ -17,11 +17,15 @@ export const STATUS_TABS = [
   { status: PAIR_STATUS.rejected, label: 'Odmítnutí' }
 ];
 
+/** Jistota shody: text štítku a `tone` = barva štítku i lišty řádku (vzhled v PairMatch/PairRow). */
 export const CONFIDENCE = {
-  high: { label: 'Jistá shoda', className: 'bg-success' },
-  medium: { label: 'Pravděpodobná', className: 'bg-warning text-dark' },
-  low: { label: 'Nejistá', className: 'bg-danger' }
+  high: { label: 'Jistá shoda', tone: 'high' },
+  medium: { label: 'Pravděpodobná', tone: 'medium' },
+  low: { label: 'Nejistá', tone: 'low' }
 };
+
+/** Barva lišty řádku: podle jistoty, nenalezení šedě. */
+export const pairTone = (item) => CONFIDENCE[item.confidence]?.tone || 'none';
 
 /** Upozornění k návrhu, jak je ukazuje tabulka. */
 export function pairWarnings(item) {
@@ -80,3 +84,11 @@ export function bulkConfirmable(items) {
     && !(item.changes || []).some((change) => change.field === 'year')
   ));
 }
+
+/** Čas posledního načtení ze SLČR („23. 9. 2026 16:05“), bez údaje pomlčka. */
+export const formatSyncTime = (iso) => (iso
+  ? new Date(iso).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  : '—');
+
+/** Průběh načítání v procentech; dokud server nezná celkový počet, 5 %. */
+export const syncProgress = (job) => (job?.total ? (job.done / job.total) * 100 : 5);

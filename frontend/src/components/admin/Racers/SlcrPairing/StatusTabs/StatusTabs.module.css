@@ -1,0 +1,63 @@
+/* AdminParovaniSlcr: záložky s podtržením 3 px a počtem v kolečku. */
+.tabs {
+  display: flex;
+  gap: var(--ms-space-1);
+  border-bottom: 1px solid var(--ms-line);
+  overflow-x: auto;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  flex-shrink: 0;
+  min-block-size: 46px;
+  margin-block-end: -1px;
+  padding: 0 var(--ms-space-4);
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ms-ink);
+}
+
+.active {
+  border-bottom-color: var(--ms-navy);
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 24px;
+  block-size: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.active .count {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+/* Mobil: čtyři záložky se nevejdou – užší odsazení, zbytek se posouvá. */
+@media (max-width: 767.98px) {
+  .tab {
+    padding: 0 10px;
+  }
+}

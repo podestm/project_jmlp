@@ -1,0 +1,57 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.search {
+  inline-size: 440px;
+}
+
+.confidence {
+  inline-size: 240px;
+}
+
+/* Kladná akce je zelený obrys (AdminParovaniSlcr „Potvrdit jisté“). */
+.confirmAll {
+  margin-inline-start: auto;
+  border-color: var(--ms-open);
+  color: var(--ms-open);
+  font-weight: 700;
+}
+
+.confirmAll:hover:not(:disabled) {
+  color: var(--ms-open);
+}
+
+.num {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1023.98px) {
+  .search {
+    inline-size: auto;
+    flex: 1 1 280px;
+  }
+}
+
+/* Mobil: všechno pod sebou přes celou šířku. */
+@media (max-width: 767.98px) {
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search,
+  .confidence {
+    inline-size: auto;
+    flex: none;
+  }
+
+  .confirmAll {
+    margin-inline-start: 0;
+  }
+}

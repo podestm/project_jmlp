@@ -19,7 +19,7 @@ import CategoryManagement from './CategoryManagement.jsx';
 import SeasonManagement from './SeasonManagement.jsx';
 import ClubManagement from './ClubManagement.jsx';
 import ClubRequests from './ClubRequests.jsx';
-import SlcrPairing from './SlcrPairing.jsx';
+import SlcrPairing from './Racers/SlcrPairing/SlcrPairing.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -47,7 +47,7 @@ export default function AdminRoutes() {
           <Route path="/" element={protect(<AdminDashboard />)} />
           <Route path="/races" element={protect(<RaceManagement />)} />
           <Route path="/racers" element={protect(<RacerManagement />)} />
-          <Route path="/racers/slcr" element={legacy(<SlcrPairing />)} />
+          <Route path="/racers/slcr" element={protect(<SlcrPairing />)} />
           <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
           <Route path="/documents" element={legacy(<DocumentLibrary />)} />
           <Route path="/posts" element={legacy(<PostManagement />)} />

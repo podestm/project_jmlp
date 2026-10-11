@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { appliedLabels, bulkConfirmable, changeLabels, filterPairs, pairWarnings } from './slcrPairing.js';
+import {
+  appliedLabels, bulkConfirmable, changeLabels, filterPairs, formatSyncTime, pairTone, pairWarnings, syncProgress
+} from './slcrPairing.js';
 
 const pair = (overrides = {}) => ({
   racer_id: 1,
@@ -54,5 +56,18 @@ describe('párování se SLČR', () => {
       pair({ racer_id: 7, changes: [{ field: 'name', label: 'jméno', old: 'Ema', new: 'Emma' }] })
     ];
     expect(bulkConfirmable(items).map((i) => i.racer_id)).toEqual([1, 7]);
+  });
+
+  it('barva řádku podle jistoty, bez shody šedá', () => {
+    expect(pairTone(pair())).toBe('high');
+    expect(pairTone(pair({ confidence: 'low' }))).toBe('low');
+    expect(pairTone(pair({ confidence: null, slcr: null, status: 'not_found' }))).toBe('none');
+  });
+
+  it('průběh načítání a čas posledního načtení', () => {
+    expect(syncProgress({ done: 140, total: 325 })).toBeCloseTo(43.08, 1);
+    expect(syncProgress({ done: 0, total: 0 })).toBe(5);
+    expect(formatSyncTime(null)).toBe('—');
+    expect(formatSyncTime('2026-09-23T16:05:00')).toMatch(/23\. 9\. 2026/);
   });
 });

@@ -69,10 +69,6 @@
     "bootstrap": 76,
     "legacyImports": 3
   },
-  "src/components/admin/SlcrPairing.jsx": {
-    "bootstrap": 111,
-    "legacyImports": 3
-  },
   "src/components/admin/attachments/AttachmentList.jsx": {
     "bootstrap": 52,
     "legacyImports": 1
@@ -114,9 +110,6 @@
   "src/components/admin/post/PostTable.jsx": {
     "bootstrap": 60,
     "emoji": 1
-  },
-  "src/components/admin/slcrPairing.js": {
-    "bootstrap": 4
   },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
     "bootstrap": 2
