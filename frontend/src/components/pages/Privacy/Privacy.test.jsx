@@ -24,9 +24,9 @@ describe('Privacy', () => {
 
   it('dotazy směřuje na soutěžní výbor v Kontaktech, ÚOOÚ odkazem ven', () => {
     renderPrivacy();
-    screen.getAllByRole('link', { name: 'Kontakty' }).forEach((link) => {
-      expect(link).toHaveAttribute('href', '/kontakty#vybor');
-    });
+    const committee = screen.getAllByRole('link', { name: /^soutěžní(ho)? výbor(u)?$/ });
+    expect(committee).toHaveLength(2);
+    committee.forEach((link) => expect(link).toHaveAttribute('href', '/kontakty#vybor'));
     expect(screen.getByRole('link', { name: 'www.uoou.gov.cz' })).toHaveAttribute('href', 'https://www.uoou.gov.cz');
   });
 });

@@ -14,7 +14,7 @@ const link = (label, target) => ({ link: label, ...target });
 const CONTROLLER_ADDRESS = `${ORGANIZER.street}, ${ORGANIZER.district}, ${ORGANIZER.city}`;
 
 // Dotazy vyřizuje soutěžní výbor; jeho kontakty jsou jen na stránce Kontakty.
-const CONTACTS = link('Kontakty', { to: '/kontakty#vybor' });
+const COMMITTEE_NOM = link('soutěžní výbor', { to: '/kontakty#vybor' });
 const COMMITTEE = link('soutěžního výboru', { to: '/kontakty#vybor' });
 
 export const PRIVACY_INTRO = 'Jaké osobní údaje o závodnících a návštěvnících webu zpracováváme, proč, jak dlouho a jaká máte práva.';
@@ -27,7 +27,7 @@ export const PRIVACY_SECTIONS = [
       [`Správcem osobních údajů je ${ORGANIZER.name}, IČO ${ORGANIZER.ico}, se sídlem ${CONTROLLER_ADDRESS}. `
         + 'Svaz je pobočným spolkem Svazu lyžařů České republiky z.s. (IČO 00537632).'],
       ['Jednotlivé závody poháru pořádají lyžařské kluby z pověření svazu.'],
-      ['Dotazy k osobním údajům posílejte komukoli ze soutěžního výboru – kontakty najdete v sekci ', CONTACTS, '.'],
+      ['Dotazy k osobním údajům vyřizuje ', COMMITTEE_NOM, '.'],
     ],
   },
   {
