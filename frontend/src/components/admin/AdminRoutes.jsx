@@ -13,7 +13,7 @@ import AdminDashboard from './Dashboard/AdminDashboard.jsx';
 import RaceManagement from './Races/RaceManagement.jsx';
 import RacerManagement from './Racers/RacerManagement.jsx';
 import DocumentLibrary from './Documents/DocumentLibrary.jsx';
-import PostManagement from './PostManagement.jsx';
+import PostManagement from './Posts/PostManagement.jsx';
 import RaceRegistrations from './Registrations/RaceRegistrations.jsx';
 import CategoryManagement from './CategoryManagement.jsx';
 import SeasonManagement from './SeasonManagement.jsx';
@@ -50,7 +50,7 @@ export default function AdminRoutes() {
           <Route path="/racers/slcr" element={protect(<SlcrPairing />)} />
           <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
           <Route path="/documents" element={protect(<DocumentLibrary />)} />
-          <Route path="/posts" element={legacy(<PostManagement />)} />
+          <Route path="/posts" element={protect(<PostManagement />)} />
           <Route path="/categories" element={legacy(<CategoryManagement />)} />
           <Route path="/seasons" element={legacy(<SeasonManagement />)} />
           <Route path="/clubs" element={legacy(<ClubManagement />)} />

@@ -80,11 +80,11 @@ describe('PostManagement', () => {
     const user = userEvent.setup();
     render(<PostManagement />);
 
-    await user.click(await screen.findByTitle('Upravit'));
+    await user.click(await screen.findByRole('button', { name: 'Upravit příspěvek Pozvánka na závod' }));
     // Přílohu ukazuje AttachmentManager z /api/admin/attachments
     expect(await screen.findByText('pozvanka.jpg')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Aktualizovat post' }));
+    await user.click(screen.getByRole('button', { name: 'Uložit příspěvek' }));
 
     await waitFor(() => expect(ulozeni('PUT')).toHaveLength(1));
     const telo = ulozeni('PUT')[0].telo;
@@ -102,35 +102,35 @@ describe('PostManagement', () => {
     const user = userEvent.setup();
     render(<PostManagement />);
 
-    await user.click(await screen.findByRole('button', { name: '+ Nový příspěvek' }));
+    await user.click(await screen.findByRole('button', { name: 'Nový příspěvek' }));
     expect(screen.getByText('Dokumenty půjde nahrát hned po prvním uložení.')).toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText('Zadejte nadpis příspěvku...'), 'Výsledky 1. kola');
     await user.type(screen.getByPlaceholderText('Napište obsah příspěvku...'), 'Gratulujeme');
-    await user.click(screen.getByRole('button', { name: 'Vytvořit post' }));
+    await user.click(screen.getByRole('button', { name: 'Vytvořit příspěvek' }));
 
     await waitFor(() => expect(ulozeni('POST')).toHaveLength(1));
     expect(ulozeni('POST')[0].telo).not.toHaveProperty('image_file_id');
 
     // Okno je teď úprava uloženého příspěvku a nabízí nahrání příloh
-    expect(await screen.findByText('Upravit post')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Upravit příspěvek' })).toBeInTheDocument();
     expect(screen.queryByText('Dokumenty půjde nahrát hned po prvním uložení.')).not.toBeInTheDocument();
     expect(await screen.findAllByRole('button', { name: 'Vybrat z knihovny' })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Aktualizovat post' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Uložit příspěvek' })).toBeInTheDocument();
   });
 
   it('smazání se ptá dialogem a Enter nic nesmaže', async () => {
     const user = userEvent.setup();
     render(<PostManagement />);
 
-    await user.click(await screen.findByTitle('Smazat'));
+    await user.click(await screen.findByRole('button', { name: 'Smazat příspěvek Pozvánka na závod' }));
     expect(screen.getByRole('dialog', { name: 'Smazat příspěvek „Pozvánka na závod“?' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Zrušit' })).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(ulozeni('DELETE')).toHaveLength(0);
 
-    await user.click(screen.getByTitle('Smazat'));
+    await user.click(screen.getByRole('button', { name: 'Smazat příspěvek Pozvánka na závod' }));
     await user.click(screen.getByRole('button', { name: 'Smazat příspěvek' }));
     await waitFor(() => expect(ulozeni('DELETE')).toHaveLength(1));
   });
