@@ -36,10 +36,6 @@
     "bs": 12,
     "legacyVars": 8
   },
-  "src/components/admin/AdminRegister.jsx": {
-    "bootstrap": 61,
-    "legacyImports": 1
-  },
   "src/components/admin/AdminRoutes.jsx": {
     "themeBackoffice": 1
   },

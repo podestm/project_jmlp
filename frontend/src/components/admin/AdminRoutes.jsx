@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from '../../config/auth.jsx';
 import { useBodyClass } from '../../hooks/useBodyClass.js';
 import { LegacyIsland, LoadingState, Screen } from '../ms/index.js';
 import AdminLogin from './AdminLogin/AdminLogin.jsx';
-import AdminRegister from './AdminRegister.jsx';
+import AdminRegister from './AdminRegister/AdminRegister.jsx';
 import AdminLayout from './frame/AdminLayout/AdminLayout.jsx';
 import AdminNotFound from './frame/AdminNotFound/AdminNotFound.jsx';
 import AdminDashboard from './Dashboard/AdminDashboard.jsx';
@@ -55,7 +55,7 @@ export default function AdminRoutes() {
           <Route path="/seasons" element={protect(<SeasonManagement />)} />
           <Route path="/clubs" element={protect(<ClubManagement />)} />
           <Route path="/club-requests" element={protect(<ClubRequests />)} />
-          <Route path="/register" element={legacy(<AdminRegister />)} />
+          <Route path="/register" element={protect(<AdminRegister />)} />
           <Route path="*" element={protect(<AdminNotFound />)} />
         </Routes>
       </AuthProvider>

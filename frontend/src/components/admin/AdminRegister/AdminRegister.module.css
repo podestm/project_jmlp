@@ -1,0 +1,17 @@
+/* Formulář v bílé kartě, šířka jednoho sloupce. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+  max-inline-size: 560px;
+  padding: var(--ms-space-6);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+@media (max-width: 767.98px) {
+  .form {
+    padding: var(--ms-space-4);
+  }
+}
