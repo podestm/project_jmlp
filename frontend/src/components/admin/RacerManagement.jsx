@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
 import LoadingState from '../ui/LoadingState.jsx';
@@ -22,11 +21,21 @@ const SEARCH_DEBOUNCE_MS = 250;
  * všech sto. Předpokladem je, že `onEdit` i `onDelete` jsou stabilní
  * (useCallback v rodiči), jinak memo nic neušetří.
  */
+/**
+ * Jméno jako odkaz na kartu člena v evidenci SLČR, když je závodník propojený
+ * (sedí ID závodníka, nebo přesně jméno a ročník - viz backend slcr_links.py).
+ */
+const SlcrName = ({ racer, children }) => (racer.slcr_url ? (
+  <a href={racer.slcr_url} target="_blank" rel="noopener noreferrer" title="Karta člena v evidenci SLČR">
+    {children}
+  </a>
+) : children);
+
 const RacerRow = React.memo(function RacerRow({ racer, onEdit, onDelete }) {
   return (
     <tr>
-      <td>{racer.firstName}</td>
-      <td>{racer.lastName}</td>
+      <td><SlcrName racer={racer}>{racer.firstName}</SlcrName></td>
+      <td><SlcrName racer={racer}>{racer.lastName}</SlcrName></td>
       <td>
         <span className={`badge ${racer.sex === 1 ? 'bg-primary' : 'bg-success'}`}>
           {racer.sex === 1 ? 'M' : 'Z'}
@@ -278,11 +287,6 @@ export default function RacerManagement() {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Správa závodníků</h2>
             <div className="d-flex gap-2">
-              {/* Podagenda Závodníků - v bočním menu záměrně není. */}
-              <Link to="/admin/racers/slcr" className="btn btn-outline-primary">
-                <i className="bi bi-person-check me-2"></i>
-                Doplnit ID ze SLČR
-              </Link>
               <button
                 onClick={() => {
                   resetForm();

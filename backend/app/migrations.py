@@ -910,6 +910,9 @@ def _m_race_is_final(conn):
 # pozadí a správce sleduje průběh).
 # --------------------------------------------------------------------------
 def _m_slcr_pairing(conn):
+    # Agenda párování byla zrušena (migrace 013) - tabulky už nezakládat.
+    if _table_exists(conn, "fuj_jmlp_slcr_member"):
+        return
     if not _table_exists(conn, "fuj_jmlp_racer_slcr"):
         conn.execute(text("""
             CREATE TABLE fuj_jmlp_racer_slcr (
@@ -967,6 +970,45 @@ def _m_slcr_applied(conn):
     logger.info("Migrace: fuj_jmlp_racer_slcr.previous, applied_at")
 
 
+# --------------------------------------------------------------------------
+# 013 - propojení se SLČR jen jako odkaz
+#
+# Agenda párování se SLČR byla zrušena (11. 10. 2026) - data se jednorázově
+# pročistila a dál se v databázi nic automaticky neopravuje. Zůstává jen
+# odkaz ze jména závodníka na kartu člena v evidenci. K tomu stačí tabulka
+# známých členů (ID v evidenci, adresa karty, ID závodníka, jméno, ročník);
+# naplní se z dosavadního párování a tabulky párování se zruší.
+# --------------------------------------------------------------------------
+def _m_slcr_member_links(conn):
+    if not _table_exists(conn, "fuj_jmlp_slcr_member"):
+        conn.execute(text("""
+            CREATE TABLE fuj_jmlp_slcr_member (
+                member_id INT NOT NULL PRIMARY KEY,
+                slug VARCHAR(160) DEFAULT NULL,
+                race_code INT DEFAULT NULL,
+                surname VARCHAR(80) DEFAULT NULL,
+                name VARCHAR(80) DEFAULT NULL,
+                year INT DEFAULT NULL,
+                KEY ix_slcr_member_code (race_code)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
+        """))
+        logger.info("Migrace: fuj_jmlp_slcr_member")
+    if _table_exists(conn, "fuj_jmlp_racer_slcr"):
+        # Ročník: z evidence, jinak náš ročník spárovaného závodníka (párování
+        # ho ověřilo proti věku z evidence).
+        conn.execute(text("""
+            INSERT IGNORE INTO fuj_jmlp_slcr_member (member_id, slug, race_code, surname, name, year)
+            SELECT p.member_id, p.member_slug, p.race_code, p.slcr_surname, p.slcr_name, COALESCE(p.slcr_year, r.year)
+            FROM fuj_jmlp_racer_slcr p
+            JOIN fuj_jmlp_racer r ON r.id = p.racer_id
+            WHERE p.member_id IS NOT NULL AND p.status IN ('confirmed', 'filled')
+        """))
+        conn.execute(text("DROP TABLE fuj_jmlp_racer_slcr"))
+        logger.info("Migrace: fuj_jmlp_racer_slcr -> fuj_jmlp_slcr_member, párování zrušeno")
+    if _table_exists(conn, "fuj_jmlp_slcr_sync"):
+        conn.execute(text("DROP TABLE fuj_jmlp_slcr_sync"))
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -982,6 +1024,7 @@ MIGRATIONS = (
     _m_race_is_final,
     _m_slcr_pairing,
     _m_slcr_applied,
+    _m_slcr_member_links,
 )
 
 
