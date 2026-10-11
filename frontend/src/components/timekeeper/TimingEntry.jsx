@@ -8,6 +8,7 @@ import EmptyState from '../ui/EmptyState.jsx';
 import { SELECTED_RACE_KEY } from './TimekeeperChrome.jsx';
 import { useSerialSession } from './SerialSessionProvider.jsx';
 import { START_LIST_REVISION_EVENT } from '../../offline/localEdits.js';
+import { ENTRY_REMAPPED_EVENT, remapEntriesInState, renameKey } from '../../offline/offlineEntries.js';
 import { loadTimingDrafts } from '../../offline/timingDrafts.js';
 import { useTimingDrafts } from './useTimingDrafts.js';
 import { useInboxEvents } from './useInboxEvents.js';
@@ -159,6 +160,23 @@ export default function TimingEntry() {
     };
     window.addEventListener(START_LIST_REVISION_EVENT, onRevisions);
     return () => window.removeEventListener(START_LIST_REVISION_EVENT, onRevisions);
+  }, []);
+
+  // Offline přidaný závodník dostal serverové id (nebo byl v Sync centru
+  // zahozen): přepsat ho ve startovce i v rozepsaných časech, aby další
+  // uložení šlo na skutečný řádek a nic rozepsaného se neztratilo.
+  useEffect(() => {
+    const onRemapped = (event) => {
+      const detail = event?.detail;
+      if (!detail) return;
+      const { tempId, serverId } = detail;
+      setStartList((prev) => remapEntriesInState(prev, detail));
+      editedTimesRef.current = renameKey(editedTimesRef.current, tempId, serverId);
+      originalTimesRef.current = renameKey(originalTimesRef.current, tempId, serverId);
+      setEditedTimes(editedTimesRef.current);
+    };
+    window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+    return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
   }, []);
 
   // Inbox se čte z IndexedDB, ne z paměti: události chodí i když je obrazovka

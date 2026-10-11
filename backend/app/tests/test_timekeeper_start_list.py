@@ -1858,3 +1858,21 @@ def test_kopie_registru_pro_offline_hledani(client, db, timekeeper_headers):
     [zavodnik] = odpoved.json()
     assert zavodnik == {"id": zavodnik["id"], "name": "Anna", "surname": "Holcicka", "year": 2017,
                         "sex": 2, "club_name": "SK Pardubice", "slcr_id": "891586"}
+
+
+def test_offline_dohlaska_uz_zapsaneho_zavodnika_se_spoji_s_jeho_radkem(
+        client, db, zavod, kategorie, timekeeper_headers):
+    """Mezitím ho přidalo jiné zařízení - časomíra dostane jeho řádek, ne chybu."""
+    _cisla(db)
+    zavodnik = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
+    prvni = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
+                        json={"racer_id": zavodnik.id}, headers=timekeeper_headers).json()
+
+    offline = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
+                          json={"racer_id": zavodnik.id, "client_temp_id": -5},
+                          headers={**timekeeper_headers, "X-Idempotency-Key": "op-merge"})
+
+    assert offline.status_code == 200, offline.text
+    assert offline.json()["id"] == prvni["id"]
+    assert offline.json()["merged_existing"] is True
+    assert offline.json()["client_temp_id"] == -5

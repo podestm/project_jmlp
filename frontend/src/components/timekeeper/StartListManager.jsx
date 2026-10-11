@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ENTRY_REMAPPED_EVENT, remapEntriesInState } from '../../offline/offlineEntries.js';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
@@ -76,6 +77,16 @@ export default function StartListManager() {
   const dragOverItem = useRef(null);
 
   useEffect(() => { loadRaces(); }, []);
+
+  // Offline přidaný závodník: dostal serverové id (nebo byl zahozen), případně
+  // ho právě přidala obrazovka Závodníci v jiné záložce.
+  useEffect(() => {
+    const onRemapped = (event) => {
+      if (event?.detail) setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, event.detail)));
+    };
+    window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+    return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
+  }, []);
 
   useEffect(() => {
     if (selectedRaceId) {

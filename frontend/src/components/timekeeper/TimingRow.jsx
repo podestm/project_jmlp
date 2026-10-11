@@ -59,6 +59,10 @@ const TimingRow = React.memo(function TimingRow({
       <td style={NAME_CELL_STYLE}>
         <div className="fw-semibold text-truncate" title={`${entry.racer_surname} ${entry.racer_name}`}>
           {entry.racer_surname} {entry.racer_name}
+          {Number(entry.id) < 0 && (
+          <span className="badge bg-warning text-dark ms-1" style={{ fontSize: '0.65rem' }}
+            title="Přidán offline - na server se odešle po obnovení připojení">offline</span>
+        )}
         </div>
         <small className="text-muted d-block text-truncate">
           {entry.club_name || 'Bez klubu'}{showCategory ? ` | ${entry.category_name || '?'}` : ''} ({entry.racer_year})

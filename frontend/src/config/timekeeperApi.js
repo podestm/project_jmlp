@@ -15,6 +15,7 @@ import {
   supersedeParkedOpsFor
 } from '../offline/syncQueue.js';
 import { processSyncQueue, startSyncLoop } from '../offline/sync.js';
+import { resolveTempIdsStored } from '../offline/offlineEntries.js';
 
 const extractStatusFromError = (error) => {
   if (typeof error?.status === 'number') return error.status;
@@ -129,10 +130,13 @@ const syncExecutor = async (item) => {
   const method = (item.method || '').toUpperCase();
   const headers = item.op_id ? { 'X-Idempotency-Key': item.op_id } : {};
   const meta = { headers, background: true };
+  // Dočasné id offline přidaného závodníka nesmí na server - remapTempEntry
+  // frontu přepisuje, tohle je pojistka pro zápis, který vznikl mezitím.
+  const { endpoint, payload } = await resolveTempIdsStored(item.endpoint, item.payload);
 
-  if (method === 'POST') return TimekeeperAPIOnline.post(item.endpoint, item.payload || {}, meta);
-  if (method === 'PUT') return TimekeeperAPIOnline.put(item.endpoint, item.payload || {}, meta);
-  if (method === 'DELETE') return TimekeeperAPIOnline.delete(item.endpoint, meta);
+  if (method === 'POST') return TimekeeperAPIOnline.post(endpoint, payload || {}, meta);
+  if (method === 'PUT') return TimekeeperAPIOnline.put(endpoint, payload || {}, meta);
+  if (method === 'DELETE') return TimekeeperAPIOnline.delete(endpoint, meta);
   return null;
 };
 
@@ -148,8 +152,11 @@ export const startTimekeeperSync = () => startSyncLoop(syncExecutor);
 const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 // POST/PUT/DELETE share the same online-try / offline-queue decision.
-const mutate = async (method, endpoint, data) => {
+const mutate = async (method, rawEndpoint, rawData) => {
   const opId = generateOpId();
+  // Obrazovka může ještě držet dočasné id závodníka, kterého fronta mezitím
+  // na serveru založila - zápis musí jít na serverové id.
+  const { endpoint, payload: data } = await resolveTempIdsStored(rawEndpoint, rawData);
   if (!isOnline()) {
     return queueMutationWithLocalApply(method, endpoint, data, opId);
   }

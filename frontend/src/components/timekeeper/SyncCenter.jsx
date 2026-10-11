@@ -129,7 +129,7 @@ export default function SyncCenter() {
       text: action === 'retry'
         ? 'Konflikt vrácen do fronty.'
         : action === 'force'
-          ? 'Konflikt bude odeslán v režimu force apply.'
+          ? 'Zápis se odešle znovu v režimu force (u dohlášky bez čísla).'
           : 'Konflikt označen jako uzavřený.'
     });
   };
@@ -149,6 +149,8 @@ export default function SyncCenter() {
       setBusy(false);
     }
   };
+
+  const isCreateConflict = (conflict) => /\/start-list\/entry$/.test(conflict?.endpoint || '');
 
   const formatValue = (value) => {
     if (value === null || value === undefined || value === '') return '—';
@@ -321,10 +323,20 @@ export default function SyncCenter() {
                               <button className="btn btn-outline-primary" onClick={() => handleResolve(conflict.id, 'retry')}>
                                 Retry
                               </button>
-                              <button className="btn btn-outline-danger" onClick={() => handleResolve(conflict.id, 'force')}>
-                                Force
+                              {/* Offline dohláška: "Force" pošle závodníka bez čísla (server přidělí
+                                  volné), "Drop" ho i s jeho časy ze startovky odstraní. */}
+                              <button
+                                className="btn btn-outline-danger"
+                                onClick={() => handleResolve(conflict.id, 'force')}
+                                title={isCreateConflict(conflict) ? 'Přidat bez zvoleného čísla - server přidělí nejbližší volné' : undefined}
+                              >
+                                {isCreateConflict(conflict) ? 'Bez čísla' : 'Force'}
                               </button>
-                              <button className="btn btn-outline-secondary" onClick={() => handleResolve(conflict.id, 'drop')}>
+                              <button
+                                className="btn btn-outline-secondary"
+                                onClick={() => handleResolve(conflict.id, 'drop')}
+                                title={isCreateConflict(conflict) ? 'Zahodit offline přidaného závodníka i s jeho časy' : undefined}
+                              >
                                 Drop
                               </button>
                             </div>

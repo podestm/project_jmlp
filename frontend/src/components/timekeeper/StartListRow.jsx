@@ -30,6 +30,10 @@ const StartListRow = React.memo(function StartListRow({ entry, onEdit, onDelete,
       {/* Kategorie se neopakuje - řádek je v tabulce své kategorie */}
       <td className="fw-semibold" style={{ padding: '4px 8px' }}>
         <span className={excluded ? 'tk-excluded-name' : undefined}>{racerName}</span>
+        {Number(entry.id) < 0 && (
+          <span className="badge bg-warning text-dark ms-1" style={{ fontSize: '0.65rem' }}
+            title="Přidán offline - na server se odešle po obnovení připojení">offline</span>
+        )}
         {excluded && (
           <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}
             title="Vyřazen ze startovní listiny - není na startovce, v časech ani ve výsledcích">

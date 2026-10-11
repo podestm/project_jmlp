@@ -662,6 +662,30 @@ def add_manual_start_list_entry(
         models.StartListEntry.race_id == race_id,
         models.StartListEntry.racer_id == racer_id
     ).first()
+    if existing_entry and data.get("client_temp_id") and not existing_entry.excluded:
+        # Offline dohláška z časomíry, ale závodník už na startovce mezitím je
+        # (přidalo ho jiné zařízení nebo se přihlásil online). Je to tentýž
+        # řádek - časomíra na něj přemapuje své dočasné id i s naměřenými
+        # časy. Konflikt by tu nic nerozhodoval.
+        response_payload = {
+            "message": "Závodník už na startovní listině byl - offline dohláška spojena s jeho záznamem",
+            "id": existing_entry.id,
+            "start_number": existing_entry.start_number,
+            "entry": _get_start_list_entry_payload(existing_entry.id, db),
+            "client_temp_id": data.get("client_temp_id"),
+            "merged_existing": True,
+            "idempotency_replayed": False,
+        }
+        db.commit()
+        store_idempotent_response(
+            db=db,
+            idempotency_key=x_idempotency_key,
+            admin_id=int(current_admin.id),
+            method="POST",
+            endpoint=endpoint,
+            response_payload=response_payload,
+        )
+        return response_payload
     if existing_entry:
         if existing_entry.excluded:
             # Pozdě dorazivšího závodníka časoměřič zkusí přidat znovu - řádek

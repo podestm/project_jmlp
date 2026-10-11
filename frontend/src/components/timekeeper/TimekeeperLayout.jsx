@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../pdf/pdfmake.js';
+import { preloadOfflineRacerData } from '../../offline/racerRegistry.js';
 import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function TimekeeperLayout({ children }) {
@@ -41,6 +42,18 @@ export default function TimekeeperLayout({ children }) {
   useEffect(() => {
     const timer = setTimeout(preloadPdfMake, 3000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Data pro offline dohlášku (registr závodníků, kategorie, dresy, kluby)
+  // do zařízení hned, a znovu po každém obnovení připojení.
+  useEffect(() => {
+    const preload = () => { preloadOfflineRacerData().catch(() => {}); };
+    const timer = setTimeout(preload, 5000);
+    window.addEventListener('online', preload);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('online', preload);
+    };
   }, []);
 
   const syncMeta = (() => {

@@ -33,6 +33,12 @@ const TimekeeperRacerRow = React.memo(function TimekeeperRacerRow({ entry, onEdi
       </td>
       <td>
         <span className={`fw-semibold${excluded ? ' tk-excluded-name' : ''}`}>{entry.racer_surname} {entry.racer_name}</span>
+        {Number(entry.id) < 0 && (
+          <span className="badge bg-warning text-dark ms-1" style={{ fontSize: '0.65rem' }}
+            title="Přidán offline - na server se odešle po obnovení připojení">
+            offline
+          </span>
+        )}
         {excluded && (
           <span className="badge bg-secondary ms-1" style={{ fontSize: '0.65rem' }}
             title="Vyřazen ze startovní listiny - vrátit jde v Listině">
