@@ -34,8 +34,8 @@ const SlcrName = ({ racer, children }) => (racer.slcr_url ? (
 const RacerRow = React.memo(function RacerRow({ racer, onEdit, onDelete }) {
   return (
     <tr>
-      <td><SlcrName racer={racer}>{racer.firstName}</SlcrName></td>
-      <td><SlcrName racer={racer}>{racer.lastName}</SlcrName></td>
+      {/* Příjmení napřed - seznam je řazený podle příjmení. */}
+      <td><SlcrName racer={racer}>{[racer.lastName, racer.firstName].filter(Boolean).join(' ')}</SlcrName></td>
       <td>
         <span className={`badge ${racer.sex === 1 ? 'bg-primary' : 'bg-success'}`}>
           {racer.sex === 1 ? 'M' : 'Z'}
@@ -399,7 +399,6 @@ export default function RacerManagement() {
                   <thead>
                     <tr>
                       <th>Jméno</th>
-                      <th>Příjmení</th>
                       <th>Pohlaví</th>
                       <th>Ročník</th>
                       <th>Kategorie</th>
@@ -411,7 +410,7 @@ export default function RacerManagement() {
                   <tbody>
                     {visibleRacers.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="text-center text-muted">
+                        <td colSpan="7" className="text-center text-muted">
                           {racers.length === 0 ? 'Žádní závodníci nenalezeni' : 'Žádní závodníci neodpovídají filtru'}
                         </td>
                       </tr>
