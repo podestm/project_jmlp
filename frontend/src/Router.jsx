@@ -21,6 +21,9 @@ import { loadSection } from './utils/moduleLoad.js';
 const AdminRoutes = lazy(() => loadSection(() => import('./components/admin/AdminRoutes.jsx')));
 const TimekeeperRoutes = lazy(() => loadSection(() => import('./components/timekeeper/TimekeeperRoutes.jsx')));
 
+// Katalog kitu Modré stopy jen pro vývoj; v produkčním buildu větev odpadne i s chunkem.
+const MsCatalogue = import.meta.env.DEV ? lazy(() => import('./components/ms/Catalogue/Catalogue.jsx')) : null;
+
 const NotFound = () => (
   <Layout>
     <div className="text-center py-5">
@@ -64,6 +67,10 @@ const RouterContent = () => {
           </Suspense>
         }
       />
+
+      {MsCatalogue && (
+        <Route path="/__ms" element={<Suspense fallback={null}><MsCatalogue /></Suspense>} />
+      )}
 
       {/* 404 - neznámá cesta */}
       <Route path="*" element={<NotFound />} />
