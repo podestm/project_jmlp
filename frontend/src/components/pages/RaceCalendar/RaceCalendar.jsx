@@ -85,7 +85,6 @@ export default function RaceCalendar() {
     const count = ` (${seasonRaces.filter((race) => matchesFilter(race, option.value)).length})`;
     return { ...option, label: option.label + count, shortLabel: option.shortLabel && option.shortLabel + count };
   });
-  const oldestSeason = seasons[seasons.length - 1];
   const firstUpcoming = upcoming[0];
 
   return (
@@ -94,11 +93,7 @@ export default function RaceCalendar() {
         <div className={styles.head}>
           <PageHeader eyebrow={`${toRoman(seasonEdition(seasonId))}. ročník · sezóna ${formatSeasonShort(seasonId)}`} title="Kalendář závodů" />
           {seasons.length > 0 && (
-            <Field
-              label="Sezóna"
-              className={styles.season}
-              hint={oldestSeason && `Záznamy máme od ${toRoman(seasonEdition(oldestSeason))}. ročníku (${formatSeasonShort(oldestSeason)}).`}
-            >
+            <Field label="Sezóna" className={styles.season}>
               <Select value={seasonId} onChange={(event) => { setChosenSeason(Number(event.target.value)); setFilter('all'); }}>
                 {seasons.map((id) => <option key={id} value={id}>{seasonLabel(id)}</option>)}
               </Select>
