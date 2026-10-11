@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchesFilter, seasonSummary, splitByDate } from './raceCalendar.js';
+import { matchesFilter, splitByDate } from './raceCalendar.js';
 import { seasonLabel, seasonsOf } from '../../../utils/races.js';
 
 const race = (nr, datum, method = 2) => ({ race_nr: nr, datum, race_method_id: method });
@@ -17,11 +17,8 @@ describe('raceCalendar', () => {
     expect(past.map((r) => r.race_nr)).toEqual(['b']);
   });
 
-  it('filtr podle typu a souhrn', () => {
+  it('filtr podle typu', () => {
     expect(matchesFilter(race('a', null, 1), 'snow')).toBe(true);
     expect(matchesFilter(race('a', null, 2), 'snow')).toBe(false);
-    expect(seasonSummary({ upcoming: [1, 2], past: [] })).toBe('Sezóna právě začíná · 2 vypsané závody');
-    expect(seasonSummary({ upcoming: [], past: [1] })).toBe('Sezóna skončila · 1 závod');
-    expect(seasonSummary({ upcoming: [1], past: [1, 2] })).toBe('Odjeto 2 z 3 závodů');
   });
 });

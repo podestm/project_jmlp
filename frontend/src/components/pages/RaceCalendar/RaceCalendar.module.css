@@ -31,11 +31,8 @@
   border-block-end: 2px solid var(--ms-line);
 }
 
-.summary {
+.toolbar > :last-child {
   margin-inline-start: auto;
-  font-size: var(--ms-fs-base);
-  line-height: 1.5;
-  color: var(--ms-ink-body);
 }
 
 .group {
@@ -125,11 +122,6 @@
 
   .season {
     inline-size: auto;
-  }
-
-  .summary {
-    margin-inline-start: 0;
-    flex-basis: 100%;
   }
 
   .noPast {

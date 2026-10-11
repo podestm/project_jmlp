@@ -8,7 +8,7 @@ import { formatDate } from '../../../utils/date.js';
 import { fixEncoding } from '../../../utils/text.js';
 import { raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
-import { METHOD_FILTERS, matchesFilter, seasonSummary, splitByDate } from './raceCalendar.js';
+import { METHOD_FILTERS, matchesFilter, splitByDate } from './raceCalendar.js';
 import RaceRow from './RaceRow.jsx';
 import styles from './RaceCalendar.module.css';
 
@@ -112,7 +112,6 @@ export default function RaceCalendar() {
           <Stack gap={7}>
             <div className={styles.toolbar}>
               <SegmentedControl label="Typ závodu" fill options={filterOptions} value={filter} onChange={setFilter} />
-              <p className={styles.summary}>{seasonSummary(splitByDate(seasonRaces, today))}</p>
               <SeasonResultsButton seasonId={seasonId} result={seasonResults[seasonId]} />
             </div>
 
