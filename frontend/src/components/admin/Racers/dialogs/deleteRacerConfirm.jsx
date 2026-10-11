@@ -5,6 +5,6 @@ export const deleteRacerConfirm = (racer) => ({
   title: 'Smazat závodníka?',
   message: <DeleteRacerMessage racer={racer} />,
   confirmLabel: 'Smazat závodníka',
-  variant: 'danger',
+  danger: true,
   icon: 'trash',
 });

@@ -100,7 +100,7 @@ export default function SeasonManagement() {
       title: `Smazat sezónu ${season.season_label}?`,
       message: 'Dokumenty sezóny se odpojí, soubory zůstanou v knihovně.',
       confirmLabel: 'Smazat',
-      variant: 'danger',
+      danger: true,
       icon: 'trash'
     });
     if (!confirmed) return;

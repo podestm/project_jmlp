@@ -31,7 +31,6 @@ export default function TimingDeviceSettings() {
         title: 'Hledat jinou rychlost?',
         message: `Na rychlosti ${serial.baud} už z časomíry přišel platný řádek. Hledejte jen tehdy, když časomíra opravdu posílá nečitelná data.`,
         confirmLabel: 'Hledat rychlost',
-        variant: 'primary',
         icon: 'search'
       });
       if (!go) return;

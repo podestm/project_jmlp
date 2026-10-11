@@ -132,7 +132,7 @@ export const useRaceNumbers = ({ confirm }) => {
       title: `Smazat sadu č. ${setNumber}?`,
       message: 'Smažou se všechna čísla sady; ve startovních listinách zůstanou řádky bez čísla. Akci nelze vzít zpět.',
       confirmLabel: 'Smazat sadu',
-      variant: 'danger',
+      danger: true,
       icon: 'trash'
     });
     if (!confirmed) return;

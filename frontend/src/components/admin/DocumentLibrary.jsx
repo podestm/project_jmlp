@@ -194,7 +194,7 @@ export default function DocumentLibrary() {
           + 'Smazáním zmizí i z těchto míst.'
         : 'Soubor se smaže z knihovny i z disku. Akci nelze vzít zpět.',
       confirmLabel: used ? 'Přesto smazat' : 'Smazat',
-      variant: 'danger',
+      danger: true,
       icon: 'trash'
     });
     if (!confirmed) return;

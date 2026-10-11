@@ -9,6 +9,7 @@ export { default as ButtonLink } from './ButtonLink/ButtonLink.jsx';
 export { default as Checkbox } from './Checkbox/Checkbox.jsx';
 export { default as CloseButton } from './CloseButton/CloseButton.jsx';
 export { default as Cluster } from './Cluster/Cluster.jsx';
+export { default as ConfirmDialog } from './ConfirmDialog/ConfirmDialog.jsx';
 export { default as Combobox } from './Combobox/Combobox.jsx';
 export { default as Container } from './Container/Container.jsx';
 export { default as DataRow } from './DataRow/DataRow.jsx';

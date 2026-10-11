@@ -314,7 +314,7 @@ describe('Zamítnout u automaticky zapsané události', () => {
 
     await act(async () => { await result.current.clearResolvedInbox(); });
 
-    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ variant: 'danger' }));
+    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ danger: true }));
     expect((await storedRow()).status).toBe('saved');
   });
 

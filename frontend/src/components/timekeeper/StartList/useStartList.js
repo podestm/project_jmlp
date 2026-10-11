@@ -105,7 +105,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
         + (measured > 0 ? ` a naměřených časů (${measured} závodníků už má výsledek)` : '')
         + '. Listinu půjde znovu vygenerovat z přihlášek. Akce je nevratná.',
       confirmLabel: 'Smazat vše',
-      variant: 'danger',
+      danger: true,
       icon: 'trash',
     });
     if (!confirmed) return;
@@ -206,7 +206,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     const confirmed = await confirm({
       title: `Odebrat ${name} ze startovní listiny?`,
       confirmLabel: 'Odebrat',
-      variant: 'danger',
+      danger: true,
       icon: 'trash',
     });
     if (!confirmed) return;

@@ -78,7 +78,7 @@ export const clearResultsConfirm = ({ race, total }) => ({
   ),
   cancelLabel: 'Zrušit',
   choices: [
-    { value: 'times', label: 'Smazat naměřené časy', variant: 'danger', icon: 'trash' },
-    { value: 'all', label: 'Smazat časy i publikovanou listinu', variant: 'danger', icon: 'trash' },
+    { value: 'times', label: 'Smazat naměřené časy', danger: true, icon: 'trash' },
+    { value: 'all', label: 'Smazat časy i publikovanou listinu', danger: true, icon: 'trash' },
   ],
 });

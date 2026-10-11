@@ -25,7 +25,7 @@ export const logoutConfirm = ({ queueTotal, isOnline }) => ({
     </>
   ),
   choices: [
-    { value: 'sync', label: 'Otevřít Synchronizaci', variant: 'outline-primary', icon: 'sync' },
-    { value: 'logout', label: 'Odhlásit se i tak', variant: 'danger', icon: 'logout' },
+    { value: 'sync', label: 'Otevřít Synchronizaci', icon: 'sync' },
+    { value: 'logout', label: 'Odhlásit se i tak', danger: true, icon: 'logout' },
   ],
 });

@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
-
-const DEFAULT_CHOICES = [{ value: true, label: 'Potvrdit', variant: 'primary' }];
+import ConfirmDialog from '../components/ms/ConfirmDialog/ConfirmDialog.jsx';
 
 /**
  * Promise-based replacement for window.confirm / window.prompt.
  *
  *   const { confirm, confirmElement } = useConfirm();
- *   if (!await confirm({ title: 'Smazat závodníka?', confirmLabel: 'Smazat', variant: 'danger' })) return;
+ *   if (!await confirm({ title: 'Smazat závodníka?', confirmLabel: 'Smazat', danger: true })) return;
  *
  * Multi-way choices replace a free-text prompt:
  *
  *   const choice = await confirm({ title: '…', choices: [
- *     { value: 'keep',  label: 'Soubory ponechat', variant: 'outline-primary' },
- *     { value: 'purge', label: 'Smazat i soubory', variant: 'danger' },
+ *     { value: 'keep',  label: 'Soubory ponechat' },
+ *     { value: 'purge', label: 'Smazat i soubory', danger: true },
  *   ]});   // null when cancelled
  *
  * Hooks with no JSX of their own (usePostManagement, useRaceManagement) cannot
@@ -28,7 +26,7 @@ export const useConfirm = () => {
     message = null,
     confirmLabel = 'Potvrdit',
     cancelLabel = 'Zrušit',
-    variant = 'primary',
+    danger = false,
     icon,
     choices
   }) => new Promise((resolve) => {
@@ -37,7 +35,7 @@ export const useConfirm = () => {
       title,
       message,
       cancelLabel,
-      choices: choices || [{ ...DEFAULT_CHOICES[0], label: confirmLabel, variant, icon }]
+      choices: choices || [{ value: true, label: confirmLabel, danger, icon }]
     });
   }), []);
 

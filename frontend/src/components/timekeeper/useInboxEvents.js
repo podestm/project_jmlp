@@ -664,7 +664,7 @@ export function useInboxEvents({
       message: `Smažou se řádky potvrzené a prokazatelně odeslané na server a zamítnuté. Časy zapsané v listině zůstanou. Zůstane ${liveInboxCount} řádků – nepotvrzené, čekající na synchronizaci, chybové i varovné. Ty obsahují naměřené časy, které nejsou zapsané nikde jinde.`,
       confirmLabel: `Smazat ${resolvedInboxCount} řádků`,
       // Mazání: Enter ho nesmí potvrdit, fokus dostane Zrušit.
-      variant: 'danger',
+      danger: true,
       icon: 'trash',
     });
     if (!ok) return;
@@ -701,7 +701,7 @@ export function useInboxEvents({
         ? `Smaže se ${inboxEvents.length} řádků včetně ${liveInboxCount} nevyřízených – naměřené časy, které zatím nikdo nezapsal${unassignedInboxCount > 0 ? ` (z toho ${unassignedInboxCount} zatím nepřiřazených k žádnému závodu)` : ''}. Akci nelze vrátit zpět.`
         : `Smaže se všech ${inboxEvents.length} uložených událostí. Akci nelze vrátit zpět.`,
       confirmLabel: `Smazat ${inboxEvents.length} událostí`,
-      variant: 'danger',
+      danger: true,
       icon: 'trash',
     });
     if (!ok) return;

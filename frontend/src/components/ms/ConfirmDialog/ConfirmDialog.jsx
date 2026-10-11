@@ -1,20 +1,19 @@
-import { Button, Modal } from '../ms/index.js';
-
-const isDangerous = (choice) => String(choice.variant || 'primary').includes('danger');
+import Button from '../Button/Button.jsx';
+import Modal from '../Modal/Modal.jsx';
 
 /**
- * Potvrzovací dialog (DialogPotvrzeni) nad kit Modal. API zůstává, volají ho
- * useConfirm a ClubDeleteDialog.
+ * Potvrzovací dialog (DialogPotvrzeni) nad kit Modal. Volá ho useConfirm
+ * (hooks/useConfirm.jsx) a dialogy, které potřebují vlastní tělo.
  *
  * @param {string} title - otázka, která jmenuje co („Smazat závod …?“)
  * @param {React.ReactNode} message - řetězec se vykreslí jako odstavec
- * @param {Array<{value: *, label: string, variant?: string, icon?: string, hint?: string,
+ * @param {Array<{value: *, label: string, danger?: boolean, icon?: string, hint?: string,
  *   disabled?: boolean}>} choices
  *   Tlačítka vedle Zrušit. Jedna volba je obvyklé potvrzení, víc voleb
  *   nahrazuje dotaz s volným textem. Volba je zamčená (disabled), dokud tělo
  *   dialogu čeká na odpověď – smazání klubu čeká na výběr cílového klubu.
- *   variant zůstává ve tvaru Bootstrapu: cokoli s „danger“ je nebezpečná
- *   volba, ostatní jsou běžné; icon je název z components/ms/Icon/icons.js.
+ *   danger: nebezpečná volba (mazání, přepsání); icon je název
+ *   z components/ms/Icon/icons.js.
  * @param {string} [cancelLabel]
  * @param {function} onResolve - zvolená hodnota, nebo null při zrušení
  *   (Zrušit, křížek, Escape, klik do překryvu)
@@ -35,11 +34,11 @@ export default function ConfirmDialog({
   cancelLabel = 'Zrušit',
   onResolve
 }) {
-  const focusIndex = choices.findIndex((choice) => !choice.disabled && !isDangerous(choice));
+  const focusIndex = choices.findIndex((choice) => !choice.disabled && !choice.danger);
   const mainIndex = focusIndex >= 0 ? focusIndex : choices.length - 1;
 
   const renderChoice = (choice, index) => {
-    const dangerous = isDangerous(choice);
+    const dangerous = Boolean(choice.danger);
     return (
       <Button
         key={String(choice.value)}
@@ -58,8 +57,8 @@ export default function ConfirmDialog({
   const others = choices
     .map((choice, index) => ({ choice, index }))
     .filter(({ index }) => index !== mainIndex);
-  const dangerousOthers = others.filter(({ choice }) => isDangerous(choice));
-  const safeOthers = others.filter(({ choice }) => !isDangerous(choice));
+  const dangerousOthers = others.filter(({ choice }) => choice.danger);
+  const safeOthers = others.filter(({ choice }) => !choice.danger);
 
   return (
     <Modal

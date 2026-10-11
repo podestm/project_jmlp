@@ -15,7 +15,7 @@ export const deleteRaceConfirm = (race) => {
       ? <DeleteRaceMessage race={race} />
       : 'Závod zmizí z kalendáře i z administrace. Akci nelze vzít zpět.',
     confirmLabel: count > 0 ? `Smazat závod i ${count} ${registrationsWord(count)}` : 'Smazat závod',
-    variant: 'danger',
+    danger: true,
     icon: 'trash',
   };
 };

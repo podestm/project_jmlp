@@ -149,7 +149,7 @@ export default function AttachmentManager({
       message: `Soubor „${attachment.original_filename}" přestane být u této položky zveřejněný.`,
       choices: [
         { value: 'detach', label: 'Odpojit, soubor ponechat', variant: 'primary', icon: 'publish' },
-        { value: 'delete', label: 'Odpojit a smazat soubor', variant: 'danger', icon: 'trash' }
+        { value: 'delete', label: 'Odpojit a smazat soubor', danger: true, icon: 'trash' }
       ]
     });
     if (!choice) return;

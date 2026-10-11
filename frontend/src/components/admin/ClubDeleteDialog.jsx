@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import ConfirmDialog from '../ui/ConfirmDialog.jsx';
+import ConfirmDialog from '../ms/ConfirmDialog/ConfirmDialog.jsx';
 import { Field, Select } from '../ms/index.js';
 
 /**
@@ -68,7 +68,7 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
       choices={[{
         value: 'smazat',
         label: 'Smazat klub',
-        variant: 'danger',
+        danger: true,
         icon: 'trash',
         disabled: potrebujeCil && !cil,
       }]}

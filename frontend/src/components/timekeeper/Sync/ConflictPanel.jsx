@@ -8,14 +8,14 @@ const FORCE_CONFIRM = {
   title: 'Přepsat záznam na serveru?',
   message: 'Hodnota z tohoto zařízení přepíše tu, kterou mezitím uložil někdo jiný. Zpátky to nejde.',
   confirmLabel: 'Přepsat server',
-  variant: 'danger',
+  danger: true,
   icon: 'upload',
 };
 const DROP_CONFIRM = {
   title: 'Zahodit hodnotu z tohoto zařízení?',
   message: 'Na serveru zůstane jeho hodnota a vaše změna se smaže z fronty. Zpátky to nejde.',
   confirmLabel: 'Nechat server',
-  variant: 'danger',
+  danger: true,
   icon: 'close',
 };
 

@@ -115,7 +115,7 @@ export default function CategoryManagement() {
       title: 'Smazat kategorii?',
       message: `Opravdu chcete smazat kategorii „${category.display_name || category.name}" (ročníky ${category.min_birth_year}–${category.max_birth_year})? Tuto akci nelze vrátit zpět.`,
       confirmLabel: 'Smazat',
-      variant: 'danger',
+      danger: true,
       icon: 'trash'
     });
     if (!confirmed) return;

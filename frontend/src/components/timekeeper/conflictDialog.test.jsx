@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ConfirmDialog from '../ui/ConfirmDialog.jsx';
+import ConfirmDialog from '../ms/ConfirmDialog/ConfirmDialog.jsx';
 import { CONFLICT_CHOICES } from './useTimeSaving.jsx';
 
 /**

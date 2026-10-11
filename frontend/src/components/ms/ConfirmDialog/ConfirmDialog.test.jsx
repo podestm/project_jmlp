@@ -16,7 +16,7 @@ const renderDialog = (choices) => {
 
 describe('fokus a Enter v potvrzovacím dialogu', () => {
   it('u smazání dostane fokus Zrušit a Enter nic nesmaže', async () => {
-    const onResolve = renderDialog([{ value: true, label: 'Smazat', variant: 'danger' }]);
+    const onResolve = renderDialog([{ value: true, label: 'Smazat', danger: true }]);
 
     expect(screen.getByRole('button', { name: 'Zrušit' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
@@ -24,7 +24,7 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
   });
 
   it('u běžného potvrzení dostane fokus potvrzení', async () => {
-    const onResolve = renderDialog([{ value: true, label: 'Publikovat', variant: 'success' }]);
+    const onResolve = renderDialog([{ value: true, label: 'Publikovat' }]);
 
     expect(screen.getByRole('button', { name: 'Publikovat' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
@@ -33,21 +33,21 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
 
   it('z více voleb dostane fokus první bezpečná', () => {
     renderDialog([
-      { value: 'purge', label: 'Smazat i soubory', variant: 'danger' },
-      { value: 'keep', label: 'Soubory ponechat', variant: 'outline-primary' }
+      { value: 'purge', label: 'Smazat i soubory', danger: true },
+      { value: 'keep', label: 'Soubory ponechat' }
     ]);
 
     expect(screen.getByRole('button', { name: 'Soubory ponechat' })).toHaveFocus();
   });
 
   it('zakázaná volba fokus nedostane', () => {
-    renderDialog([{ value: true, label: 'Přesunout', variant: 'primary', disabled: true }]);
+    renderDialog([{ value: true, label: 'Přesunout', disabled: true }]);
 
     expect(screen.getByRole('button', { name: 'Zrušit' })).toHaveFocus();
   });
 
   it('smazání jde pořád vědomým kliknutím', async () => {
-    const onResolve = renderDialog([{ value: true, label: 'Smazat', variant: 'danger' }]);
+    const onResolve = renderDialog([{ value: true, label: 'Smazat', danger: true }]);
 
     await userEvent.click(screen.getByRole('button', { name: 'Smazat' }));
     expect(onResolve).toHaveBeenCalledWith(true);
@@ -55,8 +55,8 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
 
   it('pořadí podle artboardu: další nebezpečná vlevo, Zrušit, hlavní bezpečná vpravo', () => {
     renderDialog([
-      { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary' },
-      { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger' }
+      { value: 'server', label: 'Ponechat hodnotu ze serveru' },
+      { value: 'overwrite', label: 'Přepsat mojí hodnotou', danger: true }
     ]);
 
     const names = within(screen.getByRole('dialog')).getAllByRole('button')
@@ -65,7 +65,7 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
   });
 
   it('Escape i křížek znamenají zrušit', async () => {
-    const onResolve = renderDialog([{ value: true, label: 'Smazat', variant: 'danger' }]);
+    const onResolve = renderDialog([{ value: true, label: 'Smazat', danger: true }]);
 
     fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
     await userEvent.click(screen.getByRole('button', { name: 'Zavřít dialog' }));

@@ -202,7 +202,7 @@ export const usePostManagement = ({ confirm } = {}) => {
             title: post?.title ? `Smazat příspěvek „${post.title}“?` : 'Smazat příspěvek?',
             message: 'Příspěvek zmizí z webu i z administrace. Akci nelze vzít zpět.',
             confirmLabel: 'Smazat příspěvek',
-            variant: 'danger',
+            danger: true,
             icon: 'trash'
         });
         if (!confirmed) return;
