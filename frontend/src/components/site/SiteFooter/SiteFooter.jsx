@@ -16,7 +16,7 @@ export default function SiteFooter({ full = false }) {
   const { edition, season, copyright } = currentSeasonInfo();
 
   return (
-    <footer className={cx('ms-scope', styles.footer, full && styles.full)}>
+    <footer className={cx(styles.footer, full && styles.full)}>
       {full ? (
         <div className={styles.desktop}>
           <Container className={styles.columns}>

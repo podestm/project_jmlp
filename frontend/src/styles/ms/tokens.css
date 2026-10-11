@@ -97,7 +97,7 @@
   --ms-target: 44px;         /* nejmenší dotykový cíl */
   --ms-container: 1240px;
 
-  /* ── Vrstvení: do Fáze 6 vše pod 1000 (starý .navbar 1030, .modal 1055) ── */
+  /* ── Vrstvení (dialogy jsou v top layer nad vším) ── */
   --ms-z-sticky: 100;
   --ms-z-drawer: 200;
   --ms-z-popover: 300;

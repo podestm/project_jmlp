@@ -13,6 +13,10 @@ describe('check:styles', () => {
   it('žádný soubor nepřekročil baseline a kit je čistý', () => {
     expect(check()).toEqual([]);
   });
+
+  it('brána Fáze 6: nikde nic, ani zmínka o Bootstrapu', () => {
+    expect(check({ final: true })).toEqual([]);
+  });
 });
 
 describe('počítání', () => {

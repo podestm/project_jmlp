@@ -1,13 +1,11 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import Screen from './Screen.jsx';
 
 describe('Screen', () => {
-  it('kořen má .ms-scope a body světlé pozadí jen dokud je obrazovka připojená', () => {
-    const { container, unmount } = render(<Screen><p>obsah</p></Screen>);
-    expect(container.firstChild).toHaveClass('ms-scope');
-    expect(document.body).toHaveClass('ms-page');
-    unmount();
-    expect(document.body).not.toHaveClass('ms-page');
+  it('obalí obsah a přidá vlastní třídu', () => {
+    const { container } = render(<Screen className="navic"><p>obsah</p></Screen>);
+    expect(screen.getByText('obsah')).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass('navic');
   });
 });

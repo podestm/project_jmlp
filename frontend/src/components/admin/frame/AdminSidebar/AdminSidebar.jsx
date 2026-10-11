@@ -16,7 +16,7 @@ export default function AdminSidebar({ admin, counts, onLogout, className }) {
   const { edition, season } = currentSeasonInfo();
 
   return (
-    <aside className={cx('ms-scope', styles.sidebar, className)} aria-label="Menu administrace">
+    <aside className={cx(styles.sidebar, className)} aria-label="Menu administrace">
       <Link to="/admin" className={styles.brand} aria-label="Administrace – přehled">
         <AdminBrand subtitle={`${edition} ročník · ${season}`} />
       </Link>

@@ -49,7 +49,7 @@ const RouterContent = () => {
       <Route
         path="/admin/*"
         element={
-          <Suspense fallback={<LoadingState variant="fullscreen" className="ms-scope" />}>
+          <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <AdminRoutes />
           </Suspense>
         }
@@ -58,7 +58,7 @@ const RouterContent = () => {
       <Route
         path="/timekeeper/*"
         element={
-          <Suspense fallback={<LoadingState variant="fullscreen" className="ms-scope" />}>
+          <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <TimekeeperRoutes />
           </Suspense>
         }

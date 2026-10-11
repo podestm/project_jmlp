@@ -376,10 +376,10 @@ export function useInboxEvents({
   }, [inboxEvents, startList, loading, selectedRaceId, candidateIdsForBib]);
 
   /**
-   * Zápis jedné události do kola závodníka - společná cesta pro ✓ i pro
+   * Zápis jedné události do kola závodníka - společná cesta pro potvrzení obsluhou i pro
    * automatický zápis.
    *
-   * `entryIdHint` je id, které měl vykreslený řádek pod ✓. Bez něj by se
+   * `entryIdHint` je id, které měl vykreslený řádek pod tlačítkem potvrzení. Bez něj by se
    * závodník počítal podruhé a mohl vyjít jinak, než co obsluha viděla.
    * Zabrání se tady i tomu, aby dvě karty zapsaly jeden impulz dvakrát:
    * beginInboxEventSave je compare-and-set nad uloženým řádkem.
@@ -416,7 +416,7 @@ export function useInboxEvents({
     const field = roundField(event.targetRound);
 
     if (auto && !isRoundEmpty(entry, previousDraft, field)) {
-      // Obsazené kolo se automaticky nikdy nepřepisuje - zůstává na ✓ obsluhy.
+      // Obsazené kolo se automaticky nikdy nepřepisuje - zůstává na potvrzení obsluhou.
       await patchInboxRow(eventId, { level: 'warning', reason: 'round_occupied' });
       return;
     }
@@ -525,7 +525,7 @@ export function useInboxEvents({
     });
   }, [patchInboxRow, patchInboxRowLocally, queueSave, resolveEntryForEvent]);
 
-  /** Potvrzení jedné události obsluhou (✓). */
+  /** Potvrzení jedné události obsluhou (Přiřadit a uložit). */
   const confirmBridgeEvent = useCallback(
     (eventId, entryIdHint = null) => writeBridgeEvent(eventId, entryIdHint),
     [writeBridgeEvent]

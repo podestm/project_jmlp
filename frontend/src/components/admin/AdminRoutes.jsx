@@ -33,7 +33,6 @@ const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function AdminRoutes() {
   return (
-    // Screen: světlé pozadí celé stránky (body.ms-page) místo tmavé fotky starého CSS.
     <Screen>
       <AuthProvider>
         <Routes>

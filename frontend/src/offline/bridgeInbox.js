@@ -333,7 +333,7 @@ export const recoverStaleSavingEvents = async ({ orphanBefore = null, liveWriter
  * Claim one inbox row for writing - compare-and-set, inside one transaction.
  *
  * Two timekeeper tabs on DIFFERENT races both hold a (per-race) write lock and
- * both render every unassigned row, so both can press ✓ on the same physical
+ * both render every unassigned row, so both can press the confirm button on the same physical
  * impulse. Without this the in-memory duplicate guard misses it entirely and one
  * impulse becomes two recorded results on two racers, leaving no trace.
  *

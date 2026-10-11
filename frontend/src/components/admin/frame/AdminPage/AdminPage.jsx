@@ -13,7 +13,7 @@ import styles from './AdminPage.module.css';
  */
 export default function AdminPage({ title, meta, description, actions, back, className, children }) {
   return (
-    <div className={cx('ms-scope', styles.page, className)}>
+    <div className={cx(styles.page, className)}>
       <header className={styles.head}>
         {back && (
           <Link to={back.to} className={styles.back}>

@@ -1,13 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fontPreload from './vite/fontPreload.js'
-import noLegacy from './vite/noLegacy.js'
-
-// Kanárkový build bez starého CSS: JMLP_NO_LEGACY=1 npx vite build --outDir dist-canary
-const canary = process.env.JMLP_NO_LEGACY === '1'
 
 export default defineConfig({
-  plugins: [react(), fontPreload(), ...(canary ? [noLegacy()] : [])],
+  plugins: [react(), fontPreload()],
   server: {
     port: 3000,
     host: true,

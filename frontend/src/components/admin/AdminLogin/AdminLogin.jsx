@@ -4,7 +4,6 @@ import { useAuth } from '../../../config/auth.jsx';
 import trat from '../../../assets/images/trat.jpg';
 import znak from '../../../assets/images/jmlp_znak_88.png';
 import { Alert, Button, Field, Icon, Input, PasswordInput } from '../../ms/index.js';
-import { cx } from '../../ms/cx.js';
 import { CUP_NAME, currentSeasonInfo } from '../../site/siteInfo.js';
 import styles from './AdminLogin.module.css';
 
@@ -38,7 +37,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className={cx('ms-scope', styles.page)}>
+    <div className={styles.page}>
       <img src={trat} alt="" className={styles.photo} />
       <div className={styles.content}>
         <div className={styles.brand}>

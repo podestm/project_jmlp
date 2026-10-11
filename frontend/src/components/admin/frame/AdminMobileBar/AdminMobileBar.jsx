@@ -27,7 +27,7 @@ export default function AdminMobileBar({ menuId, menuOpen, onOpenMenu, pendingCl
     : 'Otevřít menu administrace';
 
   return (
-    <header className={cx('ms-scope', styles.bar, className)}>
+    <header className={cx(styles.bar, className)}>
       <Link to="/admin" className={styles.brand} aria-label="Administrace – přehled">
         <AdminBrand size="sm" subtitle={subtitle} />
       </Link>

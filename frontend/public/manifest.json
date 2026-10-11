@@ -5,8 +5,8 @@
   "start_url": "/timekeeper",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#e94560",
+  "background_color": "#F4F8FB",
+  "theme_color": "#003F60",
   "icons": [
     {
       "src": "/favicon-32x32.png",

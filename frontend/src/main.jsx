@@ -1,8 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-// Staré CSS (ve vrstvě legacy) a po něm Modrá stopa – nové styly mimo vrstvu vyhrají.
-import './assets/styles/main.css'
+// Jediné globální styly: Modrá stopa (tokeny, písma, reset). Ostatní je v *.module.css.
 import './styles/ms/index.css'
 
 createRoot(document.getElementById('root')).render(

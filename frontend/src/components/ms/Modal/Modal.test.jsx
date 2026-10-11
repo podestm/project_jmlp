@@ -33,12 +33,11 @@ function Harness({ onClose = () => {}, dismissible, footer, initiallyOpen = fals
 }
 
 describe('Modal', () => {
-  it('otevře se přes showModal, je pojmenovaný nadpisem a má .ms-scope', async () => {
+  it('otevře se přes showModal a je pojmenovaný nadpisem', async () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole('button', { name: 'Otevřít' }));
     const dialog = dialogOf();
     expect(dialog).toHaveAttribute('open');
-    expect(dialog).toHaveClass('ms-scope');
     expect(screen.getByRole('dialog', { name: 'Odebrat Kučeru Štěpána ze startovní listiny?' })).toBe(dialog);
   });
 

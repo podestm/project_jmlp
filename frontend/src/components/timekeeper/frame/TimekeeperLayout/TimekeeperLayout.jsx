@@ -4,7 +4,6 @@ import { useTimekeeperAuth } from '../../../../config/timekeeperAuth.jsx';
 import { useConfirm } from '../../../../hooks/useConfirm.jsx';
 import { useSyncStatus } from '../../../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../../../pdf/pdfmake.js';
-import { cx } from '../../../ms/cx.js';
 import { logoutConfirm } from '../../dialogs/logoutConfirm.jsx';
 import { useSelectedRace } from '../selectedRace.js';
 import TabBar from '../TabBar/TabBar.jsx';
@@ -45,7 +44,7 @@ export default function TimekeeperLayout({ children }) {
 
   return (
     <div className={styles.layout}>
-      <header className={cx('ms-scope', styles.header)}>
+      <header className={styles.header}>
         <TopBar race={race} />
         <TabBar user={user} onLogout={handleLogout} />
       </header>

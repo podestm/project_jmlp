@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
 import znak from '../../../assets/images/jmlp_znak_88.png';
 import { Container, IconButton, LivePill } from '../../ms/index.js';
-import { cx } from '../../ms/cx.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
 import MobileMenu from '../MobileMenu/MobileMenu.jsx';
 import { CUP_NAME, currentSeasonInfo } from '../siteInfo.js';
@@ -23,7 +22,7 @@ export default function SiteHeader() {
   const { edition, season } = currentSeasonInfo();
 
   return (
-    <header className={cx('ms-scope', styles.header)}>
+    <header className={styles.header}>
       <Container className={styles.bar}>
         <Link to="/" className={styles.brand} aria-label={`${CUP_NAME} – úvod`}>
           <img src={znak} alt="" width="44" height="44" className={styles.logo} />

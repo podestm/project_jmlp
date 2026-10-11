@@ -1,5 +1,4 @@
 import { Alert } from '../ms/index.js';
-import { cx } from '../ms/cx.js';
 import styles from './TimekeeperMessage.module.css';
 
 /**
@@ -12,7 +11,7 @@ import styles from './TimekeeperMessage.module.css';
 export default function TimekeeperMessage({ message, onDismiss }) {
   if (!message) return null;
   return (
-    <Alert type={message.type} compact autoDismissDelay={0} onDismiss={onDismiss} className={cx('ms-scope', styles.message)}>
+    <Alert type={message.type} compact autoDismissDelay={0} onDismiss={onDismiss} className={styles.message}>
       {message.text}
     </Alert>
   );

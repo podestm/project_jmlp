@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon, useDialog } from '../../../ms/index.js';
-import { cx } from '../../../ms/cx.js';
 import { currentSeasonInfo } from '../../../site/siteInfo.js';
 import SectionSwitch from '../../../backoffice/SectionSwitch/SectionSwitch.jsx';
 import AdminBrand from '../AdminBrand/AdminBrand.jsx';
@@ -30,7 +29,7 @@ export default function AdminMobileMenu({ id, open, onClose, admin, counts, onLo
   const close = () => onClose('navigate');
 
   return (
-    <dialog {...dialogProps} id={id} aria-label="Menu administrace" className={cx('ms-scope', styles.menu)}>
+    <dialog {...dialogProps} id={id} aria-label="Menu administrace" className={styles.menu}>
       {open && (
         <div className={styles.panel}>
           <div className={styles.top}>

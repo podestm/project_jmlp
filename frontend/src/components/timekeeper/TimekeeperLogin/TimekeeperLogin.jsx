@@ -56,7 +56,7 @@ export default function TimekeeperLogin() {
   };
 
   return (
-    <div className={cx('ms-scope', styles.page)}>
+    <div className={styles.page}>
       <section className={styles.intro} aria-label="Časomíra JMLP">
         <img src={trat} alt="" className={styles.photo} />
         <div className={styles.introBody}>

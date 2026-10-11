@@ -31,7 +31,7 @@ export default function MobileMenu({ id, open, onClose }) {
   const close = () => onClose('navigate');
 
   return (
-    <dialog {...dialogProps} id={id} aria-label="Menu" className={cx('ms-scope', styles.menu)}>
+    <dialog {...dialogProps} id={id} aria-label="Menu" className={styles.menu}>
       {open && (
         <div className={styles.panel}>
           <div className={styles.top}>

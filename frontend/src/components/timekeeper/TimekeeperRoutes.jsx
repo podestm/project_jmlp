@@ -30,7 +30,6 @@ const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimek
 
 export default function TimekeeperRoutes() {
   return (
-    // Screen: světlé pozadí celé stránky (body.ms-page) místo tmavé fotky starého CSS.
     <Screen>
       <TimekeeperAuthProvider>
         {/* Wraps <Routes>, so the serial port stays open across screen changes. */}

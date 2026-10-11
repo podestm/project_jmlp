@@ -1,7 +1,7 @@
 // Překlad impulzu z časomíry na závodníka.
 //
 // Jediné místo, kde se to počítá. Dokud si řádek inboxu hledal kandidáty sám,
-// uměl zobrazit jednoho závodníka a ✓ zapsat čas jinému.
+// uměl zobrazit jednoho závodníka a potvrzení (Přiřadit a uložit) zapsat čas jinému.
 
 import { isExcluded } from './startListHelpers.js';
 
@@ -17,7 +17,7 @@ export const matchesBib = (entry, bib) => (
 /**
  * Smí se impulz s tímhle dresem zapsat tomuhle závodníkovi?
  *
- * Vyřazený ze startky kandidátem není nikdy - jinak by mu ✓ zapsal čas, který
+ * Vyřazený ze startky kandidátem není nikdy - jinak by mu potvrzení zapsalo čas, který
  * patří někomu, kdo jede se stejným číslem z jiné sady.
  */
 export const isBibCandidate = (entry, bib) => !isExcluded(entry) && matchesBib(entry, bib);
@@ -64,7 +64,7 @@ export const pointsToExcludedEntry = (event, startList, entriesById) => {
 const LOCKED_EVENT_STATUSES = new Set(['saving', 'queued', 'saved', 'rejected']);
 
 /**
- * Komu ✓ na daném řádku inboxu zapíše.
+ * Komu potvrzení (Přiřadit a uložit) na daném řádku inboxu zapíše.
  *
  * @returns {{entry: Object|null, count: number, index: number, excluded: boolean}}
  *   `excluded` je true, když nikdo nezbyl, protože dres patří vyřazenému

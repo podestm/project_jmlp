@@ -4,7 +4,7 @@ import styles from './SiteLayout.module.css';
 
 /**
  * Rámec veřejného webu: hlavička, obsah a patička. Obsah je převedená
- * obrazovka s kořenem Screen (ten nese .ms-scope a světlé pozadí).
+ * obrazovka s kořenem Screen.
  * - footer="full": velká patička (úvod)
  */
 export default function SiteLayout({ footer, children }) {

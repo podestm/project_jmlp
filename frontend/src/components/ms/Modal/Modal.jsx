@@ -6,7 +6,7 @@ import { useDialog } from './useDialog.js';
 
 /**
  * Dialog na nativním <dialog>.showModal() (DialogPotvrzeni). Zůstává ve
- * stromu DOM (žádný portál), kořen má .ms-scope. Řízený zvenku: `open`
+ * stromu DOM (žádný portál). Řízený zvenku: `open`
  * a `onClose(reason)`.
  *
  * Chování (useDialog.js):
@@ -51,7 +51,7 @@ export default function Modal({
     <dialog
       {...dialogProps}
       aria-labelledby={titleId}
-      className={cx('ms-scope', styles.dialog, styles[size], className)}
+      className={cx(styles.dialog, styles[size], className)}
     >
       {open && (
         <div className={styles.surface}>

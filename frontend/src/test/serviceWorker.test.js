@@ -166,7 +166,7 @@ describe('data jdou mimo service worker', () => {
   });
 
   it('cizí origin worker nechává být', () => {
-    expect(dispatchFetch('https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css')).toBeNull();
+    expect(dispatchFetch('https://example.org/style.css')).toBeNull();
   });
 });
 
@@ -337,7 +337,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v5']);
+    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v6']);
   });
 
   it('aktivace smaže starší keše i s daty, která v nich zůstala', async () => {
@@ -348,7 +348,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v5']);
+    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v6']);
     expect(worker.caches.peek('/races/')).toBeUndefined();
     expect(worker.self.clients.claim).toHaveBeenCalled();
   });

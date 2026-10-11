@@ -37,6 +37,8 @@
 }
 
 .select:disabled {
+  /* Chrome dává zakázanému <select> průhlednost 0,7 – stav nese barva. */
+  opacity: 1;
   background: var(--ms-surface-sunken);
   border-color: var(--ms-line);
   color: var(--ms-ink-muted);

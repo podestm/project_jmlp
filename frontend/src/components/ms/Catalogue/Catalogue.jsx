@@ -4,7 +4,6 @@ import {
   Field, Grid, Icon, IconButton, Input, LoadingState, Modal, PageHeader, Pagination, Panel, Paska, PasswordInput,
   SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, VisuallyHidden,
 } from '../index.js';
-import { cx } from '../cx.js';
 import { ICONS } from '../Icon/icons.js';
 import { adminNav, publicLiveNav, publicNav, timekeeperNav } from '../navItems.js';
 import { bibColors, bibVar, colors, cssVar } from '../tokens.js';
@@ -16,7 +15,7 @@ import styles from './Catalogue.module.css';
  */
 export default function Catalogue() {
   return (
-    <div className={cx('ms-scope', styles.page)}>
+    <div className={styles.page}>
       <Container as="main">
         <Stack gap={12}>
           <PageHeader eyebrow="Jen pro vývoj" title="Kit Modré stopy" description="Všechny komponenty z components/ms ve všech variantách. Porovnávej s artboardy na 1600 a 390 px." />

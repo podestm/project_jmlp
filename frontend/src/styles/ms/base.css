@@ -1,11 +1,6 @@
 /*
- * Základ Modré stopy. Záměrně BEZ @layer: staré CSS je ve vrstvě legacy, takže
- * tohle nad ním vyhraje bez ohledu na specificitu.
- *
- * Reset platí jen uvnitř kořene nového UI (.ms-scope) a má nulovou specificitu
- * (:where), takže ho přebije každá třída z *.module.css. Neutralizuje staré
- * elementové styly, které by jinak prosákly (h1–h6, li, *:focus, odkazy).
- * Ve Fázi 6 se :where(.ms-scope) přepne na celý dokument.
+ * Základ Modré stopy pro celý dokument: reset s nulovou specificitou
+ * (:where), takže ho přebije každá třída z *.module.css.
  *
  * Styly komponent sem nepatří – jen do *.module.css vedle komponenty.
  */
@@ -20,8 +15,9 @@
   display: none !important;
 }
 
-/* ── Kořen nového UI ── */
-:where(.ms-scope) {
+/* ── Stránka; <dialog> (top layer) začíná znovu od základu stránky, ne od
+   písma a barvy místa, kde je ve stromu ── */
+:where(body, dialog) {
   color: var(--ms-ink);
   background: var(--ms-surface-page);
   font-family: var(--ms-font-text);
@@ -31,66 +27,69 @@
   -webkit-font-smoothing: antialiased;
 }
 
-:where(.ms-scope) :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd) {
+:where(body) {
   margin: 0;
 }
 
-:where(.ms-scope) :where(ul, ol) {
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd) {
+  margin: 0;
+}
+
+:where(ul, ol) {
   padding: 0;
   list-style: none;
 }
 
-:where(.ms-scope) :where(h1, h2, h3, h4, h5, h6) {
+:where(h1, h2, h3, h4, h5, h6) {
   font: inherit;
   color: inherit;
 }
 
-:where(.ms-scope) :where(button, input, select, textarea) {
+:where(button, input, select, textarea) {
   font: inherit;
   color: inherit;
   letter-spacing: inherit;
 }
 
-:where(.ms-scope) :where(table) {
+:where(code, kbd, samp, pre) {
+  font-family: var(--ms-font-mono);
+  font-size: 0.875em;
+}
+
+:where(table) {
   border-collapse: collapse;
 }
 
-:where(.ms-scope) :where(th) {
+:where(th) {
   text-align: start;
 }
 
-:where(.ms-scope) :where(th, td) {
+:where(th, td) {
   padding: 0;
 }
 
-:where(.ms-scope) :where(a) {
+/* Odkaz bez podtržení, podtrhne se při najetí; komponenty si to řídí třídou. */
+:where(a) {
   color: var(--ms-navy);
+  text-decoration: none;
 }
 
-:where(.ms-scope) :where(a:hover) {
+:where(a:hover) {
   color: var(--ms-navy-deep);
+  text-decoration: underline;
 }
 
-:where(.ms-scope) :where(img) {
+:where(img) {
   max-width: 100%;
   height: auto;
 }
 
-/*
- * Převedená obrazovka veřejného webu (components/ms/Screen) – světlé pozadí
- * místo tmavé fotky ze starého CSS. Ve Fázi 6 platí pro celý dokument.
- */
-body.ms-page {
-  margin: 0;
-  background: var(--ms-surface-page);
-}
-
 /* ── Fokus: jen z klávesnice, navy obrys 3 px s odstupem 2 px ── */
-:where(.ms-scope) :where(:focus:not(:focus-visible)) {
+:where(:focus:not(:focus-visible)) {
   outline: none;
 }
 
-:where(.ms-scope) :where(:focus-visible) {
+:where(:focus-visible) {
   outline: var(--ms-focus-width) solid var(--ms-focus-color);
   outline-offset: var(--ms-focus-offset);
 }
@@ -109,14 +108,11 @@ body.ms-page {
   border: 0;
 }
 
-/*
- * Omezený pohyb. Zatím jen v novém UI, aby se nezměnilo chování starých
- * obrazovek (jejich spinnery); ve Fázi 6 platí pro celý dokument.
- */
+/* Omezený pohyb pro celý dokument. */
 @media (prefers-reduced-motion: reduce) {
-  :where(.ms-scope) *,
-  :where(.ms-scope) *::before,
-  :where(.ms-scope) *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
