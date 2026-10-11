@@ -1,0 +1,75 @@
+/* DesignSystem „Datový řádek“. Řádky se skládají do Panel bez paddingu. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ms-line);
+  background: var(--ms-surface-card);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.bar {
+  inline-size: 4px;
+  align-self: stretch;
+  flex-shrink: 0;
+  background: var(--ms-line);
+}
+
+.row[data-tone='open'] .bar { background: var(--ms-open); }
+.row[data-tone='closed'] .bar,
+.row[data-tone='live'] .bar { background: var(--ms-red); }
+.row[data-tone='navy'] .bar { background: var(--ms-navy); }
+.row[data-tone='dry'] .bar { background: var(--ms-dry-ink); }
+
+.lead {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xl);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.value {
+  flex-shrink: 0;
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: var(--ms-ink);
+}
+
+/* Pod 768 px jde řádek od kraje ke kraji s okrajem 16 px (BRIEF). */
+@media (max-width: 767.98px) {
+  .row {
+    gap: var(--ms-space-3);
+    padding: 12px 16px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+}

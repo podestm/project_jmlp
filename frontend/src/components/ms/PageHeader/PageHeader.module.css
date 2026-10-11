@@ -1,0 +1,94 @@
+/* AktualityArchiv (public) a AdminZavody / TkPrehled (app). */
+.header {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ms-space-8);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.eyebrow {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  color: var(--ms-ink);
+}
+
+.public .title {
+  font-size: var(--ms-fs-4xl);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.app {
+  align-items: center;
+}
+
+.app .title {
+  font-size: var(--ms-fs-3xl);
+  line-height: 1.2;
+}
+
+.meta {
+  font-size: var(--ms-fs-lg);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.description {
+  max-inline-size: 760px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+  text-wrap: pretty;
+}
+
+.app .description {
+  font-size: var(--ms-fs-lg);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ms-space-4);
+  }
+
+  .public .title {
+    font-size: 30px;
+  }
+
+  .app .title {
+    font-size: var(--ms-fs-2xl);
+  }
+}
