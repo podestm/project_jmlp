@@ -114,3 +114,8 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Otevřený Modal (components/ms/Modal) zamkne rolování stránky pod sebou. */
+:root:has(dialog[data-ms-modal][open]) {
+  overflow: hidden;
+}

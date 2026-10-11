@@ -1,0 +1,26 @@
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-block-size: var(--ms-target);
+}
+
+.label {
+  font-size: var(--ms-fs-lg);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ms-ink);
+}
+
+.page {
+  padding-block: var(--ms-space-6);
+}
+
+.inline .label {
+  font-size: var(--ms-fs-base);
+}
+
+.fullscreen {
+  justify-content: center;
+  min-block-size: 100dvh;
+}
