@@ -74,6 +74,46 @@ def start_sync(
     return {"job_id": job_id}
 
 
+class AssignRequest(BaseModel):
+    member_id: int
+
+
+@router.get("/manual")
+def manual(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Závodníci, ke kterým má evidence víc členů se stejným jménem a ročníkem."""
+    return slcr_sync.list_manual(db)
+
+
+@router.post("/manual/{racer_id}/assign")
+def assign(
+    racer_id: int,
+    payload: AssignRequest,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        slcr_sync.assign(db, racer_id, payload.member_id)
+    except slcr_sync.PairingError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc))
+    return {"ok": True}
+
+
+@router.post("/manual/{racer_id}/dismiss")
+def dismiss(
+    racer_id: int,
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db),
+):
+    try:
+        slcr_sync.dismiss(db, racer_id)
+    except slcr_sync.PairingError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc))
+    return {"ok": True}
+
+
 @router.post("/filled/{racer_id}/undo")
 def undo(
     racer_id: int,

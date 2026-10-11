@@ -32,6 +32,10 @@ SCOPES = (SCOPE_ACTIVE, SCOPE_ALL)
 STATUS_FILLED = "filled"
 STATUS_REVERTED = "reverted"
 STATUS_CONFIRMED = "confirmed"
+# Víc členů evidence se stejným jménem a ročníkem - vybere správce (manual),
+# nebo rozhodne ID nepřiřazovat (dismissed).
+STATUS_MANUAL = "manual"
+STATUS_DISMISSED = "dismissed"
 DONE_STATUSES = (STATUS_FILLED, STATUS_CONFIRMED)
 
 # Kolik sezón zpátky se berou výsledky JMLP z evidence a závodníci do
@@ -190,9 +194,12 @@ def run_job(
         client = client_factory()
         results = client.jmlp_results(results_since())
         for index, racer in enumerate(racers, start=1):
-            person = slcr.find_member(racer, results, client.search_with_details)
-            if person is not None:
-                fill_id(db, racer, person, datetime.now())
+            candidates = slcr.find_candidates(racer, results, client.search_with_details)
+            if len(candidates) == 1:
+                fill_id(db, racer, candidates[0], datetime.now())
+                db.commit()
+            elif len(candidates) > 1:
+                save_manual(db, racer.id, candidates, datetime.now())
                 db.commit()
             if index % PROGRESS_EVERY == 0:
                 _progress(db, job_id, done=index)
@@ -204,6 +211,80 @@ def run_job(
         _progress(db, job_id, finished_at=datetime.now(), error=message[:500])
     finally:
         db.close()
+
+
+# --------------------------------------------------------------------------
+# Ruční zpracování - víc členů se stejným jménem a ročníkem
+# --------------------------------------------------------------------------
+def _person_json(person: slcr.SlcrPerson) -> dict:
+    return {"member_id": person.member_id, "slug": person.slug, "surname": person.surname, "name": person.name,
+            "year": person.year, "age": person.age, "race_code": person.race_code, "club": person.club}
+
+
+def save_manual(db: Session, racer_id: int, candidates: list[slcr.SlcrPerson], now: datetime) -> None:
+    """Zapíše závodníka k ručnímu výběru. Rozhodnutí "nepřiřazovat" a vrácené ID nepřepíše."""
+    current = db.execute(text("SELECT status FROM fuj_jmlp_racer_slcr WHERE racer_id = :id"),
+                         {"id": racer_id}).scalar()
+    if current in (STATUS_DISMISSED, STATUS_REVERTED):
+        return
+    db.execute(text("""
+        REPLACE INTO fuj_jmlp_racer_slcr (racer_id, status, source, note, alternatives, checked_at)
+        VALUES (:id, :status, 'fill_id', :note, :alternatives, :now)
+    """), {"id": racer_id, "status": STATUS_MANUAL, "now": now,
+           "note": f"v evidenci je {len(candidates)} členů se stejným jménem a ročníkem",
+           "alternatives": json.dumps([_person_json(p) for p in candidates], ensure_ascii=False)})
+
+
+def _manual_row(db: Session, racer_id: int) -> dict:
+    row = db.execute(text(
+        "SELECT status, alternatives FROM fuj_jmlp_racer_slcr WHERE racer_id = :id"
+    ), {"id": racer_id}).mappings().first()
+    if not row or row["status"] != STATUS_MANUAL:
+        raise PairingError("Závodník nečeká na ruční zpracování", 404)
+    return dict(row)
+
+
+def assign(db: Session, racer_id: int, member_id: int) -> None:
+    """Přiřadí závodníkovi ID vybraného člena evidence."""
+    row = _manual_row(db, racer_id)
+    chosen = next((c for c in json.loads(row["alternatives"] or "[]") if c.get("member_id") == member_id), None)
+    if chosen is None:
+        raise PairingError("Vybraný člen mezi kandidáty není")
+    racer = db.execute(text("SELECT id, name, surname, year, slcr_id FROM fuj_jmlp_racer WHERE id = :id"),
+                       {"id": racer_id}).mappings().first()
+    person = slcr.SlcrPerson(**{k: chosen.get(k) for k in
+                                ("member_id", "slug", "surname", "name", "year", "age", "race_code", "club")})
+    if not fill_id(db, slcr.RacerToPair(racer["id"], racer["surname"], racer["name"], racer["year"],
+                                        racer["slcr_id"]), person, datetime.now()):
+        db.rollback()
+        raise PairingError(f"ID {person.race_code} už má jiný náš závodník", 409)
+    db.commit()
+
+
+def dismiss(db: Session, racer_id: int) -> None:
+    """ID nepřiřazovat - závodník z ručního zpracování zmizí a příště se nenabídne."""
+    _manual_row(db, racer_id)
+    db.execute(text("UPDATE fuj_jmlp_racer_slcr SET status = :status, decided_at = NOW() WHERE racer_id = :id"),
+               {"status": STATUS_DISMISSED, "id": racer_id})
+    db.commit()
+
+
+def list_manual(db: Session) -> list[dict]:
+    rows = db.execute(text("""
+        SELECT p.racer_id, p.note, p.alternatives, r.name, r.surname, r.year, r.slcr_id
+        FROM fuj_jmlp_racer_slcr p
+        JOIN fuj_jmlp_racer r ON r.id = p.racer_id
+        WHERE p.status = :manual
+        ORDER BY r.surname, r.name
+    """), {"manual": STATUS_MANUAL}).mappings().all()
+    return [{
+        "racer_id": row["racer_id"],
+        "racer": {"surname": fix_encoding(row["surname"] or "").strip(), "name": fix_encoding(row["name"] or "").strip(),
+                  "year": row["year"]},
+        "note": row["note"],
+        "candidates": [{**c, "url": slcr.member_url(c.get("member_id"), c.get("slug"))}
+                       for c in json.loads(row["alternatives"] or "[]")],
+    } for row in rows if slcr.race_code_of(row["slcr_id"]) is None]
 
 
 # --------------------------------------------------------------------------
@@ -268,7 +349,7 @@ def counts(db: Session, job: Optional[dict] = None) -> dict:
             "SELECT COUNT(*) FROM fuj_jmlp_racer_slcr WHERE status = :filled AND applied_at >= :since"
         ), {"filled": STATUS_FILLED, "since": job["started_at"]}).scalar()
     missing = len(load_racers(db, SCOPE_ALL))
-    return {"filled": total, "filled_last_run": last, "missing": missing}
+    return {"filled": total, "filled_last_run": last, "missing": missing, "manual": len(list_manual(db))}
 
 
 def list_filled(db: Session) -> list[dict]:

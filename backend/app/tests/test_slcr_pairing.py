@@ -177,7 +177,7 @@ def test_api_spusteni_prehled_a_vraceni(client, db, admin_headers, monkeypatch):
     # TestClient pustí úlohu na pozadí hned po odpovědi.
     summary = client.get("/api/admin/slcr/summary", headers=admin_headers).json()
     assert summary["running"] is False and summary["job"]["error"] is None
-    assert summary["counts"] == {"filled": 1, "filled_last_run": 1, "missing": 1}
+    assert summary["counts"] == {"filled": 1, "filled_last_run": 1, "missing": 1, "manual": 0}
 
     [item] = client.get("/api/admin/slcr/filled", headers=admin_headers).json()
     assert item["racer"]["slcr_id"] == "890521"
@@ -245,3 +245,49 @@ def test_klient_cte_vysledky_akce_a_kartu_clena():
 
     [member] = client.search_with_details("Pela")
     assert (member.member_id, member.race_code, member.age) == (7, 706829, 18)
+
+
+# --------------------------------------------------------------------------
+# Ruční zpracování - evidence má víc členů se stejným jménem a ročníkem
+# --------------------------------------------------------------------------
+def _dvojnici():
+    return FakeClient(members={"Zajíček": [
+        _person(21284, "Zajíček", "Petr", None, 715453, age=THIS_YEAR - 2007),
+        _person(21290, "Zajíček", "Petr", None, 701980, age=THIS_YEAR - 2007),
+    ]})
+
+
+def test_vic_clenu_jde_k_rucnimu_zpracovani_a_spravce_vybere(client, db, admin_headers):
+    racer = _racer(db, "Zajíček", "Petr", 2007)
+    _run(db, _dvojnici())
+    assert _slcr_id(db, racer) is None
+
+    [item] = client.get("/api/admin/slcr/manual", headers=admin_headers).json()
+    assert [c["race_code"] for c in item["candidates"]] == [715453, 701980]
+    assert client.get("/api/admin/slcr/summary", headers=admin_headers).json()["counts"]["manual"] == 1
+
+    response = client.post(f"/api/admin/slcr/manual/{racer}/assign", json={"member_id": 21290}, headers=admin_headers)
+    assert response.status_code == 200
+    db.expire_all()
+    assert _slcr_id(db, racer) == "701980"
+    assert client.get("/api/admin/slcr/manual", headers=admin_headers).json() == []
+    # Přiřazené ID je mezi doplněnými a jde vrátit.
+    [filled] = client.get("/api/admin/slcr/filled", headers=admin_headers).json()
+    assert filled["racer_id"] == racer
+
+
+def test_nepriradit_uz_se_znovu_nenabidne(client, db, admin_headers):
+    racer = _racer(db, "Zajíček", "Petr", 2007)
+    _run(db, _dvojnici())
+    assert client.post(f"/api/admin/slcr/manual/{racer}/dismiss", headers=admin_headers).status_code == 200
+
+    _run(db, _dvojnici())
+    assert client.get("/api/admin/slcr/manual", headers=admin_headers).json() == []
+    assert _slcr_id(db, racer) is None
+
+
+def test_vybrany_clen_musi_byt_mezi_kandidaty(client, db, admin_headers):
+    racer = _racer(db, "Zajíček", "Petr", 2007)
+    _run(db, _dvojnici())
+    response = client.post(f"/api/admin/slcr/manual/{racer}/assign", json={"member_id": 1}, headers=admin_headers)
+    assert response.status_code == 400

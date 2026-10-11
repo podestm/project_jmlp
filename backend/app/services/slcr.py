@@ -8,7 +8,9 @@ a doplní se jeho ID. Nic jiného se nemění.
    a velikost písmen (Bajkova = Bajková, Ema ≠ Emma).
  - Ročník: z výsledků akcí JMLP zveřejněných v evidenci, jinak dopočtený
    z věku - ročník evidence veřejně neuvádí, věk ano.
- - Doplní se jen jednoznačná shoda: přesně jeden takový člen a má ID.
+ - Doplní se jen jednoznačná shoda: přesně jeden takový člen a má ID. Když
+   jich je víc (evidence má člověka zapsaného dvakrát), jde závodník
+   k ručnímu zpracování.
 
 Evidence nemá zveřejněné API; její web běží nad GraphQL
 (https://evidence.czech-ski.com/graphql), veřejné údaje se čtou bez
@@ -111,12 +113,12 @@ class RacerToPair:
     slcr_id: Optional[str] = None
 
 
-def find_member(
+def find_candidates(
     racer: RacerToPair,
     results: list[SlcrPerson],
     search: Callable[[str], list[SlcrPerson]],
-) -> Optional[SlcrPerson]:
-    """Jediný člen evidence se stejným jménem a ročníkem, který má ID; jinak None.
+) -> list[SlcrPerson]:
+    """Členové evidence s ID, kteří mají stejné jméno a ročník jako náš závodník.
 
     `results` jsou závodníci z výsledků akcí JMLP v evidenci (mají ID
     i ročník), `search(příjmení)` vrátí členy se stejným příjmením i s ID
@@ -130,14 +132,23 @@ def find_member(
                 found.setdefault(p.member_id, p)
                 if found[p.member_id].race_code is None:
                     found[p.member_id].race_code = p.race_code
-        return list(found.values())
+        return [p for p in found.values() if p.race_code]
 
-    candidates = matching(results)
-    if not candidates:
-        candidates = matching(search(racer.surname))
-    if len(candidates) == 1 and candidates[0].race_code:
-        return candidates[0]
-    return None
+    return matching(results) or matching(search(racer.surname))
+
+
+def find_member(
+    racer: RacerToPair,
+    results: list[SlcrPerson],
+    search: Callable[[str], list[SlcrPerson]],
+) -> Optional[SlcrPerson]:
+    """Jediný člen evidence se stejným jménem a ročníkem, který má ID; jinak None.
+
+    Víc takových členů (evidence má člověka zapsaného dvakrát) se nedoplní -
+    to jde k ručnímu zpracování.
+    """
+    candidates = find_candidates(racer, results, search)
+    return candidates[0] if len(candidates) == 1 else None
 
 
 # --------------------------------------------------------------------------
