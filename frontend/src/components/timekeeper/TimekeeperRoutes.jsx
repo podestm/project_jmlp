@@ -8,7 +8,7 @@ import { LegacyIsland, LoadingState } from '../ms/index.js';
 import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
-import StartListManager from './StartListManager.jsx';
+import StartListManager from './StartList/StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from './TimingEntry.jsx';
 import ResultsView from './ResultsView.jsx';
@@ -42,7 +42,7 @@ export default function TimekeeperRoutes() {
       <SerialSessionProvider>
         <Routes>
           <Route path="/" element={protect(<TimekeeperDashboard />)} />
-          <Route path="/start-list" element={legacy(<StartListManager />)} />
+          <Route path="/start-list" element={protect(<StartListManager />)} />
           <Route path="/racers" element={protect(<TimekeeperRacers />)} />
           <Route path="/timing" element={legacy(<TimingEntry />)} />
           <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />

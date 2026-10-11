@@ -9,7 +9,7 @@ import { timekeeperDb } from '../../offline/db.js';
 import { readCachedResponse } from '../../offline/startListCache.js';
 import { resetTimekeeperDb, setOnline, startListEntry } from '../../test/helpers.js';
 import { SerialSessionProvider } from './SerialSessionProvider.jsx';
-import StartListManager from './StartListManager.jsx';
+import StartListManager from './StartList/StartListManager.jsx';
 import { SELECTED_RACE_KEY } from './frame/selectedRace.js';
 import TimingEntry from './TimingEntry.jsx';
 
@@ -106,8 +106,8 @@ const rowOf = async (name) => (await screen.findByText(name)).closest('tr');
 const rowOnceMarked = async (name, excluded) => {
   await waitFor(() => {
     const tr = screen.getByText(name).closest('tr');
-    if (excluded) expect(tr).toHaveClass('tk-row-excluded');
-    else expect(tr).not.toHaveClass('tk-row-excluded');
+    if (excluded) expect(tr).toHaveAttribute('data-state', 'muted');
+    else expect(tr).not.toHaveAttribute('data-state');
   });
   return screen.getByText(name).closest('tr');
 };
@@ -140,7 +140,7 @@ describe('Listina - Vyřadit / Vrátit', () => {
     serverRows[1] = { ...serverRows[1], excluded: true, time1: 31.5, time_sum: 31.5 };
     renderListina();
     const dvorakova = await rowOf('Dvořáková Bára');
-    expect(dvorakova).toHaveClass('tk-row-excluded');
+    expect(dvorakova).toHaveAttribute('data-state', 'muted');
 
     await userEvent.click(within(dvorakova).getByRole('button', { name: 'Vrátit' }));
 

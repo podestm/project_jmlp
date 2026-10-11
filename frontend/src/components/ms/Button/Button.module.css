@@ -99,6 +99,20 @@
   color: var(--ms-on-dark);
 }
 
+/* Vratná kladná akce (TkStartovniListinaVyrazeni „Vrátit“): zelená --ms-open. */
+.open {
+  background: var(--ms-open);
+  border-color: var(--ms-open);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.open:hover {
+  background: var(--ms-navy-deep);
+  border-color: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
 /* Hlavní akce na navy ploše: bílé tlačítko s navy textem (ZavodDetailOdjeto). */
 .inverse {
   background: var(--ms-surface-card);

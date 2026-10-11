@@ -25,7 +25,7 @@ const RacerRow = memo(function RacerRow({ entry, onEdit }) {
         <span className={styles.racer}>
           <span className={styles.nameRow}>
             <span className={excluded ? styles.excludedName : styles.name}>{name}</span>
-            {excluded && <Badge tone="neutral" size="sm">vyřazen</Badge>}
+            {excluded && <Badge tone="navy" size="sm">vyřazen</Badge>}
           </span>
           <span className={styles.club}>{entry.club_name || 'Bez oddílu'}</span>
         </span>

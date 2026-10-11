@@ -185,14 +185,6 @@
   "src/components/timekeeper/SerialStatusBar.jsx": {
     "bootstrap": 168
   },
-  "src/components/timekeeper/StartListManager.jsx": {
-    "bootstrap": 183,
-    "emoji": 2,
-    "legacyImports": 2
-  },
-  "src/components/timekeeper/StartListRow.jsx": {
-    "bootstrap": 37
-  },
   "src/components/timekeeper/SyncCenter.jsx": {
     "bootstrap": 182
   },

@@ -1,0 +1,44 @@
+.table {
+  min-inline-size: 980px;
+}
+
+/* Záhlaví kategorie: navy-deep pruh přes celou šířku. */
+.group {
+  background: var(--ms-navy-deep);
+}
+
+.group th {
+  padding: 10px 12px;
+  color: var(--ms-on-dark);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.groupRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ms-space-3);
+}
+
+.groupName {
+  flex-grow: 1;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-sm);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+}
+
+.groupCount,
+.groupExcluded {
+  font-family: var(--ms-font-text);
+  font-weight: 400;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ice);
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-on-dark);
+}

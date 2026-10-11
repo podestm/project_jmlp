@@ -69,6 +69,7 @@ function ActionsSection() {
           <Button size={size} icon="download">Export CSV</Button>
           <Button variant="danger" size={size} icon="trash">Smazat závod</Button>
           <Button variant="quiet" size={size}>Zrušit</Button>
+          <Button variant="open" size={size} icon="undo">Vrátit</Button>
           <Button size={size} disabled>Přihlášky uzavřeny</Button>
           <Button variant="primary" size={size} busy>Ukládám</Button>
         </Cluster>

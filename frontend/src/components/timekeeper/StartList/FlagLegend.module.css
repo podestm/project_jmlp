@@ -1,0 +1,19 @@
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2) 20px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
