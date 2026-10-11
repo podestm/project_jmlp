@@ -1,0 +1,61 @@
+.table td {
+  padding-block: 6px;
+}
+
+.name {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.invalid {
+  margin-inline-start: var(--ms-space-2);
+}
+
+.yes {
+  display: inline-flex;
+  color: var(--ms-open);
+}
+
+.no {
+  color: var(--ms-ink-muted);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+/* Rozbalené logo klubu pod řádkem. */
+.table .logoRow td {
+  padding: var(--ms-space-4) var(--ms-space-5);
+  background: var(--ms-surface-page);
+}
+
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ms-space-2) var(--ms-space-4);
+    padding: var(--ms-space-3) var(--ms-space-4);
+  }
+
+  .table td {
+    padding: 0;
+  }
+
+  .name {
+    inline-size: 100%;
+  }
+
+  .table .logoRow td {
+    inline-size: 100%;
+    padding: 0;
+    background: transparent;
+  }
+}

@@ -49,3 +49,15 @@ export const filterEntries = (entries, filters) => {
     return haystack.includes(text);
   });
 };
+
+/**
+ * Dotaz pro hledání v databázi závodníků z formuláře: SLČR ID, jinak
+ * "příjmení jméno" (backend hledá po slovech). Kratší než 2 znaky = nehledat.
+ */
+export const racerSearchQuery = ({ slcr_id, surname, name }) => {
+  const query = [
+    slcr_id?.trim(),
+    `${surname || ''} ${name || ''}`.trim(),
+  ].find(Boolean) || '';
+  return query.length >= 2 ? query : '';
+};

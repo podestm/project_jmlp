@@ -8,7 +8,7 @@ import {
   resolveCategoryPreview,
   sortStartListEntries,
 } from '../startListHelpers.js';
-import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries } from './racers.js';
+import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries, racerSearchQuery } from './racers.js';
 
 /**
  * Závodníci jednoho závodu – přidání a inline oprava bez zápisu do registrací.
@@ -98,14 +98,9 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   }, [selectedRaceId, raceNumberOptions, startList]);
 
   useEffect(() => {
-    const query = [
-      formData.slcr_id?.trim(),
-      `${formData.surname || ''} ${formData.name || ''}`.trim(),
-      formData.surname?.trim(),
-      formData.name?.trim(),
-    ].find(Boolean);
+    const query = racerSearchQuery(formData);
 
-    if (!query || query.length < 2) {
+    if (!query) {
       setSearchResults([]);
       setIsSearching(false);
       return undefined;

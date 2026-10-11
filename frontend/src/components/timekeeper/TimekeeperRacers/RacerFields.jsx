@@ -10,11 +10,11 @@ import styles from './RacerFields.module.css';
 export default function RacerFields({ formData, updateField, clubs, searchResults }) {
   return (
     <div className={styles.grid}>
-      <Field label="Jméno" id="tk-racer-name">
-        <Input size="sm" value={formData.name} onChange={(e) => updateField('name', e.target.value)} />
-      </Field>
       <Field label="Příjmení" id="tk-racer-surname">
         <Input size="sm" value={formData.surname} onChange={(e) => updateField('surname', e.target.value)} />
+      </Field>
+      <Field label="Jméno" id="tk-racer-name">
+        <Input size="sm" value={formData.name} onChange={(e) => updateField('name', e.target.value)} />
       </Field>
 
       {searchResults && <div className={styles.full}>{searchResults}</div>}

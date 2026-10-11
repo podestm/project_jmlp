@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries, getSexLabel, getSexLetter, isFiltered } from './racers.js';
+import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries, getSexLabel, getSexLetter, isFiltered, racerSearchQuery } from './racers.js';
 
 const entries = [
   { id: 1, racer_name: 'Ema', racer_surname: 'Dvořáková', club_name: 'SK Meteor', category_id: 3, category_name: 'Přípravka dívky', racer_sex: 2, race_number_actual: 31 },
@@ -28,5 +28,14 @@ describe('závodníci závodu', () => {
     expect(filterEntries(entries, { ...EMPTY_FILTERS, text: ' 18 ' }).map((e) => e.id)).toEqual([2]);
     expect(isFiltered(EMPTY_FILTERS)).toBe(false);
     expect(isFiltered({ ...EMPTY_FILTERS, text: 'x' })).toBe(true);
+  });
+});
+
+describe('racerSearchQuery', () => {
+  it('skládá „příjmení jméno“, SLČR ID má přednost, krátký dotaz nehledá', () => {
+    expect(racerSearchQuery({ surname: 'Mor', name: 'Radka' })).toBe('Mor Radka');
+    expect(racerSearchQuery({ name: 'Radka' })).toBe('Radka');
+    expect(racerSearchQuery({ slcr_id: '806816', surname: 'More' })).toBe('806816');
+    expect(racerSearchQuery({ surname: 'M' })).toBe('');
   });
 });

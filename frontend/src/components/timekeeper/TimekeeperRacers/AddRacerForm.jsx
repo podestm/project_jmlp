@@ -2,6 +2,7 @@ import { Badge, Button, Field, Input, Paska } from '../../ms/index.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
 import RacerFields from './RacerFields.jsx';
 import RacerSearchResults from './RacerSearchResults.jsx';
+import { racerSearchQuery } from './racers.js';
 import styles from './AddRacerForm.module.css';
 
 /**
@@ -29,7 +30,7 @@ export default function AddRacerForm({ racers }) {
         formData={formData}
         updateField={updateField}
         clubs={clubs}
-        searchResults={<RacerSearchResults racers={searchResults} isSearching={isSearching} onSelect={selectExistingRacer} />}
+        searchResults={<RacerSearchResults racers={searchResults} isSearching={isSearching} hasQuery={Boolean(racerSearchQuery(formData))} onSelect={selectExistingRacer} />}
       />
 
       <div className={styles.numbers}>

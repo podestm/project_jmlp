@@ -17,7 +17,7 @@ import PostManagement from './Posts/PostManagement.jsx';
 import RaceRegistrations from './Registrations/RaceRegistrations.jsx';
 import CategoryManagement from './CategoryManagement.jsx';
 import SeasonManagement from './Seasons/SeasonManagement.jsx';
-import ClubManagement from './ClubManagement.jsx';
+import ClubManagement from './Clubs/ClubManagement.jsx';
 import ClubRequests from './ClubRequests.jsx';
 import SlcrPairing from './Racers/SlcrPairing/SlcrPairing.jsx';
 
@@ -53,7 +53,7 @@ export default function AdminRoutes() {
           <Route path="/posts" element={protect(<PostManagement />)} />
           <Route path="/categories" element={legacy(<CategoryManagement />)} />
           <Route path="/seasons" element={protect(<SeasonManagement />)} />
-          <Route path="/clubs" element={legacy(<ClubManagement />)} />
+          <Route path="/clubs" element={protect(<ClubManagement />)} />
           <Route path="/club-requests" element={legacy(<ClubRequests />)} />
           <Route path="/register" element={legacy(<AdminRegister />)} />
           <Route path="*" element={protect(<AdminNotFound />)} />

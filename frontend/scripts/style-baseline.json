@@ -47,10 +47,6 @@
     "bootstrap": 29,
     "legacyImports": 2
   },
-  "src/components/admin/ClubManagement.jsx": {
-    "bootstrap": 46,
-    "legacyImports": 3
-  },
   "src/components/admin/ClubRequests.jsx": {
     "bootstrap": 82,
     "legacyImports": 2

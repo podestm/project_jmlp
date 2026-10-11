@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import ClubManagement from './ClubManagement.jsx';
 
 /**
@@ -54,13 +55,13 @@ const smazani = () => volani.filter((v) => v.metoda === 'DELETE');
 
 describe('ClubManagement', () => {
   it('vypíše kluby', async () => {
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     expect(await screen.findByText('SK Olešnice')).toBeInTheDocument();
   });
 
   it('rozbalení klubu nespustí nekonečné načítání', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Olešnice');
 
     const prvniNacteni = pocet('/api/admin/clubs/overview');
@@ -77,7 +78,7 @@ describe('ClubManagement', () => {
 
   it('filtruje podle cedulky neplatný', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Olešnice');
 
     await user.selectOptions(screen.getByLabelText('Platnost klubu'), 'neplatne');
@@ -91,7 +92,7 @@ describe('ClubManagement', () => {
 
   it('filtr platnosti se kombinuje s hledáním', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Olešnice');
 
     await user.selectOptions(screen.getByLabelText('Platnost klubu'), 'neplatne');
@@ -103,7 +104,7 @@ describe('ClubManagement', () => {
 
   it('prázdný klub smaže rovnou, bez výběru cíle', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Zaniklý');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub SK Zaniklý' }));
@@ -118,7 +119,7 @@ describe('ClubManagement', () => {
 
   it('klub se závodníky jde smazat až po výběru cílového klubu', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('Bez klubové příslušnosti');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub Bez klubové příslušnosti' }));
@@ -141,7 +142,7 @@ describe('ClubManagement', () => {
 
   it('mazaný klub si sám sebe jako cíl nenabídne', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('Bez klubové příslušnosti');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub Bez klubové příslušnosti' }));
@@ -154,7 +155,7 @@ describe('ClubManagement', () => {
 
   it('zrušení dialogu klub nesmaže', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Zaniklý');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub SK Zaniklý' }));
@@ -166,7 +167,7 @@ describe('ClubManagement', () => {
 
   it('tabulka při obnovení na pozadí nezmizí', async () => {
     const user = userEvent.setup();
-    render(<ClubManagement />);
+    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
     await screen.findByText('SK Olešnice');
 
     await user.click(screen.getByRole('button', { name: /Nahrát logo/ }));
