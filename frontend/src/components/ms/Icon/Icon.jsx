@@ -2,24 +2,43 @@ import { cx } from '../cx.js';
 import { ICONS } from './icons.js';
 import styles from './Icon.module.css';
 
+const SHAPES = { path: 'path', circle: 'circle', rect: 'rect', line: 'line', polyline: 'polyline', polygon: 'polygon', ellipse: 'ellipse' };
+
+/** Tloušťka tahu: výslovná > nakreslená pro tuto velikost > výchozí ikony. */
+const resolveStroke = (icon, size, override) => override ?? (typeof size === 'number' ? icon.sizes?.[size] : undefined) ?? icon.strokeWidth;
+
 /**
- * Ikona z lucide-react (stroke). Vždy dekorativní (aria-hidden) – význam nese
- * text vedle ní, u ikonového tlačítka jeho `label` (IconButton).
+ * Ikona Modré stopy: vložené stroke SVG s geometrií z artboardů (icons.js).
+ * Vždy dekorativní (aria-hidden) – význam nese text vedle ní, u ikonového
+ * tlačítka jeho `label` (IconButton). Barva je currentColor.
  * Velikost 1em se řídí písmem okolí; `size` ji přebije v px.
  */
-export default function Icon({ name, size, strokeWidth = 2, className }) {
-  const Component = ICONS[name];
-  if (!Component) {
+export default function Icon({ name, size, strokeWidth, className }) {
+  const icon = ICONS[name];
+  if (!icon) {
     if (import.meta.env.DEV) throw new Error(`Neznámá ikona „${name}“ – přidej ji do components/ms/Icon/icons.js`);
     return null;
   }
+  const dimension = size ?? '1em';
   return (
-    <Component
+    <svg
       aria-hidden="true"
       focusable="false"
-      size={size ?? '1em'}
-      strokeWidth={strokeWidth}
+      width={dimension}
+      height={dimension}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={resolveStroke(icon, size, strokeWidth)}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={cx(styles.icon, className)}
-    />
+    >
+      {icon.paths.map(({ tag, ...attrs }, index) => {
+        const Shape = SHAPES[tag];
+        // Pořadí tvarů je pevné, index je stabilní klíč.
+        return <Shape key={index} {...attrs} />;
+      })}
+    </svg>
   );
 }

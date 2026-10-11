@@ -8,7 +8,7 @@ describe('Catalogue (/__ms)', () => {
   it('vykreslí všechny sekce kitu bez chyby', () => {
     render(<MemoryRouter><Catalogue /></MemoryRouter>);
     expect(screen.getByRole('heading', { level: 1, name: 'Kit Modré stopy' })).toBeInTheDocument();
-    for (const name of ['Barvy', 'Akce', 'Zobrazení dat', 'Formuláře', 'Stavy a hlášky', 'Dialogy', 'Rozvržení', 'Navigace']) {
+    for (const name of ['Barvy', 'Akce', 'Ikony', 'Zobrazení dat', 'Formuláře', 'Stavy a hlášky', 'Dialogy', 'Rozvržení', 'Navigace']) {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
     }
   });

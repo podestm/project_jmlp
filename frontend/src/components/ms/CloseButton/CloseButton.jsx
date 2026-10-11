@@ -10,7 +10,7 @@ import styles from './CloseButton.module.css';
 const CloseButton = forwardRef(function CloseButton({ label = 'Zavřít', className, ...rest }, ref) {
   return (
     <button ref={ref} type="button" aria-label={label} className={cx(styles.close, className)} {...rest}>
-      <Icon name="x" size={20} strokeWidth={2.2} />
+      <Icon name="close" size={20} strokeWidth={2.2} />
     </button>
   );
 });

@@ -22,6 +22,7 @@ export default function Catalogue() {
           <PageHeader eyebrow="Jen pro vývoj" title="Kit Modré stopy" description="Všechny komponenty z components/ms ve všech variantách. Porovnávej s artboardy na 1600 a 390 px." />
           <ColorsSection />
           <ActionsSection />
+          <IconsSection />
           <DataSection />
           <FormsSection />
           <StatesSection />
@@ -77,13 +78,8 @@ function ActionsSection() {
         <IconButton icon="pencil" label="Upravit závod" />
         <IconButton icon="trash" label="Smazat závod" variant="danger" />
         <IconButton icon="menu" label="Otevřít menu" variant="quiet" />
-        <span className={styles.dark}><IconButton icon="log-out" label="Odhlásit se" variant="on-dark" /></span>
+        <span className={styles.dark}><IconButton icon="logout" label="Odhlásit se" variant="on-dark" /></span>
         <CloseButton label="Zavřít ukázku" />
-      </Cluster>
-      <Cluster gap={3}>
-        {Object.keys(ICONS).map((name) => (
-          <span key={name} className={styles.icon} title={name}><Icon name={name} size={20} /></span>
-        ))}
       </Cluster>
     </Stack>
   );
@@ -175,14 +171,14 @@ function StatesSection() {
         <LoadingState label="Načítám aktuality…" />
         <LoadingState variant="inline" label="Načítám…" />
       </Cluster>
-      <Alert type="danger" title="Aktuality se teď nepodařilo načíst" actions={<Button icon="refresh-cw">Zkusit znovu</Button>}>
+      <Alert type="danger" title="Aktuality se teď nepodařilo načíst" actions={<Button icon="refresh">Zkusit znovu</Button>}>
         Web se nedostal k seznamu zpráv. Zkuste to za chvíli znovu.
       </Alert>
       <Alert type="warning" onDismiss={() => {}}>Spojení s časomírou se přerušilo. Časy níže jsou z té chvíle.</Alert>
       <Alert type="info" compact>Stránkování se ukáže, až bude zpráv víc než 10.</Alert>
       <Alert type="success" autoDismissDelay={0} compact onDismiss={() => {}}>Závod uložen.</Alert>
       <EmptyState size="lg" icon="search" title="Hledání „štafeta“ nic nenašlo"
-        hint="Zkuste kratší nebo jiný výraz, nebo filtry vymažte." action={<Button icon="x">Vymazat filtry</Button>} />
+        hint="Zkuste kratší nebo jiný výraz, nebo filtry vymažte." action={<Button icon="close">Vymazat filtry</Button>} />
       <EmptyState icon="inbox" title="Zatím žádné přihlášky" hint="Registrace se otevře v pondělí." />
       <p>Skrytý text pro čtečky: „<VisuallyHidden>tohle není vidět</VisuallyHidden>“.</p>
     </Stack>
@@ -254,6 +250,29 @@ function NavSection() {
               ))}
             </Stack>
           </Panel>
+        ))}
+      </Grid>
+    </Stack>
+  );
+}
+
+function IconsSection() {
+  const names = Object.keys(ICONS);
+  const drawn = names.filter((name) => ICONS[name].drawn).length;
+  return (
+    <Stack as="section" gap={5}>
+      <Paska aside={`${names.length} ikon · ${drawn} doplněných mimo artboardy`}>Ikony</Paska>
+      <Grid min="132px" gap={3}>
+        {names.map((name) => (
+          <div key={name} className={styles.iconTile}>
+            <Cluster gap={3}>
+              <Icon name={name} size={24} />
+              <Icon name={name} size={18} />
+              <Icon name={name} size={16} />
+            </Cluster>
+            <code className={styles.code}>{name}</code>
+            {ICONS[name].drawn && <Badge tone="dry" size="sm">nakresleno</Badge>}
+          </div>
         ))}
       </Grid>
     </Stack>

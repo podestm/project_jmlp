@@ -4,7 +4,7 @@ import { cx } from '../cx.js';
 import Icon from '../Icon/Icon.jsx';
 import styles from './Alert.module.css';
 
-const ICON = { danger: 'circle-alert', warning: 'triangle-alert', success: 'circle-check', info: 'info' };
+const ICON = { danger: 'error', warning: 'warning', success: 'success', info: 'info' };
 
 /**
  * Hláška (StavyVerejnehoWebu): bílá karta s 4px lištou vlevo v barvě

@@ -49,7 +49,7 @@ export default function Field({ label, hint, error, required = false, id: idProp
       {hint && <span id={hintId} className={styles.hint}>{hint}</span>}
       {error && (
         <span id={errorId} className={styles.error}>
-          <Icon name="circle-alert" size={18} />
+          <Icon name="error" size={18} />
           <span>{error}</span>
         </span>
       )}
