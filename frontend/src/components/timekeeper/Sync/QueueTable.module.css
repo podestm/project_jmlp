@@ -1,0 +1,57 @@
+.table {
+  min-inline-size: 640px;
+}
+
+.when {
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.what {
+  display: block;
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.error {
+  display: block;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-dry-ink);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px var(--ms-space-2);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  white-space: nowrap;
+}
+
+.navy {
+  background: var(--ms-ice);
+  color: var(--ms-navy-deep);
+}
+
+.open {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.amber {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.danger {
+  background: var(--ms-live-ink);
+  color: var(--ms-on-dark);
+}
+
+.neutral {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink-body);
+}

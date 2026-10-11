@@ -8,12 +8,12 @@ import RaceHeaderForm from '../components/timekeeper/RaceHeaderForm/RaceHeaderFo
 import RaceNumbersManager from '../components/timekeeper/RaceNumbers/RaceNumbersManager.jsx';
 import ResultsView from '../components/timekeeper/Results/ResultsView.jsx';
 import StartListManager from '../components/timekeeper/StartList/StartListManager.jsx';
-import SyncCenter from '../components/timekeeper/SyncCenter.jsx';
+import SyncCenter from '../components/timekeeper/Sync/SyncCenter.jsx';
 import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard/TimekeeperDashboard.jsx';
 import TimekeeperLayout from '../components/timekeeper/frame/TimekeeperLayout/TimekeeperLayout.jsx';
 import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers/TimekeeperRacers.jsx';
 import TimingEntry from '../components/timekeeper/Timing/TimingEntry.jsx';
-import TimingDeviceSettings from '../components/timekeeper/TimingDeviceSettings.jsx';
+import TimingDeviceSettings from '../components/timekeeper/Device/TimingDeviceSettings.jsx';
 import { resetTimekeeperDb } from './helpers.js';
 
 /**

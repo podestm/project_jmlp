@@ -1,0 +1,45 @@
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
+  align-items: start;
+  gap: var(--ms-space-4);
+}
+
+.queue,
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+  min-inline-size: 0;
+}
+
+/* „Když teď zavřete notebook“: navy plocha s bílým textem. */
+.closing {
+  padding: 20px var(--ms-space-6);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+.closingTitle {
+  margin: 0 0 var(--ms-space-3);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xl);
+  color: var(--ms-on-dark);
+}
+
+.closingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: var(--ms-fs-base);
+}
+
+@media (max-width: 1279.98px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

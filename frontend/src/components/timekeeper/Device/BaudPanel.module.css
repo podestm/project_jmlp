@@ -1,0 +1,105 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.select {
+  inline-size: 150px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: var(--ms-target);
+  padding: 0 14px;
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink);
+}
+
+.verified {
+  border-color: var(--ms-open);
+  color: var(--ms-open);
+}
+
+.action {
+  align-self: flex-start;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+}
+
+.progressBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: stretch;
+  padding: var(--ms-space-3) var(--ms-space-4);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-sunken);
+}
+
+.progressTitle {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.bar {
+  inline-size: 100%;
+  block-size: 6px;
+  border: 0;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-card);
+  appearance: none;
+}
+
+.bar::-webkit-progress-bar {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-card);
+}
+
+.bar::-webkit-progress-value {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-navy);
+}
+
+.bar::-moz-progress-bar {
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-navy);
+}

@@ -90,7 +90,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     if (queueStats.total > 0) {
       setMessage({
         type: 'warning',
-        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nechte je nejdřív odeslat (Sync centrum).`
+        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nechte je nejdřív odeslat (Synchronizace).`
       });
       return;
     }
