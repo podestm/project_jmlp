@@ -7,7 +7,7 @@ import { useBodyClass } from '../../hooks/useBodyClass.js';
 import { LegacyIsland, LoadingState } from '../ms/index.js';
 import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
 import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
-import TimekeeperDashboard from './TimekeeperDashboard.jsx';
+import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
 import StartListManager from './StartListManager.jsx';
 import TimekeeperRacers from './TimekeeperRacers.jsx';
 import TimingEntry from './TimingEntry.jsx';
@@ -41,7 +41,7 @@ export default function TimekeeperRoutes() {
       {/* Wraps <Routes>, so the serial port stays open across screen changes. */}
       <SerialSessionProvider>
         <Routes>
-          <Route path="/" element={legacy(<TimekeeperDashboard />)} />
+          <Route path="/" element={protect(<TimekeeperDashboard />)} />
           <Route path="/start-list" element={legacy(<StartListManager />)} />
           <Route path="/racers" element={legacy(<TimekeeperRacers />)} />
           <Route path="/timing" element={legacy(<TimingEntry />)} />

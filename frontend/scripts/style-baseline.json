@@ -204,11 +204,6 @@
     "bootstrap": 7,
     "legacyVars": 1
   },
-  "src/components/timekeeper/TimekeeperDashboard.jsx": {
-    "bootstrap": 111,
-    "legacyVars": 2,
-    "emoji": 1
-  },
   "src/components/timekeeper/TimekeeperRacerRow.jsx": {
     "bootstrap": 12
   },

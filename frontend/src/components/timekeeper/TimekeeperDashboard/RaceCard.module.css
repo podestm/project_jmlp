@@ -1,0 +1,102 @@
+/* TkVyberZavodu: bílá karta s 4px lištou vlevo (vybraný zelená, ostatní ledová). */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px var(--ms-space-5) 20px var(--ms-space-6);
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--card-bar);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.open {
+  --card-bar: var(--ms-open);
+}
+
+.ice {
+  --card-bar: var(--ms-ice);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ms-space-6);
+}
+
+.noDate {
+  inline-size: 56px;
+  text-align: center;
+  color: var(--ms-ink-muted);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ms-space-3);
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xl);
+  line-height: 1.25;
+}
+
+.meta {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  padding: 14px var(--ms-space-4);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-page);
+}
+
+.stat dt {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-2xl);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767.98px) {
+  .card {
+    padding: var(--ms-space-4);
+  }
+
+  .head {
+    gap: var(--ms-space-4);
+  }
+}

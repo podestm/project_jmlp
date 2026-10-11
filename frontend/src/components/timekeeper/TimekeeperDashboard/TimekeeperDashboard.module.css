@@ -1,0 +1,90 @@
+.season {
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+/* „Naposledy vybraný závod“: podklad sunken s navy lištou vlevo. */
+.last {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: var(--ms-space-4) 20px var(--ms-space-4) var(--ms-space-6);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-sunken);
+}
+
+.lastIcon {
+  flex-shrink: 0;
+  color: var(--ms-navy);
+}
+
+.lastText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.lastCaps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+.lastRace {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.lastName {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xl);
+  line-height: 1.25;
+}
+
+.lastWeekday {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.lastDate {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-lg);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+.pick {
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+@media (max-width: 767.98px) {
+  .last {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--ms-space-4);
+  }
+
+  .lastIcon {
+    display: none;
+  }
+}
