@@ -6,7 +6,7 @@ import SiteLayout from './components/site/SiteLayout/SiteLayout.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
 import Home from './components/pages/Home/Home.jsx';
 import RaceCalendar from './components/pages/RaceCalendar/RaceCalendar.jsx';
-import NewsArchive from './components/pages/NewsArchive.jsx';
+import News from './components/pages/News/News.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
 import LiveTiming from './components/pages/LiveTiming.jsx';
@@ -47,7 +47,7 @@ const RouterContent = () => {
       <Route path="/zavody" element={<SiteLayout><RaceCalendar /></SiteLayout>} />
       <Route path="/zavod/:raceId" element={<SiteLayout><RaceDetail /></SiteLayout>} />
       <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />
-      <Route path="/aktuality" element={legacyPage(<NewsArchive />)} />
+      <Route path="/aktuality" element={<SiteLayout><News /></SiteLayout>} />
       <Route path="/dokumenty" element={legacyPage(<Documents />)} />
       <Route path="/kontakty" element={legacyPage(<Contacts />)} />
       <Route path="/zive" element={legacyPage(<LiveTiming />)} />
