@@ -3,7 +3,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ICONS } from '../components/ms/Icon/icons.js';
-import { adminNav, publicLiveNav, publicNav, timekeeperNav } from '../components/ms/navItems.js';
+import {
+  adminNav, publicFooterColumns, publicFooterLinks, publicLiveNav, publicNav, timekeeperNav,
+} from '../components/ms/navItems.js';
 
 /**
  * Na každou obrazovku musí vést odkaz z menu.
@@ -16,6 +18,7 @@ import { adminNav, publicLiveNav, publicNav, timekeeperNav } from '../components
  * Menu se čtou z dat (components/ms/navItems.js), routy doslovně z <Route
  * path="…">. Dokud starý rámec navItems nepoužívá, musí jeho odkazy s daty
  * souhlasit - jinak by data mohla tiše zastarat a test procházet naprázdno.
+ * Nový rámec veřejného webu (SiteHeader, MobileMenu, SiteFooter) data čte.
  */
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -41,6 +44,9 @@ const legacyLinksOf = (source) => new Set([
 const VYJIMKY = {
   '/admin/racers/slcr': 'podagenda Závodníků - otevírá se tlačítkem na obrazovce Závodníci, v menu být nemá',
   '/__ms': 'katalog kitu Modré stopy, jen v dev buildu',
+  '/archiv-zprav': 'stará adresa, přesměruje na /aktuality',
+  '/livetiming': 'stará adresa, přesměruje na /zive',
+  '/registrace': 'stará adresa, přesměruje na /zavody (přihláška je u závodu)',
 };
 
 const SECTIONS = [
@@ -83,19 +89,30 @@ describe.each(SECTIONS)('navigace $name', ({ items, routes, layout, prefix }) =>
 });
 
 describe('veřejná navigace', () => {
-  const routes = () => new Set(routesOf(read('Router.jsx'), ''));
-  const items = [...publicNav, publicLiveNav];
+  const routes = () => routesOf(read('Router.jsx'), '')
+    .filter((route) => !route.startsWith('/admin') && !route.startsWith('/timekeeper'));
+  const menuLinks = [...publicNav, publicLiveNav].map((item) => item.to);
+  const footerLinks = [...publicFooterLinks, ...publicFooterColumns.flatMap((column) => column.links)]
+    .map((item) => item.to);
 
-  it('menu neodkazuje na routu, která neexistuje', () => {
-    const existing = routes();
-    const mrtve = items.map((item) => item.to).filter((link) => !existing.has(link));
-    expect(mrtve, `Odkazy v menu bez routy: ${mrtve.join(', ')}`).toEqual([]);
+  it('na každou routu vede odkaz z menu', () => {
+    const links = new Set(menuLinks);
+    const nedosazitelne = routes().filter((route) => !links.has(route) && !VYJIMKY[route]);
+    expect(nedosazitelne, `Routy bez odkazu v menu: ${nedosazitelne.join(', ')}`).toEqual([]);
   });
 
-  it('starý rámec, dokud nečte navItems, má stejné odkazy', () => {
-    const source = read('components/layouts/Navigation.jsx');
-    if (source.includes('navItems')) return;
-    expect(legacyLinksOf(source)).toEqual(new Set(items.map((item) => item.to)));
+  it('menu ani patička neodkazují na routu, která neexistuje', () => {
+    const existing = new Set(routes());
+    const mrtve = [...menuLinks, ...footerLinks].filter((link) => !existing.has(link));
+    expect(mrtve, `Odkazy bez routy: ${mrtve.join(', ')}`).toEqual([]);
+  });
+
+  it.each([
+    'components/site/SiteHeader/SiteHeader.jsx',
+    'components/site/MobileMenu/MobileMenu.jsx',
+    'components/site/SiteFooter/SiteFooter.jsx',
+  ])('%s čte odkazy z navItems', (file) => {
+    expect(read(file)).toContain('navItems');
   });
 });
 

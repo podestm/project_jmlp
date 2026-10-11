@@ -1,0 +1,148 @@
+/* Zavody.dc.html: bílá lišta 76 px s linkou, obsah na šířku kontejneru. */
+.header {
+  flex-shrink: 0;
+  background: var(--ms-surface-card);
+  border-bottom: 1px solid var(--ms-line);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  block-size: 76px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  min-block-size: var(--ms-target);
+  text-decoration: none;
+}
+
+.logo {
+  inline-size: 44px;
+  block-size: 44px;
+  object-fit: contain;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.nameFull,
+.nameShort {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-md);
+  letter-spacing: 0.07em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--ms-ink);
+}
+
+.seasonFull,
+.seasonShort {
+  font-size: var(--ms-fs-xs);
+  line-height: 1.3;
+  color: var(--ms-ink-body);
+}
+
+.nameShort,
+.seasonShort {
+  display: none;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-1);
+  margin-inline-start: auto;
+}
+
+.navLink {
+  padding: 27px 11px;
+  border-bottom: 3px solid transparent;
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+  text-decoration: none;
+}
+
+.navLink:hover {
+  color: var(--ms-ink);
+}
+
+.navLink[aria-current='page'] {
+  border-bottom-color: var(--ms-navy);
+  color: var(--ms-ink);
+}
+
+.bar .menuButton {
+  display: none;
+  color: var(--ms-ink);
+}
+
+/* Pod 1280 px se celý název nevejde vedle menu – zůstane JMLP. */
+@media (max-width: 1279.98px) {
+  .nameFull {
+    display: none;
+  }
+
+  .nameShort {
+    display: block;
+  }
+}
+
+/* Pod 1024 px (MobilZavody): lišta 60 px, menu schované za hamburgerem. */
+@media (max-width: 1023.98px) {
+  .bar {
+    gap: 10px;
+    block-size: 60px;
+  }
+
+  .brand {
+    gap: 10px;
+    flex-grow: 1;
+    min-inline-size: 0;
+    min-block-size: 48px;
+  }
+
+  .logo {
+    inline-size: 36px;
+    block-size: 36px;
+  }
+
+  .brandText {
+    gap: 1px;
+  }
+
+  .nameShort {
+    font-size: var(--ms-fs-sm);
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+  }
+
+  .seasonFull {
+    display: none;
+  }
+
+  .seasonShort {
+    display: block;
+    font-size: var(--ms-fs-2xs);
+    line-height: 1.25;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .bar .menuButton {
+    display: inline-flex;
+  }
+}

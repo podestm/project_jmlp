@@ -1,0 +1,89 @@
+/* Zavody / Zive: 44 px, poloměr 3, Archivo 700 13 px verzálkami. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  flex-shrink: 0;
+  block-size: var(--ms-target);
+  padding-inline: 14px;
+  border: 1.5px solid transparent;
+  border-radius: var(--ms-radius-control);
+  text-decoration: none;
+}
+
+.dot {
+  display: block;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-sm);
+  letter-spacing: var(--ms-tracking-caps);
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+/* Klid: šedý obrys, šedá tečka, text ink-body. */
+.calm {
+  border-color: var(--ms-line-control);
+  background: var(--ms-surface-card);
+  color: var(--ms-line-control);
+}
+
+.calm .label {
+  color: var(--ms-ink-body);
+}
+
+.calm:hover {
+  background: var(--ms-surface-sunken);
+}
+
+/* Závodí se: červená plocha, bílá tečka i text. */
+.live {
+  border-color: var(--ms-red);
+  background: var(--ms-red);
+  color: var(--ms-on-dark);
+}
+
+.live:hover {
+  color: var(--ms-on-dark);
+}
+
+.live .dot {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Mobilní hlavička (MobilZavody): užší odznak. */
+@media (max-width: 1023.98px) {
+  .pill {
+    gap: 6px;
+    padding-inline: 11px;
+  }
+
+  .dot {
+    inline-size: 7px;
+    block-size: 7px;
+  }
+
+  .label {
+    font-size: var(--ms-fs-xs);
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live .dot {
+    animation: none;
+  }
+}

@@ -7,6 +7,7 @@ import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { SEASON_CONFIG } from '../../config/constants.js';
+import { seasonEdition, toRoman } from '../../utils/season.js';
 import VisuallyHidden from '../ms/VisuallyHidden/VisuallyHidden.jsx';
 import Icon from '../ms/Icon/Icon.jsx';
 
@@ -15,24 +16,11 @@ import Icon from '../ms/Icon/Icon.jsx';
 // nahradí celkové. Obecných dokumentů (soutěžní řád, pokyny) může být víc.
 const SEASON_ROLES = [[ROLE.prubezne, ROLE.vysledky], ROLE.document];
 
-const EDITION_BASE_YEAR = 2006; // sezóna 2025 = XIX. ročník
-
-const toRoman = (value) => {
-  const numerals = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
-    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
-  let remaining = Number(value);
-  if (!remaining || remaining <= 0) return '';
-  return numerals.reduce((acc, [num, sym]) => {
-    while (remaining >= num) { acc += sym; remaining -= num; }
-    return acc;
-  }, '');
-};
-
 const emptyForm = () => {
   const yearStart = SEASON_CONFIG.getCurrentSeasonId();
   return {
     year_start: yearStart,
-    edition: yearStart - EDITION_BASE_YEAR,
+    edition: seasonEdition(yearStart),
     name: 'Jihomoravský lyžařský pohár',
     active: true
   };

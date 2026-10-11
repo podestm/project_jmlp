@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatSeason, generateRaceNumber, getCurrentSeasonId, getSeasonIdForRace } from './season.js';
+import { formatSeason, formatSeasonShort, generateRaceNumber, getCurrentSeasonId, getSeasonIdForRace, seasonEdition, toRoman } from './season.js';
 import { pointsForRank, POINTS_TABLE } from './points.js';
 
 describe('getCurrentSeasonId', () => {
@@ -76,5 +76,17 @@ describe('pointsForRank', () => {
   it('bez pořadí je nula', () => {
     expect(pointsForRank(null)).toBe(0);
     expect(pointsForRank(0)).toBe(0);
+  });
+});
+
+describe('ročník a krátký tvar sezóny', () => {
+  it('sezóna 2026 je XX. ročník, 2025 XIX.', () => {
+    expect(toRoman(seasonEdition(2026))).toBe('XX');
+    expect(toRoman(seasonEdition(2025))).toBe('XIX');
+  });
+
+  it('krátký tvar sezóny', () => {
+    expect(formatSeasonShort(2026)).toBe('2026/27');
+    expect(formatSeasonShort(2099)).toBe('2099/00');
   });
 });

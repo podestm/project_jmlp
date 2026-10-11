@@ -3,8 +3,7 @@
     "legacyVars": 40
   },
   "src/Router.jsx": {
-    "bootstrap": 5,
-    "legacyImports": 2
+    "legacyImports": 1
   },
   "src/assets/styles/admin.css": {
     "bootstrap": 348,
@@ -156,13 +155,6 @@
   "src/components/admin/slcrPairing.js": {
     "bootstrap": 4
   },
-  "src/components/layouts/Layout.jsx": {
-    "bootstrap": 19
-  },
-  "src/components/layouts/Navigation.jsx": {
-    "bootstrap": 38,
-    "legacyVars": 2
-  },
   "src/components/ms/LegacyIsland/LegacyIsland.jsx": {
     "bootstrap": 7
   },
@@ -202,11 +194,6 @@
   "src/components/pages/RegisteredRacersCard.jsx": {
     "bootstrap": 25,
     "legacyVars": 2,
-    "legacyImports": 1
-  },
-  "src/components/pages/Registration.jsx": {
-    "bootstrap": 42,
-    "legacyVars": 11,
     "legacyImports": 1
   },
   "src/components/pages/news/NewsFilters.jsx": {

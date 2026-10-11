@@ -181,7 +181,7 @@ function Homepage() {
 
             {/* ===== LIVE ALERT ===== */}
             {liveRace && (
-              <Link to="/livetiming" className="text-decoration-none d-block mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+              <Link to="/zive" className="text-decoration-none d-block mb-4" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={{
                   background: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)',
                   padding: '0.875rem 1.25rem',
@@ -311,7 +311,7 @@ function Homepage() {
 
                     <div className="text-center mt-4">
                       <Link
-                        to="/archiv-zprav"
+                        to="/aktuality"
                         className="btn btn-outline-secondary"
                         style={{ borderRadius: '8px', padding: '0.75rem 2rem', fontWeight: '500' }}
                       >

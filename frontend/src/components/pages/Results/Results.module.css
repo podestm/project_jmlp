@@ -1,0 +1,10 @@
+/* Vysledky.dc.html: obsah 44 px pod hlavičkou i nad patičkou. */
+.page {
+  padding-block: 44px;
+}
+
+@media (max-width: 767.98px) {
+  .page {
+    padding-block: var(--ms-space-5) var(--ms-space-8);
+  }
+}

@@ -68,11 +68,15 @@ export default function AdminDashboard() {
     });
   };
 
+  // Staré adresy zůstávají kvůli návštěvám z doby před redesignem.
   const pathLabels = {
     '/zavody': 'Závody',
+    '/vysledky': 'Výsledky',
+    '/aktuality': 'Aktuality',
     '/archiv-zprav': 'Archiv zpráv',
     '/dokumenty': 'Dokumenty',
     '/kontakty': 'Kontakty',
+    '/zive': 'Živě',
   };
 
   const getPathLabel = (path) => {

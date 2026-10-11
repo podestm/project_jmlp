@@ -13,11 +13,15 @@ export const buttonClassName = ({ variant = 'outline', size = 'md', block = fals
   className,
 );
 
-/** Obsah tlačítka: volitelná ikona vlevo (nebo spinner při `busy`) a text. */
-export const ButtonContent = ({ icon, busy, children }) => (
+/**
+ * Obsah tlačítka: volitelná ikona vlevo (nebo spinner při `busy`), text
+ * a volitelná ikona vpravo (`iconEnd`, typicky šipka „pokračovat“).
+ */
+export const ButtonContent = ({ icon, iconEnd, busy, children }) => (
   <>
     {busy ? <Spinner size={18} tone="current" /> : icon && <Icon name={icon} size={18} />}
     <span>{children}</span>
+    {iconEnd && <Icon name={iconEnd} size={18} />}
   </>
 );
 
@@ -25,11 +29,12 @@ export const ButtonContent = ({ icon, busy, children }) => (
  * Tlačítko Modré stopy (BRIEF: jedna plná primární akce na sekci, ostatní obrysové).
  * - variant: primary | outline | danger | quiet
  * - size: sm (44 px) | md (48 px) | lg (52 px)
+ * - icon / iconEnd: ikona před textem / za textem
  * - busy: probíhá akce – spinner místo ikony, aria-busy a tlačítko nejde znovu
  *   odeslat (proti dvojímu odeslání), text zůstává
  */
 const Button = forwardRef(function Button(
-  { variant = 'outline', size = 'md', block = false, icon, busy = false, disabled, type = 'button', className, children, ...rest },
+  { variant = 'outline', size = 'md', block = false, icon, iconEnd, busy = false, disabled, type = 'button', className, children, ...rest },
   ref,
 ) {
   return (
@@ -42,7 +47,7 @@ const Button = forwardRef(function Button(
       data-busy={busy || undefined}
       {...rest}
     >
-      <ButtonContent icon={icon} busy={busy}>{children}</ButtonContent>
+      <ButtonContent icon={icon} iconEnd={iconEnd} busy={busy}>{children}</ButtonContent>
     </button>
   );
 });

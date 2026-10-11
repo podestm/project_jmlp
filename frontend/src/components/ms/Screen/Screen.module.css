@@ -1,0 +1,4 @@
+/* Vyplní výšku mezi hlavičkou a patičkou (rámec je sloupec flexboxu). */
+.screen {
+  flex-grow: 1;
+}

@@ -5,16 +5,44 @@
 // `group: 'settings'` jde za oddělovač.
 // Nová obrazovka = nová položka tady (nebo výjimka v testu s důvodem).
 
+// `hint` je druhý řádek v mobilním menu (MobilMenu), `alsoActive` prefixy
+// dalších adres, kde je položka aktivní (detail závodu patří pod Závody).
 export const publicNav = [
-  { to: '/', label: 'Úvod' },
-  { to: '/zavody', label: 'Závody' },
-  { to: '/archiv-zprav', label: 'Aktuality' },
+  { to: '/', label: 'Úvod', end: true },
+  { to: '/zavody', label: 'Závody', hint: 'Kalendář sezóny', alsoActive: ['/zavod/'] },
+  { to: '/vysledky', label: 'Výsledky', hint: 'Průběžné výsledky a listiny' },
+  { to: '/aktuality', label: 'Aktuality' },
   { to: '/dokumenty', label: 'Dokumenty' },
   { to: '/kontakty', label: 'Kontakty' },
 ];
 
-// Odznak ŽIVĚ vpravo v hlavičce (jen když se právě závodí).
-export const publicLiveNav = { to: '/livetiming', label: 'Živě' };
+// Odznak ŽIVĚ vpravo v hlavičce – vidět je vždy, při závodě červený.
+export const publicLiveNav = { to: '/zive', label: 'Živě' };
+
+// Velká patička úvodu (Main): dva sloupce odkazů.
+export const publicFooterColumns = [
+  {
+    title: 'Web',
+    links: [
+      { to: '/zavody', label: 'Kalendář závodů' },
+      { to: '/vysledky', label: 'Výsledky a pořadí' },
+      { to: '/zive', label: 'Živé výsledky' },
+    ],
+  },
+  {
+    title: 'Pohár',
+    links: [
+      { to: '/dokumenty', label: 'Soutěžní řád' },
+      { to: '/kontakty', label: 'Kontakty na kluby' },
+    ],
+  },
+];
+
+// Úzká patička ostatních stránek (Zavody): odkazy vpravo.
+export const publicFooterLinks = [
+  { to: '/kontakty', label: 'Kontakty' },
+  { to: '/dokumenty', label: 'Dokumenty' },
+];
 
 export const adminNav = [
   { to: '/admin', label: 'Přehled', icon: 'dashboard', end: true },
@@ -40,3 +68,11 @@ export const timekeeperNav = [
   { to: '/timekeeper/sync', label: 'Synchronizace', group: 'settings' },
   { to: '/timekeeper/device', label: 'Zařízení', group: 'settings' },
 ];
+
+/** Je položka menu aktivní na dané adrese? `end` = jen přesná shoda (Úvod). */
+export const isNavActive = (item, pathname) => {
+  if (pathname === item.to) return true;
+  if (item.end) return false;
+  return pathname.startsWith(`${item.to}/`)
+    || (item.alsoActive || []).some((prefix) => pathname.startsWith(prefix));
+};

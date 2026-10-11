@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { LiveStatusProvider } from './contexts/LiveStatusContext.jsx';
-import Layout from './components/layouts/Layout.jsx';
+import { LegacyIsland } from './components/ms/index.js';
+import SiteLayout from './components/site/SiteLayout/SiteLayout.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
 import Homepage from './components/pages/Homepage.jsx';
 import RaceCalendar from './components/pages/RaceCalendar.jsx';
@@ -9,8 +10,9 @@ import NewsArchive from './components/pages/NewsArchive.jsx';
 import Documents from './components/pages/Documents.jsx';
 import Contacts from './components/pages/Contacts.jsx';
 import LiveTiming from './components/pages/LiveTiming.jsx';
-import Registration from './components/pages/Registration.jsx';
 import RaceDetail from './components/pages/RaceDetail.jsx';
+import NotFound from './components/pages/NotFound/NotFound.jsx';
+import Results from './components/pages/Results/Results.jsx';
 import { usePageTracking } from './hooks/usePageTracking';
 import { loadSection } from './utils/moduleLoad.js';
 
@@ -24,14 +26,14 @@ const TimekeeperRoutes = lazy(() => loadSection(() => import('./components/timek
 // Katalog kitu Modré stopy jen pro vývoj; v produkčním buildu větev odpadne i s chunkem.
 const MsCatalogue = import.meta.env.DEV ? lazy(() => import('./components/ms/Catalogue/Catalogue.jsx')) : null;
 
-const NotFound = () => (
-  <Layout>
-    <div className="text-center py-5">
-      <h2>Stránka nenalezena</h2>
-      <p className="text-muted">Požadovaná stránka neexistuje.</p>
-      <a href="/" className="btn btn-primary">Zpět na úvod</a>
-    </div>
-  </Layout>
+/**
+ * Nepřevedená veřejná stránka v novém rámci (hlavička, patička Modré stopy):
+ * staré obaly a tmavou fotku drží LegacyIsland, dokud se stránka nepřevede.
+ */
+const legacyPage = (page, { fluid = false, footer } = {}) => (
+  <SiteLayout footer={footer}>
+    <LegacyIsland variant="public" fluid={fluid}>{page}</LegacyIsland>
+  </SiteLayout>
 );
 
 // Wrapper pro tracking, který musí být uvnitř BrowserRouter
@@ -41,14 +43,19 @@ const RouterContent = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Layout fluid><Homepage /></Layout>} />
-      <Route path="/zavody" element={<Layout><RaceCalendar /></Layout>} />
-      <Route path="/archiv-zprav" element={<Layout><NewsArchive /></Layout>} />
-      <Route path="/dokumenty" element={<Layout><Documents /></Layout>} />
-      <Route path="/kontakty" element={<Layout><Contacts /></Layout>} />
-      <Route path="/livetiming" element={<Layout><LiveTiming /></Layout>} />
-      <Route path="/registrace" element={<Layout><Registration /></Layout>} />
-      <Route path="/zavod/:raceId" element={<Layout><RaceDetail /></Layout>} />
+      <Route path="/" element={legacyPage(<Homepage />, { fluid: true, footer: 'full' })} />
+      <Route path="/zavody" element={legacyPage(<RaceCalendar />)} />
+      <Route path="/zavod/:raceId" element={legacyPage(<RaceDetail />)} />
+      <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />
+      <Route path="/aktuality" element={legacyPage(<NewsArchive />)} />
+      <Route path="/dokumenty" element={legacyPage(<Documents />)} />
+      <Route path="/kontakty" element={legacyPage(<Contacts />)} />
+      <Route path="/zive" element={legacyPage(<LiveTiming />)} />
+
+      {/* Staré adresy ze záložek a e-mailů; přihláška je u závodu v kalendáři */}
+      <Route path="/archiv-zprav" element={<Navigate to="/aktuality" replace />} />
+      <Route path="/livetiming" element={<Navigate to="/zive" replace />} />
+      <Route path="/registrace" element={<Navigate to="/zavody" replace />} />
 
       <Route
         path="/admin/*"
@@ -73,7 +80,7 @@ const RouterContent = () => {
       )}
 
       {/* 404 - neznámá cesta */}
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<SiteLayout><NotFound /></SiteLayout>} />
     </Routes>
   );
 };

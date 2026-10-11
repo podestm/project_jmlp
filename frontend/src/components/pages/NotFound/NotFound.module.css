@@ -1,0 +1,217 @@
+/* NotFound.dc.html (1240 px, dva sloupce) a Mobil404.dc.html (pod 768 px). */
+.page {
+  display: flex;
+  align-items: flex-start;
+  gap: 72px;
+  padding-block: 84px 60px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+  flex-shrink: 0;
+  inline-size: 620px;
+  max-inline-size: 100%;
+}
+
+.code {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.number {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: 52px;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--ms-ink);
+  text-wrap: pretty;
+}
+
+.text {
+  font-size: var(--ms-fs-xl);
+  line-height: 1.6;
+  color: var(--ms-ink-body);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  padding-block-start: var(--ms-space-2);
+}
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  min-block-size: 72px;
+  padding: 14px 20px;
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-left: 4px solid var(--tone);
+  border-radius: var(--ms-radius-card);
+  text-decoration: none;
+}
+
+.suggestion:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.suggestion[data-tone='open'] { --tone: var(--ms-open); }
+.suggestion[data-tone='navy'] { --tone: var(--ms-navy); }
+.suggestion[data-tone='live'] { --tone: var(--ms-red); }
+.suggestion[data-tone='neutral'] { --tone: var(--ms-line); }
+
+.suggestionText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.suggestionTitle {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.suggestionHint {
+  font-size: var(--ms-fs-base);
+  line-height: 1.45;
+  color: var(--ms-ink-body);
+}
+
+.url {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-md);
+  white-space: nowrap;
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: var(--ms-navy);
+}
+
+.mobileOnly {
+  display: none;
+}
+
+/* Pod 1024 px se sloupce nevejdou vedle sebe. */
+@media (max-width: 1023.98px) {
+  .page {
+    flex-direction: column;
+    gap: var(--ms-space-8);
+  }
+
+  .suggestions {
+    align-self: stretch;
+  }
+}
+
+/* Mobil404: menší nadpis, tlačítka přes celou šířku, seznam jako řádky. */
+@media (max-width: 767.98px) {
+  .page {
+    padding-block: var(--ms-space-8) 36px;
+  }
+
+  .intro {
+    gap: var(--ms-space-4);
+  }
+
+  .code {
+    font-size: var(--ms-fs-sm);
+  }
+
+  .title {
+    font-size: 31px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .break {
+    display: none;
+  }
+
+  .text {
+    font-size: 17px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-block-start: var(--ms-space-1);
+  }
+
+  .suggestions {
+    gap: var(--ms-space-3);
+  }
+
+  .list {
+    gap: 0;
+    margin-inline: calc(-1 * var(--ms-space-4));
+    background: var(--ms-surface-card);
+    border-top: 1px solid var(--ms-line);
+  }
+
+  .mobileOnly {
+    display: block;
+  }
+
+  .suggestion {
+    gap: 13px;
+    padding: 12px var(--ms-space-4);
+    border: 0;
+    border-bottom: 1px solid var(--ms-line);
+    border-radius: 0;
+  }
+
+  /* Lišta stavu uvnitř řádku, ne na jeho okraji (Mobil404). */
+  .suggestion::before {
+    content: '';
+    align-self: stretch;
+    flex-shrink: 0;
+    inline-size: 4px;
+    background: var(--tone);
+  }
+
+  .suggestionTitle {
+    font-size: 17px;
+  }
+
+  .suggestionHint {
+    font-size: var(--ms-fs-md);
+  }
+}

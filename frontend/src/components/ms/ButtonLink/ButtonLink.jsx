@@ -7,11 +7,11 @@ import { ButtonContent, buttonClassName } from '../Button/Button.jsx';
  * načtení celé stránky, takže funguje i offline. Pro externí adresu `href`.
  */
 const ButtonLink = forwardRef(function ButtonLink(
-  { to, href, variant = 'outline', size = 'md', block = false, icon, className, children, ...rest },
+  { to, href, variant = 'outline', size = 'md', block = false, icon, iconEnd, className, children, ...rest },
   ref,
 ) {
   const classes = buttonClassName({ variant, size, block, className });
-  const content = <ButtonContent icon={icon}>{children}</ButtonContent>;
+  const content = <ButtonContent icon={icon} iconEnd={iconEnd}>{children}</ButtonContent>;
   if (href !== undefined) {
     return <a ref={ref} href={href} className={classes} {...rest}>{content}</a>;
   }

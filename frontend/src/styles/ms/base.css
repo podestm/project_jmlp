@@ -76,6 +76,14 @@
   height: auto;
 }
 
+/*
+ * Převedená obrazovka veřejného webu (components/ms/Screen) – světlé pozadí
+ * místo tmavé fotky ze starého CSS. Ve Fázi 6 platí pro celý dokument.
+ */
+body.ms-page {
+  background: var(--ms-surface-page);
+}
+
 /* ── Fokus: jen z klávesnice, navy obrys 3 px s odstupem 2 px ── */
 :where(.ms-scope) :where(:focus:not(:focus-visible)) {
   outline: none;
