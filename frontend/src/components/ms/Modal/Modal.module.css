@@ -95,8 +95,11 @@
   background: var(--ms-surface-sunken);
 }
 
+/* Nevejde-li se nebezpečná volba vlevo vedle hlavních, spadne na vlastní
+   řádek nad ně (AdminDialogOdpojitPrilohu) – Zrušit a hlavní akce zůstanou spolu. */
 .footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ms-space-3);
   padding: 16px 24px;

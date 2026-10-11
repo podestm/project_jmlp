@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockList = vi.fn();
 const mockSeasons = vi.fn();
@@ -37,10 +37,17 @@ const renderScreen = () => render(<MemoryRouter><DocumentLibrary /></MemoryRoute
 
 describe('knihovna dokumentů', () => {
   beforeEach(() => {
+    // Aktuální sezóna se počítá z data – den testu pevně v sezóně 2026/27.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-11T12:00:00'));
     mockList.mockReset().mockResolvedValue({ files: FILES, total: 96 });
     mockSeasons.mockReset().mockResolvedValue(SEASONS);
     mockRemove.mockReset().mockResolvedValue({});
     mockPublish.mockReset().mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('vypíše soubory s použitím a souhrnem', async () => {

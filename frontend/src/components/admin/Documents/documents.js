@@ -1,6 +1,7 @@
 // Čisté funkce knihovny dokumentů (AdminDokumenty) – bez Reactu, s testem.
 import { getExtension } from '../../../utils/files.js';
 import { czechPlural } from '../../../utils/races.js';
+import { getCurrentSeasonId } from '../../../utils/season.js';
 
 export const EMPTY_FILTERS = {
   q: '',
@@ -31,19 +32,22 @@ export const usageLabel = (item) => `${item.type} · ${item.published ? 'zveřej
 /** Jedno místo použití do dialogu smazání: „Sezóna – 2026/2027“. */
 export const usageText = (item) => `${item.type} – ${item.title}`;
 
+// Pozn.: `active` u sezóny znamená „zobrazovaná“, ne „aktuální“ – aktuální
+// je podle data (1. 8. – 31. 7.).
+
 /** Volby sezón k zveřejnění: čtyři nejnovější, „2026/2027 · XX. ročník“. */
-export const seasonChoices = (seasons) => seasons.slice(0, OFFERED_SEASONS).map((season) => ({
+export const seasonChoices = (seasons, currentSeasonId = getCurrentSeasonId()) => seasons.slice(0, OFFERED_SEASONS).map((season) => ({
   value: season.year_start,
   seasonLabel: season.season_label,
   label: [season.season_label, season.edition_label && `${season.edition_label} ročník`].filter(Boolean).join(' · '),
   description: [
-    season.active && 'aktuální sezóna',
+    season.year_start === currentSeasonId && 'aktuální sezóna',
     `teď ${season.documents_count ?? 0} ${czechPlural(season.documents_count ?? 0, ['dokument', 'dokumenty', 'dokumentů'])}`,
   ].filter(Boolean).join(' · '),
 }));
 
-/** Výchozí volba: aktivní sezóna, jinak nejnovější. */
-export const defaultSeason = (seasons) => {
+/** Výchozí volba: aktuální sezóna, jinak nejnovější nabízená. */
+export const defaultSeason = (seasons, currentSeasonId = getCurrentSeasonId()) => {
   const offered = seasons.slice(0, OFFERED_SEASONS);
-  return (offered.find((season) => season.active) ?? offered[0])?.year_start ?? null;
+  return (offered.find((season) => season.year_start === currentSeasonId) ?? offered[0])?.year_start ?? null;
 };

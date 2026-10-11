@@ -25,13 +25,14 @@ describe('knihovna dokumentů', () => {
     expect(usageLabel({ type: 'Článek', published: false })).toBe('Článek · skryto');
   });
 
-  it('nabídne čtyři nejnovější sezóny, výchozí je aktivní', () => {
-    const choices = seasonChoices(SEASONS);
+  it('nabídne čtyři nejnovější sezóny, výchozí je aktuální', () => {
+    const choices = seasonChoices(SEASONS, 2026);
     expect(choices).toHaveLength(4);
     expect(choices[1]).toEqual({ value: 2026, seasonLabel: '2026/2027', label: '2026/2027 · XX. ročník', description: 'aktuální sezóna · teď 2 dokumenty' });
     expect(choices[2].label).toBe('2025/2026');
     expect(choices[3].description).toBe('teď 1 dokument');
-    expect(defaultSeason(SEASONS)).toBe(2026);
+    expect(defaultSeason(SEASONS, 2026)).toBe(2026);
+    expect(defaultSeason(SEASONS, 2030)).toBe(2027);
     expect(defaultSeason([])).toBeNull();
   });
 });
