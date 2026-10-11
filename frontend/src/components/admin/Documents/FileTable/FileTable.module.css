@@ -1,0 +1,102 @@
+/* AdminDokumenty: řádky 56 px, buňky 6 px nahoře a dole. */
+.table td {
+  padding-block: 6px;
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-inline-size: 0;
+}
+
+.link {
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-navy);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.size {
+  inline-size: 110px;
+  white-space: nowrap;
+}
+
+.date {
+  inline-size: 120px;
+  white-space: nowrap;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.usageCell {
+  inline-size: 300px;
+}
+
+.usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.muted {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-muted);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Stažení jako ikonové tlačítko 44 × 44. */
+.square {
+  inline-size: var(--ms-target);
+  padding: 0;
+}
+
+/* Mobil: řádek jako karta – soubor, pod ním údaje, akce na celou šířku. */
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--ms-space-2) var(--ms-space-3);
+    padding: var(--ms-space-3) var(--ms-space-4);
+  }
+
+  .table td {
+    padding: 0;
+  }
+
+  .fileCell,
+  .usageCell,
+  .actionsCell {
+    grid-column: 1 / -1;
+  }
+
+  .size,
+  .date,
+  .usageCell {
+    inline-size: auto;
+  }
+
+  .size {
+    text-align: start;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}

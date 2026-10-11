@@ -1,0 +1,19 @@
+.rename {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-1) var(--ms-space-2);
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.input {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.hint {
+  flex-shrink: 0;
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink-body);
+}

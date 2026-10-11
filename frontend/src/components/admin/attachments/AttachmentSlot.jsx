@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { ButtonSpinner } from '../../ui/LoadingState.jsx';
-import { getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
+import { formatFileSize } from '../../../utils/files.js';
+import FileBadge from '../shared/FileBadge/FileBadge.jsx';
 import LibraryPicker from './LibraryPicker.jsx';
 import { ROLE_LABELS } from '../../../config/attachmentsApi.js';
 import Icon from '../../ms/Icon/Icon.jsx';
@@ -88,9 +89,7 @@ export default function AttachmentSlot({
 
       {attachment ? (
         <div className="border rounded p-2 d-flex align-items-center gap-2 bg-light">
-          <span className={`badge ${getExtensionBadgeClass(attachment.original_filename)}`}>
-            {getExtensionLabel(attachment.original_filename)}
-          </span>
+          <FileBadge filename={attachment.original_filename} />
           <div className="flex-grow-1" style={{ minWidth: 0 }}>
             <a
               href={attachment.download_url}

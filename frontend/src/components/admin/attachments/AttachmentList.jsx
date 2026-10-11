@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { ButtonSpinner } from '../../ui/LoadingState.jsx';
-import { getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
+import { formatFileSize } from '../../../utils/files.js';
+import FileBadge from '../shared/FileBadge/FileBadge.jsx';
 import LibraryPicker from './LibraryPicker.jsx';
 import Icon from '../../ms/Icon/Icon.jsx';
 
@@ -58,9 +59,7 @@ export default function AttachmentList({
         <ul className="list-group mb-2">
           {attachments.map((attachment) => (
             <li key={attachment.id} className="list-group-item d-flex align-items-center gap-2">
-              <span className={`badge ${getExtensionBadgeClass(attachment.original_filename)}`}>
-                {getExtensionLabel(attachment.original_filename)}
-              </span>
+              <FileBadge filename={attachment.original_filename} />
 
               <div className="flex-grow-1" style={{ minWidth: 0 }}>
                 {editingId === attachment.id ? (

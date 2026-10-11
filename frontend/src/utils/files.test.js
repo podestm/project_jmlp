@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatFileSize,
   getExtension,
-  getExtensionBadgeClass,
+  getExtensionTone,
   getExtensionLabel,
   isDocumentFile,
   isImageFile
@@ -31,14 +31,14 @@ describe('getExtensionLabel', () => {
   });
 });
 
-describe('getExtensionBadgeClass', () => {
+describe('getExtensionTone', () => {
   it('rozliší dokumenty, tabulky, archivy a obrázky', () => {
-    expect(getExtensionBadgeClass('a.pdf')).toBe('bg-danger');
-    expect(getExtensionBadgeClass('a.xlsx')).toBe('bg-success');
-    expect(getExtensionBadgeClass('a.docx')).toBe('bg-primary');
-    expect(getExtensionBadgeClass('a.zip')).toBe('bg-dark');
-    expect(getExtensionBadgeClass('a.jpg')).toBe('bg-info');
-    expect(getExtensionBadgeClass('a.xyz')).toBe('bg-secondary');
+    expect(getExtensionTone('a.pdf')).toBe('pdf');
+    expect(getExtensionTone('a.xlsx')).toBe('sheet');
+    expect(getExtensionTone('a.docx')).toBe('doc');
+    expect(getExtensionTone('a.zip')).toBe('archive');
+    expect(getExtensionTone('a.jpg')).toBe('image');
+    expect(getExtensionTone('a.xyz')).toBe('neutral');
   });
 });
 

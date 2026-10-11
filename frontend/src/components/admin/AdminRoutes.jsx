@@ -12,7 +12,7 @@ import AdminNotFound from './frame/AdminNotFound/AdminNotFound.jsx';
 import AdminDashboard from './Dashboard/AdminDashboard.jsx';
 import RaceManagement from './Races/RaceManagement.jsx';
 import RacerManagement from './Racers/RacerManagement.jsx';
-import DocumentLibrary from './DocumentLibrary.jsx';
+import DocumentLibrary from './Documents/DocumentLibrary.jsx';
 import PostManagement from './PostManagement.jsx';
 import RaceRegistrations from './Registrations/RaceRegistrations.jsx';
 import CategoryManagement from './CategoryManagement.jsx';
@@ -49,7 +49,7 @@ export default function AdminRoutes() {
           <Route path="/racers" element={protect(<RacerManagement />)} />
           <Route path="/racers/slcr" element={protect(<SlcrPairing />)} />
           <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
-          <Route path="/documents" element={legacy(<DocumentLibrary />)} />
+          <Route path="/documents" element={protect(<DocumentLibrary />)} />
           <Route path="/posts" element={legacy(<PostManagement />)} />
           <Route path="/categories" element={legacy(<CategoryManagement />)} />
           <Route path="/seasons" element={legacy(<SeasonManagement />)} />

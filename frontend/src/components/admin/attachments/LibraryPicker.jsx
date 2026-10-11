@@ -3,7 +3,8 @@ import LoadingState from '../../ui/LoadingState.jsx';
 import EmptyState from '../../ui/EmptyState.jsx';
 import { Alert, Button, Field, Input, Modal } from '../../ms/index.js';
 import { AttachmentsAPI } from '../../../config/attachmentsApi.js';
-import { getExtension, getExtensionBadgeClass, getExtensionLabel, formatFileSize } from '../../../utils/files.js';
+import { getExtension, formatFileSize } from '../../../utils/files.js';
+import FileBadge from '../shared/FileBadge/FileBadge.jsx';
 import { formatDateShort } from '../../../utils/date.js';
 
 /**
@@ -83,9 +84,7 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
               className="list-group-item list-group-item-action d-flex align-items-center gap-2"
               onClick={() => onSelect(file)}
             >
-              <span className={`badge ${getExtensionBadgeClass(file.original_filename)}`}>
-                {getExtensionLabel(file.original_filename)}
-              </span>
+              <FileBadge filename={file.original_filename} />
               <span className="flex-grow-1 text-truncate text-start">
                 {file.original_filename}
               </span>

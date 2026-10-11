@@ -2,11 +2,12 @@
 
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
 
-const EXTENSION_BADGE_CLASSES = {
-  xlsx: 'bg-success', xls: 'bg-success', xlsm: 'bg-success', csv: 'bg-success',
-  pdf: 'bg-danger',
-  doc: 'bg-primary', docx: 'bg-primary', docm: 'bg-primary',
-  zip: 'bg-dark', rar: 'bg-dark', '7z': 'bg-dark'
+// Tón štítku přípony – vzhled k němu dodá FileBadge (admin/shared).
+const EXTENSION_TONES = {
+  xlsx: 'sheet', xls: 'sheet', xlsm: 'sheet', csv: 'sheet',
+  pdf: 'pdf',
+  doc: 'doc', docx: 'doc', docm: 'doc',
+  zip: 'archive', rar: 'archive', '7z': 'archive'
 };
 
 /** Lowercase extension without the dot, '' when there is none. */
@@ -18,10 +19,11 @@ export const getExtension = (filename) => {
 /** Uppercase extension for badges, '?' when unknown. */
 export const getExtensionLabel = (filename) => getExtension(filename).toUpperCase() || '?';
 
-export const getExtensionBadgeClass = (filename) => {
+/** Tón štítku přípony: pdf | sheet | doc | archive | image | neutral. */
+export const getExtensionTone = (filename) => {
   const ext = getExtension(filename);
-  if (EXTENSION_BADGE_CLASSES[ext]) return EXTENSION_BADGE_CLASSES[ext];
-  return IMAGE_EXTENSIONS.has(ext) ? 'bg-info' : 'bg-secondary';
+  if (EXTENSION_TONES[ext]) return EXTENSION_TONES[ext];
+  return IMAGE_EXTENSIONS.has(ext) ? 'image' : 'neutral';
 };
 
 /** Human file size - "1.4 MB". */
