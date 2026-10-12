@@ -115,12 +115,14 @@ def slcr_events(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
-    """Akce v evidenci ±3 dny od data závodu."""
+    """Naše akce v evidenci (měří je naše měřící skupina) ±3 dny od data závodu."""
     race = _race_or_404(db, race_id)
     if not race.datum:
         raise HTTPException(status_code=400, detail="Závod nemá datum")
     try:
-        events = slcr_evidence.list_events(race.datum - timedelta(days=3), race.datum + timedelta(days=3))
+        events = slcr_evidence.own_events(
+            slcr_evidence.list_events(race.datum - timedelta(days=3), race.datum + timedelta(days=3))
+        )
     except slcr_evidence.SlcrError as exc:
         raise _fail(exc) from exc
     return events

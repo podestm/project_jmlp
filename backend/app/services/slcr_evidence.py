@@ -55,6 +55,9 @@ RESULT_LAYOUTS = {
 }
 DEFAULT_LAYOUT = "ALPINE_SKIING_INDIVIDUAL_SLALOM"
 DEFAULT_START_TIME = "10:00:00"
+# Akce, které měří naše měřící skupina (v evidenci "timekeepingCompany").
+# Seznam akcí z oficiálního API je celý alpský úsek – nabízíme jen naše.
+OWN_TIMEKEEPING = os.getenv("SLCR_TIMEKEEPING_COMPANY", "Měřící skupina JMLP").strip()
 
 
 class SlcrError(Exception):
@@ -237,6 +240,16 @@ query Event($event: Int!) {
 }
 """
 
+EVENT_OWNER_QUERY = """
+query EventOwner($event: Int!) {
+  publicRacingEvent(event: $event) {
+    id
+    timekeepingCompany { id name }
+    region { name }
+  }
+}
+"""
+
 LOGIN_MUTATION = """
 mutation Login($username: String!, $password: String!) {
   authLogin(username: $username, password: $password) {
@@ -379,6 +392,30 @@ def list_events(date_from: date, date_to: date, config: Optional[Settings] = Non
     body = response.json()
     items = body if isinstance(body, list) else (body.get("items") or body.get("data") or body.get("result") or [])
     return [_event_summary(item) for item in items if isinstance(item, dict)]
+
+
+def is_own_event(owner: Dict[str, Any], own: str = OWN_TIMEKEEPING) -> bool:
+    """Akci měří naše měřící skupina – podle názvu (bez diakritiky) nebo id."""
+    company = (owner or {}).get("timekeepingCompany") or {}
+    if not own or not company:
+        return False
+    return fold(own) in (fold(company.get("name")), fold(company.get("id")))
+
+
+def own_events(events: List[Dict[str, Any]], config: Optional[Settings] = None) -> List[Dict[str, Any]]:
+    """Z akcí alpského úseku nechá jen ty, které měří naše měřící skupina.
+    Měřící firmu vrací jen GraphQL webu evidence, proto se dotáže po akcích
+    (kolem data závodu jich je jen pár)."""
+    config = config or settings()
+    if not events:
+        return []
+    with httpx.Client(timeout=TIMEOUT) as client:
+        token = _login(client, config) if config.has_login else None
+        owners = {}
+        for event in events:
+            data, _ = _graphql(client, EVENT_OWNER_QUERY, {"event": int(event["id"])}, token)
+            owners[event["id"]] = data.get("publicRacingEvent") or {}
+    return [event for event in events if is_own_event(owners.get(event["id"]))]
 
 
 def upload_results(event_id: int, xml: bytes, layout: Optional[str] = None,
