@@ -54,6 +54,10 @@ class CategoryResults:
     name: str
     sex: Optional[int]          # 1 muži, 2 ženy
     ranked: List[RankedEntry] = field(default_factory=list)
+    # Kodex závodu v evidenci (sloupec "Kodex" u závodu). Stálé číslo
+    # kategorie - podle něj má import přiřadit soubor k existujícímu závodu
+    # místo zakládání nového bez názvu.
+    codex: Optional[str] = None
 
 
 def fis_season(race_date: date) -> int:
@@ -129,6 +133,8 @@ def build_race_xml(header: RaceHeader, category: CategoryResults) -> bytes:
     root = ET.Element("Fisresults")
     race_header = _sub(root, "Raceheader", Sector="AL", Gender=_gender(category.sex))
     _sub(race_header, "Season", str(fis_season(header.race_date)))
+    if category.codex:
+        _sub(race_header, "Codex", str(category.codex))
     _sub(race_header, "Nation", NATION)
     _sub(race_header, "Discipline", header.discipline or "")
     _sub(race_header, "Category", _clean(category.name))

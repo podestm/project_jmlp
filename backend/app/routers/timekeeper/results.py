@@ -186,6 +186,8 @@ def export_fis_xml(
         sex = next((row.category_sex for row in rows if row.category_sex is not None), None)
         categories.append(fis_xml.CategoryResults(
             name=group["category_name"], sex=sex, ranked=results_service.rank_category(rows),
+            # Kodex = id kategorie u nás: stálé číslo, stejné každý závod.
+            codex=str(group["category_id"]) if group["category_id"] else None,
         ))
     if not categories:
         raise HTTPException(status_code=400, detail="Závod nemá žádné výsledky")

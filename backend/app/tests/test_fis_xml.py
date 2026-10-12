@@ -48,14 +48,15 @@ def test_sezona_fis_podle_konce():
 def test_zavod_jedne_kategorie():
     rows = [_row(1, "Pomala", 31.5, 32.0), _row(2, "Rychla", 30.0, 30.1),
             _row(3, "Vypadla", 29.0, dnf=True), _row(4, "Bez", slcr_id="-"), _row(5, "Disk", 28.0, dsq=True)]
-    xml = fis_xml.build_race_xml(_header(), fis_xml.CategoryResults("Přípravka dívky", 2, rank_category(rows)))
+    xml = fis_xml.build_race_xml(_header(), fis_xml.CategoryResults("Přípravka dívky", 2, rank_category(rows), codex="8"))
 
     assert xml.startswith(b'<?xml version="1.0" encoding="utf-8"?>')
     root = ET.fromstring(xml)
     header = root.find("Raceheader")
     assert header.attrib == {"Sector": "AL", "Gender": "W"}
-    assert [header.findtext(t) for t in ("Season", "Nation", "Discipline", "Category", "Type")] == \
-        ["2027", "CZE", "SL", "Přípravka dívky", "official"]
+    assert [child.tag for child in header][:3] == ["Season", "Codex", "Nation"]
+    assert [header.findtext(t) for t in ("Season", "Codex", "Nation", "Discipline", "Category", "Type")] == \
+        ["2027", "8", "CZE", "SL", "Přípravka dívky", "official"]
     assert [header.findtext(f"Racedate/{t}") for t in ("Day", "Month", "Year")] == ["3", "10", "2026"]
     jury = {j.get("Function"): (j.findtext("Lastname"), j.findtext("Firstname")) for j in root.iter("Jury")}
     assert jury == {"TechnicalDelegate": ("Keznikl", "Roman"), "RaceDirector": ("Slováčková", "Markéta")}
