@@ -1,5 +1,5 @@
 /* TkPrehled: rámeček „Měříme závod“ uprostřed horní lišty. */
-.switcher {
+.box {
   display: flex;
   align-items: center;
   gap: var(--ms-space-4);
@@ -13,7 +13,7 @@
   text-decoration: none;
 }
 
-.switcher:hover {
+.link:hover {
   background: var(--ms-navy);
   color: var(--ms-on-dark);
 }
@@ -101,16 +101,16 @@
   line-height: 1.2;
 }
 
-/* Pod 1280 px zůstane z rámečku jen název a „Přepnout“. */
+/* Pod 1280 px zůstane z rámečku jen název závodu. */
 @media (max-width: 1279.98px) {
-  .switcher .date {
+  .box .date {
     display: none;
   }
 }
 
 /* Pod 1024 px (tablet na výšku) dostane místo název závodu, ne ikona. */
 @media (max-width: 1023.98px) {
-  .switcher {
+  .box {
     gap: var(--ms-space-3);
     padding-inline: var(--ms-space-3);
   }

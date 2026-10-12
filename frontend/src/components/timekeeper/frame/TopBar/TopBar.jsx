@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import znak from '../../../../assets/images/jmlp-znak-inverse.svg';
 import { useSeasonInfo } from '../../../site/siteInfo.js';
-import RaceSwitcher from '../RaceSwitcher/RaceSwitcher.jsx';
+import CurrentRace from '../CurrentRace/CurrentRace.jsx';
 import StatusChips from '../StatusChips/StatusChips.jsx';
 import styles from './TopBar.module.css';
 
@@ -23,7 +23,7 @@ export default function TopBar({ race }) {
       </Link>
 
       <div className={styles.center}>
-        <RaceSwitcher race={race} />
+        <CurrentRace race={race} />
       </div>
 
       <StatusChips className={styles.chips} />
