@@ -76,9 +76,13 @@ def test_mix_kategorie_je_both_a_ciselnikova_kategorie_zustava():
 def zavod(db):
     zavod = models.Race(race_nr="JMLP2026-03", datum=date(2026, 10, 18), season_id=get_current_season_id(),
                         closed=False, registration=True, race_method_id=1, is_live=False)
-    db.add(zavod)
-    db.add(models.Category(name="U10", display_name="Přípravka dívky", min_birth_year=2017,
-                           max_birth_year=2018, sex=2, active=True))
+    kategorie = models.Category(name="U10", display_name="Přípravka dívky", min_birth_year=2017,
+                                max_birth_year=2018, sex=2, active=True)
+    zavodnice = models.Racer(name="Anna", surname="Holcicka", year=2017, sex=2)
+    db.add_all([zavod, kategorie, zavodnice])
+    db.commit()
+    # Zakládají se jen kategorie, ve kterých někdo je na startovce.
+    db.add(models.StartListEntry(race_id=zavod.id, racer_id=zavodnice.id, category_id=kategorie.id))
     db.commit()
     db.refresh(zavod)
     return zavod

@@ -52,6 +52,7 @@ services:
       SLCR_API_TOKEN: ${SLCR_API_TOKEN:-}
       SLCR_USERNAME: ${SLCR_USERNAME:-}
       SLCR_PASSWORD: ${SLCR_PASSWORD:-}
+      SLCR_DRY_RUN: ${SLCR_DRY_RUN:-}
     volumes:
       - ./backend/app:/app/app
       - documents_data:/app/uploads/documents
