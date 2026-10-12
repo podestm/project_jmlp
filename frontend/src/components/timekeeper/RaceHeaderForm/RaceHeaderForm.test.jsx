@@ -55,4 +55,17 @@ describe('detail závodu', () => {
     expect(payload.runs[1]).toMatchObject({ run_number: 2, gates_count: 20 });
     expect(await screen.findByText('Údaje závodu uloženy')).toBeInTheDocument();
   });
+
+  it('bez signálu a bez uložené kopie řekne proč, místo věčného „Načítám“', async () => {
+    localStorage.setItem(SELECTED_RACE_KEY, '7');
+    api.get.mockRejectedValue(new Error('Offline režim: data nejsou dostupná v lokální cache.'));
+    renderScreen();
+
+    expect(await screen.findByText('Údaje závodu nejsou v zařízení')).toBeInTheDocument();
+    expect(screen.queryByText('Načítám údaje závodu…')).not.toBeInTheDocument();
+
+    api.get.mockResolvedValue(DETAIL);
+    await userEvent.click(screen.getByRole('button', { name: 'Zkusit znovu' }));
+    expect(await screen.findByLabelText('Ředitel závodu')).toHaveValue('Ing. Tomáš Malík');
+  });
 });

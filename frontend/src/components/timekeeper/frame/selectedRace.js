@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { preloadRaceData } from '../../../offline/racePreload.js';
 
 /**
  * Vybraný závod časomíry. Pamatuje si ho notebook (localStorage), takže
@@ -70,6 +71,16 @@ export const useSelectedRace = () => {
     return () => {
       cancelled = true;
     };
+  }, [raceId]);
+
+  // Data závodu do zařízení hned po výběru a po návratu signálu – obrazovky
+  // pak fungují offline, i když se online neotevřely.
+  useEffect(() => {
+    if (!raceId) return undefined;
+    const preload = () => { preloadRaceData(raceId).catch(() => {}); };
+    preload();
+    window.addEventListener('online', preload);
+    return () => window.removeEventListener('online', preload);
   }, [raceId]);
 
   const race = raceId ? races.find((item) => String(item.id) === String(raceId)) || null : null;

@@ -1,4 +1,4 @@
-import { Button, Field, Input, LoadingState, PageHeader, Paska } from '../../ms/index.js';
+import { Button, EmptyState, Field, Input, LoadingState, PageHeader, Paska } from '../../ms/index.js';
 import NoRaceSelected from '../frame/NoRaceSelected/NoRaceSelected.jsx';
 import { useSelectedRaceId } from '../frame/selectedRace.js';
 import TkPage from '../frame/TkPage/TkPage.jsx';
@@ -22,7 +22,9 @@ const OFFICIALS = [
 export default function RaceHeaderForm() {
   // Závod se vybírá v Přehledu, tady se jen čte.
   const raceId = useSelectedRaceId();
-  const { detail, form, loading, saving, message, clearMessage, setField, setRunField, save } = useRaceHeader(raceId);
+  const {
+    detail, form, loading, saving, message, clearMessage, unavailable, reload, setField, setRunField, save,
+  } = useRaceHeader(raceId);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,6 +33,16 @@ export default function RaceHeaderForm() {
 
   const body = () => {
     if (!raceId) return <NoRaceSelected />;
+    if (!form && unavailable && !loading) {
+      return (
+        <EmptyState
+          icon="wifi-off"
+          title="Údaje závodu nejsou v zařízení"
+          hint="Bez signálu jdou otevřít jen data, která se do zařízení stihla uložit. Jakmile bude signál, načtou se samy."
+          action={<Button size="sm" icon="refresh" onClick={reload}>Zkusit znovu</Button>}
+        />
+      );
+    }
     if (loading || !form) return <LoadingState label="Načítám údaje závodu…" />;
     return (
       <form className={styles.layout} onSubmit={handleSubmit}>

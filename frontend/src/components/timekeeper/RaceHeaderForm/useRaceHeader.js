@@ -12,6 +12,7 @@ export const useRaceHeader = (raceId) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   const loadDetail = useCallback(async () => {
     if (!raceId) return;
@@ -20,14 +21,22 @@ export const useRaceHeader = (raceId) => {
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${raceId}/detail`);
       setDetail(data);
       setForm(toForm(data));
+      setUnavailable(false);
     } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se načíst údaje závodu' });
+      // Bez signálu a bez uložené kopie: obrazovka řekne proč (místo věčného
+      // „Načítám“) a po návratu signálu se načte sama.
+      setUnavailable(true);
     } finally {
       setLoading(false);
     }
   }, [raceId]);
 
   useEffect(() => { loadDetail(); }, [loadDetail]);
+  useEffect(() => {
+    if (!unavailable) return undefined;
+    window.addEventListener('online', loadDetail);
+    return () => window.removeEventListener('online', loadDetail);
+  }, [unavailable, loadDetail]);
 
   const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -53,6 +62,6 @@ export const useRaceHeader = (raceId) => {
 
   return {
     detail, form, loading, saving, message, clearMessage: () => setMessage(null),
-    setField, setRunField, save,
+    unavailable, reload: loadDetail, setField, setRunField, save,
   };
 };
