@@ -56,3 +56,10 @@
     display: none;
   }
 }
+
+/* Pod 768 px zůstane jen odhlášení; iniciála by brala místo tabům. */
+@media (max-width: 767.98px) {
+  .avatar {
+    display: none;
+  }
+}

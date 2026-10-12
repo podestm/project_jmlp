@@ -1,9 +1,10 @@
-/* Časomíra je pro notebooky a tablety (od 768 px); užší okno se posouvá vodorovně. */
+/* Časomíra je pro notebooky a tablety (od 600 px: iPad mini, split view,
+   užší okno prohlížeče); ještě užší okno se posouvá vodorovně. */
 .layout {
   display: flex;
   flex-direction: column;
   min-block-size: 100dvh;
-  min-inline-size: 768px;
+  min-inline-size: 600px;
   background: var(--ms-surface-page);
   /* Výška rámce: horní lišta 76 px + lišta sekce 58 px (obě pevné). */
   --frame-block-size: calc(76px + 58px);

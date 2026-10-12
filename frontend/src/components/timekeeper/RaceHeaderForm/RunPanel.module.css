@@ -46,7 +46,8 @@
 
 .fields {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(200px, 2fr);
+  /* Minima i s mezerami a odsazením se vejdou do levého sloupce od 1280 px. */
+  grid-template-columns: minmax(140px, 1.4fr) minmax(96px, 0.8fr) minmax(104px, 1fr) minmax(104px, 1fr) minmax(140px, 2fr);
   gap: var(--ms-space-4);
   padding: 18px 22px 20px;
 }

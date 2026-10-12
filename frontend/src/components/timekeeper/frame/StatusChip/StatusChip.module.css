@@ -111,3 +111,21 @@
     display: none;
   }
 }
+
+/* Pod 768 px bez ikony – stav nese popisek, hodnota a barva, název závodu
+   v liště dostane místo. */
+@media (max-width: 767.98px) {
+  .chip {
+    grid-template-columns: auto;
+    padding-inline: var(--ms-space-3);
+  }
+
+  .icon {
+    display: none;
+  }
+
+  .label,
+  .body {
+    grid-column: 1;
+  }
+}

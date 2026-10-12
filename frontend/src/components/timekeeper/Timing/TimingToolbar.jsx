@@ -42,10 +42,14 @@ export default function TimingToolbar({
   return (
     <div className={styles.toolbar}>
       <div className={styles.row}>
-        <span className={styles.caps}>Zobrazit</span>
-        <SegmentedControl label="Zobrazit" size="sm" options={filterOptions} value={filter} onChange={setFilter} />
-        <span className={styles.caps}>Kolo</span>
-        <SegmentedControl label="Kolo" size="sm" options={ROUND_OPTIONS} value={activeRound} onChange={setActiveRound} />
+        <span className={styles.field}>
+          <span className={styles.caps}>Zobrazit</span>
+          <SegmentedControl label="Zobrazit" size="sm" options={filterOptions} value={filter} onChange={setFilter} />
+        </span>
+        <span className={styles.field}>
+          <span className={styles.caps}>Kolo</span>
+          <SegmentedControl label="Kolo" size="sm" options={ROUND_OPTIONS} value={activeRound} onChange={setActiveRound} />
+        </span>
         {activeRound !== 'both' && (
           <span className={styles.locked}>
             <Icon name="lock" size={14} />

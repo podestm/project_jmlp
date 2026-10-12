@@ -14,8 +14,8 @@ import styles from './TimekeeperLayout.module.css';
 /**
  * Rámec časomíry (TkPrehled): horní lišta s vybraným závodem a třemi stavy
  * a lišta sekce drží spolu nahoře, obsah (obrazovka s kořenem TkPage) se
- * posouvá pod nimi. Časomíra je pro notebooky a tablety: telefon dostane
- * rozvržení tabletu (min. 768 px) s vodorovným posouváním.
+ * posouvá pod nimi. Časomíra je pro notebooky a tablety (od 600 px); užší
+ * okno (telefon) dostane min. 600 px s vodorovným posouváním.
  */
 export default function TimekeeperLayout({ children }) {
   const { user, logout } = useTimekeeperAuth();

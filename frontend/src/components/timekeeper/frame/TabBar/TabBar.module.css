@@ -10,6 +10,7 @@
 }
 
 .nav {
+  position: relative;
   display: flex;
   align-items: stretch;
   min-inline-size: 0;
@@ -19,7 +20,8 @@
   display: flex;
   align-items: center;
   gap: var(--ms-space-2);
-  padding-inline: 15px;
+  /* Plynule užší okraje, ať se celé názvy u admina vejdou i kolem 1440 px. */
+  padding-inline: clamp(var(--ms-space-2), 1vw - 2px, 15px);
   border-bottom: 3px solid transparent;
   color: var(--ms-ice);
   font-family: var(--ms-font-display);
@@ -114,5 +116,27 @@
 
   .divider {
     margin-inline: var(--ms-space-1);
+  }
+}
+
+/* Pod 768 px (iPad mini, split view, úzké okno): když se taby nevejdou,
+   posouvají se uvnitř lišty. Stín na okraji (jen když je co posunout)
+   a tenký posuvník ukazují, že za okrajem jsou další. */
+@media (max-width: 767.98px) {
+  .nav {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ms-ice) transparent;
+    background:
+      linear-gradient(to right, var(--ms-navy) 40%, transparent) left / var(--ms-space-8) 100% no-repeat local,
+      linear-gradient(to left, var(--ms-navy) 40%, transparent) right / var(--ms-space-8) 100% no-repeat local,
+      linear-gradient(to right, var(--ms-navy-deep), transparent) left / var(--ms-space-6) 100% no-repeat scroll,
+      linear-gradient(to left, var(--ms-navy-deep), transparent) right / var(--ms-space-6) 100% no-repeat scroll;
+  }
+
+  .tab,
+  .nav .divider {
+    flex-shrink: 0;
   }
 }

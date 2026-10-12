@@ -30,7 +30,7 @@ export default function DeviceBar({
 
   return (
     <section className={cx(styles.bar, className)} aria-label="Časomíra">
-      <div className={styles.group}>
+      <div className={cx(styles.group, styles.deviceGroup)}>
         <span className={styles.caps}>Časomíra</span>
         <Button
           size="sm"

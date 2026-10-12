@@ -7,7 +7,8 @@ import styles from './TopBar.module.css';
 
 /**
  * Horní lišta časomíry (TkPrehled, 76 px): identita, vybraný závod a tři
- * stavy. Pod 1280 px ze značky zůstane jen znak.
+ * stavy. Pod 1280 px ze značky zůstane jen znak, pod 768 px užší mezery
+ * a odznaky bez ikon.
  */
 export default function TopBar({ race }) {
   const { edition, season } = useSeasonInfo();

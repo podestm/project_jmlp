@@ -20,6 +20,13 @@
   border-block-start: 1px solid var(--ms-line);
 }
 
+/* Popisek drží u svého přepínače i při zalomení řádku. */
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .caps {
   display: inline-flex;
   align-items: center;

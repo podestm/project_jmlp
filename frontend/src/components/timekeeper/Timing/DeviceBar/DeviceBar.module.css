@@ -60,6 +60,22 @@
   display: flex;
   align-items: center;
   gap: var(--ms-space-2);
+  flex-shrink: 0;
+}
+
+/* Stav zařízení jediný ustoupí (zkrátí se), přepínač kola ani zápis ne. */
+.deviceGroup {
+  flex-shrink: 1;
+  min-inline-size: 0;
+}
+
+.deviceGroup .device {
+  min-inline-size: 0;
+}
+
+.deviceGroup .value {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .auto {
@@ -70,5 +86,14 @@
 @media (max-width: 1023.98px) {
   .group > .caps {
     display: none;
+  }
+}
+
+/* Pod 768 px (iPad mini, split view) těsnější mezery – lišta zůstává
+   v jednom řádku, aby seděla výška --timing-bar-size. */
+@media (max-width: 767.98px) {
+  .bar {
+    gap: var(--ms-space-3);
+    padding-inline: var(--ms-space-2);
   }
 }

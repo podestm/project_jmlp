@@ -5,7 +5,7 @@ import styles from './StatusChip.module.css';
 
 /**
  * Jeden stavový odznak horní lišty (model ze statusChips.js): ikona vlevo
- * a popisek nad hodnotou (56 px).
+ * a popisek nad hodnotou (56 px); pod 768 px bez ikony.
  * - to: odznak je odkaz na obrazovku, kde se stav řeší
  */
 export default function StatusChip({ chip, to }) {

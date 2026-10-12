@@ -69,3 +69,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Na tabletu na výšku pět karet vedle sebe jen s užším odsazením. */
+@media (max-width: 1023.98px) {
+  .card {
+    padding-inline: var(--ms-space-3);
+  }
+}
+
+/* Pod 768 px se pět karet nevejde vedle sebe: tři a dvě. */
+@media (max-width: 767.98px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

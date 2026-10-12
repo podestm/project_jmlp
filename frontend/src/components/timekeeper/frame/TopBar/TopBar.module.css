@@ -77,3 +77,11 @@
     display: none;
   }
 }
+
+/* Pod 768 px užší mezery, ať název závodu nezmizí za odznaky. */
+@media (max-width: 767.98px) {
+  .top {
+    gap: var(--ms-space-3);
+    padding-inline: var(--ms-space-3);
+  }
+}

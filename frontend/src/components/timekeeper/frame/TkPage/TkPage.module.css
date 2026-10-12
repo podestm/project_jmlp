@@ -5,3 +5,10 @@
   flex-grow: 1;
   padding: 20px var(--ms-space-6) var(--ms-space-8);
 }
+
+/* Pod 768 px (iPad mini, split view) užší okraje obrazovky. */
+@media (max-width: 767.98px) {
+  .page {
+    padding-inline: var(--ms-space-4);
+  }
+}

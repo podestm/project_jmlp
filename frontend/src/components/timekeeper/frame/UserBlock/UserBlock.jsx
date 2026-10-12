@@ -5,7 +5,8 @@ import styles from './UserBlock.module.css';
 
 /**
  * Kdo je přihlášený a odhlášení (konec lišty sekce). Pod 1280 px zůstane
- * jen iniciála a tlačítko; s `compact` (vedle přepínače sekcí) už pod 1440 px.
+ * jen iniciála a tlačítko (s `compact` – vedle přepínače sekcí – už pod
+ * 1440 px), pod 768 px jen tlačítko.
  */
 export default function UserBlock({ user, onLogout, compact = false, className }) {
   const name = user?.full_name || user?.email || '';
