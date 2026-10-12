@@ -151,7 +151,7 @@ export default function RaceHeaderForm() {
         <EmptyState
           icon="bi-wifi-off"
           title="Údaje závodu nejsou v zařízení"
-          hint="Zařízení je zatím nemá uložené a teď se nedají načíst - nejspíš chybí signál. Stáhnou se samy, jakmile bude zařízení online (stačí i jen vybrat závod v Přehledu se signálem)."
+          hint="Bez signálu se teď nedají načíst. Načtou se samy, jakmile bude signál."
           action={(
             <button type="button" className="btn btn-sm btn-outline-secondary" onClick={loadDetail} disabled={loading}>
               {loading ? <ButtonSpinner /> : <i className="bi bi-arrow-clockwise me-1" />}
