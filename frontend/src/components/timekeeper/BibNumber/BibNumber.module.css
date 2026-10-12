@@ -1,3 +1,4 @@
+/* Plný box v barvě sady, bílé tučné číslo – čitelné i na přímém slunci. */
 .bib {
   display: inline-flex;
   align-items: center;
@@ -5,16 +6,15 @@
   box-sizing: border-box;
   min-inline-size: 64px;
   block-size: 36px;
-  padding-inline: 10px 8px;
-  border-inline-start: 4px solid var(--bib-color);
+  padding-inline: var(--ms-space-2);
   border-radius: var(--ms-radius-control);
-  background: var(--ms-surface-sunken);
+  background: var(--bib-color);
   font-family: var(--ms-font-mono);
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--ms-fs-xl);
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--ms-ink);
+  color: var(--ms-on-dark);
 }
 
 .lg {
@@ -23,14 +23,21 @@
   font-size: var(--ms-fs-2xl);
 }
 
+/* Schránka impulzů a husté tabulky: menší box, ať se do řádku vejde čas i stav. */
+.sm {
+  min-inline-size: 52px;
+  block-size: 32px;
+  font-size: var(--ms-fs-lg);
+}
+
+/* Dres bez závodníka: bez barvy sady, silný rámeček místo výplně. */
+.plain {
+  border: 2px solid var(--ms-ink);
+  background: var(--ms-surface-card);
+  color: var(--ms-ink);
+}
+
 .empty {
   font-family: var(--ms-font-mono);
   color: var(--ms-ink-muted);
-}
-
-/* Schránka impulzů: menší box, ať se do řádku vejde čas i stav. */
-.sm {
-  min-inline-size: 52px;
-  block-size: 30px;
-  font-size: var(--ms-fs-lg);
 }

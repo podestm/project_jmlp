@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import BibNumber from './BibNumber.jsx';
 
 describe('BibNumber', () => {
-  it('číslo v barvě sady', () => {
+  it('box vyplněný barvou sady', () => {
     render(<BibNumber number={27} setColor="blue" />);
     expect(screen.getByText('27')).toHaveStyle({ '--bib-color': 'var(--ms-bib-blue)' });
   });
@@ -13,5 +13,10 @@ describe('BibNumber', () => {
     expect(screen.getByText('—')).toBeInTheDocument();
     rerender(<BibNumber number={5} setColor="nic" />);
     expect(screen.getByText('5')).toHaveStyle({ '--bib-color': 'var(--ms-bib-rose)' });
+  });
+
+  it('dres bez závodníka barvu sady nenese', () => {
+    render(<BibNumber number={193} plain />);
+    expect(screen.getByText('193').style.getPropertyValue('--bib-color')).toBe('');
   });
 });

@@ -3,16 +3,23 @@ import { setColorVar } from '../../../utils/raceNumbers.js';
 import styles from './BibNumber.module.css';
 
 /**
- * Číslo dresu (TkZavodnici, TkStartovniListina): Plex Mono v boxu na
- * sunken a 4px lišta vlevo v barvě sady – skutečné barvě dresu. Bez čísla
- * pomlčka. Barva sadu jen podtrhuje, číslo nese text.
+ * Číslo dresu (TkZavodnici, TkStartovniListina, zadávání časů, výsledky):
+ * box vyplněný barvou sady – skutečnou barvou dresu – s bílým tučným číslem
+ * v Plex Mono. Venku na slunci tenká lišta nebyla vidět; všechny sady
+ * (--ms-bib-*) mají s bílou kontrast nad 5 : 1. Bez čísla pomlčka.
+ *
+ * @param {boolean} plain dres zatím nepatří žádnému závodníkovi (schránka
+ *   impulzů) – neutrální box, ať barva nenaznačuje sadu, kterou nikdo nezná
  */
-export default function BibNumber({ number, setColor, size = 'md', className }) {
+export default function BibNumber({ number, setColor, size = 'md', plain = false, className }) {
   if (number == null || number === '') {
     return <span className={cx(styles.empty, className)}>—</span>;
   }
   return (
-    <span className={cx(styles.bib, styles[size], className)} style={{ '--bib-color': setColorVar(setColor) }}>
+    <span
+      className={cx(styles.bib, styles[size], plain && styles.plain, className)}
+      style={plain ? undefined : { '--bib-color': setColorVar(setColor) }}
+    >
       {number}
     </span>
   );
