@@ -5,6 +5,8 @@ export const colors = Object.freeze({
   navy: '#003F60',
   navyDeep: '#00293E',
   ice: '#9FC4D3',
+  sun: '#F28C28',
+  sunInk: '#A84A00',
   red: '#B33639',
   open: '#17654C',
   onDark: '#FFFFFF',

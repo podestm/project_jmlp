@@ -1,7 +1,8 @@
 /*
  * Tokeny designového systému „Modrá stopa“ (design_modra_stopa/BRIEF.md).
  *
- * Jediné místo v CSS, kde smí stát hexy. Barvy jsou jen ty z BRIEF, nic navíc;
+ * Jediné místo v CSS, kde smí stát hexy. Barvy jsou jen ty z BRIEF a designového
+ * systému (teplý akcent ms-sun / ms-sun-ink od 2026-10-12), nic navíc;
  * u textových dvojic je kontrastní poměr (WCAG 2.1), test kontrastu ho počítá
  * (src/components/ms/tokens.test.js). JS zrcadlo pro Chart.js a čísla dresů je
  * src/components/ms/tokens.js – test hlídá, že se s tímto souborem shoduje.
@@ -13,6 +14,8 @@
   --ms-navy: #003F60;          /* bílá na ní 11,17:1 · primární akce, aktivní stav, odkazy */
   --ms-navy-deep: #00293E;     /* bílá 15,14:1 · postranní panel, tmavé plochy */
   --ms-ice: #9FC4D3;           /* jen podklad nebo text na navy (6,02:1); bílá na ní 1,86:1 = zakázáno */
+  --ms-sun: #F28C28;           /* teplý akcent, střídmě: výplň (accent, 1. místo), linka (páska, navigace), text jen na navy / navy-deep */
+  --ms-sun-ink: #A84A00;       /* akcent jako text na světlé ploše (5,4:1 na stránce) · eyebrow, popisky v BibDate */
   --ms-red: #B33639;           /* bílá 5,99:1 · jen vločka, ŽIVĚ, uzavřeno */
   --ms-open: #17654C;          /* bílá 6,99:1 · registrace otevřena, potvrzení */
   --ms-on-dark: #FFFFFF;       /* text a ikony na navy, navy-deep, red, open */
@@ -38,9 +41,10 @@
   --ms-amber: #C08A00;
   --ms-amber-ink: #1A1400;     /* 6,01:1 na amber · počty, pozor */
 
-  /* ── Odvozené z navy-deep (překryv a stín dialogu z artboardů) ── */
-  --ms-overlay: rgb(0 41 62 / 0.6);
-  --ms-shadow-dialog: 0 24px 64px rgb(0 41 62 / 0.45);
+  /* ── Odvozené z navy-deep: závoj a dva jediné stíny systému ── */
+  --ms-overlay: rgb(0 41 62 / 0.6);                    /* pod dialogem a mobilním menu */
+  --ms-shadow-dialog: 0 24px 64px rgb(0 41 62 / 0.45); /* dialog, popover */
+  --ms-shadow-raised: 0 8px 24px rgb(0 41 62 / 0.12);  /* jen karta „Nejbližší závod“ */
 
   /* ── Sady startovních čísel: skutečné barvy dresů, bílý text (hodnoty ze starého admin.css) ── */
   --ms-bib-rose: #BE123C;      /* bílá 6,29:1 */

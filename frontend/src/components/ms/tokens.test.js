@@ -62,6 +62,15 @@ describe('kontrast deklarovaných dvojic (WCAG 2.1 AA)', () => {
     ['dryInk', 'dryBg', 4.5],
     ['amberInk', 'amber', 4.5],
     ['lineControl', 'surfaceCard', 3],
+    // Teplý akcent (design systém): text v sun-ink na světlé, sun jen na tmavé,
+    // na oranžové výplni navy-deep, hover tlačítka accent bílý na sun-ink.
+    ['sunInk', 'surfaceCard', 4.5],
+    ['sunInk', 'surfacePage', 4.5],
+    ['sunInk', 'surfaceSunken', 4.5],
+    ['onDark', 'sunInk', 4.5],
+    ['navyDeep', 'sun', 4.5],
+    ['sun', 'navyDeep', 4.5],
+    ['sun', 'navy', 4.5],
   ];
 
   it.each(pairs)('%s na %s ≥ %s:1', (fg, bg, min) => {
