@@ -14,6 +14,7 @@ import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage, TK_ACCENT, TK_ACCENT_FILL, TK_ACCENT_GRADIENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
+import { preloadRaceData } from '../../offline/racePreload.js';
 import {
   OFFLINE_QUEUED_TEXT,
   activeEntries,
@@ -93,6 +94,7 @@ export default function StartListManager() {
       loadStartList();
       loadRaceNumberOptions();
       localStorage.setItem(SELECTED_RACE_KEY, selectedRaceId);
+      preloadRaceData(selectedRaceId).catch(() => {});
     }
   }, [selectedRaceId]);
 

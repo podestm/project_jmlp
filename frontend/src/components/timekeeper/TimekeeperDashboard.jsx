@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
+import { preloadRaceData } from '../../offline/racePreload.js';
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 
 export default function TimekeeperDashboard() {
@@ -25,6 +26,9 @@ export default function TimekeeperDashboard() {
 
   const selectRace = (raceId) => {
     localStorage.setItem('timekeeper_selected_race', raceId);
+    // Všechny obrazovky závodu do zařízení hned - i ty, které se otevřou
+    // poprvé až bez signálu.
+    preloadRaceData(raceId).catch(() => {});
     navigate('/timekeeper/start-list');
   };
 

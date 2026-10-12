@@ -6,6 +6,7 @@ import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../pdf/pdfmake.js';
 import { preloadOfflineRacerData } from '../../offline/racerRegistry.js';
+import { preloadSelectedRace } from '../../offline/racePreload.js';
 import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function TimekeeperLayout({ children }) {
@@ -45,9 +46,13 @@ export default function TimekeeperLayout({ children }) {
   }, []);
 
   // Data pro offline dohlášku (registr závodníků, kategorie, dresy, kluby)
-  // do zařízení hned, a znovu po každém obnovení připojení.
+  // a data vybraného závodu do zařízení hned, a znovu po každém obnovení
+  // připojení.
   useEffect(() => {
-    const preload = () => { preloadOfflineRacerData().catch(() => {}); };
+    const preload = () => {
+      preloadOfflineRacerData().catch(() => {});
+      preloadSelectedRace().catch(() => {});
+    };
     const timer = setTimeout(preload, 5000);
     window.addEventListener('online', preload);
     return () => {

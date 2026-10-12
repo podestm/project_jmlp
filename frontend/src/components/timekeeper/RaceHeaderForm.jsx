@@ -45,6 +45,8 @@ export default function RaceHeaderForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  // Načtení selhalo a v zařízení nic není (otevřeno poprvé bez signálu).
+  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     TimekeeperAPI.get('/api/timekeeper/races')
@@ -58,6 +60,7 @@ export default function RaceHeaderForm() {
       setLoading(true);
       const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/detail`);
       setDetail(data);
+      setUnavailable(false);
 
       const runs = RUN_NUMBERS.map((runNumber) => {
         const existing = data.runs.find((run) => run.run_number === runNumber);
@@ -70,13 +73,21 @@ export default function RaceHeaderForm() {
         runs
       });
     } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se načíst údaje závodu' });
+      setUnavailable(true);
     } finally {
       setLoading(false);
     }
   }, [selectedRaceId]);
 
   useEffect(() => { loadDetail(); }, [loadDetail]);
+
+  // Bez dat v zařízení se po návratu signálu načte samo.
+  useEffect(() => {
+    if (!unavailable) return undefined;
+    const onOnline = () => { loadDetail(); };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [unavailable, loadDetail]);
 
   const updateRun = (runNumber, field, value) => {
     setForm((prev) => ({
@@ -135,6 +146,18 @@ export default function RaceHeaderForm() {
           icon="bi-card-heading"
           title="Vyberte závod"
           hint="Závod vyberte v Přehledu závodů."
+        />
+      ) : unavailable && !form ? (
+        <EmptyState
+          icon="bi-wifi-off"
+          title="Údaje závodu nejsou v zařízení"
+          hint="Zařízení je zatím nemá uložené a teď se nedají načíst - nejspíš chybí signál. Stáhnou se samy, jakmile bude zařízení online (stačí i jen vybrat závod v Přehledu se signálem)."
+          action={(
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={loadDetail} disabled={loading}>
+              {loading ? <ButtonSpinner /> : <i className="bi bi-arrow-clockwise me-1" />}
+              Zkusit znovu
+            </button>
+          )}
         />
       ) : loading || !form ? (
         <LoadingState variant="timekeeper" label="Načítám údaje závodu…" />
