@@ -13,7 +13,9 @@
   border: 1px solid var(--ms-line);
   border-radius: var(--ms-radius-card);
   background: var(--ms-surface-card);
-  box-shadow: var(--ms-shadow-raised);
+  /* Pruh v barvě stránky pod lištou zakryje pár pixelů, které lepivá
+     hlavička tabulky (border-collapse) pod sebou nepřekreslí. */
+  box-shadow: 0 var(--ms-space-2) 0 var(--ms-surface-page), var(--ms-shadow-raised);
   white-space: nowrap;
 }
 
