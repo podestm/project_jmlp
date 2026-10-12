@@ -1,10 +1,11 @@
-/* Řádek schránky (TkSchrankaImpulzuLog): 4px lišta vlevo v barvě stavu,
-   čas a dres nahoře, komu a kam pod tím, akce vpravo. */
+/* Řádek schránky (TkSchrankaImpulzuLog), ~56 px: dres s časem příchodu
+   vlevo, nahoře hodnota → kolo a stav slovy, pod tím komu (nebo proč),
+   potvrdit a zamítnout vedle sebe vpravo. 4px lišta vlevo v barvě stavu. */
 .row {
   display: flex;
   align-items: center;
-  gap: var(--ms-space-3);
-  padding: 10px var(--ms-space-3) 10px 14px;
+  gap: 10px;
+  padding: 6px var(--ms-space-2) 6px 10px;
   border: 1px solid var(--ms-line);
   border-inline-start: 4px solid var(--ms-line-control);
   border-radius: var(--ms-radius-card);
@@ -29,10 +30,33 @@
   border-inline-start-color: var(--ms-navy);
 }
 
+.bibCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.clock {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-2xs);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+.cycle {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
 .main {
   display: flex;
   flex-direction: column;
-  gap: var(--ms-space-1);
+  gap: 2px;
   flex-grow: 1;
   min-inline-size: 0;
 }
@@ -41,13 +65,27 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 2px var(--ms-space-2);
+  margin: 0;
 }
 
-.clock {
+.value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.time {
   font-family: var(--ms-font-mono);
-  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
   font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.round {
+  font-size: var(--ms-fs-sm);
   color: var(--ms-ink-body);
 }
 
@@ -66,11 +104,9 @@
   color: var(--ms-ink);
 }
 
-.cycle {
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
+.destination {
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink-body);
 }
 
 /* Stav slovy; barva ho jen podtrhuje. */
@@ -108,30 +144,24 @@
   color: var(--ms-ink);
 }
 
-.line,
+/* Komu (nebo proč): jeden řádek, celé znění v title. */
+.detail,
 .note {
   margin: 0;
-  font-size: var(--ms-fs-sm);
-  line-height: 1.4;
-  color: var(--ms-ink-body);
-  overflow-wrap: anywhere;
-}
-
-.racer {
+  font-size: var(--ms-fs-xs);
+  line-height: 1.35;
   color: var(--ms-ink);
 }
 
-.time {
-  font-family: var(--ms-font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.reason {
-  color: var(--ms-ink-body);
+.detail {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .note {
   color: var(--ms-dry-ink);
+  overflow-wrap: anywhere;
 }
 
 .actions {

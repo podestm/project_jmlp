@@ -94,61 +94,71 @@ const BridgeEventRow = memo(function BridgeEventRow({
     ? `${selectedEntry.racer_surname || ''} ${selectedEntry.racer_name || ''}`.trim() || 'Bez jména'
     : '';
   // Kategorie a startovní číslo vždycky, ne jen u sdíleného dresu: obsluha
-  // podle nich kontroluje, že impulz patří tomu, kdo právě jel.
+  // podle nich kontroluje, že impulz patří tomu, kdo právě jel. Jméno a st. č.
+  // první – při zkrácení trojtečkou zmizí jako první kategorie.
   const racerLine = selectedEntry
     ? [
       racerLabel,
-      selectedEntry.category_name,
       selectedEntry.start_number != null ? `st. č. ${selectedEntry.start_number}` : null,
+      selectedEntry.category_name,
     ].filter(Boolean).join(' · ')
-    : `dres ${bib ?? '?'}`;
+    : '';
   const reasonText = !SILENT_REASONS.has(reason) && reason !== 'round_occupied' ? formatBridgeReason(reason) : '';
   const occupiedText = reason === 'round_occupied' && !isLockedRow ? formatBridgeReason(reason) : '';
+  // Druhý řádek: komu se čas zapíše; bez závodníka rovnou proč. Důvod
+  // u přiřazeného závodníka dostane vlastní třetí řádek – jen když něco říká.
+  const deviceProblem = isUnparsed || isUnsupportedType
+    ? `${formatBridgeReason(event.reason)} – zkontrolujte nastavení časomíry.${isUnsupportedType ? ' Čas zapište ručně.' : ''}`
+    : '';
+  const detail = deviceProblem || racerLine || reasonText;
+  const note = [racerLine && !deviceProblem ? reasonText : '', occupiedText].filter(Boolean).join(' ');
 
-  const bibNumber = <BibNumber number={selectedEntry?.race_number_actual ?? bib ?? '?'} setColor={selectedEntry?.set_color ?? 'rose'} size="sm" />;
+  const bibNumber = (
+    <BibNumber
+      number={selectedEntry?.race_number_actual ?? bib ?? '?'}
+      setColor={selectedEntry?.set_color}
+      plain={!selectedEntry}
+      size="sm"
+    />
+  );
 
   return (
     <div className={styles.row} data-tone={status.tone} data-locked={isLockedRow || undefined}>
+      <div className={styles.bibCell}>
+        {canChangeCandidate ? (
+          <button
+            type="button"
+            className={styles.cycle}
+            onClick={() => onCycle(event.id)}
+            // Vlastní řádek zařízení: číslo jde vždy ověřit proti tomu, co
+            // opravdu přišlo z časomíry.
+            title={`${event.raw || `dres ${bib ?? '?'}`} – klik přepne kandidáta/sadu`}
+          >
+            {bibNumber}
+          </button>
+        ) : (
+          <span title={event.raw || `dres ${bib ?? '?'}`}>{bibNumber}</span>
+        )}
+        <span className={styles.clock}>{clockOf(event.ts)}</span>
+      </div>
+
       <div className={styles.main}>
-        <div className={styles.head}>
-          <span className={styles.clock}>{clockOf(event.ts)}</span>
+        <p className={styles.head}>
           {isUnparsed ? (
             <code className={styles.raw} title={event.raw || ''}>{event.raw || '(prázdný řádek)'}</code>
-          ) : canChangeCandidate ? (
-            <button
-              type="button"
-              className={styles.cycle}
-              onClick={() => onCycle(event.id)}
-              // Vlastní řádek zařízení: číslo jde vždy ověřit proti tomu, co
-              // opravdu přišlo z časomíry.
-              title={`${event.raw || `dres ${bib ?? '?'}`} – klik přepne kandidáta/sadu`}
-            >
-              {bibNumber}
-            </button>
           ) : (
-            <span title={event.raw || `dres ${bib ?? '?'}`}>{bibNumber}</span>
+            <span className={styles.value}>
+              {FLAG_TYPES.has(type)
+                ? <RaceFlag flag={type.toLowerCase()} />
+                : <span className={styles.time}>{event.time ? event.time : 'bez času'}</span>}
+              <span className={styles.round}>{`→ kolo ${round}`}</span>
+            </span>
           )}
           <span className={cx(styles.status, styles[status.tone])}>{status.text}</span>
-        </div>
-
-        {isUnparsed || isUnsupportedType ? (
-          <p className={styles.line}>
-            {formatBridgeReason(event.reason)} – zkontrolujte nastavení časomíry.
-            {isUnsupportedType ? ' Čas zapište ručně.' : ''}
-          </p>
-        ) : (
-          <p className={styles.line}>
-            <span className={styles.racer} title={racerLabel || undefined}>{racerLine}</span>
-            {' · '}
-            {FLAG_TYPES.has(type)
-              ? <RaceFlag flag={type.toLowerCase()} />
-              : <span className={styles.time}>{event.time ? event.time : 'bez času'}</span>}
-            {` → kolo ${round}`}
-            {destination && ` · ${destination}`}
-            {reasonText && <span className={styles.reason}>{` — ${reasonText}`}</span>}
-          </p>
-        )}
-        {occupiedText && <p className={styles.note}>{occupiedText}</p>}
+          {destination && <span className={styles.destination}>{destination}</span>}
+        </p>
+        {detail && <p className={styles.detail} title={detail}>{detail}</p>}
+        {note && <p className={styles.note}>{note}</p>}
       </div>
 
       {isAutoWritten ? (
