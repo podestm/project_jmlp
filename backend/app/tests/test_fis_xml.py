@@ -9,7 +9,6 @@ from decimal import Decimal
 from types import SimpleNamespace
 from xml.etree import ElementTree as ET
 
-from app import models
 from app.services import fis_xml
 from app.services.results import rank_category
 
@@ -80,41 +79,3 @@ def test_kategorie_bez_nedokoncenych_ma_prazdny_blok_jako_evidence():
     root = ET.fromstring(xml)
     assert root.find("Raceheader").get("Gender") == "M"
     assert [len(n) for n in root.findall("AL_race/AL_notclassified/AL_notranked")] == [0]
-
-
-def test_api_vrati_zip_s_xml_po_kategoriich(client, db, timekeeper_headers):
-    race = models.Race(datum=date(2026, 10, 3), race_nr="JMLP2026-01", race_method_id=2, season_id=2026,
-                       closed=False, registration=False, race_director="Markéta Slováčková")
-    db.add(race)
-    db.commit()
-    for i, (surname, sex, cat, time1) in enumerate([("Holcicka", 2, "Přípravka dívky", 30.5), ("Novak", 1, "Přípravka chlapci", 31.0)], 1):
-        category = models.Category(name="U10", display_name=cat, sex=sex, min_birth_year=2017, max_birth_year=2018, active=True)
-        racer = models.Racer(name="X", surname=surname, year=2017, sex=sex, slcr_id="77000" + str(i))
-        db.add_all([category, racer])
-        db.commit()
-        db.add(models.StartListEntry(race_id=race.id, racer_id=racer.id, category_id=category.id, start_number=i, time1=time1,
-                                     time_sum=time1, racer_name="X", racer_surname=surname, racer_year=2017,
-                                     racer_sex=sex, category_name=cat, category_sex=sex, club_name="SK"))
-    db.commit()
-
-    response = client.get(f"/api/timekeeper/races/{race.id}/results/fis-xml?discipline=SL", headers=timekeeper_headers)
-
-    assert response.status_code == 200, response.text
-    assert response.headers["content-type"].startswith("application/xml")
-    assert 'filename="2026-10-03_JMLP2026-01_vysledky-slcr.xml"' in response.headers["content-disposition"]
-    # FIS XML Dataset: kořen a v něm celý <Fisresults> za každou kategorii -
-    # tak ho evidence načte (ověřeno importem 12. 10. 2026).
-    dataset = ET.fromstring(response.content)
-    assert dataset.tag == fis_xml.DATASET_ROOT
-    assert [child.tag for child in dataset] == ["Fisresults", "Fisresults"]
-    assert sorted(r.find("Raceheader").get("Gender") for r in dataset) == ["M", "W"]
-    assert all(r.findtext("Raceheader/Discipline") == "SL" for r in dataset)
-    assert all(r.findtext("Raceheader/Codex") for r in dataset)
-
-
-def test_api_odmitne_neznamou_disciplinu(client, db, timekeeper_headers):
-    race = models.Race(datum=date(2026, 10, 3), race_method_id=2, season_id=2026, closed=False, registration=False)
-    db.add(race)
-    db.commit()
-    assert client.get(f"/api/timekeeper/races/{race.id}/results/fis-xml?discipline=XX",
-                      headers=timekeeper_headers).status_code == 400

@@ -268,6 +268,19 @@ export const TimekeeperAPI = {
     });
   },
 
+  /**
+   * Požadavky na cizí služby (evidence SLČR) - bez keše a bez fronty: offline
+   * nemají smysl a odložené zakládání závodů by se mohlo provést dvakrát.
+   */
+  getOnline: async (endpoint, params = {}) => {
+    if (!isOnline()) throw new Error('Vyžaduje připojení k internetu.');
+    return TimekeeperAPIOnline.get(endpoint, params);
+  },
+  postOnline: async (endpoint, data = {}) => {
+    if (!isOnline()) throw new Error('Vyžaduje připojení k internetu.');
+    return TimekeeperAPIOnline.post(endpoint, data);
+  },
+
   flushQueue: async () => {
     await processSyncQueue(syncExecutor);
   }

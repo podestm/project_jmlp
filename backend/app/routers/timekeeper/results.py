@@ -6,7 +6,6 @@ uložené body i tištěná listina nemohly rozejít.
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
-from fastapi.responses import Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -148,19 +147,10 @@ def _areal_name(db: Session, race: models.Race) -> Optional[str]:
     return fix_encoding(row.name) if row else None
 
 
-@router.get("/races/{race_id}/results/fis-xml")
-def export_fis_xml(
-    race_id: int,
-    discipline: str = Query(default="", description="Disciplína FIS (SL, GS, ...), prázdná = nevyplněno"),
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Response:
-    """Výsledky závodu jako FIS XML Dataset pro evidenci SLČR - jeden soubor.
-
-    Všechny kategorie v jednom souboru, každá jako vlastní závod s kodexem
-    = id kategorie (services/fis_xml.py). V evidenci: Tvorba výsledků ->
-    Hromadně nahrát -> "FIS XML Dataset", Fiscode = "České číslo závodníka".
-    """
+def build_fis_dataset(db: Session, race_id: int, discipline: str = "") -> tuple[bytes, int, str]:
+    """FIS XML Dataset závodu pro evidenci SLČR (routers/timekeeper/slcr.py):
+    (obsah, počet startujících bez výsledku, název souboru). Všechny kategorie
+    v jednom souboru, každá jako vlastní závod s kodexem = id kategorie."""
     discipline = (discipline or "").strip().upper()
     if discipline and discipline not in fis_xml.DISCIPLINES:
         raise HTTPException(status_code=400, detail="Neznámá disciplína")
@@ -191,15 +181,7 @@ def export_fis_xml(
 
     stem = "_".join(part for part in (str(race.datum), race.race_nr or f"zavod-{race_id}") if part)
     filename = f"{stem}_vysledky-slcr.xml"
-    return Response(
-        content=fis_xml.build_dataset_xml(header, categories),
-        media_type="application/xml",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"',
-            "X-Unfinished-Count": str(fis_xml.unfinished_count(categories)),
-            "Access-Control-Expose-Headers": "Content-Disposition, X-Unfinished-Count",
-        },
-    )
+    return fis_xml.build_dataset_xml(header, categories), fis_xml.unfinished_count(categories), filename
 
 
 @router.get("/races/{race_id}/results")

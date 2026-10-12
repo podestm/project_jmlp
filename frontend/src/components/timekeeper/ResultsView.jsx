@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
-import { downloadBlob, fetchBlob, timekeeperAuthHeaders } from '../../config/api.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
 import { pdfErrorMessage } from '../../pdf/pdfmake.js';
@@ -11,6 +10,7 @@ import { ButtonSpinner } from '../ui/LoadingState.jsx';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import ResultsPrintButtons from './ResultsPrintButtons.jsx';
 import ResultsTable, { CategoryPills } from './ResultsTable.jsx';
+import SlcrModal from './SlcrModal.jsx';
 import { TK_ACCENT, TK_ACCENT_TEXT } from './TimekeeperChrome.jsx';
 
 export default function ResultsView() {
@@ -105,28 +105,8 @@ export default function ResultsView() {
     }
   };
 
-  // Výsledky jako FIS XML Dataset pro evidenci SLČR - jeden soubor, všechny
-  // kategorie. V evidenci: Tvorba výsledků -> Hromadně nahrát -> FIS XML
-  // Dataset, Fiscode = České číslo závodníka. K závodům v akci se výsledky
-  // přiřadí podle kodexu (= id kategorie).
-  const [slcrDiscipline, setSlcrDiscipline] = useState('');
-  const [exportingXml, setExportingXml] = useState(false);
-  const exportSlcrXml = async () => {
-    if (!selectedRaceId) return;
-    setExportingXml(true);
-    try {
-      const blob = await fetchBlob(`/api/timekeeper/races/${selectedRaceId}/results/fis-xml`, {
-        params: slcrDiscipline ? { discipline: slcrDiscipline } : {},
-        headers: timekeeperAuthHeaders(),
-      });
-      const stem = [selectedRace?.datum, selectedRace?.race_nr || `zavod-${selectedRaceId}`].filter(Boolean).join('_');
-      downloadBlob(blob, `${stem}_vysledky-slcr.xml`);
-    } catch (err) {
-      setMessage({ type: 'danger', text: err?.message || 'Export XML se nepodařil' });
-    } finally {
-      setExportingXml(false);
-    }
-  };
+  // Evidence SLČR: založení závodů a odeslání výsledků (SlcrModal).
+  const [slcrOpen, setSlcrOpen] = useState(false);
 
   const printFinal = async (publishable) => {
     try {
@@ -251,6 +231,13 @@ export default function ResultsView() {
 
   return (
     <div>
+      {slcrOpen && selectedRace && (
+        <SlcrModal
+          race={{ ...selectedRace, id: selectedRaceId }}
+          hasResults={Boolean(results && results.total_entries > 0)}
+          onClose={() => setSlcrOpen(false)}
+        />
+      )}
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -260,6 +247,19 @@ export default function ResultsView() {
           </h5>
           <small className="text-muted">Výsledky seřazené podle času, výpočet bodů</small>
         </div>
+        {selectedRace && (
+          <button
+            className="btn btn-sm btn-outline-primary ms-auto me-2"
+            onClick={() => setSlcrOpen(true)}
+            disabled={!isOnline}
+            title={isOnline
+              ? 'Založení závodů v akci evidence SLČR a odeslání výsledků'
+              : 'Evidence SLČR vyžaduje připojení k internetu'}
+          >
+            <i className="bi bi-cloud-upload me-1"></i>
+            Evidence SLČR
+          </button>
+        )}
         {results && results.total_entries > 0 && (
           <div className="d-flex gap-2 flex-wrap">
             <ResultsPrintButtons
@@ -294,33 +294,6 @@ export default function ResultsView() {
               <i className="bi bi-upload me-1"></i>
               Publikovat
             </button>
-            <div className="input-group input-group-sm" style={{ width: 'auto' }}>
-              <select
-                className="form-select form-select-sm"
-                style={{ maxWidth: '7.5rem' }}
-                value={slcrDiscipline}
-                onChange={(e) => setSlcrDiscipline(e.target.value)}
-                aria-label="Disciplína pro SLČR"
-                title="Disciplína FIS do XML (u suchých závodů lze nechat prázdnou)"
-              >
-                <option value="">Disciplína –</option>
-                <option value="SL">SL</option>
-                <option value="GS">GS</option>
-                <option value="SG">SG</option>
-                <option value="DH">DH</option>
-              </select>
-              <button
-                className="btn btn-outline-secondary"
-                onClick={exportSlcrXml}
-                disabled={exportingXml || !isOnline}
-                title={isOnline
-                  ? 'Výsledky jako FIS XML Dataset pro evidenci SLČR (Hromadně nahrát → FIS XML Dataset, Fiscode = České číslo závodníka)'
-                  : 'Export vyžaduje připojení k internetu'}
-              >
-                {exportingXml ? <ButtonSpinner /> : <i className="bi bi-filetype-xml me-1"></i>}
-                XML pro SLČR
-              </button>
-            </div>
             <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
               <button
                 className="btn btn-outline-secondary"
