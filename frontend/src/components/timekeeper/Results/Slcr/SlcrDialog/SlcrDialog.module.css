@@ -1,0 +1,61 @@
+/*
+ * Kroky pod sebou (iPad na výšku); od 1024 px dva sloupce: kroky 1 a 3 vlevo,
+ * náhled vpravo přes celou výšku dialogu s tabulkou posouvanou uvnitř.
+ */
+.layout {
+  display: grid;
+  grid-template-areas: "event" "plan" "results";
+  align-items: start;
+  gap: var(--ms-space-4);
+}
+
+.event {
+  grid-area: event;
+}
+
+.plan {
+  grid-area: plan;
+}
+
+.results {
+  grid-area: results;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.text {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-3);
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    flex-grow: 1;
+    min-block-size: 0;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "event plan"
+      "results plan";
+  }
+
+  .plan {
+    align-self: stretch;
+    min-block-size: 0;
+  }
+
+  .table {
+    flex: 1 1 auto;
+    min-block-size: 0;
+  }
+}

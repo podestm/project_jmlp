@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ButtonLink, EmptyState, LoadingState, PageHeader, Paska } from '../../ms/index.js';
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
 import CategoryChips from '../CategoryChips/CategoryChips.jsx';
@@ -8,6 +9,8 @@ import TimekeeperMessage from '../TimekeeperMessage.jsx';
 import ResultsInfo from './ResultsInfo.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import ResultsToolbar from './ResultsToolbar.jsx';
+import SlcrDialog from './Slcr/SlcrDialog/SlcrDialog.jsx';
+import SlcrEntry from './Slcr/SlcrEntry/SlcrEntry.jsx';
 import { hasAnyResult } from './resultsView.js';
 import { useResults } from './useResults.js';
 import styles from './ResultsView.module.css';
@@ -21,12 +24,14 @@ export default function ResultsView() {
   const { confirm, confirmElement } = useConfirm();
   const api = useResults({ confirm });
   const { selectedRaceId, results, loading, message, categoryList, selectedCategory, pdf } = api;
+  const [slcrOpen, setSlcrOpen] = useState(false);
 
   const header = (
     <PageHeader
       variant="app"
       title="Výsledky závodu"
       description="Pořadí se počítá ze součtu obou kol. Tisk funguje i offline – na web se listina dostane až s připojením."
+      actions={api.selectedRace && <SlcrEntry isOnline={api.isOnline} onOpen={() => setSlcrOpen(true)} />}
     />
   );
 
@@ -94,6 +99,14 @@ export default function ResultsView() {
           publishing={pdf.publishing}
           onPublish={api.publishResults}
           onClose={pdf.closePreview}
+        />
+      )}
+      {slcrOpen && (
+        <SlcrDialog
+          race={api.selectedRace}
+          raceId={selectedRaceId}
+          hasResults={Boolean(hasEntries)}
+          onClose={() => setSlcrOpen(false)}
         />
       )}
       {confirmElement}

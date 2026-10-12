@@ -35,6 +35,10 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      # Evidence SLČR (services/slcr_evidence.py) - prázdné = funkce vypnuté
+      SLCR_API_TOKEN: ${SLCR_API_TOKEN:-}
+      SLCR_USERNAME: ${SLCR_USERNAME:-}
+      SLCR_PASSWORD: ${SLCR_PASSWORD:-}
     volumes:
       - documents_data:/app/uploads/documents
     networks:

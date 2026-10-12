@@ -1,0 +1,30 @@
+/* Uvnitř dialogu se hlavička lepí k horní hraně rámečku, ne pod lištu stránky. */
+.scroll {
+  --ms-sticky-top: 0px;
+  overflow: auto;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.years {
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--ms-ink-muted);
+}
+
+.status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+.slcrName {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

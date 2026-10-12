@@ -1,13 +1,12 @@
 import { Button } from '../../ms/index.js';
 import PrintRunButtons from '../PrintRunButtons/PrintRunButtons.jsx';
-import SlcrExport from './SlcrExport/SlcrExport.jsx';
 import styles from './ResultsToolbar.module.css';
 
 const ONLINE_ONLY = 'Vyžaduje připojení k internetu';
 
 /**
  * Tisk a publikace výsledků (TkVysledky): listiny kol vybrané a všech
- * kategorií, celková listina, Publikovat, XML pro evidenci SLČR, pořadí poháru
+ * kategorií, celková listina, Publikovat, pořadí poháru
  * a smazání výsledků.
  * Listiny se skládají v notebooku (i offline), publikace a pohár jen online.
  */
@@ -44,13 +43,6 @@ export default function ResultsToolbar({ api }) {
         >
           Publikovat
         </Button>
-        <SlcrExport
-          discipline={api.slcr.discipline}
-          onDisciplineChange={api.slcr.setDiscipline}
-          exporting={api.slcr.exporting}
-          onExport={api.slcr.exportXml}
-          isOnline={isOnline}
-        />
         <div className={styles.group} role="group" aria-label="Pořadí poháru">
           <Button
             size="sm"

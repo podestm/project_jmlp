@@ -7,7 +7,6 @@ import { clearTimingDrafts } from '../../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../../offline/useSyncStatus.js';
 import { formatDateLong } from '../../../utils/date.js';
 import { readSelectedRaceId } from '../frame/selectedRace.js';
-import { useSlcrExport } from './useSlcrExport.js';
 import { clearResultsConfirm, publishConfirm } from './resultsDialogs.jsx';
 
 /**
@@ -70,12 +69,6 @@ export function useResults({ confirm }) {
   const selectedCategory = categoryList.find(
     (cat) => String(cat.category_id) === String(selectedCategoryId)
   ) || null;
-
-  const slcr = useSlcrExport({
-    raceId: selectedRaceId,
-    race: selectedRace,
-    onError: (text) => setMessage({ type: 'danger', text }),
-  });
 
   const reportPdfError = (err) => {
     console.error('PDF se nepodařilo vytvořit:', err);
@@ -208,6 +201,5 @@ export function useResults({ confirm }) {
     printStandings,
     clearResults,
     publishResults,
-    slcr,
   };
 }

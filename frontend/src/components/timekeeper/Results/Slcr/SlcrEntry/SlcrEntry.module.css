@@ -1,0 +1,13 @@
+.entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--ms-space-1);
+}
+
+.note {
+  max-inline-size: 220px;
+  font-size: var(--ms-fs-sm);
+  text-align: end;
+  color: var(--ms-ink-body);
+}

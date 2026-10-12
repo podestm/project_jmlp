@@ -1,9 +1,0 @@
-.group {
-  display: flex;
-  align-items: center;
-  gap: var(--ms-space-2);
-}
-
-.discipline {
-  inline-size: 9.5rem;
-}
