@@ -9,14 +9,17 @@ import styles from './PostCard.module.css';
  * Příspěvek (aktualita) na veřejném webu.
  * - variant full (AktualityArchiv): obrázek nahoře / vlevo / vpravo (výchozí)
  *   / bez obrázku podle image_position, datum, štítek „S přílohou“, celý text
- * - variant teaser (Main, MobilUvod): obrázek vždy nahoře, menší písmo
+ * - variant side (úvod, sloupec Aktuality): obrázek vždy po straně (vlevo jen
+ *   u image_position left), menší písmo
  * Text projde formatText (nejdřív escapuje HTML, pak **tučně**, *kurzíva*).
  * Chybějící datum je pomlčka, nikdy 1. 1. 1970.
  */
 export default function PostCard({ post, variant = 'full', headingLevel = 2 }) {
   const Heading = `h${headingLevel}`;
   const hasImage = Boolean(post.image_file_id) && post.image_position !== 'none';
-  const position = variant === 'teaser' ? 'top' : (post.image_position || 'right');
+  const position = variant === 'side'
+    ? (post.image_position === 'left' ? 'left' : 'right')
+    : (post.image_position || 'right');
 
   return (
     <article className={cx(styles.card, styles[variant])} data-image={hasImage ? position : 'none'}>
@@ -37,7 +40,7 @@ export default function PostCard({ post, variant = 'full', headingLevel = 2 }) {
         <div className={styles.text} dangerouslySetInnerHTML={{ __html: formatText(post.content) }} />
         {post.document_file_id && (
           <ButtonLink href={API.getDocumentUrl(post.id)} target="_blank" rel="noopener noreferrer" size="sm" icon="download"
-            block={variant === 'teaser'} className={styles.download}>
+            className={styles.download}>
             Stáhnout přílohu
           </ButtonLink>
         )}

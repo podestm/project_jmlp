@@ -15,9 +15,9 @@ describe('PostCard', () => {
     expect(container.querySelector('article')).toHaveAttribute('data-image', 'left');
   });
 
-  it('bez data pomlčka, upoutávka má obrázek nahoře', () => {
-    const { container } = render(<PostCard post={{ ...POST, created_at: null }} variant="teaser" />);
+  it('bez data pomlčka, na úvodu je obrázek vždy po straně', () => {
+    const { container } = render(<PostCard post={{ ...POST, created_at: null, image_position: 'top' }} variant="side" />);
     expect(screen.getByText('—')).toBeInTheDocument();
-    expect(container.querySelector('article')).toHaveAttribute('data-image', 'top');
+    expect(container.querySelector('article')).toHaveAttribute('data-image', 'right');
   });
 });

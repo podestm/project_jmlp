@@ -31,10 +31,11 @@ describe('Home', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Jihomoravský Lyžařský Pohár' })).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: 'Přihlásit závodníka' })).toHaveAttribute('href', '/zavod/1#prihlaska');
-    const season = screen.getByRole('region', { name: /Sezóna/ });
+    const season = screen.getByRole('region', { name: 'Závody sezóny' });
     const rows = within(season).getAllByRole('listitem');
     expect(rows[0]).toHaveTextContent('Kohoutovice');
     expect(rows[1]).toHaveTextContent('Registrace uzavřena');
+    expect(screen.queryByRole('heading', { name: 'Pro koho je pohár' })).toBeNull();
     expect(await screen.findByRole('heading', { name: 'Jubilejní XX. sezóna JMLP začíná' })).toBeInTheDocument();
   });
 

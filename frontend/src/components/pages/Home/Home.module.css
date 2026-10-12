@@ -74,6 +74,24 @@
   padding-block: var(--ms-space-7) var(--ms-space-14);
 }
 
+/* Aktuality 2/3 vlevo, závody sezóny 1/3 vpravo; pod 1024 px pod sebou,
+   závody první (pořadí v DOM). */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: 'news races';
+  gap: var(--ms-space-8);
+  align-items: start;
+}
+
+.news {
+  grid-area: news;
+}
+
+.races {
+  grid-area: races;
+}
+
 .raceLink {
   color: var(--ms-ink);
   text-decoration: none;
@@ -84,51 +102,11 @@
   text-decoration: underline;
 }
 
-.about {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ms-space-4);
-  max-inline-size: 760px;
-  font-size: 18px;
-  line-height: 1.6;
-  color: var(--ms-ink-body);
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ms-space-5);
-}
-
-.more {
-  font-size: var(--ms-fs-base);
-  font-weight: 600;
-  color: var(--ms-navy);
-  text-decoration: none;
-}
-
-.more:hover {
-  text-decoration: underline;
-}
-
-.rowBadge {
-  align-self: center;
-}
-
-.raceList {
-  list-style: none;
-}
-
-.news {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ms-space-5);
-  align-items: start;
-}
-
 @media (max-width: 1023.98px) {
-  .news {
+  .columns {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'races' 'news';
+    gap: 52px;
   }
 }
 
@@ -155,10 +133,12 @@
     display: none;
   }
 
-  
-
   .page {
     gap: var(--ms-space-10);
     padding-block: var(--ms-space-5) var(--ms-space-10);
+  }
+
+  .columns {
+    gap: var(--ms-space-10);
   }
 }

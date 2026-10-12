@@ -79,72 +79,81 @@
   block-size: 240px;
 }
 
-/* Obrázek vlevo / vpravo ve sloupci 320 px. */
-.full[data-image='left'] {
-  grid-template-columns: 320px minmax(0, 1fr);
+/* Obrázek vlevo / vpravo ve sloupci: 320 px u celé zprávy, 200 px na úvodu. */
+.full {
+  --media-size: 320px;
 }
 
-.full[data-image='right'] {
-  grid-template-columns: minmax(0, 1fr) 320px;
+.side {
+  --media-size: 200px;
 }
 
-.full[data-image='right'] .media {
+.card[data-image='left'] {
+  grid-template-columns: var(--media-size) minmax(0, 1fr);
+}
+
+.card[data-image='right'] {
+  grid-template-columns: minmax(0, 1fr) var(--media-size);
+}
+
+.card[data-image='right'] .media {
   order: 1;
 }
 
-.full[data-image='left'] .media,
-.full[data-image='right'] .media {
+.card[data-image='left'] .media,
+.card[data-image='right'] .media {
   padding: var(--ms-space-5);
 }
 
-.full[data-image='left'] .image,
-.full[data-image='right'] .image {
+.card[data-image='left'] .image,
+.card[data-image='right'] .image {
   block-size: auto;
-  max-block-size: 320px;
+  max-block-size: var(--media-size);
   border-radius: var(--ms-radius-control);
 }
 
-/* Upoutávka na úvodu: menší obrázek a písmo. */
-.teaser[data-image='top'] .image {
-  block-size: 160px;
+/* Aktualita na úvodu: obrázek v pevném rámu (contain na zapuštěné ploše),
+   menší odsazení a písmo. */
+.side[data-image] .image {
+  block-size: 150px;
 }
 
-.teaser .body {
+.side .body {
   padding: 18px 20px 20px;
 }
 
-.teaser .title {
+.side .title {
   font-size: var(--ms-fs-xl);
 }
 
-.teaser .text {
+.side .text {
   font-size: var(--ms-fs-base);
   line-height: 1.55;
 }
 
-.teaser .download {
-  align-self: stretch;
-}
-
 @media (max-width: 767.98px) {
-  .full[data-image='left'],
-  .full[data-image='right'] {
+  .card[data-image='left'],
+  .card[data-image='right'] {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .full[data-image='right'] .media {
+  .card[data-image='right'] .media {
     order: 0;
   }
 
-  .full[data-image='left'] .media,
-  .full[data-image='right'] .media {
+  .card[data-image='left'] .media,
+  .card[data-image='right'] .media {
     padding: 0;
   }
 
-  .full[data-image='left'] .image,
-  .full[data-image='right'] .image {
+  .card[data-image='left'] .image,
+  .card[data-image='right'] .image {
     border-radius: 0;
     max-block-size: 220px;
+  }
+
+  .side[data-image] .image {
+    block-size: 160px;
   }
 
   .body {

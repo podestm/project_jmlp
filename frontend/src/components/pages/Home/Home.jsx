@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
-import {
-  Alert, Badge, BibDate, Button, ButtonLink, Container, DataRow, EmptyState, LiveBand, LoadingState, Panel, Paska, Screen,
-} from '../../ms/index.js';
-import PostCard from '../../site/PostCard/PostCard.jsx';
+import { BibDate, ButtonLink, Container, DataRow, LiveBand, Screen } from '../../ms/index.js';
 import { useSeasonInfo } from '../../site/siteInfo.js';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
 import { fixEncoding } from '../../../utils/text.js';
 import { REGISTRATION_STATE, raceDate, raceMethod, registrationState, startOfToday } from '../../../utils/races.js';
+import LatestNews from './LatestNews/LatestNews.jsx';
+import SeasonRaces from './SeasonRaces/SeasonRaces.jsx';
 import { useHome } from './useHome.js';
 import { usePageMeta } from '../../../hooks/usePageMeta.js';
 import { PAGE_META } from '../../../seo/pageMeta.js';
@@ -53,76 +52,10 @@ function NextRace({ race }) {
   );
 }
 
-function SeasonRaces({ races, today }) {
-  const { season } = useSeasonInfo();
-  let content;
-  if (races.status === 'loading') content = <LoadingState variant="inline" label="Načítám závody…" />;
-  else if (races.status === 'error') {
-    content = (
-      <Alert type="danger" compact title="Závody se nepodařilo načíst"
-        actions={<Button size="sm" icon="refresh" onClick={() => races.load()}>Zkusit znovu</Button>}>
-        Kalendář je i na stránce Závody.
-      </Alert>
-    );
-  } else if (races.list.length === 0) {
-    content = <EmptyState icon="calendar" headingLevel={3} title="V sezóně zatím nejsou vypsané žádné závody" hint="Termíny se objeví, jakmile je pořadatelé potvrdí." />;
-  } else {
-    content = (
-      <Panel as="ul" padding="none" className={styles.raceList}>
-        {races.list.map((race) => {
-          const status = REGISTRATION_STATE[registrationState(race, today)];
-          return (
-            <DataRow
-              key={race.id}
-              as="li"
-              tone={status.bar}
-              lead={<BibDate date={race.datum} variant="row" />}
-              title={<Link to={`/zavod/${race.id}`} className={styles.raceLink}>{fixEncoding(race.areal_name)}</Link>}
-              meta={fixEncoding(race.organizer_name)}
-            >
-              <Badge tone={status.badge} size="sm" className={styles.rowBadge}>{status.label}</Badge>
-            </DataRow>
-          );
-        })}
-      </Panel>
-    );
-  }
-  return (
-    <section className={styles.section} aria-labelledby="sezona">
-      <Paska id="sezona" aside={<Link to="/zavody" className={styles.more}>Celý kalendář →</Link>}>Sezóna {season}</Paska>
-      {content}
-    </section>
-  );
-}
-
-function News({ posts }) {
-  let content;
-  if (posts.status === 'loading') content = <LoadingState label="Načítám aktuality…" />;
-  else if (posts.status === 'error') {
-    content = (
-      <Alert type="danger" compact title="Aktuality se nepodařilo načíst"
-        actions={<Button size="sm" icon="refresh" onClick={() => posts.load()}>Zkusit znovu</Button>}>
-        Zkuste to prosím za chvíli znovu.
-      </Alert>
-    );
-  } else if (posts.data.length === 0) {
-    content = <EmptyState icon="news" headingLevel={3} title="Zatím tu nejsou žádné aktuality" />;
-  } else {
-    content = (
-      <div className={styles.news}>
-        {posts.data.map((post) => <PostCard key={post.id} post={post} variant="teaser" headingLevel={3} />)}
-      </div>
-    );
-  }
-  return (
-    <section className={styles.section} aria-labelledby="aktuality">
-      <Paska id="aktuality" aside={<Link to="/aktuality" className={styles.more}>Starší zprávy →</Link>}>Aktuality</Paska>
-      {content}
-    </section>
-  );
-}
-
-/** Úvod / (Main.dc.html, MobilUvod.dc.html). */
+/**
+ * Úvod / (Main.dc.html, MobilUvod.dc.html): hrdina, nejbližší závod a pod ním
+ * vedle sebe aktuality (2/3) a závody sezóny (1/3) jako na jmlp.cz.
+ */
 export default function Home() {
   usePageMeta(PAGE_META.home);
   const liveRace = useLiveStatus();
@@ -141,12 +74,12 @@ export default function Home() {
       )}
       <Container className={styles.page}>
         {nextRace && <NextRace race={nextRace} />}
-        <section className={styles.about} aria-labelledby="pro-koho">
-          <Paska id="pro-koho">Pro koho je pohár</Paska>
-          <p>JMLP je regionální seriál pro děti a mládež, které lyžují v klubu, i pro ty, které chtějí závodit poprvé.</p>
-        </section>
-        <SeasonRaces races={{ ...races, list: seasonRaces }} today={today} />
-        <News posts={posts} />
+        {/* Závody jsou v DOM první: pod 1024 px stojí hned pod nejbližším
+            závodem (přihlášky jsou nejdůležitější), na šířku vpravo. */}
+        <div className={styles.columns}>
+          <SeasonRaces races={{ ...races, list: seasonRaces }} today={today} className={styles.races} />
+          <LatestNews posts={posts} className={styles.news} />
+        </div>
       </Container>
     </Screen>
   );
