@@ -1,4 +1,4 @@
-import { Button, EmptyState, IconButton, Switch } from '../../../ms/index.js';
+import { Button, EmptyState, IconButton } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { EMPTY_RESOLUTION } from '../../inboxMatching.js';
 import { INBOX_RENDER_LIMIT } from '../../useInboxEvents.js';
@@ -23,7 +23,7 @@ import styles from './SerialInboxPanel.module.css';
  * @param {number} unparsedCount     nerozpoznané řádky ze zařízení
  * @param {number} resolvedCount     vyřízené řádky (potvrzené / zamítnuté)
  * @param {boolean} autoWrite        zapisovat jednoznačné události bez potvrzení
- * @param {function} onAutoWriteChange přepne automatický zápis
+ *   (přepínač je v lepivé liště časomíry, tady jen slovy)
  * @param {function} onRejectAuto    „Zamítnout“ u automaticky zapsané události
  * @param {string}   className       umístění v obrazovce (lepivý panel vedle tabulky)
  */
@@ -42,7 +42,6 @@ export default function SerialInboxPanel({
   onReject,
   onRejectAuto,
   autoWrite = false,
-  onAutoWriteChange,
   onDismissUnparsed,
   onClearResolved,
   onClearAll,
@@ -79,25 +78,12 @@ export default function SerialInboxPanel({
         {summary.toDecide > 0 && <span className={styles.decideCount}>K rozhodnutí {summary.toDecide}</span>}
       </header>
 
-      <div className={styles.auto}>
-        <div className={styles.autoRow}>
-          <Switch
-            label="Zapisovat automaticky"
-            description={autoWrite
-              ? 'Jedna shoda, platný čas nebo DNF/DNS a prázdné kolo → rovnou do výsledků.'
-              : 'Každý impulz čeká na ruční potvrzení.'}
-            checked={autoWrite}
-            onChange={(e) => onAutoWriteChange?.(e.target.checked)}
-          />
-          <span className={autoWrite ? styles.on : styles.off}>{autoWrite ? 'Zapnuto' : 'Vypnuto'}</span>
-        </div>
-        <p className={styles.summary}>
-          <span className={styles.caps}>Kolo {targetRound}</span>
-          <span><strong className={styles.num}>{summary.autoWritten}</strong> zapsáno automaticky</span>
-          <span><strong className={styles.num}>{summary.toDecide}</strong> k rozhodnutí</span>
-          <span><strong className={styles.num}>{summary.rejected}</strong> zamítnuto</span>
-        </p>
-      </div>
+      <p className={styles.summary}>
+        <span>Automatický zápis <strong className={autoWrite ? styles.on : styles.off}>{autoWrite ? 'zapnut' : 'vypnut'}</strong></span>
+        <span><strong className={styles.num}>{summary.autoWritten}</strong> zapsáno automaticky</span>
+        <span><strong className={styles.num}>{summary.toDecide}</strong> k rozhodnutí</span>
+        <span><strong className={styles.num}>{summary.rejected}</strong> zamítnuto</span>
+      </p>
 
       {hiddenCount > 0 && (
         <div className={styles.limit}>

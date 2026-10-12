@@ -1,7 +1,16 @@
-/* Tabulka vlevo, schránka impulzů vpravo (TkZadavaniCasu 1600: ~1fr + 330 px). */
+/* Lepivá lišta časomíry (DeviceBar) má pevnou výšku; lepivé prvky pod ní
+   (hlavička tabulky, schránka) se odsazují o rámec + lištu. */
+.page {
+  --timing-frame-top: var(--ms-sticky-top, 0px);
+  --timing-bar-size: 60px;
+}
+
+/* Tabulka vlevo, schránka impulzů vpravo: schránka až 480 px, aby se řádek
+   impulzu vešel na jeden řádek; tabulce (min. 720 px) na 1280 zbývá 736 px. */
 .work {
+  --ms-sticky-top: calc(var(--timing-frame-top) + var(--timing-bar-size));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 480px);
   align-items: start;
   gap: var(--ms-space-4);
 }

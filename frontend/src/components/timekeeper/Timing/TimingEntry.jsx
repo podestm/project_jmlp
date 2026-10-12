@@ -28,7 +28,9 @@ import TimekeeperMessage from '../TimekeeperMessage.jsx';
 import TkPage from '../frame/TkPage/TkPage.jsx';
 import { TAKE_OVER_CONFIRM } from '../dialogs/TakeOverMessage.jsx';
 import SerialInboxPanel from './Inbox/SerialInboxPanel.jsx';
-import DevicePanel from './DevicePanel.jsx';
+import { autoWriteSummary } from './Inbox/inboxView.js';
+import DeviceBar from './DeviceBar/DeviceBar.jsx';
+import DeviceDialog from './DeviceDialog/DeviceDialog.jsx';
 import SerialAlerts from './SerialAlerts.jsx';
 import TimingHeader from './TimingHeader.jsx';
 import TimingTable from './TimingTable.jsx';
@@ -77,6 +79,7 @@ export default function TimingEntry() {
     localStorage.getItem('timekeeper_bridge_target_round') || '1'
   );
   const [inboxEvents, setInboxEvents] = useState([]);
+  const [deviceOpen, setDeviceOpen] = useState(false);
 
   const pdf = useRacePdf(selectedRaceId);
 
@@ -437,6 +440,9 @@ export default function TimingEntry() {
     hasWriteLock,
   });
 
+  // Stejné číslo jako „K rozhodnutí“ v záhlaví schránky.
+  const toDecide = useMemo(() => autoWriteSummary(inboxEvents).toDecide, [inboxEvents]);
+
   /** Převzetí portu od jiné karty – až po potvrzení (TkDialogPrevzitCasomiru). */
   const takeOverDevice = async () => {
     if (await confirm(TAKE_OVER_CONFIRM)) serial.reconnect();
@@ -445,7 +451,7 @@ export default function TimingEntry() {
   const showWork = !loading && selectedRaceId;
 
   return (
-    <TkPage>
+    <TkPage className={styles.page}>
       <TimingHeader
         race={selectedRace}
         startListLength={activeStartList.length}
@@ -453,6 +459,18 @@ export default function TimingEntry() {
         saving={saving}
         onSaveAll={saveAllTimes}
       />
+
+      {selectedRaceId && (
+        <DeviceBar
+          serial={serial}
+          bridgeTargetRound={bridgeTargetRound}
+          setBridgeTargetRound={setBridgeTargetRound}
+          autoWrite={autoWrite}
+          onAutoWriteChange={setAutoWrite}
+          toDecide={toDecide}
+          onOpenDevice={() => setDeviceOpen(true)}
+        />
+      )}
 
       <SerialAlerts
         serial={serial}
@@ -522,7 +540,6 @@ export default function TimingEntry() {
             onReject={rejectBridgeEvent}
             onRejectAuto={rejectAutoWrittenEvent}
             autoWrite={autoWrite}
-            onAutoWriteChange={setAutoWrite}
             onDismissUnparsed={dismissUnparsedInbox}
             onClearResolved={clearResolvedInbox}
             onClearAll={clearWholeInbox}
@@ -530,16 +547,14 @@ export default function TimingEntry() {
         </div>
       )}
 
-      {showWork && (
-        <DevicePanel
-          serial={serial}
-          bridgeTargetRound={bridgeTargetRound}
-          setBridgeTargetRound={setBridgeTargetRound}
-          liveInboxCount={liveInboxCount}
-          resolvedInboxCount={resolvedInboxCount}
-          unassignedInboxCount={unassignedInboxCount}
-        />
-      )}
+      <DeviceDialog
+        open={deviceOpen}
+        onClose={() => setDeviceOpen(false)}
+        serial={serial}
+        liveInboxCount={liveInboxCount}
+        resolvedInboxCount={resolvedInboxCount}
+        unassignedInboxCount={unassignedInboxCount}
+      />
 
       {!selectedRaceId && (
         <section className={styles.noRace} aria-label="Bez vybraného závodu">

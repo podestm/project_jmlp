@@ -6,7 +6,6 @@ import { timekeeperDb } from '../../offline/db.js';
 import { appendInboxEvent } from '../../offline/bridgeInbox.js';
 import { resetTimekeeperDb, startListEntry } from '../../test/helpers.js';
 import BridgeEventRow from './Timing/Inbox/BridgeEventRow.jsx';
-import SerialInboxPanel from './Timing/Inbox/SerialInboxPanel.jsx';
 import { AUTO_WRITE_KEY, useInboxEvents } from './useInboxEvents.js';
 
 /**
@@ -412,35 +411,5 @@ describe('řádek automaticky zapsané události', () => {
     expect(screen.getByText('Kolo obsazené')).toBeInTheDocument();
     expect(screen.getByText(/Kolo je obsazené/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Přiřadit a uložit' })).toBeEnabled();
-  });
-
-  it('přepínač v inboxu volá změnu', async () => {
-    const onAutoWriteChange = vi.fn();
-    render(
-      <SerialInboxPanel
-        events={[]}
-        visibleEvents={[]}
-        hiddenCount={0}
-        showAll={false}
-        onShowAllChange={vi.fn()}
-        resolutions={new Map()}
-        targetRound="1"
-        unparsedCount={0}
-        resolvedCount={0}
-        autoWrite
-        onAutoWriteChange={onAutoWriteChange}
-        onCycle={vi.fn()}
-        onConfirm={vi.fn()}
-        onReject={vi.fn()}
-        onDismissUnparsed={vi.fn()}
-        onClearResolved={vi.fn()}
-        onClearAll={vi.fn()}
-      />
-    );
-
-    const toggle = screen.getByRole('switch', { name: 'Zapisovat automaticky' });
-    expect(toggle).toBeChecked();
-    await userEvent.click(toggle);
-    expect(onAutoWriteChange).toHaveBeenCalledWith(false);
   });
 });
