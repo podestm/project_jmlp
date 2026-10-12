@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
+import { downloadBlob, fetchBlob, timekeeperAuthHeaders } from '../../config/api.js';
 import { useConfirm } from '../../hooks/useConfirm.jsx';
 import { useRacePdf } from '../../hooks/useRacePdf.js';
 import { pdfErrorMessage } from '../../pdf/pdfmake.js';
@@ -101,6 +102,28 @@ export default function ResultsView() {
     } catch (err) {
       console.error('PDF se nepodařilo vytvořit:', err);
       setMessage({ type: 'danger', text: pdfErrorMessage(err) });
+    }
+  };
+
+  // Výsledky jako FIS XML pro evidenci SLČR - ZIP, jeden soubor na kategorii.
+  // Do <Fiscode> jde české číslo závodníka: při nahrání v evidenci zvolit
+  // RACE_CODE (české číslo závodníka).
+  const [slcrDiscipline, setSlcrDiscipline] = useState('');
+  const [exportingXml, setExportingXml] = useState(false);
+  const exportSlcrXml = async () => {
+    if (!selectedRaceId) return;
+    setExportingXml(true);
+    try {
+      const blob = await fetchBlob(`/api/timekeeper/races/${selectedRaceId}/results/fis-xml`, {
+        params: slcrDiscipline ? { discipline: slcrDiscipline } : {},
+        headers: timekeeperAuthHeaders(),
+      });
+      const stem = [selectedRace?.datum, selectedRace?.race_nr || `zavod-${selectedRaceId}`].filter(Boolean).join('_');
+      downloadBlob(blob, `${stem}_vysledky-slcr-xml.zip`);
+    } catch (err) {
+      setMessage({ type: 'danger', text: err?.message || 'Export XML se nepodařil' });
+    } finally {
+      setExportingXml(false);
     }
   };
 
@@ -270,6 +293,33 @@ export default function ResultsView() {
               <i className="bi bi-upload me-1"></i>
               Publikovat
             </button>
+            <div className="input-group input-group-sm" style={{ width: 'auto' }}>
+              <select
+                className="form-select form-select-sm"
+                style={{ maxWidth: '7.5rem' }}
+                value={slcrDiscipline}
+                onChange={(e) => setSlcrDiscipline(e.target.value)}
+                aria-label="Disciplína pro SLČR"
+                title="Disciplína FIS do XML (u suchých závodů lze nechat prázdnou)"
+              >
+                <option value="">Disciplína –</option>
+                <option value="SL">SL</option>
+                <option value="GS">GS</option>
+                <option value="SG">SG</option>
+                <option value="DH">DH</option>
+              </select>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={exportSlcrXml}
+                disabled={exportingXml || !isOnline}
+                title={isOnline
+                  ? 'Výsledky jako FIS XML pro evidenci SLČR (ZIP, jeden soubor na kategorii; při nahrání zvolit české číslo závodníka - RACE_CODE)'
+                  : 'Export vyžaduje připojení k internetu'}
+              >
+                {exportingXml ? <ButtonSpinner /> : <i className="bi bi-filetype-xml me-1"></i>}
+                XML pro SLČR
+              </button>
+            </div>
             <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
               <button
                 className="btn btn-outline-secondary"

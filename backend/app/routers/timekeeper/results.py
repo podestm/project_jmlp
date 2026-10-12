@@ -5,7 +5,11 @@ uložené body i tištěná listina nemohly rozejít.
 """
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Header, Query, UploadFile
+import io
+import zipfile
+
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi.responses import Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -16,6 +20,7 @@ from ...services import attachments as attachment_service
 from ...services import category_order as category_order_service
 from ...services import files as file_service
 from ...services import naming
+from ...services import fis_xml
 from ...services import results as results_service
 from ...utils import (
     StandardExceptions,
@@ -144,6 +149,64 @@ def _areal_name(db: Session, race: models.Race) -> Optional[str]:
         FROM fuj_jmlp_areal WHERE id = :areal_id
     """), {"areal_id": race.areal_id}).first()
     return fix_encoding(row.name) if row else None
+
+
+@router.get("/races/{race_id}/results/fis-xml")
+def export_fis_xml(
+    race_id: int,
+    discipline: str = Query(default="", description="Disciplína FIS (SL, GS, ...), prázdná = nevyplněno"),
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+) -> Response:
+    """Výsledky závodu jako FIS XML pro evidenci SLČR - ZIP, jeden soubor na kategorii.
+
+    V evidenci má každá kategorie vlastní závod v rámci akce, proto jeden
+    XML soubor na kategorii (services/fis_xml.py). Do <Fiscode> jde české
+    číslo závodníka - při nahrání zvolit athleteCodeType=RACE_CODE.
+    """
+    discipline = (discipline or "").strip().upper()
+    if discipline and discipline not in fis_xml.DISCIPLINES:
+        raise HTTPException(status_code=400, detail="Neznámá disciplína")
+    race = _race_or_404(db, race_id)
+    if not race.datum:
+        raise HTTPException(status_code=400, detail="Závod nemá datum")
+    areal = _areal_name(db, race) or ""
+    header = fis_xml.RaceHeader(
+        race_date=race.datum,
+        event_name=f"JMLP {areal}".strip(),
+        place=areal,
+        discipline=discipline,
+        race_director=race.race_director,
+        technical_delegate=race.technical_delegate,
+    )
+
+    categories = []
+    for group in _group_by_category(_load_entries(db, race_id), race, db):
+        rows = group["rows"]
+        sex = next((row.category_sex for row in rows if row.category_sex is not None), None)
+        categories.append(fis_xml.CategoryResults(
+            name=group["category_name"], sex=sex, ranked=results_service.rank_category(rows),
+        ))
+    if not categories:
+        raise HTTPException(status_code=400, detail="Závod nemá žádné výsledky")
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for order, category in enumerate(categories, start=1):
+            slug = naming.slugify(category.name) or f"kategorie-{order}"
+            archive.writestr(f"{order:02d}_{slug}.xml", fis_xml.build_race_xml(header, category))
+
+    stem = "_".join(part for part in (str(race.datum), race.race_nr or f"zavod-{race_id}") if part)
+    filename = f"{stem}_vysledky-slcr-xml.zip"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Unfinished-Count": str(fis_xml.unfinished_count(categories)),
+            "Access-Control-Expose-Headers": "Content-Disposition, X-Unfinished-Count",
+        },
+    )
 
 
 @router.get("/races/{race_id}/results")
