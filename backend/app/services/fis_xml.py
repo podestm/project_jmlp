@@ -15,9 +15,14 @@ takže to, co odsud vyjde, má stejný tvar jako to, co evidence sama vydává:
                         závodník, časy kol a součet
         AL_notclassified  AL_notranked Status="DNF"|"DNS"|"DSQ" bez časů
 
-Jeden soubor = jeden závod = jedna kategorie (v evidenci má každá kategorie
-vlastní závod v rámci akce). Do <Fiscode> jde české číslo závodníka (ID
-závodníka u nás) - při nahrání je proto potřeba athleteCodeType=RACE_CODE.
+Jeden <Fisresults> = jeden závod = jedna kategorie (v evidenci má každá
+kategorie vlastní závod v rámci akce). Celý závod JMLP jde jako "FIS XML
+Dataset": kořenový prvek a v něm jeden <Fisresults> za kategorií - tak ho
+evidence načte (ověřeno importem 12. 10. 2026; varianta s několika závody
+v jednom <Fisresults> neprojde). Výsledky přiřadí k závodu v akci podle
+<Codex> (sloupec "Kodex" u závodu), takže se v evidenci nezakládají závody
+navíc. Do <Fiscode> jde české číslo závodníka - při nahrání zvolit
+"České číslo závodníka" (athleteCodeType=RACE_CODE).
 """
 from __future__ import annotations
 
@@ -128,8 +133,27 @@ def _competitor(parent: ET.Element, row, sex) -> None:
         _sub(competitor, "Clubname", club)
 
 
+XML_DECLARATION = b'<?xml version="1.0" encoding="utf-8"?>\n'
+DATASET_ROOT = "Fisresultsdataset"
+
+
 def build_race_xml(header: RaceHeader, category: CategoryResults) -> bytes:
     """FIS XML jednoho závodu (jedné kategorie)."""
+    root = _race_element(header, category)
+    ET.indent(root, space="  ")
+    return XML_DECLARATION + ET.tostring(root, encoding="utf-8") + b"\n"
+
+
+def build_dataset_xml(header: RaceHeader, categories: Iterable[CategoryResults]) -> bytes:
+    """FIS XML Dataset - všechny kategorie závodu v jednom souboru."""
+    root = ET.Element(DATASET_ROOT)
+    for category in categories:
+        root.append(_race_element(header, category))
+    ET.indent(root, space="  ")
+    return XML_DECLARATION + ET.tostring(root, encoding="utf-8") + b"\n"
+
+
+def _race_element(header: RaceHeader, category: CategoryResults) -> ET.Element:
     root = ET.Element("Fisresults")
     race_header = _sub(root, "Raceheader", Sector="AL", Gender=_gender(category.sex))
     _sub(race_header, "Season", str(fis_season(header.race_date)))
@@ -184,9 +208,7 @@ def build_race_xml(header: RaceHeader, category: CategoryResults) -> bytes:
     if not any_not_classified:
         # Evidence ve svém exportu prázdný blok píše takhle.
         _sub(not_classified, "AL_notranked")
-
-    ET.indent(root, space="  ")
-    return b'<?xml version="1.0" encoding="utf-8"?>\n' + ET.tostring(root, encoding="utf-8") + b"\n"
+    return root
 
 
 def unfinished_count(categories: Iterable[CategoryResults]) -> int:

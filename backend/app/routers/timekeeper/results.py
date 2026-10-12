@@ -5,9 +5,6 @@ uložené body i tištěná listina nemohly rozejít.
 """
 from typing import Any, Dict, List, Optional
 
-import io
-import zipfile
-
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy import text
@@ -158,11 +155,11 @@ def export_fis_xml(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ) -> Response:
-    """Výsledky závodu jako FIS XML pro evidenci SLČR - ZIP, jeden soubor na kategorii.
+    """Výsledky závodu jako FIS XML Dataset pro evidenci SLČR - jeden soubor.
 
-    V evidenci má každá kategorie vlastní závod v rámci akce, proto jeden
-    XML soubor na kategorii (services/fis_xml.py). Do <Fiscode> jde české
-    číslo závodníka - při nahrání zvolit athleteCodeType=RACE_CODE.
+    Všechny kategorie v jednom souboru, každá jako vlastní závod s kodexem
+    = id kategorie (services/fis_xml.py). V evidenci: Tvorba výsledků ->
+    Hromadně nahrát -> "FIS XML Dataset", Fiscode = "České číslo závodníka".
     """
     discipline = (discipline or "").strip().upper()
     if discipline and discipline not in fis_xml.DISCIPLINES:
@@ -192,17 +189,11 @@ def export_fis_xml(
     if not categories:
         raise HTTPException(status_code=400, detail="Závod nemá žádné výsledky")
 
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
-        for order, category in enumerate(categories, start=1):
-            slug = naming.slugify(category.name) or f"kategorie-{order}"
-            archive.writestr(f"{order:02d}_{slug}.xml", fis_xml.build_race_xml(header, category))
-
     stem = "_".join(part for part in (str(race.datum), race.race_nr or f"zavod-{race_id}") if part)
-    filename = f"{stem}_vysledky-slcr-xml.zip"
+    filename = f"{stem}_vysledky-slcr.xml"
     return Response(
-        content=buffer.getvalue(),
-        media_type="application/zip",
+        content=fis_xml.build_dataset_xml(header, categories),
+        media_type="application/xml",
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
             "X-Unfinished-Count": str(fis_xml.unfinished_count(categories)),

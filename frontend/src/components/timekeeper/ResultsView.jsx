@@ -105,9 +105,10 @@ export default function ResultsView() {
     }
   };
 
-  // Výsledky jako FIS XML pro evidenci SLČR - ZIP, jeden soubor na kategorii.
-  // Do <Fiscode> jde české číslo závodníka: při nahrání v evidenci zvolit
-  // RACE_CODE (české číslo závodníka).
+  // Výsledky jako FIS XML Dataset pro evidenci SLČR - jeden soubor, všechny
+  // kategorie. V evidenci: Tvorba výsledků -> Hromadně nahrát -> FIS XML
+  // Dataset, Fiscode = České číslo závodníka. K závodům v akci se výsledky
+  // přiřadí podle kodexu (= id kategorie).
   const [slcrDiscipline, setSlcrDiscipline] = useState('');
   const [exportingXml, setExportingXml] = useState(false);
   const exportSlcrXml = async () => {
@@ -119,7 +120,7 @@ export default function ResultsView() {
         headers: timekeeperAuthHeaders(),
       });
       const stem = [selectedRace?.datum, selectedRace?.race_nr || `zavod-${selectedRaceId}`].filter(Boolean).join('_');
-      downloadBlob(blob, `${stem}_vysledky-slcr-xml.zip`);
+      downloadBlob(blob, `${stem}_vysledky-slcr.xml`);
     } catch (err) {
       setMessage({ type: 'danger', text: err?.message || 'Export XML se nepodařil' });
     } finally {
@@ -313,7 +314,7 @@ export default function ResultsView() {
                 onClick={exportSlcrXml}
                 disabled={exportingXml || !isOnline}
                 title={isOnline
-                  ? 'Výsledky jako FIS XML pro evidenci SLČR (ZIP, jeden soubor na kategorii; při nahrání zvolit české číslo závodníka - RACE_CODE)'
+                  ? 'Výsledky jako FIS XML Dataset pro evidenci SLČR (Hromadně nahrát → FIS XML Dataset, Fiscode = České číslo závodníka)'
                   : 'Export vyžaduje připojení k internetu'}
               >
                 {exportingXml ? <ButtonSpinner /> : <i className="bi bi-filetype-xml me-1"></i>}

@@ -4,8 +4,6 @@ Tvar odpovídá exportu evidence (/api/public/export/result/race/{id}.xml):
 Raceheader, AL_raceinfo, AL_classified s AL_ranked Status="QLF",
 AL_notclassified s DNF/DNS/DSQ bez časů.
 """
-import io
-import zipfile
 from datetime import date
 from decimal import Decimal
 from types import SimpleNamespace
@@ -102,14 +100,16 @@ def test_api_vrati_zip_s_xml_po_kategoriich(client, db, timekeeper_headers):
     response = client.get(f"/api/timekeeper/races/{race.id}/results/fis-xml?discipline=SL", headers=timekeeper_headers)
 
     assert response.status_code == 200, response.text
-    assert response.headers["content-type"] == "application/zip"
-    assert 'filename="2026-10-03_JMLP2026-01_vysledky-slcr-xml.zip"' in response.headers["content-disposition"]
-    archive = zipfile.ZipFile(io.BytesIO(response.content))
-    names = archive.namelist()
-    assert len(names) == 2 and all(name.endswith(".xml") for name in names)
-    roots = [ET.fromstring(archive.read(name)) for name in names]
-    assert sorted(r.find("Raceheader").get("Gender") for r in roots) == ["M", "W"]
-    assert all(r.findtext("Raceheader/Discipline") == "SL" for r in roots)
+    assert response.headers["content-type"].startswith("application/xml")
+    assert 'filename="2026-10-03_JMLP2026-01_vysledky-slcr.xml"' in response.headers["content-disposition"]
+    # FIS XML Dataset: kořen a v něm celý <Fisresults> za každou kategorii -
+    # tak ho evidence načte (ověřeno importem 12. 10. 2026).
+    dataset = ET.fromstring(response.content)
+    assert dataset.tag == fis_xml.DATASET_ROOT
+    assert [child.tag for child in dataset] == ["Fisresults", "Fisresults"]
+    assert sorted(r.find("Raceheader").get("Gender") for r in dataset) == ["M", "W"]
+    assert all(r.findtext("Raceheader/Discipline") == "SL" for r in dataset)
+    assert all(r.findtext("Raceheader/Codex") for r in dataset)
 
 
 def test_api_odmitne_neznamou_disciplinu(client, db, timekeeper_headers):
