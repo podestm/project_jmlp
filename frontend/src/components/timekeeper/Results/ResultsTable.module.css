@@ -2,33 +2,6 @@
   min-inline-size: 860px;
 }
 
-.rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-inline-size: 38px;
-  block-size: 34px;
-  font-family: var(--ms-font-mono);
-  font-weight: 600;
-  font-size: var(--ms-fs-lg);
-  color: var(--ms-ink);
-}
-
-.podium1 {
-  background: var(--ms-navy);
-  color: var(--ms-on-dark);
-}
-
-.podium2 {
-  background: var(--ms-ice);
-  color: var(--ms-navy-deep);
-}
-
-.podium3 {
-  background: var(--ms-dry-bg);
-  color: var(--ms-dry-ink);
-}
-
 .name,
 .nameMuted {
   font-weight: 700;

@@ -1,3 +1,4 @@
+import { Rank } from '../../ms/index.js';
 import { fixEncoding } from '../../../utils/text.js';
 import { rowSummary } from './standings.js';
 import styles from './StandingsList.module.css';
@@ -8,7 +9,7 @@ export default function StandingsList({ category, className }) {
     <ol className={`${styles.list} ${className ?? ''}`} aria-label={`Pořadí – ${category.name}`}>
       {category.rows.map((row) => (
         <li key={`${row.surname}-${row.name}-${row.year}`} className={styles.row}>
-          <span className={styles.rank} data-podium={row.rank === 1 || undefined}>{row.rank ?? '—'}</span>
+          <Rank place={row.rank} />
           <span className={styles.text}>
             <span className={styles.name}>{row.surname} {row.name}</span>
             <span className={styles.meta}>{[fixEncoding(row.club), rowSummary(row)].filter(Boolean).join(' · ')}</span>

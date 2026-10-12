@@ -28,5 +28,5 @@
 
 .line {
   block-size: 2px;
-  background: linear-gradient(to right, var(--ms-navy) 40px, var(--ms-line) 40px);
+  background: linear-gradient(to right, var(--ms-sun) 40px, var(--ms-line) 40px);
 }

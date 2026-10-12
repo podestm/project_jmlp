@@ -78,9 +78,11 @@
   color: var(--ms-ink);
 }
 
+/* Aktivní položka: podtržení teplým akcentem a tučně (design systém SiteHeader). */
 .navLink[aria-current='page'] {
-  border-bottom-color: var(--ms-navy);
+  border-bottom-color: var(--ms-sun);
   color: var(--ms-ink);
+  font-weight: 700;
 }
 
 .bar .menuButton {

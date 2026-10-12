@@ -127,6 +127,21 @@
   color: var(--ms-navy);
 }
 
+/* Teplý akcent (design systém): nejvýš jedno na obrazovku – hlavní akce
+   na tmavé ploše, typicky „Přihlásit na závod“ v hrdině úvodu. */
+.accent {
+  background: var(--ms-sun);
+  border-color: var(--ms-sun);
+  color: var(--ms-navy-deep);
+  font-weight: 700;
+}
+
+.accent:hover {
+  background: var(--ms-sun-ink);
+  border-color: var(--ms-sun-ink);
+  color: var(--ms-on-dark);
+}
+
 /* Vypnuté: přerušovaný rámeček a tlumený text (DesignSystem „Přihlášky uzavřeny“). */
 .button:disabled:not([data-busy]),
 .button[aria-disabled='true'] {

@@ -65,6 +65,13 @@
   color: var(--ms-on-dark);
 }
 
+/* Teplé zvýraznění bez stavu (design systém), střídmě – nikdy pro stav. */
+.accent {
+  background: var(--ms-sun);
+  color: var(--ms-navy-deep);
+  font-weight: 700;
+}
+
 /* Počet (např. žádosti o kluby v menu): amber kolečko s číslem v Plex Mono. */
 .count {
   justify-content: center;

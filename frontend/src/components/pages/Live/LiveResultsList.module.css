@@ -16,25 +16,6 @@
   color: var(--ms-ink-body);
 }
 
-.rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  inline-size: 32px;
-  block-size: 32px;
-  border-radius: var(--ms-radius-inner);
-  background: var(--ms-surface-sunken);
-  font-family: var(--ms-font-mono);
-  font-weight: 600;
-  color: var(--ms-ink);
-}
-
-.rank[data-podium] {
-  background: var(--ms-navy);
-  color: var(--ms-on-dark);
-}
-
 .text {
   display: flex;
   flex-direction: column;

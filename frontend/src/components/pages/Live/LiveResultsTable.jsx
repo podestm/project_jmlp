@@ -1,4 +1,4 @@
-import { Badge, Table, TableScroll } from '../../ms/index.js';
+import { Badge, Rank, Table, TableScroll } from '../../ms/index.js';
 import { bibVar } from '../../ms/tokens.js';
 import { formatResultTime } from '../../../utils/results.js';
 import { fixEncoding } from '../../../utils/text.js';
@@ -38,7 +38,7 @@ export default function LiveResultsTable({ category, ranked, className }) {
             <tr key={entry.id} data-state={entry.status ? 'muted' : undefined}>
               <td data-align="center">
                 {entry.display_rank
-                  ? <span className={styles.rank} data-podium={entry.display_rank === 1 || undefined}>{entry.display_rank}</span>
+                  ? <Rank place={entry.display_rank} />
                   : '—'}
               </td>
               <td data-align="center">

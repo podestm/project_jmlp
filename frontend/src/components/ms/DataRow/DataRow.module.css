@@ -103,6 +103,21 @@
   font-size: 21px;
 }
 
+/* Zvednutá karta (design systém Row raised): jediná karta se stínem na stránce. */
+.raised {
+  box-shadow: var(--ms-shadow-raised);
+}
+
+.eyebrow {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ms-sun-ink);
+}
+
 .aside {
   display: flex;
   align-items: center;

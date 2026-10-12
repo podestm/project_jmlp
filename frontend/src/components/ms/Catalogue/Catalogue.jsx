@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
   Alert, Badge, BibDate, Button, ButtonLink, Checkbox, CloseButton, Cluster, Container, DataRow, EmptyState,
-  Field, Grid, Icon, IconButton, Input, LoadingState, Modal, PageHeader, Pagination, Panel, Paska, PasswordInput,
-  SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, VisuallyHidden,
+  Field, Grid, Icon, IconButton, Input, LiveBand, LoadingState, Modal, PageHeader, Pagination, Panel, Paska, PasswordInput,
+  Rank, SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, VisuallyHidden,
 } from '../index.js';
 import { ICONS } from '../Icon/icons.js';
 import { adminNav, publicLiveNav, publicNav, timekeeperNav } from '../navItems.js';
@@ -79,6 +79,7 @@ function ActionsSection() {
         <IconButton icon="trash" label="Smazat závod" variant="danger" />
         <IconButton icon="menu" label="Otevřít menu" variant="quiet" />
         <span className={styles.dark}><IconButton icon="logout" label="Odhlásit se" variant="on-dark" /></span>
+        <span className={styles.dark}><Button variant="accent" iconEnd="arrow-right">Přihlásit na závod</Button></span>
         <CloseButton label="Zavřít ukázku" />
       </Cluster>
     </Stack>
@@ -97,6 +98,7 @@ function DataSection() {
         <Badge tone="neutral">Ukončen</Badge>
         <Badge tone="dry">Suchý závod</Badge>
         <Badge tone="navy">Admin</Badge>
+        <Badge tone="accent">Novinka</Badge>
         <Badge tone="count">3</Badge>
         <Badge tone="open" size="sm">Registrace otevřená</Badge>
       </Cluster>
@@ -104,6 +106,10 @@ function DataSection() {
         <BibDate date="2026-10-03" variant="card" />
         <BibDate date="2026-10-03" variant="table" />
         <BibDate date="2026-10-03" variant="row" />
+      </Cluster>
+      <Cluster gap={3}>
+        {[1, 2, 3, 4, 12, null].map((place) => <Rank key={place ?? 'none'} place={place} />)}
+        <Rank place={1} size="lg" />
       </Cluster>
       <Panel padding="none" as="ul">
         <DataRow as="li" tone="open" statusLabel="Registrace otevřená" lead={<BibDate date="2026-10-03" variant="row" />}
@@ -113,7 +119,7 @@ function DataSection() {
           <Badge tone="closed" size="sm">Uzavřeno</Badge>
         </DataRow>
       </Panel>
-      <DataRow variant="card" tone="open" statusLabel="Registrace otevřená" lead={<BibDate date="2026-10-03" variant="list" />}
+      <DataRow variant="card" raised eyebrow="Nejbližší závod" tone="open" statusLabel="Registrace otevřená" lead={<BibDate date="2026-10-03" variant="list" />}
         title="Brno – Kohoutovice" meta="FreeSki Academy Brno · 1. závod sezóny"
         aside={<Badge tone="open" icon="check">Registrace otevřena</Badge>} />
       <TableScroll label="Ukázková tabulka">
@@ -175,6 +181,7 @@ function StatesSection() {
         <LoadingState label="Načítám aktuality…" />
         <LoadingState variant="inline" label="Načítám…" />
       </Cluster>
+      <LiveBand title="Právě se závodí – Brno – Kohoutovice" detail="Průběžné neoficiální výsledky sledujte živě." />
       <Alert type="danger" title="Aktuality se teď nepodařilo načíst" actions={<Button icon="refresh">Zkusit znovu</Button>}>
         Web se nedostal k seznamu zpráv. Zkuste to za chvíli znovu.
       </Alert>

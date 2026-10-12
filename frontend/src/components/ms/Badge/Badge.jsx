@@ -5,7 +5,8 @@ import styles from './Badge.module.css';
 /**
  * Stavový štítek. Význam nese vždy text, barva ho jen podtrhuje.
  * - tone: open (registrace otevřena) | closed (uzavřeno) | live (ŽIVĚ, s tečkou)
- *   | neutral (ukončeno) | dry (suchý závod, upozornění) | navy | count (počet)
+ *   | neutral (ukončeno) | dry (suchý závod, upozornění) | navy | accent (teplé
+ *   zvýraznění bez stavu, střídmě) | count (počet)
  * - size: md (veřejný web) | sm (administrace, tabulky)
  */
 export default function Badge({ tone = 'neutral', size = 'md', icon, className, children }) {

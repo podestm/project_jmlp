@@ -20,7 +20,7 @@
   letter-spacing: 0.16em;
   line-height: 1.4;
   text-transform: uppercase;
-  color: var(--ms-ink-body);
+  color: var(--ms-sun-ink);
 }
 
 .titleRow {

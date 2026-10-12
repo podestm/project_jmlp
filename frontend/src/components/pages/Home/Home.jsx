@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
-  Alert, Badge, BibDate, Button, ButtonLink, Container, DataRow, EmptyState, Icon, LoadingState, Panel, Paska, Screen,
+  Alert, Badge, BibDate, Button, ButtonLink, Container, DataRow, EmptyState, LiveBand, LoadingState, Panel, Paska, Screen,
 } from '../../ms/index.js';
 import PostCard from '../../site/PostCard/PostCard.jsx';
 import { useSeasonInfo } from '../../site/siteInfo.js';
@@ -24,28 +24,12 @@ function Hero({ openRace }) {
         <h1 className={styles.heroTitle}>Jihomoravský Lyžařský Pohár</h1>
         <p className={styles.lead}>Seriál závodů na sněhu i na suchu, od Myšáků po dospělé (OPEN).</p>
         <div className={styles.heroActions}>
-          <ButtonLink to={registerPath(openRace)} variant="inverse" size="lg" iconEnd="arrow-right">Přihlásit na závod</ButtonLink>
+          <ButtonLink to={registerPath(openRace)} variant="accent" size="lg" iconEnd="arrow-right">Přihlásit na závod</ButtonLink>
           <ButtonLink to="/zavody" variant="on-dark" size="lg">Kalendář sezóny</ButtonLink>
         </div>
         <p className={styles.since}><span className={styles.sinceYear}>2006</span>jezdíme od roku</p>
       </Container>
     </div>
-  );
-}
-
-/** Červený pás, když se právě závodí (LiveStatusContext). */
-function LiveBanner({ liveRace }) {
-  return (
-    <Link to="/zive" className={styles.live}>
-      <Container className={styles.liveInner}>
-        <span className={styles.liveDot} aria-hidden="true" />
-        <span className={styles.liveText}>
-          <strong>Právě se závodí – {fixEncoding(liveRace.areal_name)}</strong>
-          <span>Průběžné neoficiální výsledky sledujte živě.</span>
-        </span>
-        <span className={styles.liveAction}>Živé výsledky <Icon name="arrow-right" size={18} /></span>
-      </Container>
-    </Link>
   );
 }
 
@@ -57,14 +41,10 @@ function NextRace({ race }) {
     <DataRow
       variant="card"
       tone={REGISTRATION_STATE[state].bar}
-      className={styles.nextRace}
+      raised
+      eyebrow="Nejbližší závod"
       lead={<BibDate date={race.datum} variant="list" />}
-      title={(
-        <>
-          <span className={styles.nextEyebrow}>Nejbližší závod</span>
-          <Link to={`/zavod/${race.id}`} className={styles.raceLink}>{fixEncoding(race.areal_name)}</Link>
-        </>
-      )}
+      title={<Link to={`/zavod/${race.id}`} className={styles.raceLink}>{fixEncoding(race.areal_name)}</Link>}
       meta={meta}
       aside={state === 'open'
         ? <ButtonLink to={registerPath(race)} variant="primary" iconEnd="arrow-right">Přihlásit závodníka</ButtonLink>
@@ -156,7 +136,9 @@ export default function Home() {
   return (
     <Screen>
       <Hero openRace={openRace} />
-      {liveRace && <LiveBanner liveRace={liveRace} />}
+      {liveRace && (
+        <LiveBand title={`Právě se závodí – ${fixEncoding(liveRace.areal_name)}`} detail="Průběžné neoficiální výsledky sledujte živě." />
+      )}
       <Container className={styles.page}>
         {nextRace && <NextRace race={nextRace} />}
         <section className={styles.about} aria-labelledby="pro-koho">

@@ -17,8 +17,9 @@
   color: var(--ms-ink-body);
 }
 
-.navy {
-  color: var(--ms-navy);
+/* Popisky dne/měsíce v Bib (design systém): akcent jako text na světlé ploše. */
+.accent {
+  color: var(--ms-sun-ink);
 }
 
 .number {

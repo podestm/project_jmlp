@@ -1,4 +1,4 @@
-import { Table, TableScroll, VisuallyHidden } from '../../ms/index.js';
+import { Rank, Table, TableScroll, VisuallyHidden } from '../../ms/index.js';
 import { fixEncoding } from '../../../utils/text.js';
 import { cellText, raceColumnLabel } from './standings.js';
 import styles from './StandingsTable.module.css';
@@ -36,7 +36,7 @@ export default function StandingsTable({ category, races, className }) {
           {category.rows.map((row) => (
             <tr key={`${row.surname}-${row.name}-${row.year}`}>
               <td data-align="center">
-                {row.rank ? <span className={styles.rank} data-podium={row.rank === 1 || undefined}>{row.rank}</span> : '—'}
+                {row.rank ? <Rank place={row.rank} /> : '—'}
               </td>
               <td>
                 <span className={styles.name}>{row.surname} {row.name}</span>

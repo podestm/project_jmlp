@@ -1,15 +1,12 @@
-import { Table, TableScroll } from '../../ms/index.js';
-import { cx } from '../../ms/cx.js';
+import { Rank, Table, TableScroll } from '../../ms/index.js';
 import { formatResultTime, rankEntriesByTime } from '../../../utils/results.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
 import RaceFlag from '../StartList/RaceFlag.jsx';
 import { formatLoss, sharedRanks } from './resultsView.js';
 import styles from './ResultsTable.module.css';
 
-/** Pořadí: první tři v boxu (1 navy, 2 led, 3 jantar), dál jen číslo. */
-const Position = ({ rank }) => (
-  rank ? <span className={cx(styles.rank, rank <= 3 && styles[`podium${rank}`])}>{rank}</span> : '—'
-);
+/** Pořadí v kitovém Rank (pódium: 1 teplý akcent, 2–3 navy), bez pořadí pomlčka. */
+const Position = ({ rank }) => (rank ? <Rank place={rank} size="lg" /> : '—');
 
 /**
  * Tabulka výsledků jedné kategorie v časomíře (TkVysledky). Veřejný živý

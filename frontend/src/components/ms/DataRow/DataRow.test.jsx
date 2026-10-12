@@ -28,4 +28,10 @@ describe('DataRow – karta', () => {
     render(<DataRow variant="card" tone="closed" title="Kraví hora" aside={<button type="button">Detail</button>} />);
     expect(screen.getByRole('button', { name: 'Detail' })).toBeInTheDocument();
   });
+
+  it('eyebrow stojí nad titulkem', () => {
+    render(<DataRow eyebrow="Nejbližší závod" title="Sportovní areál VUT" raised />);
+    const eyebrow = screen.getByText('Nejbližší závod');
+    expect(eyebrow.nextElementSibling).toHaveTextContent('Sportovní areál VUT');
+  });
 });
