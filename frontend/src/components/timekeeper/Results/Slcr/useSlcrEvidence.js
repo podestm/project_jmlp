@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../../config/timekeeperApi.js';
 import {
-  DEFAULT_DISCIPLINE, configProblems, createdMessage, planSummary, readSlcrChoice, sentMessage,
-  slcrErrorText, storeSlcrChoice,
+  DEFAULT_DISCIPLINE, configProblems, createConfirm, createdMessage, planSummary, readSlcrChoice, sendConfirm,
+  sentMessage, slcrErrorText, storeSlcrChoice,
 } from './slcr.js';
 
 /**
@@ -13,7 +13,7 @@ import {
  *
  * Kroky: 1 akce a disciplína → náhled, 2 založení závodů, 3 výsledky.
  */
-export function useSlcrEvidence({ raceId, hasResults }) {
+export function useSlcrEvidence({ raceId, hasResults, confirm }) {
   const [stored] = useState(() => readSlcrChoice(raceId));
   const [status, setStatus] = useState(null);
   const [events, setEvents] = useState(null);
@@ -68,13 +68,24 @@ export function useSlcrEvidence({ raceId, hasResults }) {
     storeSlcrChoice(raceId, { eventId, discipline });
   });
 
-  const createRaces = () => run('races', async () => {
+  // Zápis do ostré evidence – vždy až po potvrzení.
+  const createRaces = async () => {
+    if (!await confirm(createConfirm(plan, planSummary(plan)))) return;
+    await createRacesNow();
+  };
+  const sendResults = async () => {
+    const eventName = plan?.event?.name || events?.find((event) => String(event.id) === eventId)?.name;
+    if (!await confirm(sendConfirm(eventName))) return;
+    await sendResultsNow();
+  };
+
+  const createRacesNow = () => run('races', async () => {
     const data = await TimekeeperAPI.postOnline(`/api/timekeeper/races/${raceId}/slcr/races`, body());
     setPlan({ event: data.event, items: data.items });
     setMessage({ type: 'success', text: createdMessage(data) });
   });
 
-  const sendResults = () => run('results', async () => {
+  const sendResultsNow = () => run('results', async () => {
     const data = await TimekeeperAPI.postOnline(`/api/timekeeper/races/${raceId}/slcr/results`, body());
     storeSlcrChoice(raceId, { eventId, discipline });
     setSent(true);

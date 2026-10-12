@@ -78,6 +78,24 @@ export const createdMessage = (data) => {
   return parts.length ? `Hotovo: ${parts.join(', ')}.` : 'Všechny závody už v akci jsou.';
 };
 
+/** Potvrzení před zápisem do evidence – závody i výsledky jdou do ostré evidence SLČR. */
+export const createConfirm = (plan, summary) => ({
+  title: 'Založit závody v evidenci SLČR?',
+  message: [
+    `V akci „${plan?.event?.name || 'vybraná akce'}“ se `,
+    [summary.toCreate && `založí ${summary.toCreate} závodů`, summary.toCodex && `u ${summary.toCodex} se doplní kodex`]
+      .filter(Boolean).join(' a '),
+    '. Zápis jde rovnou do evidence SLČR.',
+  ].join(''),
+  confirmLabel: 'Založit závody',
+});
+
+export const sendConfirm = (eventName) => ({
+  title: 'Odeslat výsledky do evidence SLČR?',
+  message: `Výsledky všech kategorií se pošlou do akce „${eventName || 'vybraná akce'}“. V evidenci zůstanou nezveřejněné – zveřejňují se až tam.`,
+  confirmLabel: 'Odeslat výsledky',
+});
+
 export const sentMessage = (data) => {
   const note = data?.unfinished ? ` ${data.unfinished} startujících bez času a bez příznaku se neposlalo.` : '';
   return `Výsledky jsou v evidenci (zatím nezveřejněné – zveřejňuje se v evidenci).${note}`;

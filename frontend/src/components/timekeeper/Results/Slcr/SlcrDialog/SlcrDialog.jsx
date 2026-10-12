@@ -2,6 +2,7 @@ import { Alert, Button, EmptyState, Modal } from '../../../../ms/index.js';
 import SlcrEventForm from '../SlcrEventForm/SlcrEventForm.jsx';
 import SlcrPlanTable from '../SlcrPlanTable/SlcrPlanTable.jsx';
 import SlcrStep from '../SlcrStep/SlcrStep.jsx';
+import { useConfirm } from '../../../../../hooks/useConfirm.jsx';
 import { formatSlcrDate } from '../slcr.js';
 import { useSlcrEvidence } from '../useSlcrEvidence.js';
 import styles from './SlcrDialog.module.css';
@@ -39,7 +40,8 @@ const planNote = (slcr) => {
  * Hlavní (plná) je vždy jen akce aktuálního kroku; Enter nic neodesílá.
  */
 export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
-  const slcr = useSlcrEvidence({ raceId, hasResults });
+  const { confirm, confirmElement } = useConfirm();
+  const slcr = useSlcrEvidence({ raceId, hasResults, confirm });
   const { plan, summary, step, busy } = slcr;
   const blocker = sendBlocker(slcr, hasResults);
 
@@ -124,6 +126,7 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
           </Button>
         </SlcrStep>
       </div>
+      {confirmElement}
     </Modal>
   );
 }

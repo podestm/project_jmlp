@@ -24,7 +24,8 @@ const routeGet = (overrides = {}) => (url) => {
   return Promise.reject(new Error(`neznámé ${url}`));
 };
 
-const setup = (props = {}) => renderHook(() => useSlcrEvidence({ raceId: '7', hasResults: true, ...props }));
+const confirmYes = vi.fn(async () => true);
+const setup = (props = {}) => renderHook(() => useSlcrEvidence({ raceId: '7', hasResults: true, confirm: confirmYes, ...props }));
 
 describe('useSlcrEvidence', () => {
   beforeEach(() => {
@@ -130,5 +131,20 @@ describe('useSlcrEvidence', () => {
     api.getOnline.mockImplementation(routeGet({ events: Promise.reject(Object.assign(new Error('x'), { detail: 'Neplatný token' })) }));
     const { result } = setup();
     await waitFor(() => expect(result.current.eventsError).toBe('Neplatný token'));
+  });
+
+  it('bez potvrzení nic nezaloží ani neodešle', async () => {
+    const confirmNo = vi.fn(async () => false);
+    const { result } = setup({ confirm: confirmNo });
+    await waitFor(() => expect(result.current.configured).toBe(true));
+    act(() => result.current.setEventId('501'));
+    await act(() => result.current.loadPlan());
+    api.postOnline.mockClear();
+    await act(() => result.current.createRaces());
+    await act(() => result.current.sendResults());
+    expect(confirmNo).toHaveBeenCalledTimes(2);
+    expect(confirmNo.mock.calls[0][0].title).toBe('Založit závody v evidenci SLČR?');
+    expect(confirmNo.mock.calls[1][0].title).toBe('Odeslat výsledky do evidence SLČR?');
+    expect(api.postOnline).not.toHaveBeenCalled();
   });
 });

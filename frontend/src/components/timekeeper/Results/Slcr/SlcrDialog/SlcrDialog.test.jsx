@@ -57,6 +57,8 @@ describe('SlcrDialog', () => {
       items: PLAN.items.map((item) => ({ ...item, action: 'keep' })),
     });
     await user.click(within(step2).getByRole('button', { name: 'Založit závody (1)' }));
+    // Zápis do evidence se nejdřív potvrdí.
+    await user.click(await screen.findByRole('button', { name: 'Založit závody' }));
     expect(await screen.findByText('Hotovo: založeno 1 závodů.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Odeslat výsledky' })).toBeEnabled();
   });
