@@ -28,18 +28,25 @@
   color: var(--ms-ink-body);
 }
 
-/* Stav zařízení slovy; barva rámečku ho jen podtrhuje. */
+/* Stav zařízení slovy s barevnou tečkou; ozubené kolo = otevře nastavení
+   připojení. Klidné tlačítko – stav se jen ukazuje, na nic se nečeká. */
 .device {
   gap: var(--ms-space-2);
-  border-width: 2px;
 }
 
-.device[data-tone='open'] {
-  border-color: var(--ms-open);
+.dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-line-control);
 }
 
-.device[data-tone='amber'] {
-  border-color: var(--ms-amber);
+.device[data-tone='open'] .dot {
+  background: var(--ms-open);
+}
+
+.device[data-tone='amber'] .dot {
+  background: var(--ms-amber);
 }
 
 .value {
@@ -47,13 +54,6 @@
   font-weight: 700;
   font-size: var(--ms-fs-base);
   color: var(--ms-ink);
-}
-
-.more {
-  padding-inline-start: var(--ms-space-2);
-  border-inline-start: 1px solid var(--ms-line);
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-navy);
 }
 
 .group {
@@ -66,34 +66,7 @@
   flex-shrink: 0;
 }
 
-/* Odkaz na schránku: pod 1280 px je pod tabulkou a jinak by k ní byl daleko. */
-.inbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-block-size: var(--ms-target);
-  margin-inline-start: auto;
-  padding-inline: var(--ms-space-3);
-  border-radius: var(--ms-radius-control);
-  background: var(--ms-surface-sunken);
-  font-family: var(--ms-font-display);
-  font-weight: 700;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink);
-  text-decoration: none;
-}
-
-.inbox[data-pending] {
-  background: var(--ms-amber);
-  color: var(--ms-amber-ink);
-}
-
-.inbox:focus-visible {
-  outline: var(--ms-focus-width) solid var(--ms-focus-color);
-  outline-offset: 2px;
-}
-
-/* Tablet na výšku: popisky ustoupí, stav slovy i „Připojení…“ zůstávají. */
+/* Tablet na výšku: popisky ustoupí, stav slovy zůstává. */
 @media (max-width: 1023.98px) {
   .group > .caps {
     display: none;

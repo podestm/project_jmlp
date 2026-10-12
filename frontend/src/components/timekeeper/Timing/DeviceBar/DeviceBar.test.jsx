@@ -20,7 +20,7 @@ const renderBar = (props = {}) => {
     onOpenDevice: vi.fn(),
   };
   render(
-    <DeviceBar serial={serial()} bridgeTargetRound="1" autoWrite toDecide={0} {...handlers} {...props} />
+    <DeviceBar serial={serial()} bridgeTargetRound="1" autoWrite {...handlers} {...props} />
   );
   return handlers;
 };
@@ -34,7 +34,7 @@ describe('DeviceBar', () => {
     const { onOpenDevice } = renderBar();
 
     expect(screen.getByText('Odpojeno')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /Připojení/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Připojení časomíry/ }));
     expect(onOpenDevice).toHaveBeenCalled();
   });
 
@@ -60,8 +60,10 @@ describe('DeviceBar', () => {
     expect(onAutoWriteChange).toHaveBeenCalledWith(false);
   });
 
-  it('počet k rozhodnutí odkazuje na schránku', () => {
-    renderBar({ toDecide: 3 });
-    expect(screen.getByRole('link', { name: /K rozhodnutí 3/ })).toHaveAttribute('href', '#schranka-impulzu');
+  it('stav připojení je klidný – žádné „Připojení…“ ani odkaz na schránku', () => {
+    renderBar({ serial: serial({ connected: true }) });
+    expect(screen.getByRole('button', { name: 'Připojení časomíry: Připojeno' })).toBeInTheDocument();
+    expect(screen.queryByText(/Připojení…/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

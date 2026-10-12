@@ -28,7 +28,6 @@ import TimekeeperMessage from '../TimekeeperMessage.jsx';
 import TkPage from '../frame/TkPage/TkPage.jsx';
 import { TAKE_OVER_CONFIRM } from '../dialogs/TakeOverMessage.jsx';
 import SerialInboxPanel from './Inbox/SerialInboxPanel.jsx';
-import { autoWriteSummary } from './Inbox/inboxView.js';
 import DeviceBar from './DeviceBar/DeviceBar.jsx';
 import DeviceDialog from './DeviceDialog/DeviceDialog.jsx';
 import SerialAlerts from './SerialAlerts.jsx';
@@ -441,7 +440,6 @@ export default function TimingEntry() {
   });
 
   // Stejné číslo jako „K rozhodnutí“ v záhlaví schránky.
-  const toDecide = useMemo(() => autoWriteSummary(inboxEvents).toDecide, [inboxEvents]);
 
   /** Převzetí portu od jiné karty – až po potvrzení (TkDialogPrevzitCasomiru). */
   const takeOverDevice = async () => {
@@ -467,7 +465,6 @@ export default function TimingEntry() {
           setBridgeTargetRound={setBridgeTargetRound}
           autoWrite={autoWrite}
           onAutoWriteChange={setAutoWrite}
-          toDecide={toDecide}
           onOpenDevice={() => setDeviceOpen(true)}
         />
       )}

@@ -1,4 +1,4 @@
-import { Button, Icon, SegmentedControl, Switch } from '../../../ms/index.js';
+import { Button, SegmentedControl, Switch } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { deviceChip } from '../../frame/statusChips.js';
 import styles from './DeviceBar.module.css';
@@ -10,13 +10,11 @@ const ROUND_OPTIONS = [
 
 /**
  * Lepivá lišta časomíry na zadávání časů: stav zařízení slovy, kam jdou nové
- * impulzy (kolo 1/2), automatický zápis a kolik čeká ve schránce. Při měření
- * se přepínají pořád, proto zůstávají na jeden dotyk i u dlouhé startovky.
- * Připojení (port, rychlost, připojit/odpojit) se mění zřídka – je v dialogu
- * za tlačítkem Připojení.
+ * impulzy (kolo 1/2) a automatický zápis. Při měření se přepínají pořád, proto
+ * zůstávají na jeden dotyk i u dlouhé startovky. Připojení (port, rychlost,
+ * připojit/odpojit) se mění zřídka – otevře se klepnutím na stav časomíry.
  *
  * @param {object} serial celá relace z useSerialSession()
- * @param {number} toDecide události ve schránce, které čekají na obsluhu
  * @param {() => void} onOpenDevice otevře dialog připojení
  */
 export default function DeviceBar({
@@ -25,7 +23,6 @@ export default function DeviceBar({
   setBridgeTargetRound,
   autoWrite,
   onAutoWriteChange,
-  toDecide,
   onOpenDevice,
   className,
 }) {
@@ -37,14 +34,16 @@ export default function DeviceBar({
         <span className={styles.caps}>Časomíra</span>
         <Button
           size="sm"
-          icon={chip.icon}
+          variant="quiet"
+          iconEnd="gear"
           className={styles.device}
           data-tone={chip.tone}
           onClick={onOpenDevice}
           title={serial.status}
+          aria-label={`Připojení časomíry: ${chip.value}`}
         >
+          <span className={styles.dot} aria-hidden="true" />
           <span className={styles.value}>{chip.value}</span>
-          <span className={styles.more}>Připojení…</span>
         </Button>
       </div>
 
@@ -65,11 +64,6 @@ export default function DeviceBar({
         checked={autoWrite}
         onChange={(e) => onAutoWriteChange(e.target.checked)}
       />
-
-      <a className={styles.inbox} href="#schranka-impulzu" data-pending={toDecide > 0 || undefined}>
-        <Icon name="inbox" size={18} />
-        {toDecide > 0 ? `K rozhodnutí ${toDecide}` : 'Schránka'}
-      </a>
     </section>
   );
 }
