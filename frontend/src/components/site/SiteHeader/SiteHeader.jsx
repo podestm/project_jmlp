@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
-import znak from '../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../assets/images/jmlp-znak.svg';
 import { Container, IconButton, LivePill } from '../../ms/index.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
 import MobileMenu from '../MobileMenu/MobileMenu.jsx';

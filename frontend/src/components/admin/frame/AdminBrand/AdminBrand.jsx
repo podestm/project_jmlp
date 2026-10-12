@@ -1,4 +1,4 @@
-import znak from '../../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../../assets/images/jmlp-znak-inverse.svg';
 import { cx } from '../../../ms/cx.js';
 import styles from './AdminBrand.module.css';
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../config/auth.jsx';
 import trat from '../../../assets/images/trat.jpg';
-import znak from '../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import { Alert, Button, Field, Icon, Input, PasswordInput } from '../../ms/index.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
 import styles from './AdminLogin.module.css';

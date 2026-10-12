@@ -17,7 +17,7 @@
 //
 // CACHE_NAME se zvedá ručně. Při jeho změně aktivace smaže všechny starší keše,
 // takže se z prohlížečů uklidí i data, která tam nakešovaly starší verze.
-const CACHE_NAME = 'jmlp-shell-v7';
+const CACHE_NAME = 'jmlp-shell-v8';
 const SHELL_URL = '/index.html';
 
 // Náhledy tištěných listin (src/pdf/previewUrl.js). Stránka do téhle keše
@@ -42,8 +42,8 @@ const PREVIEW_PATH = '/pdf-preview/';
  */
 const CACHEABLE_PATHS = [
   /^\/assets\//,
-  /^\/favicon(-\d+x\d+)?\.(ico|png)$/,
-  /^\/apple-touch-icon\.png$/
+  /^\/favicon(-\d+x\d+)?\.(ico|png|svg)$/,
+  /^\/(apple-touch-icon|icon-192|icon-512|icon-maskable-512)\.png$/
 ];
 
 const isCacheable = (pathname) => CACHEABLE_PATHS.some((pattern) => pattern.test(pathname));

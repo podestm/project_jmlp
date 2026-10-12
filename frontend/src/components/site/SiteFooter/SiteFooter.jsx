@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import znak from '../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import svazLogo from '../../../assets/images/svaz_logo_88.png';
 import { Container } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';

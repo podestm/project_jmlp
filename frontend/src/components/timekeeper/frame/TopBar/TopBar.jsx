@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import znak from '../../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../../assets/images/jmlp-znak-inverse.svg';
 import { useSeasonInfo } from '../../../site/siteInfo.js';
 import RaceSwitcher from '../RaceSwitcher/RaceSwitcher.jsx';
 import StatusChips from '../StatusChips/StatusChips.jsx';

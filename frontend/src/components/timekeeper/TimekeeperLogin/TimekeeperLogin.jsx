@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../config/timekeeperAuth.jsx';
 import { useOnline } from '../../../hooks/useOnline.js';
 import trat from '../../../assets/images/trat.jpg';
-import znak from '../../../assets/images/jmlp_znak_88.png';
+import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import { Alert, Button, Field, Icon, Input, Paska, PasswordInput } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
