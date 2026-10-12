@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  configProblems, createdMessage, formatSlcrDate, formatStartTime, planRow, planSummary, readSlcrChoice,
+  categoryState, chipMark, configProblems, createConfirm, createdMessage, missingCount, publishConfirm, racersText, formatSlcrDate, formatStartTime, planRow, planSummary, readSlcrChoice,
   sentMessage, slcrErrorText, storeSlcrChoice,
 } from './slcr.js';
 
@@ -49,7 +49,7 @@ describe('slcr', () => {
         { action: 'keep' },
       ],
     });
-    expect(summary).toEqual({ total: 3, toCreate: 1, toCodex: 1, changes: 2, manual: true, startTime: '10:00' });
+    expect(summary).toEqual({ total: 3, toCreate: 1, toCodex: 1, kept: 1, skipped: 0, changes: 2, manual: true, startTime: '10:00' });
     expect(planSummary(null)).toMatchObject({ total: 0, changes: 0, manual: false });
   });
 
@@ -66,5 +66,42 @@ describe('slcr', () => {
     expect(readSlcrChoice(8)).toEqual({});
     localStorage.setItem('slcr_event_9', '{rozbité');
     expect(readSlcrChoice(9)).toEqual({});
+  });
+
+  it('přeskočená kategorie se nepočítá do změn', () => {
+    const summary = planSummary({ items: [
+      { category_id: 1, action: 'create' }, { category_id: 2, action: 'skip', reason: 'Na startovní listině nikdo není' },
+      { category_id: 3, action: 'keep' },
+    ] });
+    expect(summary).toMatchObject({ changes: 1, kept: 1, skipped: 1 });
+    expect(planRow({ category_id: 2, name: 'Myšáci', action: 'skip', reason: 'Nikdo' })).toMatchObject({ action: 'skip', reason: 'Nikdo' });
+  });
+
+  it('zkušební režim je v potvrzení', () => {
+    const ask = createConfirm({ event: { name: 'Akce' } }, { toCreate: 2, toCodex: 0, dryRun: true });
+    expect(ask.message).toContain('Zkušební režim');
+  });
+
+  it('stav kategorie slovy', () => {
+    expect(categoryState(null)).toMatchObject({ key: 'none', label: 'Neodesláno' });
+    expect(categoryState({ slcr_state: 'Draft' }).label).toBe('V evidenci, nezveřejněno');
+    const at = new Date(2026, 9, 12, 9, 7).toISOString();
+    expect(categoryState({ slcr_state: 'Published', published_at: at }).label).toBe('Zveřejněno v 9:07');
+    expect(categoryState({ slcr_state: 'Published' }).label).toBe('Zveřejněno');
+  });
+
+  it('připravenost a počty česky', () => {
+    expect(missingCount([{ time_sum: 40 }, { time_sum: null, status: 'DNS' }, { time_sum: null }])).toBe(1);
+    expect([1, 3, 5].map(racersText)).toEqual(['1 závodník', '3 závodníci', '5 závodníků']);
+  });
+
+  it('značka čipu a potvrzení opravy', () => {
+    expect(chipMark({ slcr_state: 'Published' })).toMatchObject({ icon: 'check', tone: 'done' });
+    expect(chipMark({ slcr_state: 'Checked' })).toMatchObject({ tone: 'pending' });
+    expect(chipMark({ slcr_state: null })).toBeNull();
+    const ask = publishConfirm({ categoryName: 'Žáci', eventName: 'JMLP Hlubočky', correction: true });
+    expect(ask.title).toBe('Opravit výsledky kategorie Žáci v SLČR?');
+    expect(ask.message).toContain('„JMLP Hlubočky“');
+    expect(ask.message).toContain('nahradí');
   });
 });

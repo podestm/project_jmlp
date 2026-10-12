@@ -36,6 +36,7 @@ export default function SlcrPlanTable({ items, className }) {
                   <span className={styles.status}>
                     <Badge size="sm" tone={action.tone}>{action.label}</Badge>
                     {row.slcrName && <span className={styles.slcrName}>{`jako ${row.slcrName}`}</span>}
+                    {row.reason && <span className={styles.slcrName}>{row.reason}</span>}
                   </span>
                 </td>
               </tr>

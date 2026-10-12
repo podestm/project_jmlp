@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { Icon, VisuallyHidden } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import styles from './CategoryChips.module.css';
 
@@ -7,7 +8,11 @@ import styles from './CategoryChips.module.css';
  * tlačítek „název počet“. Vybraná je plná navy a má aria-pressed – výběr
  * nenese jen barva.
  *
- * @param {Array<{value: string, label: string, count: number}>} options
+ * Volitelná značka u čipu (mark) – např. stav v evidenci SLČR: ikona
+ * a skrytý text pro čtečku, význam nikdy nenese jen barva.
+ *
+ * @param {Array<{value: string, label: string, count: number,
+ *   mark?: {icon: string, label: string, tone?: 'done'|'pending'}}>} options
  * @param {string} value
  * @param {(value: string) => void} onChange
  * @param {'sm'|'md'} [size] sm v zadávání časů (36 px), md ve výsledcích (48 px)
@@ -28,6 +33,12 @@ export default function CategoryChips({ options, value, onChange, size = 'md', c
           >
             {option.label}
             <span className={styles.count}>{option.count}</span>
+            {option.mark && (
+              <span className={cx(styles.mark, styles[option.mark.tone])} title={option.mark.label}>
+                <Icon name={option.mark.icon} size={14} />
+                <VisuallyHidden>{`, ${option.mark.label}`}</VisuallyHidden>
+              </span>
+            )}
           </button>
         ))}
       </div>

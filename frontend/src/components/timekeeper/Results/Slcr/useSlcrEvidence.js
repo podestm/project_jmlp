@@ -70,12 +70,12 @@ export function useSlcrEvidence({ raceId, hasResults, confirm }) {
 
   // Zápis do ostré evidence – vždy až po potvrzení.
   const createRaces = async () => {
-    if (!await confirm(createConfirm(plan, planSummary(plan)))) return;
+    if (!await confirm(createConfirm(plan, { ...planSummary(plan), dryRun }))) return;
     await createRacesNow();
   };
   const sendResults = async () => {
     const eventName = plan?.event?.name || events?.find((event) => String(event.id) === eventId)?.name;
-    if (!await confirm(sendConfirm(eventName))) return;
+    if (!await confirm(sendConfirm(eventName, dryRun))) return;
     await sendResultsNow();
   };
 
@@ -92,6 +92,7 @@ export function useSlcrEvidence({ raceId, hasResults, confirm }) {
     setMessage({ type: 'success', text: sentMessage(data) });
   });
 
+  const dryRun = Boolean(status?.dry_run);
   const problems = configProblems(status);
   const configured = Boolean(status) && problems.length === 0;
   const summary = planSummary(plan);
@@ -108,6 +109,7 @@ export function useSlcrEvidence({ raceId, hasResults, confirm }) {
 
   return {
     status,
+    dryRun,
     problems,
     configured,
     disciplines: status?.disciplines?.length ? status.disciplines : null,

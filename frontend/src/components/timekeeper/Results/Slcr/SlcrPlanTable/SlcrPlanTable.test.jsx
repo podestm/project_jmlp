@@ -29,4 +29,11 @@ describe('SlcrPlanTable', () => {
     render(<SlcrPlanTable items={ITEMS} />);
     expect(screen.getByRole('region', { name: 'Náhled závodů v akci' })).toBeInTheDocument();
   });
+
+  it('prázdnou kategorii ukáže jako nezaloženou i s důvodem', () => {
+    render(<SlcrPlanTable items={[{ category_id: 15, name: 'Myšáci', action: 'skip', reason: 'Na startovní listině nikdo není' }]} />);
+    const row = screen.getAllByRole('row')[1];
+    expect(within(row).getByText('Nezaloží se')).toBeInTheDocument();
+    expect(within(row).getByText('Na startovní listině nikdo není')).toBeInTheDocument();
+  });
 });

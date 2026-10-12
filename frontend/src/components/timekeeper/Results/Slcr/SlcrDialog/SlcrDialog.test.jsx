@@ -79,4 +79,10 @@ describe('SlcrDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Zavřít' }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('zkušební režim hlásí trvale nahoře', async () => {
+    mockGet({ ...STATUS, dry_run: true });
+    render(<SlcrDialog race={RACE} raceId="7" hasResults onClose={() => {}} />);
+    expect(await screen.findByText('Zkušební režim – do evidence SLČR se nic neposílá')).toBeInTheDocument();
+  });
 });

@@ -62,3 +62,28 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
+
+/* Značka stavu (SLČR): kroužek s ikonou, na vybraném čipu obrácené barvy. */
+.mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
+.done {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.pending {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.chip[aria-pressed='true'] .mark {
+  box-shadow: 0 0 0 1.5px var(--ms-on-dark);
+}

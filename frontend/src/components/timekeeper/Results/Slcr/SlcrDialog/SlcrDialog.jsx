@@ -3,7 +3,7 @@ import SlcrEventForm from '../SlcrEventForm/SlcrEventForm.jsx';
 import SlcrPlanTable from '../SlcrPlanTable/SlcrPlanTable.jsx';
 import SlcrStep from '../SlcrStep/SlcrStep.jsx';
 import { useConfirm } from '../../../../../hooks/useConfirm.jsx';
-import { formatSlcrDate } from '../slcr.js';
+import { DRY_RUN_TEXT, formatSlcrDate } from '../slcr.js';
 import { useSlcrEvidence } from '../useSlcrEvidence.js';
 import styles from './SlcrDialog.module.css';
 
@@ -28,7 +28,8 @@ const planNote = (slcr) => {
     summary.startTime && `start ${summary.startTime}`,
     summary.toCreate && `založí se ${summary.toCreate}`,
     summary.toCodex && `kodex se doplní u ${summary.toCodex}`,
-    `${summary.total - summary.changes} z ${summary.total} už v akci je`,
+    summary.kept && `${summary.kept} už v akci je`,
+    summary.skipped && `${summary.skipped} bez závodníků se nezaloží`,
   ].filter(Boolean).join(' · ');
 };
 
@@ -55,6 +56,7 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
       title="Závody a výsledky v evidenci"
       footer={<Button size="sm" data-cancel disabled={Boolean(busy)} onClick={() => onClose('button')}>Zavřít</Button>}
     >
+      {slcr.dryRun && <Alert type="info" compact title={DRY_RUN_TEXT}>Závody se nezaloží a výsledky se neodešlou – aplikace jen předvede, co by se stalo.</Alert>}
       {slcr.problems.length > 0 && (
         <Alert type="warning" compact title="SLČR není na serveru nastavené">
           {`Chybí ${slcr.problems.join(' a ')}. Bez nich nejde akce načíst, závody založit ani výsledky odeslat – doplní je správce serveru do secret/.env.`}
