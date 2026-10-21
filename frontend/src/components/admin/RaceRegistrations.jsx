@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AdminAPI } from '../../config/api.js';
 import Alert from '../ui/Alert.jsx';
@@ -11,6 +11,8 @@ export default function RaceRegistrations() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [clubFilter, setClubFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   useEffect(() => {
     loadRaceRegistrations();
@@ -35,6 +37,29 @@ export default function RaceRegistrations() {
       setLoading(false);
     }
   };
+
+  // Volby filtrů z přihlášených: kluby abecedně, kategorie v pořadí závodu
+  // (nejmladší první, ženy před muži).
+  const clubOptions = useMemo(() => (
+    [...new Set(registrations.map((r) => r.club_name).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'cs'))
+  ), [registrations]);
+  const categoryOptions = useMemo(() => {
+    const byId = new Map();
+    registrations.forEach((r) => {
+      const key = r.category_id == null ? 'none' : String(r.category_id);
+      if (!byId.has(key)) {
+        byId.set(key, { value: key, label: r.category_name || 'Bez kategorie', order: r.category_order ?? 9999 });
+      }
+    });
+    return [...byId.values()].sort((a, b) => a.order - b.order);
+  }, [registrations]);
+
+  const filtered = registrations.filter((r) => (
+    (!clubFilter || r.club_name === clubFilter)
+    && (!categoryFilter || (r.category_id == null ? 'none' : String(r.category_id)) === categoryFilter)
+  ));
+  const filtersActive = Boolean(clubFilter || categoryFilter);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -150,6 +175,54 @@ export default function RaceRegistrations() {
               </h5>
             </div>
             <div className="card-body">
+              {registrations.length > 0 && (
+                <div className="row g-2 align-items-end mb-3">
+                  <div className="col-12 col-md-4">
+                    <label className="form-label small mb-1" htmlFor="registrations-club">
+                      <i className="bi bi-buildings me-1"></i>Klub
+                    </label>
+                    <select
+                      id="registrations-club"
+                      className="form-select form-select-sm"
+                      value={clubFilter}
+                      onChange={(e) => setClubFilter(e.target.value)}
+                    >
+                      <option value="">Všechny kluby</option>
+                      {clubOptions.map((club) => <option key={club} value={club}>{club}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-4">
+                    <label className="form-label small mb-1" htmlFor="registrations-category">
+                      <i className="bi bi-tag me-1"></i>Kategorie
+                    </label>
+                    <select
+                      id="registrations-category"
+                      className="form-select form-select-sm"
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                      <option value="">Všechny kategorie</option>
+                      {categoryOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-4 d-flex align-items-center gap-2">
+                    {filtersActive && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => { setClubFilter(''); setCategoryFilter(''); }}
+                      >
+                        <i className="bi bi-x-circle me-1"></i>Zrušit
+                      </button>
+                    )}
+                    <small className="text-muted">
+                      Zobrazeno {filtered.length} z {registrations.length}
+                    </small>
+                  </div>
+                </div>
+              )}
               {registrations.length === 0 ? (
                 <div className="text-center text-muted py-4">
                   <i className="bi bi-info-circle fs-1"></i>
@@ -165,13 +238,14 @@ export default function RaceRegistrations() {
                         <th>Příjmení</th>
                         <th>Pohlaví</th>
                         <th>Ročník</th>
+                        <th>Kategorie</th>
                         <th>SLČR ID</th>
                         <th>Klub</th>
                         <th>Registrován</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {registrations.map((registration, _index) => (
+                      {filtered.map((registration) => (
                         <tr key={registration.registration_id}>
                           <td>
                             <strong>{registration.firstName}</strong>
@@ -185,6 +259,7 @@ export default function RaceRegistrations() {
                             </span>
                           </td>
                           <td>{registration.birthYear}</td>
+                          <td>{registration.category_name || <span className="text-muted">-</span>}</td>
                           <td>
                             <code>{registration.idSlcr || '-'}</code>
                           </td>

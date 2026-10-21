@@ -1165,3 +1165,23 @@ def test_jiny_rocnik_zalozi_noveho_zavodnika(client, db):
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
     assert sorted(z.year for z in db.query(models.Racer).filter(models.Racer.surname == "Junova")) == [2016, 2022]
+
+
+def test_seznam_prihlasenych_ma_kategorii_zeny_a_muzi_zvlast(client, db, admin_headers):
+    """Kategorie pro filtr v administraci - podle ročníku a pohlaví."""
+    zavod = _zavod(db)
+    for name, sex in (("Přípravka dívky", 2), ("Přípravka chlapci", 1)):
+        db.add(models.Category(name="U10", display_name=name, min_birth_year=2017,
+                               max_birth_year=2018, sex=sex, active=True))
+    db.commit()
+    divka = _zavodnik(db, name="Anna", surname="A", year=2017, sex=2)
+    chlapec = _zavodnik(db, name="Petr", surname="B", year=2018, sex=1)
+    dospely = _zavodnik(db, name="Karel", surname="C", year=1980, sex=1)
+    for zavodnik in (divka, chlapec, dospely):
+        _registrace(db, zavod.id, zavodnik.id)
+
+    odpoved = client.get(f"/api/admin/races/{zavod.id}/registrations", headers=admin_headers)
+
+    assert odpoved.status_code == 200
+    kategorie = {r["firstName"].strip(): r["category_name"] for r in odpoved.json()}
+    assert kategorie == {"Anna": "Přípravka dívky", "Petr": "Přípravka chlapci", "Karel": None}

@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 from ...database import get_db
 from ... import models, schemas, auth
-from ...utils import csv_safe
+from ...utils import category_display_name, csv_safe
 
 router = APIRouter(tags=["admin-registrations"])
 
@@ -48,9 +48,22 @@ def get_race_registrations(
     """)
     
     registrations = db.execute(query, {"race_id": race_id}).fetchall()
-    
+
+    # Kategorie podle ročníku a pohlaví - stejné pravidlo jako při zakládání
+    # závodníka (utils.get_category_snapshot_for_birth_year): kategorie pro
+    # dané pohlaví má přednost před společnou. Ženy a muži jsou zvlášť.
+    categories = db.query(models.Category).filter(models.Category.active == True).all()  # noqa: E712
+    categories.sort(key=lambda c: (-c.min_birth_year, -c.sex))
+    order = {c.id: index for index, c in enumerate(categories)}
+
+    def category_for(year, sex):
+        matches = [c for c in categories
+                   if year is not None and c.min_birth_year <= year <= c.max_birth_year and c.sex in (0, sex)]
+        return max(matches, key=lambda c: c.sex) if matches else None
+
     result = []
     for reg in registrations:
+        category = category_for(reg.birthYear, reg.sex)
         result.append({
             "registration_id": reg.registration_id,
             "race_id": reg.race_id,
@@ -61,7 +74,10 @@ def get_race_registrations(
             "sex": "M" if reg.sex == 1 else ("Z" if reg.sex == 2 else ""),
             "birthYear": reg.birthYear,
             "idSlcr": reg.idSlcr,
-            "club_name": reg.club_name or ("Nový Klub" if reg.club_request_note else "Bez klubu")
+            "club_name": reg.club_name or ("Nový Klub" if reg.club_request_note else "Bez klubu"),
+            "category_id": category.id if category else None,
+            "category_name": category_display_name(category) if category else None,
+            "category_order": order.get(category.id) if category else None,
         })
     
     return result
