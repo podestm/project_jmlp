@@ -45,10 +45,10 @@ const RacerRow = React.memo(function RacerRow({ racer, onEdit, onDelete }) {
       <td>
         {racer.category_name ? (
           <span className="badge bg-info">{racer.category_name}</span>
-        ) : '-'}
+        ) : null}
       </td>
       <td>{racer.club_name || 'Bez oddílu'}</td>
-      <td><code>{racer.idSlcr || 'N/A'}</code></td>
+      <td><code>{racer.idSlcr || ''}</code></td>
       <td>
         <div className="btn-group">
           <button

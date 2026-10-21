@@ -184,7 +184,7 @@ export default function ResultsTable({ entries, showPoints = false }) {
                 <span className="fw-semibold">{entry.racer_surname} {entry.racer_name}</span>
                 <small className="text-muted ms-1">({entry.racer_year})</small>
               </td>
-              <td className="text-muted" style={{ padding: '3px 8px' }}>{entry.club_name || '—'}</td>
+              <td className="text-muted" style={{ padding: '3px 8px' }}>{entry.club_name || ''}</td>
               <td className="text-end" style={{ padding: '3px 8px', fontFamily: 'monospace' }}>{entry.status ? '—' : formatResultTime(entry.time1)}</td>
               <td className="text-end" style={{ padding: '3px 8px', fontFamily: 'monospace' }}>{entry.status ? '—' : formatResultTime(entry.time2)}</td>
               <td className="text-end fw-bold" style={{ padding: '3px 8px', fontFamily: 'monospace', fontSize: '0.9rem' }}>

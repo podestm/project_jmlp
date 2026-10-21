@@ -134,13 +134,13 @@ export default function RegisteredRacersCard({ registrations, loading, className
                           </span>
                         )}
                       </td>
-                      <td>{racer.birthYear || '-'}</td>
+                      <td>{racer.birthYear || ''}</td>
                       <td>
                         {racer.category_name
                           ? <span className="badge bg-info">{racer.category_name}</span>
-                          : '-'}
+                          : null}
                       </td>
-                      <td className="text-danger">{racer.idSlcr || '-'}</td>
+                      <td className="text-danger">{racer.idSlcr || ''}</td>
                       <td><span className="badge bg-secondary">{clubName}</span></td>
                     </tr>
                 ))}

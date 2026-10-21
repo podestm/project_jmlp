@@ -259,9 +259,9 @@ export default function RaceRegistrations() {
                             </span>
                           </td>
                           <td>{registration.birthYear}</td>
-                          <td>{registration.category_name || <span className="text-muted">-</span>}</td>
+                          <td>{registration.category_name || ''}</td>
                           <td>
-                            <code>{registration.idSlcr || '-'}</code>
+                            <code>{registration.idSlcr || ''}</code>
                           </td>
                           <td>
                             <div>

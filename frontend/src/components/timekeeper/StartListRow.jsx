@@ -42,7 +42,7 @@ const StartListRow = React.memo(function StartListRow({ entry, onEdit, onDelete,
         )}
       </td>
       <td style={{ padding: '4px 8px' }}>{entry.racer_year}</td>
-      <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || '—'}</td>
+      <td className="text-muted" style={{ padding: '4px 8px' }}>{entry.club_name || ''}</td>
       <td style={{ padding: '4px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
         {hasFlag ? '—' : (entry.time1 != null ? entry.time1.toFixed(2) : '—')}
       </td>

@@ -121,7 +121,7 @@ export default function ClubRequests() {
                                                         {req.club_request_note}
                                                     </span>
                                                 </td>
-                                                <td className="text-muted small">{req.current_club_name || '—'}</td>
+                                                <td className="text-muted small">{req.current_club_name || ''}</td>
                                                 <td>
                                                     <button
                                                         className={`btn btn-sm ${rs.open ? 'btn-secondary' : 'btn-primary'}`}
