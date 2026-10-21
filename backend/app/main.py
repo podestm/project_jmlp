@@ -4,6 +4,7 @@ from pathlib import Path
 import traceback
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
@@ -49,11 +50,22 @@ def startup_check_uploads():
         )
 
 # Custom validation error handler for debugging
+def _validation_error(error: dict) -> dict:
+    """Chyba validace do JSON: bez ctx a s českou hláškou bez "Value error, "."""
+    cleaned = {k: v for k, v in error.items() if k != "ctx"}
+    if isinstance(cleaned.get("msg"), str):
+        cleaned["msg"] = cleaned["msg"].removeprefix("Value error, ")
+    return cleaned
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(), "body": exc.body},
+        # ctx může nést výjimku (ValueError z validátoru), která do JSON nejde -
+        # bez tohohle by se z chyby 422 stala "Interní chyba serveru".
+        content={"detail": [_validation_error(error) for error in exc.errors()],
+                 "body": jsonable_encoder(exc.body)},
     )
 
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")

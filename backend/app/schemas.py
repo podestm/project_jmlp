@@ -22,6 +22,14 @@ def _reject_formula_prefix(v):
     return v
 
 
+def _empty_slcr_id(v):
+    """Starší záznamy mají místo chybějícího ID SLČR pomlčku ("-"); formulář ji
+    při úpravě pošle zpátky. Pomlčka i prázdný text = bez ID."""
+    if isinstance(v, str) and v.strip() in ('', '-'):
+        return None
+    return v.strip() if isinstance(v, str) else v
+
+
 class RacerCreate(BaseModel):
     firstName: str  # Will be mapped to 'name' field
     lastName: str   # Will be mapped to 'surname' field
@@ -29,6 +37,11 @@ class RacerCreate(BaseModel):
     birthYear: int  # Will be mapped to 'year' field
     club_id: Optional[int] = None
     idSlcr: Optional[str] = None  # Will be mapped to 'slcr_id' field
+
+    @field_validator('idSlcr', mode='before')
+    @classmethod
+    def empty_slcr_id(cls, v):
+        return _empty_slcr_id(v)
 
     @field_validator('firstName', 'lastName', 'idSlcr')
     @classmethod
@@ -211,6 +224,11 @@ class RegistrationCreate(BaseModel):
     # Klub - buď ID existujícího nebo poznámka pro admina
     club_id: Optional[int] = None
     club_request_note: Optional[str] = None
+
+    @field_validator('racer_slcr_id', mode='before')
+    @classmethod
+    def empty_slcr_id(cls, v):
+        return _empty_slcr_id(v)
 
     @field_validator('racer_name', 'racer_surname', 'racer_slcr_id')
     @classmethod

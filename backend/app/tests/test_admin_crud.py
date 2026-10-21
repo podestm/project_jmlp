@@ -451,13 +451,13 @@ def test_zalozeni_zavodnika_ulozi_pole_z_formulare(client, admin_headers, db):
     assert ulozeno == ("Jan", "Novák", 2011, 1)
 
 
-def test_zavodnik_s_hodnotou_vzorce_konci_500_misto_422(klient_bez_vyjimek, admin_headers):
-    """CHYBA: validační chyba Pydantiku se nedá serializovat - viz found_bugs."""
+def test_zavodnik_s_hodnotou_vzorce_konci_422(klient_bez_vyjimek, admin_headers):
+    """Dřív 500 - validační chyba Pydantiku se nedala serializovat."""
     response = klient_bez_vyjimek.post("/api/admin/racers", headers=admin_headers, json={
         "firstName": "=SUM(A1)", "lastName": "Novák", "sex": 1, "birthYear": 2011,
     })
 
-    assert response.status_code == 500
+    assert response.status_code == 422
 
 
 def test_uprava_zavodnika_ulozi_vsechna_pole(client, admin_headers, db):
@@ -784,15 +784,14 @@ def test_jiz_vyrizenou_zadost_nelze_vyridit_znovu(client, admin_headers, db):
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club") == 1
 
 
-def test_vyrizeni_zadosti_bez_klubu_konci_500_misto_422(klient_bez_vyjimek, admin_headers, db):
-    """CHYBA: chybová odpověď validace se nedá serializovat - viz found_bugs."""
+def test_vyrizeni_zadosti_bez_klubu_konci_422(klient_bez_vyjimek, admin_headers, db):
+    """Dřív 500 - chybová odpověď validace se nedala serializovat."""
     registrace, _ = _zadost_o_klub(db)
 
     response = klient_bez_vyjimek.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
                                        headers=admin_headers, json={})
 
-    assert response.status_code == 500
-    assert response.json()["detail"] == "Interní chyba serveru"
+    assert response.status_code == 422
 
 
 # ===========================================================================
