@@ -323,7 +323,8 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
             rr.registered_at,
             {category_display} as category_name,
             cat.id as category_id,
-            cat.sex as category_sex
+            cat.sex as category_sex,
+            cat.min_birth_year as category_min_year
         FROM fuj_jmlp_race_registration rr
         JOIN fuj_jmlp_racer r ON rr.racer_id = r.id
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
@@ -345,7 +346,8 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
         
         # Přidáme kategorii do setu (název už je zobrazovaný, viz category_display_sql)
         if row.category_name:
-            categories.add((row.category_id, row.category_name))
+            categories.add((row.category_id, row.category_name,
+                            row.category_min_year or 0, row.category_sex or 0))
         
         clubs[club_name]["racers"].append({
             "firstName": row.firstName,
@@ -372,8 +374,12 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
     # Sort by racer count descending, then by club name
     club_list.sort(key=lambda x: (-x["racer_count"], x["club_name"]))
     
-    # Seznam kategorií pro filtry
-    category_list = [{"id": cat_id, "name": cat_name} for cat_id, cat_name in sorted(categories, key=lambda x: x[1])]
+    # Seznam kategorií pro filtry - v pořadí závodu: nejmladší první, ženy
+    # před muži (stejně jako category_order.default_category_order).
+    category_list = [
+        {"id": cat_id, "name": cat_name}
+        for cat_id, cat_name, _, _ in sorted(categories, key=lambda x: (-x[2], -x[3], x[1]))
+    ]
     
     return {
         "clubs": club_list,

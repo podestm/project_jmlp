@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import LoadingState from '../ui/LoadingState.jsx';
 
 /**
@@ -10,6 +10,27 @@ import LoadingState from '../ui/LoadingState.jsx';
  *   flush against the form; hardcoding either would change one page's spacing.
  */
 export default function RegisteredRacersCard({ registrations, loading, className = '' }) {
+  const [clubFilter, setClubFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+
+  // Řádky tabulky (závodník + jeho klub) a volby filtrů. Kategorie chodí ze
+  // serveru v pořadí závodu, kluby abecedně.
+  const rows = useMemo(() => (registrations?.clubs || []).flatMap((club) => (
+    club.racers.map((racer, index) => ({ racer, clubName: club.club_name, key: `${club.club_name}-${index}` }))
+  )), [registrations]);
+  const clubOptions = useMemo(() => (
+    (registrations?.clubs || []).map((club) => club.club_name).sort((a, b) => a.localeCompare(b, 'cs'))
+  ), [registrations]);
+  const categoryOptions = registrations?.categories || [];
+  const hasUncategorized = rows.some(({ racer }) => racer.category_id == null);
+
+  const visibleRows = rows.filter(({ racer, clubName }) => (
+    (!clubFilter || clubName === clubFilter)
+    && (!categoryFilter
+      || (categoryFilter === 'none' ? racer.category_id == null : String(racer.category_id) === categoryFilter))
+  ));
+  const filtersActive = Boolean(clubFilter || categoryFilter);
+
   return (
     <div className={`card ${className}`.trim()} style={{
       borderRadius: '12px',
@@ -39,6 +60,55 @@ export default function RegisteredRacersCard({ registrations, loading, className
             <p className="mt-2">Zatím není nikdo přihlášen</p>
           </div>
         ) : (
+          <>
+          <div className="row g-3 align-items-end mb-3">
+            <div className="col-md-5">
+              <label className="form-label" htmlFor="registered-club-filter">
+                <i className="bi bi-buildings me-1"></i>
+                Klub
+              </label>
+              <select
+                id="registered-club-filter"
+                className="form-select"
+                value={clubFilter}
+                onChange={(e) => setClubFilter(e.target.value)}
+              >
+                <option value="">Všechny kluby</option>
+                {clubOptions.map((club) => <option key={club} value={club}>{club}</option>)}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label" htmlFor="registered-category-filter">
+                <i className="bi bi-tag me-1"></i>
+                Kategorie
+              </label>
+              <select
+                id="registered-category-filter"
+                className="form-select"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="">Všechny kategorie</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={String(category.id)}>{category.name}</option>
+                ))}
+                {hasUncategorized && <option value="none">Bez kategorie</option>}
+              </select>
+            </div>
+            <div className="col-md-3 d-flex align-items-center gap-2">
+              {filtersActive && (
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => { setClubFilter(''); setCategoryFilter(''); }}
+                >
+                  <i className="bi bi-x-circle me-1"></i>
+                  Zrušit
+                </button>
+              )}
+              <small className="text-muted">Zobrazeno {visibleRows.length} z {rows.length}</small>
+            </div>
+          </div>
           <div className="table-responsive">
             <table className="table table-hover">
               <thead className="table-light">
@@ -53,9 +123,8 @@ export default function RegisteredRacersCard({ registrations, loading, className
                 </tr>
               </thead>
               <tbody>
-                {registrations.clubs.flatMap(club =>
-                  club.racers.map((racer, index) => (
-                    <tr key={`${club.club_name}-${index}`}>
+                {visibleRows.map(({ racer, clubName, key }) => (
+                    <tr key={key}>
                       <td>{racer.firstName}</td>
                       <td>{racer.lastName}</td>
                       <td>
@@ -72,13 +141,13 @@ export default function RegisteredRacersCard({ registrations, loading, className
                           : '-'}
                       </td>
                       <td className="text-danger">{racer.idSlcr || '-'}</td>
-                      <td><span className="badge bg-secondary">{club.club_name}</span></td>
+                      <td><span className="badge bg-secondary">{clubName}</span></td>
                     </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>
