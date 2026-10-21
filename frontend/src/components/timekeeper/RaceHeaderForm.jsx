@@ -111,7 +111,7 @@ export default function RaceHeaderForm() {
           gates_count: run.gates_count === '' ? null : Number(run.gates_count),
           conditions: String(run.conditions).trim() || null,
           start_time: String(run.start_time).trim() || null,
-          course_length_m: run.course_length_m === '' ? null : Number(run.course_length_m)
+          course_length_m: String(run.course_length_m).trim() || null
         }))
       };
       const updated = await TimekeeperAPI.put(
@@ -267,16 +267,15 @@ export default function RaceHeaderForm() {
                   </div>
                   <div className="col-md-3 mb-3">
                     <label className="form-label">Délka trati</label>
-                    <div className="input-group">
-                      <input
-                        type="number"
-                        className="form-control"
-                        min="0"
-                        value={run.course_length_m}
-                        onChange={(e) => updateRun(run.run_number, 'course_length_m', e.target.value)}
-                      />
-                      <span className="input-group-text">m</span>
-                    </div>
+                    <input
+                      type="text"
+                      className="form-control"
+                      maxLength={60}
+                      placeholder="např. 400 nebo 400m, 7 stanovišť"
+                      title="Samotné číslo se vytiskne v metrech (400 → 400m), jinak se text vytiskne, jak je"
+                      value={run.course_length_m}
+                      onChange={(e) => updateRun(run.run_number, 'course_length_m', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>

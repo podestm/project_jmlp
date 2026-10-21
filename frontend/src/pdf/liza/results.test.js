@@ -35,6 +35,16 @@ describe('výsledková listina jako z LiZy', () => {
     expect(page.find((t) => t.text === '  1').base).toBeCloseTo(359.16 + TOP, 2);
   });
 
+  it('délka trati: samotné číslo v metrech, jinak text jako v LiZe', () => {
+    const lengthOf = (value) => pagesOf(buildResultsDoc({
+      header: { ...header, runs: [{ run_number: 1, course_length_m: value }] },
+      categories: [{ name: 'Myšáci dívky', entries: [finisher(1)] }]
+    }))[0].map((t) => t.text);
+    expect(lengthOf('400')).toContain('400m');
+    expect(lengthOf('400m, 7 stanovišť')).toContain('400m, 7 stanovišť');
+    expect(lengthOf('350,700,1050,1500,2000,2500 m')).toContain('350,700,1050,1500,2000,2500 m');
+  });
+
   it('dvě kola: sloupec 2. kola a údaje 2. kola v hlavičce', () => {
     const doc = buildResultsDoc({
       header, runCount: 2,
