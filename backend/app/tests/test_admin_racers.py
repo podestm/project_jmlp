@@ -229,3 +229,13 @@ def test_neplatna_hodnota_je_chyba_422_ne_500(client, db, admin_headers, kategor
     })
     assert odpoved.status_code == 422
     assert "nesmí začínat" in odpoved.json()["detail"][0]["msg"]
+
+
+def test_nula_misto_id_slcr_se_ulozi_jako_prazdne(client, db, admin_headers, kategorie):
+    racer = _zavodnik(db, slcr_id="0")
+    odpoved = client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "Novak", "sex": 1, "birthYear": 2010, "idSlcr": "0",
+    })
+    assert odpoved.status_code == 200, odpoved.text
+    db.expire_all()
+    assert db.get(models.Racer, racer.id).slcr_id is None

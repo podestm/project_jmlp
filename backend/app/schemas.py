@@ -23,9 +23,9 @@ def _reject_formula_prefix(v):
 
 
 def _empty_slcr_id(v):
-    """Starší záznamy mají místo chybějícího ID SLČR pomlčku ("-"); formulář ji
-    při úpravě pošle zpátky. Pomlčka i prázdný text = bez ID."""
-    if isinstance(v, str) and v.strip() in ('', '-'):
+    """Starší záznamy mají místo chybějícího ID SLČR pomlčku ("-") nebo nulu;
+    formulář je při úpravě pošle zpátky. Pomlčka, nula i prázdný text = bez ID."""
+    if isinstance(v, str) and (v.strip() in ('', '-') or set(v.strip()) == {'0'}):
         return None
     return v.strip() if isinstance(v, str) else v
 
