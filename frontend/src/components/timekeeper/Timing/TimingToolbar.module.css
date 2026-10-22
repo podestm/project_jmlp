@@ -68,20 +68,20 @@
 }
 
 .categories {
-  flex: 1 1 480px;
+  flex: 1 1 100%;
 }
 
 .progress {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-inline-start: auto;
   font-size: var(--ms-fs-sm);
   color: var(--ms-ink-body);
 }
 
 .bar {
-  inline-size: 180px;
+  inline-size: 120px;
   block-size: 8px;
   border: 0;
   border-radius: var(--ms-radius-pill);

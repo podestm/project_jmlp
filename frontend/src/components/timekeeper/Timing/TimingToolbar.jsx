@@ -56,6 +56,11 @@ export default function TimingToolbar({
             Kolo {activeRound === '1' ? '2' : '1'} je zamčené
           </span>
         )}
+        <div className={styles.progress}>
+          <span>Hotovo {completedCount} z {categoryFilteredLength}</span>
+          <progress className={styles.bar} max={100} value={percent} aria-label="Hotovo" />
+          <span className={styles.percent}>{percent} %</span>
+        </div>
         <span className={styles.hint}>
           Ukládá se při opuštění pole, <kbd className={styles.kbd}>Enter</kbd> na další řádek,
           {' '}<kbd className={styles.kbd}>Tab</kbd> na další pole.
@@ -64,17 +69,11 @@ export default function TimingToolbar({
 
       <div className={styles.row}>
         <CategoryChips
-          size="sm"
           className={styles.categories}
           options={categoryOptions}
           value={selectedCategory}
           onChange={setSelectedCategory}
         />
-        <div className={styles.progress}>
-          <span>Hotovo {completedCount} z {categoryFilteredLength}</span>
-          <progress className={styles.bar} max={100} value={percent} aria-label="Hotovo" />
-          <span className={styles.percent}>{percent} %</span>
-        </div>
       </div>
 
       <div className={styles.row}>

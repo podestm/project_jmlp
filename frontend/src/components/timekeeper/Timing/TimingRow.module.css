@@ -5,8 +5,8 @@
 
 .bib {
   display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--ms-space-2);
 }
 
 .system {
@@ -45,22 +45,23 @@
   color: var(--ms-ink-body);
 }
 
-/* Pole časů K1/K2 (dřív admin.css). Bez minimální šířky ustupovalo pole při
-   užší tabulce jako první a z času „38.42“ zbylo „38.“ – na 1280 px měl
-   sloupec 23 px. Šipky pro krokování čísla zabíraly další místo a při
-   zapisování časů nejsou k ničemu. */
+/* Pole časů K1/K2. Minimální šířka pojme i čas nad 100 s („131.08“) celý –
+   7 znaků + vnitřní okraje + rámeček; bez ní pole ustupovalo jako první
+   a z času zbylo „38.“. Výška 36 px místo dotykových 44 px: na tabletu se
+   ťuká do celé buňky a nižší řádek ukáže víc závodníků najednou. Šipky
+   pro krokování čísla při zapisování časů nejsou k ničemu. */
 .time {
   box-sizing: border-box;
   inline-size: 100%;
-  min-inline-size: calc(6ch + 14px);
-  block-size: var(--ms-target);
+  min-inline-size: calc(7ch + 2 * var(--ms-space-2) + 3px);
+  block-size: 36px;
   padding: 0 var(--ms-space-2);
   border: 1.5px solid var(--ms-line-control);
   border-radius: var(--ms-radius-control);
   background: var(--ms-surface-card);
   font-family: var(--ms-font-mono);
   font-weight: 600;
-  font-size: var(--ms-fs-xl);
+  font-size: var(--ms-fs-lg);
   font-variant-numeric: tabular-nums;
   color: var(--ms-ink);
   appearance: textfield;
@@ -95,8 +96,8 @@
 }
 
 .flag {
-  min-inline-size: var(--ms-target);
-  block-size: var(--ms-target);
+  min-inline-size: 40px;
+  block-size: 36px;
   padding: 0 6px;
   border: 1.5px solid var(--ms-line-control);
   border-radius: var(--ms-radius-control);
@@ -126,7 +127,7 @@
 }
 
 .sum {
-  font-size: var(--ms-fs-xl);
+  font-size: var(--ms-fs-lg);
   white-space: nowrap;
 }
 
