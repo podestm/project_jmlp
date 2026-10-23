@@ -115,7 +115,7 @@ def test_priznak_rusi_celkovy_cas(client, db, polozky, timekeeper_headers, prizn
     assert getattr(polozky[0], priznak) is True
 
 
-@pytest.mark.parametrize("nula", [0, 0.0, "0.00"])
+@pytest.mark.parametrize("nula", [0, 0.0, "0.00", -1])
 def test_nulovy_cas_se_ulozi_jako_prazdny(client, db, polozky, timekeeper_headers, nula):
     odpoved = client.put(
         f"/api/timekeeper/start-list/{polozky[0].id}/time",

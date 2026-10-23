@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { setLetter } from '../../../utils/raceNumbers.js';
 
 /**
  * Sady startovních čísel a jejich čísla (TkCisla). Sady platí pro celou
@@ -13,7 +14,7 @@ export const useRaceNumbers = ({ confirm }) => {
   const [message, setMessage] = useState(null);
   const [showSetForm, setShowSetForm] = useState(false);
   const [setFormData, setSetFormData] = useState({
-    set_number: '', actual_from: '1', actual_to: '200', display_from: '', set_color: 'rose',
+    set_number: '', actual_from: '1', actual_to: '200', set_color: 'rose',
   });
   const [creating, setCreating] = useState(false);
 
@@ -26,7 +27,7 @@ export const useRaceNumbers = ({ confirm }) => {
   // Add single number form
   const [showAddNumber, setShowAddNumber] = useState(false);
   const [addNumberData, setAddNumberData] = useState({
-    actual_number: '', display_number: '',
+    actual_number: '',
   });
 
   useEffect(() => { loadSets(); }, []);
@@ -38,10 +39,9 @@ export const useRaceNumbers = ({ confirm }) => {
       setSets(data);
       if (data.length > 0) {
         const maxSet = Math.max(...data.map(s => s.set_number));
-        const maxDisplay = Math.max(...data.map(s => s.max_display));
-        setSetFormData(prev => ({ ...prev, set_number: String(maxSet + 1), display_from: String(maxDisplay + 1) }));
+        setSetFormData(prev => ({ ...prev, set_number: String(maxSet + 1) }));
       } else {
-        setSetFormData(prev => ({ ...prev, set_number: '1', display_from: '1' }));
+        setSetFormData(prev => ({ ...prev, set_number: '1' }));
       }
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst sady čísel' });
@@ -73,10 +73,7 @@ export const useRaceNumbers = ({ confirm }) => {
       setShowAddNumber(false);
       const set = sets.find(s => s.set_number === setNumber);
       if (set) {
-        setAddNumberData({
-          actual_number: String(set.max_actual + 1),
-          display_number: String(set.max_display + 1),
-        });
+        setAddNumberData({ actual_number: String(set.max_actual + 1) });
       }
     }
   };
@@ -89,7 +86,6 @@ export const useRaceNumbers = ({ confirm }) => {
         set_number: parseInt(setFormData.set_number),
         actual_from: parseInt(setFormData.actual_from),
         actual_to: parseInt(setFormData.actual_to),
-        display_from: parseInt(setFormData.display_from),
         set_color: setFormData.set_color,
       });
       setMessage({ type: 'success', text: result.message });
@@ -129,7 +125,7 @@ export const useRaceNumbers = ({ confirm }) => {
 
   const deleteSet = async (setNumber) => {
     const confirmed = await confirm({
-      title: `Smazat sadu č. ${setNumber}?`,
+      title: `Smazat sadu ${setLetter(setNumber)}?`,
       message: 'Smažou se všechna čísla sady; ve startovních listinách zůstanou řádky bez čísla. Akci nelze vzít zpět.',
       confirmLabel: 'Smazat sadu',
       danger: true,
@@ -152,15 +148,11 @@ export const useRaceNumbers = ({ confirm }) => {
       const result = await TimekeeperAPI.post('/api/timekeeper/race-numbers', {
         set_number: expandedSet,
         actual_number: parseInt(addNumberData.actual_number),
-        display_number: parseInt(addNumberData.display_number),
       });
       setMessage({ type: 'success', text: result.message });
       loadNumbers(expandedSet);
       loadSets();
-      setAddNumberData({
-        actual_number: String(parseInt(addNumberData.actual_number) + 1),
-        display_number: String(parseInt(addNumberData.display_number) + 1),
-      });
+      setAddNumberData({ actual_number: String(parseInt(addNumberData.actual_number) + 1) });
     } catch (err) {
       setMessage({ type: 'danger', text: err.message || 'Nelze přidat číslo' });
     }

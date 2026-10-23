@@ -17,6 +17,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from app import auth, models
+from app.services.race_number_codes import race_number_code
 from app.utils import get_current_season_id
 
 AKTUALNI_SEZONA = get_current_season_id()
@@ -88,14 +89,14 @@ def _prihlaska(db, zavod, zavodnik, registered_at=None):
 
 def _cisla(db, set_number=1, actual_from=1, actual_to=10, display_from=1,
            color="rose", active=True):
-    """Sada dresových čísel. actual = číslo na dresu, display = systémové číslo."""
+    """Sada dresových čísel. actual = číslo na dresu, display = označení "B12"
+    (písmeno sady + dres); display_from zůstává jen kvůli starým voláním."""
     vytvorena = []
     for posun, actual in enumerate(range(actual_from, actual_to + 1)):
         cislo = models.RaceNumber(
             set_number=set_number,
             set_color=color,
-            actual_number=actual,
-            display_number=display_from + posun,
+            display_number=race_number_code(set_number, actual),
             is_active=active,
         )
         db.add(cislo)
@@ -115,7 +116,6 @@ def _polozka(db, zavod, zavodnik, start_number=None, cislo=None, category_id=Non
         category_id=category_id,
         start_number=start_number,
         race_number_id=cislo.id if cislo else None,
-        race_number_actual=cislo.actual_number if cislo else None,
         race_number_display=cislo.display_number if cislo else None,
         racer_name=jmeno if jmeno is not None else zavodnik.name,
         racer_surname=prijmeni if prijmeni is not None else zavodnik.surname,
@@ -317,7 +317,7 @@ def test_generovani_prida_jen_nove_prihlaseneho(client, db, zavod, kategorie,
     radky = _podle_prijmeni(_startovka(client, zavod, timekeeper_headers))
     assert radky["Pozdni"]["start_number"] == 5
     # Navazuje i dresovým číslem - čísla 1-4 už jsou v tomto závodě obsazená.
-    assert radky["Pozdni"]["race_number_display"] == 5
+    assert radky["Pozdni"]["race_number_display"] == "A5"
 
 
 def test_generovani_bez_prihlasenych_nic_nevytvori(client, db, zavod, kategorie,
@@ -347,10 +347,10 @@ def test_generovani_prideluje_cisla_od_nejnizsi_sady(client, db, zavod, kategori
                 json={}, headers=timekeeper_headers)
 
     radky = _podle_prijmeni(_startovka(client, zavod, timekeeper_headers))
-    assert [radky[p]["race_number_display"] for p in ("Holcicka", "Klucik", "Zenska")] == [1, 2, 3]
+    assert [radky[p]["race_number_display"] for p in ("Holcicka", "Klucik", "Zenska")] == ["A1", "A2", "A3"]
     ctvrty = radky["Muzsky"]
     # Sada 1 došla, pokračuje se sadou 2 - dres má zase číslo 1, systémové 201.
-    assert (ctvrty["race_number_actual"], ctvrty["race_number_display"]) == (1, 201)
+    assert (ctvrty["race_number_actual"], ctvrty["race_number_display"]) == (1, "B1")
     assert ctvrty["set_color"] == "blue"
 
 
@@ -365,9 +365,9 @@ def test_generovani_preskoci_deaktivovana_cisla(client, db, zavod, kategorie,
                 json={}, headers=timekeeper_headers)
 
     radky = _podle_prijmeni(_startovka(client, zavod, timekeeper_headers))
-    assert radky["Holcicka"]["race_number_display"] == 2
-    assert radky["Klucik"]["race_number_display"] == 4
-    assert radky["Zenska"]["race_number_display"] == 5
+    assert radky["Holcicka"]["race_number_display"] == "A2"
+    assert radky["Klucik"]["race_number_display"] == "A4"
+    assert radky["Zenska"]["race_number_display"] == "A5"
     # Aktivní čísla došla dřív než závodníci - poslední zůstane bez dresu.
     assert radky["Muzsky"]["race_number_display"] is None
 
@@ -380,8 +380,8 @@ def test_generovani_bez_dostatku_cisel_necha_zbytek_bez_dresu(
                 json={}, headers=timekeeper_headers)
 
     radky = _podle_prijmeni(_startovka(client, zavod, timekeeper_headers))
-    assert radky["Holcicka"]["race_number_display"] == 1
-    assert radky["Klucik"]["race_number_display"] == 2
+    assert radky["Holcicka"]["race_number_display"] == "A1"
+    assert radky["Klucik"]["race_number_display"] == "A2"
     # Na poslední dva se nedostalo, ale na startovku patří i tak.
     assert radky["Zenska"]["race_number_display"] is None
     assert radky["Muzsky"]["race_number_display"] is None
@@ -474,7 +474,7 @@ def test_vypis_obsahuje_barvu_sady_a_priznaky_casomery(client, db, zavod, katego
 
     assert radek["set_color"] == "emerald"
     assert radek["race_number_actual"] == 7
-    assert radek["display_number"] == 7
+    assert radek["display_number"] == "A7"
     assert radek["time1"] == 31.5
     assert radek["time_sum"] == 61.75
     assert radek["dnf"] is True
@@ -628,7 +628,7 @@ def test_rucni_pridani_existujiciho_zavodnika_prevezme_jeho_udaje(
     assert polozka["racer_surname"] == "Holcicka"
     assert polozka["club_name"] == "SK Pardubice"
     assert polozka["category_name"] == "U10 dívky"
-    assert polozka["race_number_display"] == 1  # nejnižší volné systémové číslo
+    assert polozka["race_number_display"] == "A1"  # nejnižší volné systémové číslo
 
 
 def test_rucni_pridani_navazuje_na_uz_obsazena_cisla(client, db, zavod, kategorie,
@@ -643,7 +643,7 @@ def test_rucni_pridani_navazuje_na_uz_obsazena_cisla(client, db, zavod, kategori
                           json={"racer_id": druhy.id}, headers=timekeeper_headers)
 
     assert odpoved.json()["start_number"] == 2
-    assert odpoved.json()["entry"]["race_number_display"] == 2
+    assert odpoved.json()["entry"]["race_number_display"] == "A2"
 
 
 def test_rucni_pridani_zalozi_noveho_zavodnika_i_klub(client, db, zavod, kategorie,
@@ -776,12 +776,12 @@ def test_rucni_pridani_prevezme_zadane_startovni_i_systemove_cislo(
 
     odpoved = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
                           json={"racer_id": zavodnik.id, "start_number": 42,
-                                "race_number_display": 5},
+                                "race_number_display": "A5"},
                           headers=timekeeper_headers)
 
     polozka = odpoved.json()["entry"]
     assert polozka["start_number"] == 42
-    assert polozka["race_number_display"] == 5
+    assert polozka["race_number_display"] == "A5"
     assert polozka["race_number_actual"] == 5
 
 
@@ -828,12 +828,12 @@ def test_rucni_pridani_s_obsazenym_cislem_selze(client, db, zavod, kategorie,
     dalsi = _zavodnik(db, "Eva", "Zenska", 2000, 2)
 
     odpoved = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
-                          json={"racer_id": dalsi.id, "race_number_display": 1},
+                          json={"racer_id": dalsi.id, "race_number_display": "A1"},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
     # Ve zprávě musí být vidět, kdo číslo drží - jinak se s tím na place nedá nic dělat.
-    assert odpoved.json()["detail"] == "Systémové číslo 1 je již přiřazeno závodníkovi Muzsky Petr"
+    assert odpoved.json()["detail"] == "Systémové číslo A1 je již přiřazeno závodníkovi Muzsky Petr"
     assert len(_startovka(client, zavod, timekeeper_headers)) == 1
 
 
@@ -846,11 +846,11 @@ def test_stejne_cislo_smi_byt_ve_dvou_ruznych_zavodech(client, db, zavod, katego
     _polozka(db, zavod, prvni, start_number=1, cislo=sada[0])
 
     odpoved = client.post(f"/api/timekeeper/races/{jiny.id}/start-list/entry",
-                          json={"racer_id": druhy.id, "race_number_display": 1},
+                          json={"racer_id": druhy.id, "race_number_display": "A1"},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 200, odpoved.text
-    assert odpoved.json()["entry"]["race_number_display"] == 1
+    assert odpoved.json()["entry"]["race_number_display"] == "A1"
 
 
 def test_pridani_s_deaktivovanym_cislem_selze(client, db, zavod, kategorie,
@@ -861,11 +861,11 @@ def test_pridani_s_deaktivovanym_cislem_selze(client, db, zavod, kategorie,
     zavodnik = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
 
     odpoved = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
-                          json={"racer_id": zavodnik.id, "race_number_display": 1},
+                          json={"racer_id": zavodnik.id, "race_number_display": "A1"},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Systémové číslo 1 je deaktivované"
+    assert odpoved.json()["detail"] == "Systémové číslo A1 je deaktivované"
 
 
 def test_pridani_s_neexistujicim_cislem_selze(client, db, zavod, kategorie,
@@ -874,11 +874,11 @@ def test_pridani_s_neexistujicim_cislem_selze(client, db, zavod, kategorie,
     zavodnik = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
 
     odpoved = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
-                          json={"racer_id": zavodnik.id, "race_number_display": 999},
+                          json={"racer_id": zavodnik.id, "race_number_display": "A999"},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Systémové číslo 999 neexistuje"
+    assert odpoved.json()["detail"] == "Systémové číslo A999 neexistuje"
 
 
 def test_pridani_s_prazdnym_cislem_necha_zavodnika_bez_dresu(client, db, zavod, kategorie,
@@ -905,7 +905,7 @@ def test_CHYBA_neuspesne_pridani_presto_zalozi_zavodnika_i_klub(
 
     odpoved = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry", json={
         "racer_name": "Nova", "racer_surname": "Osoba", "racer_year": 2017,
-        "racer_sex": 2, "club_name": "Klub duchu", "race_number_display": 1,
+        "racer_sex": 2, "club_name": "Klub duchu", "race_number_display": "A1",
     }, headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
@@ -916,11 +916,10 @@ def test_CHYBA_neuspesne_pridani_presto_zalozi_zavodnika_i_klub(
     assert [r["racer_surname"] for r in _startovka(client, zavod, timekeeper_headers)] == ["Muzsky"]
 
 
-def test_CHYBA_automaticke_cislo_nepreskoci_na_dalsi_sadu(client, db, zavod, kategorie,
-                                                          timekeeper_headers):
-    """CHYBA: automatické přidělení hledá jen systémové číslo o jedna vyšší.
-    Mezi sadami je díra (3 -> 201), takže závodník zůstane bez dresu, přestože
-    je celá druhá sada volná."""
+def test_automaticke_cislo_preskoci_na_dalsi_sadu(client, db, zavod, kategorie,
+                                                 timekeeper_headers):
+    """Po posledním čísle sady A pokračuje přidělení v sadě B (dřív mezi
+    systémovými čísly 3 a 201 zůstala díra a závodník zůstal bez dresu)."""
     sada1 = _cisla(db, set_number=1, actual_from=1, actual_to=3, display_from=1)
     _cisla(db, set_number=2, actual_from=1, actual_to=3, display_from=201, color="blue")
     posledni = _zavodnik(db, "Petr", "Muzsky", 2000, 1)
@@ -931,7 +930,7 @@ def test_CHYBA_automaticke_cislo_nepreskoci_na_dalsi_sadu(client, db, zavod, kat
                           json={"racer_id": dalsi.id}, headers=timekeeper_headers)
 
     assert odpoved.status_code == 200
-    assert odpoved.json()["entry"]["race_number_display"] is None
+    assert odpoved.json()["entry"]["race_number_display"] == "B1"
 
 
 # --------------------------------------------------------------------------
@@ -1033,10 +1032,10 @@ def test_prirazeni_dresu_podle_systemoveho_cisla(client, db, zavod, kategorie,
     polozka = _polozka(db, zavod, zavodnik, start_number=1)
 
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
-                         json={"race_number_display": 202}, headers=timekeeper_headers)
+                         json={"race_number_display": "B2"}, headers=timekeeper_headers)
 
     ulozena = odpoved.json()["entry"]
-    assert ulozena["race_number_display"] == 202
+    assert ulozena["race_number_display"] == "B2"
     assert ulozena["race_number_actual"] == 2
     assert ulozena["set_color"] == "violet"
 
@@ -1050,7 +1049,7 @@ def test_prirazeni_dresu_podle_id(client, db, zavod, kategorie, timekeeper_heade
                          json={"race_number_id": sada[3].id}, headers=timekeeper_headers)
 
     assert odpoved.json()["entry"]["race_number_id"] == sada[3].id
-    assert odpoved.json()["entry"]["race_number_display"] == 4
+    assert odpoved.json()["entry"]["race_number_display"] == "A4"
 
 
 def test_prirazeni_obsazeneho_dresu_selze(client, db, zavod, kategorie, timekeeper_headers):
@@ -1061,13 +1060,13 @@ def test_prirazeni_obsazeneho_dresu_selze(client, db, zavod, kategorie, timekeep
     polozka = _polozka(db, zavod, druhy, start_number=2, cislo=sada[1])
 
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
-                         json={"race_number_display": 1}, headers=timekeeper_headers)
+                         json={"race_number_display": "A1"}, headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Systémové číslo 1 je již přiřazeno závodníkovi Muzsky Petr"
+    assert odpoved.json()["detail"] == "Systémové číslo A1 je již přiřazeno závodníkovi Muzsky Petr"
     _obnov(db)
     assert db.query(models.StartListEntry).filter(
-        models.StartListEntry.id == polozka.id).one().race_number_display == 2
+        models.StartListEntry.id == polozka.id).one().race_number_display == "A2"
 
 
 def test_prirazeni_vlastniho_cisla_projde(client, db, zavod, kategorie, timekeeper_headers):
@@ -1077,11 +1076,11 @@ def test_prirazeni_vlastniho_cisla_projde(client, db, zavod, kategorie, timekeep
     polozka = _polozka(db, zavod, zavodnik, start_number=1, cislo=sada[0])
 
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
-                         json={"race_number_display": 1, "racer_name": "Anicka"},
+                         json={"race_number_display": "A1", "racer_name": "Anicka"},
                          headers=timekeeper_headers)
 
     assert odpoved.status_code == 200, odpoved.text
-    assert odpoved.json()["entry"]["race_number_display"] == 1
+    assert odpoved.json()["entry"]["race_number_display"] == "A1"
     assert odpoved.json()["entry"]["racer_name"] == "Anicka"
 
 
@@ -1100,7 +1099,7 @@ def test_odebrani_dresu_prazdnou_hodnotou(client, db, zavod, kategorie, timekeep
     # A tím se číslo uvolní pro někoho jiného.
     druhy = _zavodnik(db, "Eva", "Zenska", 2000, 2)
     dalsi = client.post(f"/api/timekeeper/races/{zavod.id}/start-list/entry",
-                        json={"racer_id": druhy.id, "race_number_display": 1},
+                        json={"racer_id": druhy.id, "race_number_display": "A1"},
                         headers=timekeeper_headers)
     assert dalsi.status_code == 200, dalsi.text
 
@@ -1114,7 +1113,7 @@ def test_uprava_bez_zminky_o_dresu_ho_nechá_beze_zmeny(client, db, zavod, kateg
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
                          json={"racer_name": "Anicka"}, headers=timekeeper_headers)
 
-    assert odpoved.json()["entry"]["race_number_display"] == 3
+    assert odpoved.json()["entry"]["race_number_display"] == "A3"
 
 
 def test_prirazeni_deaktivovaneho_cisla_selze(client, db, zavod, kategorie,
@@ -1126,10 +1125,10 @@ def test_prirazeni_deaktivovaneho_cisla_selze(client, db, zavod, kategorie,
     polozka = _polozka(db, zavod, zavodnik, start_number=1)
 
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
-                         json={"race_number_display": 2}, headers=timekeeper_headers)
+                         json={"race_number_display": "A2"}, headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Systémové číslo 2 je deaktivované"
+    assert odpoved.json()["detail"] == "Systémové číslo A2 je deaktivované"
 
 
 def test_CHYBA_polozku_s_deaktivovanym_vlastnim_cislem_nelze_ulozit(
@@ -1144,11 +1143,11 @@ def test_CHYBA_polozku_s_deaktivovanym_vlastnim_cislem_nelze_ulozit(
     db.commit()
 
     odpoved = client.put(f"/api/timekeeper/start-list/{polozka.id}",
-                         json={"race_number_display": 1, "racer_name": "Anicka"},
+                         json={"race_number_display": "A1", "racer_name": "Anicka"},
                          headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Systémové číslo 1 je deaktivované"
+    assert odpoved.json()["detail"] == "Systémové číslo A1 je deaktivované"
 
 
 def test_CHYBA_cas_poslany_do_upravy_polozky_se_neulozi(client, db, zavod, kategorie,
@@ -1394,17 +1393,17 @@ def test_kategorie_pro_razeni_jsou_jen_aktivni_a_od_nejmladsich(client, db, kate
 def test_vytvoreni_sady_vytvori_cely_rozsah(client, timekeeper_headers):
     odpoved = client.post("/api/timekeeper/race-number-sets",
                           json={"set_number": 2, "actual_from": 1, "actual_to": 3,
-                                "display_from": 201, "set_color": "blue"},
+                                "set_color": "blue"},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["created"] == 3
-    assert odpoved.json()["display_range"] == "201-203"
+    assert odpoved.json()["display_range"] == "B1-B3"
 
     cisla = client.get("/api/timekeeper/race-numbers?set_number=2",
                        headers=timekeeper_headers).json()
     assert [(c["actual_number"], c["display_number"]) for c in cisla] == [
-        (1, 201), (2, 202), (3, 203),
+        (1, "B1"), (2, "B2"), (3, "B3"),
     ]
     assert all(c["is_active"] and c["set_color"] == "blue" for c in cisla)
 
@@ -1420,17 +1419,13 @@ def test_sadu_se_stejnym_cislem_nelze_zalozit_dvakrat(client, db, timekeeper_hea
     assert "Sada č. 1 již existuje" in odpoved.json()["detail"]
 
 
-def test_prekryv_systemovych_cisel_selze(client, db, timekeeper_headers):
-    _cisla(db, set_number=1, actual_from=1, actual_to=10, display_from=1)
-
+def test_sada_nad_26_nema_pismeno(client, db, timekeeper_headers):
     odpoved = client.post("/api/timekeeper/race-number-sets",
-                          json={"set_number": 2, "actual_to": 5, "display_from": 8},
+                          json={"set_number": 27, "actual_to": 5},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
-    assert "překrývají" in odpoved.json()["detail"]
-    _obnov(db)
-    assert db.query(models.RaceNumber).filter(models.RaceNumber.set_number == 2).count() == 0
+    assert db.query(models.RaceNumber).count() == 0
 
 
 def test_sada_s_neplatnou_barvou_selze(client, db, timekeeper_headers):
@@ -1475,7 +1470,7 @@ def test_prehled_sad_scita_aktivni_a_neaktivni_cisla(client, db, timekeeper_head
     prvni = prehled[0]
     assert (prvni["count"], prvni["active_count"], prvni["inactive_count"]) == (4, 3, 1)
     assert (prvni["min_actual"], prvni["max_actual"]) == (1, 4)
-    assert (prvni["min_display"], prvni["max_display"]) == (1, 4)
+    assert (prvni["min_display"], prvni["max_display"]) == ("A1", "A4")
     assert prehled[1]["set_color"] == "blue"
 
 
@@ -1499,14 +1494,14 @@ def test_nabidka_cisel_obsahuje_jen_aktivni_napric_sadami(client, db, timekeeper
     nabidka = client.get("/api/timekeeper/race-number-options",
                          headers=timekeeper_headers).json()
 
-    assert [c["display_number"] for c in nabidka] == [2, 201, 202]
+    assert [c["display_number"] for c in nabidka] == ["A2", "B1", "B2"]
 
 
 def test_pridani_jednotliveho_cisla_prevezme_barvu_sady(client, db, timekeeper_headers):
     _cisla(db, set_number=2, actual_from=1, actual_to=2, display_from=201, color="amber")
 
     odpoved = client.post("/api/timekeeper/race-numbers",
-                          json={"set_number": 2, "actual_number": 3, "display_number": 203},
+                          json={"set_number": 2, "actual_number": 3},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 200, odpoved.text
@@ -1514,34 +1509,33 @@ def test_pridani_jednotliveho_cisla_prevezme_barvu_sady(client, db, timekeeper_h
     assert odpoved.json()["is_active"] is True
     cisla = client.get("/api/timekeeper/race-numbers?set_number=2",
                        headers=timekeeper_headers).json()
-    assert [c["display_number"] for c in cisla] == [201, 202, 203]
+    assert [c["display_number"] for c in cisla] == ["B1", "B2", "B3"]
 
 
 def test_duplicitni_dresove_cislo_v_sade_selze(client, db, timekeeper_headers):
     _cisla(db, set_number=1, actual_from=1, actual_to=3, display_from=1)
 
     odpoved = client.post("/api/timekeeper/race-numbers",
-                          json={"set_number": 1, "actual_number": 2, "display_number": 55},
+                          json={"set_number": 1, "actual_number": 2},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Dresové číslo 2 již v sadě 1 existuje"
 
 
-def test_duplicitni_systemove_cislo_napric_sadami_selze(client, db, timekeeper_headers):
-    _cisla(db, set_number=1, actual_from=1, actual_to=3, display_from=1)
-
+def test_oznaceni_cisla_je_pismeno_sady_a_dres(client, db, timekeeper_headers):
+    """Systémové označení se netvoří ručně: sada 2 = B, dres 7 = B7."""
     odpoved = client.post("/api/timekeeper/race-numbers",
-                          json={"set_number": 2, "actual_number": 1, "display_number": 2},
+                          json={"set_number": 2, "actual_number": 7},
                           headers=timekeeper_headers)
 
-    assert odpoved.status_code == 400
-    assert odpoved.json()["detail"] == "Zobrazovací číslo 2 již existuje (sada 1)"
+    assert odpoved.status_code == 200, odpoved.text
+    assert odpoved.json()["display_number"] == "B7"
 
 
 def test_pridani_cisla_bez_parametru_selze(client, timekeeper_headers):
     odpoved = client.post("/api/timekeeper/race-numbers",
-                          json={"set_number": 1, "actual_number": 5},
+                          json={"set_number": 1},
                           headers=timekeeper_headers)
 
     assert odpoved.status_code == 400
@@ -1555,10 +1549,10 @@ def test_deaktivace_cisla_ho_vyradi_z_nabidky(client, db, timekeeper_headers):
                          json={"is_active": False}, headers=timekeeper_headers)
 
     assert odpoved.status_code == 200
-    assert odpoved.json()["message"] == "Číslo 1 je nyní deaktivní"
+    assert odpoved.json()["message"] == "Číslo A1 je nyní deaktivní"
     nabidka = client.get("/api/timekeeper/race-number-options",
                          headers=timekeeper_headers).json()
-    assert [c["display_number"] for c in nabidka] == [2]
+    assert [c["display_number"] for c in nabidka] == ["A2"]
 
 
 def test_uprava_cisla_bez_priznaku_selze(client, db, timekeeper_headers):
@@ -1589,11 +1583,11 @@ def test_smazani_cisla_odpoji_polozku_startovky(client, db, zavod, kategorie,
                             headers=timekeeper_headers)
 
     assert odpoved.status_code == 200
-    assert "Smazáno číslo 1" in odpoved.json()["message"]
+    assert "Smazáno číslo A1" in odpoved.json()["message"]
     radek = _startovka(client, zavod, timekeeper_headers)[0]
     assert radek["race_number_id"] is None
     # Snímek dresu v listině zůstává, i když číslo v číselníku už neexistuje.
-    assert radek["race_number_display"] == 1
+    assert radek["race_number_display"] == "A1"
 
 
 def test_smazani_neexistujiciho_cisla_vrati_404(client, timekeeper_headers):
@@ -1674,7 +1668,7 @@ def test_zmena_barvy_neexistujici_sady_vrati_404(client, timekeeper_headers):
 def test_pridani_cisla_se_stejnym_klicem_se_neopakuje(client, db, timekeeper_headers):
     _cisla(db, set_number=1, actual_from=1, actual_to=2, display_from=1)
     hlavicky = dict(timekeeper_headers, **{"X-Idempotency-Key": "cislo-1"})
-    telo = {"set_number": 1, "actual_number": 3, "display_number": 3}
+    telo = {"set_number": 1, "actual_number": 3}
     prvni = client.post("/api/timekeeper/race-numbers", json=telo, headers=hlavicky)
     assert prvni.json()["idempotency_replayed"] is False
 
@@ -1683,7 +1677,7 @@ def test_pridani_cisla_se_stejnym_klicem_se_neopakuje(client, db, timekeeper_hea
     assert druhy.status_code == 200
     assert druhy.json()["idempotency_replayed"] is True
     _obnov(db)
-    assert db.query(models.RaceNumber).filter(models.RaceNumber.display_number == 3).count() == 1
+    assert db.query(models.RaceNumber).filter(models.RaceNumber.display_number == "A3").count() == 1
 
 
 # --------------------------------------------------------------------------

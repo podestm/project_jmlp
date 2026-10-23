@@ -6,7 +6,8 @@ const ONLINE_ONLY = 'Vyžaduje připojení';
 
 /**
  * Tisk a publikace výsledků (TkVysledky): listiny kol vybrané a všech
- * kategorií, celková listina, Publikovat, pořadí poháru
+ * kategorií, celková listina (online s publikací k závodu v náhledu),
+ * pořadí poháru (průběžné, po finále celkové – rozhodne server)
  * a smazání výsledků. Listiny se skládají v notebooku (i offline),
  * publikace a pohár jen online.
  */
@@ -28,41 +29,21 @@ export default function ResultsToolbar({ api }) {
           busy={pdf.generating}
           onPrint={api.printAllInterim}
         />
-        <Button size="sm" icon="file" disabled={pdf.generating} onClick={() => api.printFinal(false)}>
-          Celková listina
-        </Button>
-        <Tooltip text={ONLINE_ONLY}>
-          <Button
-            size="sm"
-            variant="open"
-            icon="upload"
-            disabled={pdf.generating || !isOnline}
-            onClick={() => api.printFinal(true)}
-          >
-            Publikovat
+        <Tooltip text={isOnline ? 'Náhled, tisk i publikace' : 'Publikace vyžaduje připojení'}>
+          <Button size="sm" icon="file" disabled={pdf.generating} onClick={() => api.printFinal(isOnline)}>
+            Celková listina
           </Button>
         </Tooltip>
-        <div className={styles.group} role="group" aria-label="Pořadí poháru">
-          <Tooltip text={ONLINE_ONLY}>
-            <Button
-              size="sm"
-              icon="chart"
-              disabled={pdf.generating || !isOnline || noSeason}
-              onClick={() => api.printStandings(false)}
-            >
-              Pohár průběžně
-            </Button>
-          </Tooltip>
-          <Tooltip text="Po skončení sezóny">
-            <Button
-              size="sm"
-              disabled={pdf.generating || !isOnline || noSeason}
-              onClick={() => api.printStandings(true)}
-            >
-              celkově
-            </Button>
-          </Tooltip>
-        </div>
+        <Tooltip text={isOnline ? 'Průběžné, po finále celkové' : ONLINE_ONLY}>
+          <Button
+            size="sm"
+            icon="chart"
+            disabled={pdf.generating || !isOnline || noSeason}
+            onClick={api.printStandings}
+          >
+            Pohár
+          </Button>
+        </Tooltip>
         <Tooltip text="Startovní listina zůstane" className={styles.clear}>
           <Button size="sm" variant="danger" icon="trash" busy={clearing} onClick={api.clearResults}>
             Smazat výsledky

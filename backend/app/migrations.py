@@ -63,8 +63,7 @@ _STARTOVKA_SLOUPCE = (
     ("club_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("category_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("category_sex", "smallint DEFAULT NULL"),
-    ("race_number_actual", "int DEFAULT NULL"),
-    ("race_number_display", "int DEFAULT NULL"),
+    ("race_number_display", "varchar(8) DEFAULT NULL"),
     ("name_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("surname_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("year_override", "int DEFAULT NULL"),
@@ -1071,6 +1070,99 @@ def _m_course_length_text(conn):
     logger.info("Migrace: fuj_jmlp_race_run.course_length_m jako text")
 
 
+# --------------------------------------------------------------------------
+# 016 - systémové označení čísel písmenem sady ("B12" místo 212)
+#
+# fuj_jmlp_race_numbers.display_number i snapshot ve startovkách
+# (race_number_display) se z čísla mění na text: písmeno sady (1 = A,
+# 2 = B, ...) + číslo dresu. Vazba startovky na číselník je race_number_id;
+# snapshot se přepočítá podle ní, u řádků bez vazby podle starého čísla.
+# --------------------------------------------------------------------------
+def _column_data_type(conn, table: str, column: str):
+    return conn.execute(text("""
+        SELECT DATA_TYPE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME = :column
+    """), {"table": table, "column": column}).scalar()
+
+
+def _m_race_number_codes(conn):
+    if not _table_exists(conn, "fuj_jmlp_race_numbers"):
+        return
+    if _column_data_type(conn, "fuj_jmlp_race_numbers", "display_number") == "varchar":
+        return
+    code = "CONCAT(CHAR(64 + rn.set_number USING ascii), rn.actual_number)"
+    has_start_list = _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_display")
+    if has_start_list:
+        conn.execute(text(
+            "ALTER TABLE fuj_jmlp_race_start_list MODIFY race_number_display VARCHAR(8) NULL DEFAULT NULL"
+        ))
+        # Podle vazby na číselník.
+        conn.execute(text(f"""
+            UPDATE fuj_jmlp_race_start_list sl
+            JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+            SET sl.race_number_display = {code}
+        """))
+        # Bez vazby (číslo mezitím smazané): podle starého systémového čísla.
+        conn.execute(text(f"""
+            UPDATE fuj_jmlp_race_start_list sl
+            JOIN fuj_jmlp_race_numbers rn ON rn.display_number = CAST(sl.race_number_display AS UNSIGNED)
+            SET sl.race_number_display = {code}
+            WHERE sl.race_number_id IS NULL AND sl.race_number_display REGEXP '^[0-9]+$'
+        """))
+        conn.execute(text(
+            "UPDATE fuj_jmlp_race_start_list SET race_number_display = NULL "
+            "WHERE race_number_display REGEXP '^[0-9]+$'"
+        ))
+    conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers MODIFY display_number VARCHAR(8) NOT NULL"))
+    conn.execute(text(f"UPDATE fuj_jmlp_race_numbers rn SET rn.display_number = {code}"))
+    logger.info("Migrace: systémová čísla jako písmeno sady + dres (B12)")
+
+
+# --------------------------------------------------------------------------
+# 017 - číslo dresu už jen v označení
+#
+# Po migraci 016 je číslo dresu vždy obsažené v označení (B12 -> 12), takže
+# sloupce fuj_jmlp_race_numbers.actual_number a snapshot
+# fuj_jmlp_race_start_list.race_number_actual jsou zbytečné. Aplikace číslo
+# dresu odvozuje (models.RaceNumber.actual_number, CAST(SUBSTRING(..., 2)).
+# Zahodí se jen tehdy, když všude souhlasí s označením - jinak se nic nesmaže.
+# --------------------------------------------------------------------------
+def _m_drop_actual_numbers(conn):
+    if _column_exists(conn, "fuj_jmlp_race_numbers", "actual_number"):
+        mismatch = conn.execute(text("""
+            SELECT COUNT(*) FROM fuj_jmlp_race_numbers
+            WHERE display_number NOT REGEXP '^[A-Z][0-9]+$'
+               OR CAST(SUBSTRING(display_number, 2) AS UNSIGNED) <> actual_number
+        """)).scalar()
+        if mismatch:
+            logger.warning("Migrace 017 přeskočena: %s čísel nesouhlasí s označením", mismatch)
+            return
+        # Indexy nad dresem (v produkci "unique_set_actual", v novějších
+        # instalacích "uq_race_numbers_set_actual") - jinak by po zrušení
+        # sloupce zbyl unikátní index jen nad set_number a ALTER by spadl.
+        indexes = [row[0] for row in conn.execute(text("""
+            SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'fuj_jmlp_race_numbers'
+              AND COLUMN_NAME = 'actual_number'
+        """))]
+        for index in indexes:
+            conn.execute(text(f"ALTER TABLE fuj_jmlp_race_numbers DROP INDEX `{index}`"))
+        conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers DROP COLUMN actual_number"))
+        logger.info("Migrace: fuj_jmlp_race_numbers.actual_number zrušen")
+    if _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_actual"):
+        mismatch = conn.execute(text("""
+            SELECT COUNT(*) FROM fuj_jmlp_race_start_list
+            WHERE race_number_actual IS NOT NULL AND (
+                race_number_display IS NULL
+                OR CAST(SUBSTRING(race_number_display, 2) AS UNSIGNED) <> race_number_actual)
+        """)).scalar()
+        if mismatch:
+            logger.warning("Migrace 017: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch)
+            return
+        conn.execute(text("ALTER TABLE fuj_jmlp_race_start_list DROP COLUMN race_number_actual"))
+        logger.info("Migrace: fuj_jmlp_race_start_list.race_number_actual zrušen")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -1089,6 +1181,8 @@ MIGRATIONS = (
     _m_slcr_member_links,
     _m_season_current,
     _m_course_length_text,
+    _m_race_number_codes,
+    _m_drop_actual_numbers,
 )
 
 

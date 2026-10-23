@@ -47,7 +47,7 @@ def _load_entries(db: Session, race_id: int) -> List[Any]:
                {category_display_sql('cat')} as category_display_name,
                cat.id as cat_id,
                sl.category_sex,
-               sl.race_number_actual,
+               CAST(SUBSTRING(sl.race_number_display, 2) AS UNSIGNED) AS race_number_actual,
                sl.race_number_display,
                rn.set_color,
                rac.slcr_id

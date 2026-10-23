@@ -31,7 +31,7 @@ const seedCachedStartList = (rows = [serverRow]) => timekeeperDb.cache.put({
 const addOffline = async (tempId, extra = {}) => {
   const payload = {
     racer_name: 'Nova', racer_surname: 'Offline', racer_year: 2017, racer_sex: 2,
-    club_name: 'SK Test', race_number_display: 12, client_temp_id: tempId, ...extra,
+    club_name: 'SK Test', race_number_display: 'A12', client_temp_id: tempId, ...extra,
   };
   const result = await TimekeeperAPI.post(CREATE, payload);
   expect(result.queued).toBe(true);

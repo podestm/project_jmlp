@@ -237,6 +237,18 @@ def season_label(year_start: int) -> str:
     return f"{year_start}-{(year_start + 1) % 100:02d}"
 
 
+def season_finished(db: Session, season_id: int) -> bool:
+    """Má finále sezóny výsledky? Pak se místo průběžného pořadí tiskne celkové."""
+    row = db.execute(text("""
+        SELECT 1 FROM fuj_jmlp_race r
+        JOIN fuj_jmlp_race_start_list sl ON sl.race_id = r.id
+        WHERE r.season_id = :season AND r.is_final = 1
+          AND (sl.time_sum IS NOT NULL OR sl.dnf = 1 OR sl.dsq = 1)
+        LIMIT 1
+    """), {"season": season_id}).first()
+    return row is not None
+
+
 def season_standings(
     db: Session, season_id: int, final: bool = False, today: Optional[date] = None
 ) -> Dict[str, Any]:

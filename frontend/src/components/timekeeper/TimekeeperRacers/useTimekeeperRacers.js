@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { compareRaceNumberCodes, normalizeRaceNumberCode } from '../../../utils/raceNumbers.js';
 import { storeSelectedRaceId } from '../frame/selectedRace.js';
 import {
   OFFLINE_QUEUED_TEXT,
@@ -65,20 +66,22 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   const [editForm, setEditForm] = useState({});
   const [editValidationError, setEditValidationError] = useState('');
 
+  // Návrh čísla pro dohlášku: hned za posledním přiděleným (A1..A200, B1..).
+  // Nabídka čísel je seřazená podle sady a dresu, stejně jako na serveru.
   const getNextAvailableRaceNumberDisplay = (entries = startList) => {
     const assigned = entries
       .map(entry => entry.race_number_display)
-      .filter(value => value !== null && value !== undefined)
-      .map(value => Number(value))
-      .filter(value => Number.isFinite(value));
+      .filter(value => value !== null && value !== undefined && value !== '')
+      .sort(compareRaceNumberCodes);
 
     if (assigned.length === 0) {
       return raceNumberOptions.length > 0 ? String(raceNumberOptions[0].display_number) : '';
     }
 
-    const candidate = Math.max(...assigned) + 1;
-    const exactOption = raceNumberOptions.find(option => Number(option.display_number) === candidate);
-    return exactOption ? String(exactOption.display_number) : '';
+    const last = assigned[assigned.length - 1];
+    const next = raceNumberOptions.find(option => compareRaceNumberCodes(option.display_number, last) > 0);
+    const taken = new Set(assigned.map(normalizeRaceNumberCode));
+    return next && !taken.has(normalizeRaceNumberCode(next.display_number)) ? String(next.display_number) : '';
   };
 
   const resetForm = (entries = startList) => {
@@ -282,7 +285,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       body.racer_sex = editForm.racer_sex !== '' && editForm.racer_sex != null
         ? parseInt(editForm.racer_sex) : null;
       body.race_number_display = editForm.race_number_display !== '' && editForm.race_number_display != null
-        ? parseInt(editForm.race_number_display) : null;
+        ? normalizeRaceNumberCode(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
 
@@ -340,7 +343,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       if (formData.telefon.trim()) payload.racer_telefon = formData.telefon.trim();
       if (formData.email.trim()) payload.racer_email = formData.email.trim();
       if (formData.slcr_id.trim()) payload.racer_slcr_id = formData.slcr_id.trim();
-      if (formData.race_number_display) payload.race_number_display = Number(formData.race_number_display);
+      if (formData.race_number_display) payload.race_number_display = normalizeRaceNumberCode(formData.race_number_display);
 
       const result = await TimekeeperAPI.post(
         `/api/timekeeper/races/${selectedRaceId}/start-list/entry`,

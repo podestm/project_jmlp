@@ -4,6 +4,7 @@ import { ENTRY_REMAPPED_EVENT, remapEntriesInState } from '../../../offline/offl
 import { dropRaceSnapshot } from '../../../offline/startListCache.js';
 import { clearTimingDrafts } from '../../../offline/timingDrafts.js';
 import { useSyncStatus } from '../../../offline/useSyncStatus.js';
+import { normalizeRaceNumberCode } from '../../../utils/raceNumbers.js';
 import { storeSelectedRaceId } from '../frame/selectedRace.js';
 import {
   OFFLINE_QUEUED_TEXT,
@@ -190,7 +191,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
       body.racer_year = editForm.racer_year !== '' && editForm.racer_year !== null && editForm.racer_year !== undefined
         ? parseInt(editForm.racer_year)
         : null;
-      body.race_number_display = editForm.race_number_display !== '' ? parseInt(editForm.race_number_display) : null;
+      body.race_number_display = editForm.race_number_display !== '' ? normalizeRaceNumberCode(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
       if (result?.entry) {

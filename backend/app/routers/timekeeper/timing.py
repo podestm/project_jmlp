@@ -50,11 +50,11 @@ TIME_FIELDS = ("time1", "time2", "dnf", "dns", "dsq")
 
 
 def _time_or_none(value: Any) -> Decimal | None:
-    """Čas na Decimal; nula ("0", "0.00") je prázdný čas, ne naměřená hodnota."""
+    """Čas na Decimal; nula ("0", "0.00") i záporný čas je prázdný, ne naměřená hodnota."""
     if value is None:
         return None
     parsed = Decimal(str(value))
-    return None if parsed == 0 else parsed
+    return None if parsed <= 0 else parsed
 
 
 def _same_stored_value(field: str, stored: Any, incoming: Any) -> bool:

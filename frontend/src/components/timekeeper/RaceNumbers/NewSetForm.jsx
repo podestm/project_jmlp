@@ -4,10 +4,9 @@ import { newSetPreview } from './raceNumberSets.js';
 import styles from './NewSetForm.module.css';
 
 const FIELDS = [
-  { key: 'set_number', label: 'Sada' },
+  { key: 'set_number', label: 'Sada', max: 26 },
   { key: 'actual_from', label: 'Reálná od' },
   { key: 'actual_to', label: 'Reálná do' },
-  { key: 'display_from', label: 'Zobrazení od' },
 ];
 
 /** Nová sada dresů (TkCisla, pravý sloupec): rozsah, barva a náhled. */
@@ -22,7 +21,7 @@ export default function NewSetForm({ numbersApi }) {
         <div className={styles.fields}>
           {FIELDS.map((field) => (
             <Field key={field.key} label={field.label} id={`nova-sada-${field.key}`}>
-              <Input size="sm" type="number" mono min="1" required value={setFormData[field.key]}
+              <Input size="sm" type="number" mono min="1" max={field.max} required value={setFormData[field.key]}
                 onChange={(e) => updateSetForm(field.key, e.target.value)} />
             </Field>
           ))}
@@ -35,7 +34,7 @@ export default function NewSetForm({ numbersApi }) {
           <p className={styles.preview}>
             <Icon name="info" size={18} />
             <span className={styles.previewText}>
-              dresy {preview.actualFrom}–{preview.actualTo} → systém <strong>{preview.displayFrom}–{preview.displayTo}</strong>
+              dresy {preview.actualFrom}–{preview.actualTo} → <strong>{preview.displayFrom}–{preview.displayTo}</strong>
             </span>
             <span className={styles.previewCount}>{preview.count} ks</span>
           </p>

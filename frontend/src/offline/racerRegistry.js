@@ -5,6 +5,7 @@
 // v IndexedDB - jde přes TimekeeperAPI.get, takže se online obnoví a offline
 // se čte z keše - a hledá v něm lokálně.
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
+import { normalizeRaceNumberCode } from '../utils/raceNumbers.js';
 import { isOnline } from './connectivity.js';
 import { readCachedResponse } from './startListCache.js';
 
@@ -81,9 +82,10 @@ export const buildLocalEntry = ({ tempId, raceId, payload, startList = [], categ
     item.min_birth_year <= year && item.max_birth_year >= year && (item.sex === 0 || item.sex === sex)
   )) || null;
   const sameCategory = category ? startList.find((entry) => Number(entry.category_id) === Number(category.id)) : null;
-  const display = payload.race_number_display != null ? Number(payload.race_number_display) : null;
+  const display = payload.race_number_display != null && payload.race_number_display !== ''
+    ? normalizeRaceNumberCode(payload.race_number_display) : null;
   const option = display != null
-    ? raceNumberOptions.find((item) => Number(item.display_number) === display) || null
+    ? raceNumberOptions.find((item) => normalizeRaceNumberCode(item.display_number) === display) || null
     : null;
   const startNumbers = startList.map((entry) => Number(entry.start_number)).filter(Number.isFinite);
 

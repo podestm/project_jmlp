@@ -145,14 +145,12 @@ CREATE TABLE `fuj_jmlp_race_numbers` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `set_number` int NOT NULL COMMENT 'ÄŒÃ­slo sady (1, 2, 3...)',
   `set_color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'rose',
-  `actual_number` int NOT NULL COMMENT 'SkuteÄnÃ© ÄÃ­slo na dresu (1-200)',
-  `display_number` int NOT NULL COMMENT 'ÄŒÃ­slo pro zobrazenÃ­ (201-400 pro sadu 2)',
+  `display_number` varchar(8) NOT NULL COMMENT 'Označení: písmeno sady + dres (B12)',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_display` (`display_number`),
-  UNIQUE KEY `uq_race_numbers_set_actual` (`set_number`,`actual_number`)
+  UNIQUE KEY `unique_display` (`display_number`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -202,8 +200,7 @@ CREATE TABLE `fuj_jmlp_race_start_list` (
   `club_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `category_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `category_sex` smallint DEFAULT NULL,
-  `race_number_actual` int DEFAULT NULL,
-  `race_number_display` int DEFAULT NULL,
+  `race_number_display` varchar(8) DEFAULT NULL,
   `time1` decimal(10,2) DEFAULT NULL,
   `time2` decimal(10,2) DEFAULT NULL,
   `time_sum` decimal(10,2) DEFAULT NULL,

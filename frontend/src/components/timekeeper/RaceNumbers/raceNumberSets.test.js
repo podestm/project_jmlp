@@ -8,9 +8,9 @@ describe('sady čísel', () => {
   });
 
   it('náhled nové sady', () => {
-    expect(newSetPreview({ actual_from: '301', actual_to: '330', display_from: '149' }))
-      .toEqual({ actualFrom: '301', actualTo: '330', displayFrom: '149', displayTo: 178, count: 30 });
-    expect(newSetPreview({ actual_from: '1', actual_to: '', display_from: '1' })).toBeNull();
+    expect(newSetPreview({ set_number: '2', actual_from: '1', actual_to: '200' }))
+      .toEqual({ actualFrom: '1', actualTo: '200', displayFrom: 'B1', displayTo: 'B200', count: 200 });
+    expect(newSetPreview({ set_number: '1', actual_from: '1', actual_to: '' })).toBeNull();
   });
 
   it('souhrn a aktivní čísla', () => {

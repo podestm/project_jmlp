@@ -367,12 +367,12 @@ export default function TimingEntry() {
    * ještě nesynchronizovaly), takže to funguje i offline. Kolo se vybírá
    * zvlášť - každá kategorie může jet jiný počet kol.
    *
+   * Všechny kategorie se tisknou z obrazovky Výsledky.
+   *
    * @param {string} runMode '1' | '2' (2. kolo = oba časy a součet)
-   * @param {string} scope   'category' = vybraná kategorie, 'all' = všechny
    */
-  const printResults = useCallback(async (runMode, scope) => {
-    const source = scope === 'category' ? categoryFiltered : activeStartList;
-    const categories = groupEntriesByCategory(source);
+  const printResults = useCallback(async (runMode) => {
+    const categories = groupEntriesByCategory(categoryFiltered);
     if (categories.length === 0) {
       setMessage({ type: 'warning', text: 'Není co tisknout - startovní listina je prázdná.' });
       return;
@@ -383,13 +383,13 @@ export default function TimingEntry() {
         interim: true,
         runMode,
         // Tisk vybrané kategorie má kategorii i v názvu souboru.
-        categoryName: scope === 'category' && selectedCategory !== 'all' ? selectedCategory : null
+        categoryName: selectedCategory !== 'all' ? selectedCategory : null
       });
     } catch (err) {
       console.error('PDF se nepodařilo vytvořit:', err);
       setMessage({ type: 'danger', text: pdfErrorMessage(err) });
     }
-  }, [categoryFiltered, activeStartList, pdf, selectedCategory]);
+  }, [categoryFiltered, pdf, selectedCategory]);
 
   const completedCount = useMemo(() => (
     categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length

@@ -28,11 +28,12 @@ export default function StartListEditRow({ entry, editForm, updateEditField, err
       <Field label="Systém" id={id('race_number_display')} error={error || undefined} hint={`Číslo dresu: ${bibNumber ?? '—'}`}>
         <Input
           size="sm"
-          type="number"
           mono
-          placeholder="St. číslo"
+          placeholder="A12"
+          maxLength={6}
+          autoCapitalize="characters"
           value={editForm.race_number_display}
-          onChange={(e) => updateEditField('race_number_display', e.target.value)}
+          onChange={(e) => updateEditField('race_number_display', e.target.value.toUpperCase())}
         />
       </Field>
       {text('racer_name', 'Jméno')}

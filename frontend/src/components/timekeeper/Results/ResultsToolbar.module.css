@@ -15,14 +15,6 @@
   background: var(--ms-surface-card);
 }
 
-.group {
-  display: flex;
-}
-
-.group > * + * {
-  margin-inline-start: -1.5px;
-}
-
 .clear {
   margin-inline-start: auto;
 }

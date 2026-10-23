@@ -477,7 +477,7 @@ class StartListEntryUpdate(BaseModel):
     force_apply: Optional[bool] = False
     start_number: Optional[int] = None
     race_number_id: Optional[int] = None
-    race_number_display: Optional[int] = None
+    race_number_display: Optional[str] = None
     category_id: Optional[int] = None
     racer_name: Optional[str] = None
     racer_surname: Optional[str] = None
@@ -518,8 +518,8 @@ class StartListEntry(StartListEntryBase):
     category_name: Optional[str] = None
     category_sex: Optional[int] = None
     race_number_actual: Optional[int] = None
-    race_number_display: Optional[int] = None
-    display_number: Optional[int] = None
+    race_number_display: Optional[str] = None
+    display_number: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -543,7 +543,7 @@ class RaceNumberInfo(BaseModel):
     set_number: int
     set_color: str = "rose"
     actual_number: int
-    display_number: int
+    display_number: str
     is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)

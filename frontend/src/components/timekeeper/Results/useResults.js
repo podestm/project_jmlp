@@ -149,11 +149,13 @@ export function useResults({ confirm }) {
    * Pořadí poháru za sezónu vybraného závodu. Počítá ho server ze všech
    * závodů sezóny; závody bez výsledků v aplikaci (měřené jen v LiZe)
    * v něm chybí, a to musí obsluha vědět dřív, než pořadí zveřejní.
+   * Průběžné, nebo celkové, jakmile má finále sezóny výsledky – rozhodne
+   * server (standings.season_finished).
    */
-  const printStandings = async (final) => {
+  const printStandings = async () => {
     if (!selectedRace?.season_id) return;
     try {
-      const standings = await pdf.generateStandings({ seasonId: selectedRace.season_id, final });
+      const standings = await pdf.generateStandings({ seasonId: selectedRace.season_id });
       const missing = standings?.races_without_results || [];
       if (missing.length) {
         setMessage({

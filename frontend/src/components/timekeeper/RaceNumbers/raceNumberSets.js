@@ -1,4 +1,5 @@
 // Sady startovních čísel (TkCisla): čisté výpočty pro obrazovku.
+import { setLetter } from '../../../utils/raceNumbers.js';
 
 /** Čísla sady po desítkách – řádky mřížky (1–10, 11–20…). */
 export const chunkByTen = (numbers) => {
@@ -7,16 +8,16 @@ export const chunkByTen = (numbers) => {
   return rows;
 };
 
-/** Náhled nové sady: dresy od–do → systém od–do a počet kusů, nebo null. */
-export const newSetPreview = ({ actual_from: from, actual_to: to, display_from: displayFrom }) => {
-  if (!from || !to || !displayFrom) return null;
-  const count = parseInt(to) - parseInt(from) + 1;
+/** Náhled nové sady: dresy od–do → označení (A1–A200) a počet kusů, nebo null. */
+export const newSetPreview = ({ set_number: setNumber, actual_from: from, actual_to: to }) => {
+  if (!setNumber || !from || !to) return null;
+  const letter = setLetter(setNumber);
   return {
     actualFrom: from,
     actualTo: to,
-    displayFrom,
-    displayTo: parseInt(displayFrom) + (parseInt(to) - parseInt(from)),
-    count,
+    displayFrom: `${letter}${parseInt(from)}`,
+    displayTo: `${letter}${parseInt(to)}`,
+    count: parseInt(to) - parseInt(from) + 1,
   };
 };
 

@@ -1,5 +1,5 @@
 import { Badge, Button, Field, Input, LoadingState } from '../../ms/index.js';
-import { setColorVar } from '../../../utils/raceNumbers.js';
+import { setColorVar, setLetter } from '../../../utils/raceNumbers.js';
 import ColorSwatches from './ColorSwatches.jsx';
 import NumberGrid from './NumberGrid.jsx';
 import { activeCountOf } from './raceNumberSets.js';
@@ -18,14 +18,15 @@ export default function NumberSetCard({ set, numbersApi }) {
   const active = activeCountOf(set);
   const inactive = set.count - active;
   const titleId = `sada-${set.set_number}`;
+  const letter = set.letter || setLetter(set.set_number);
 
   return (
     <section className={styles.card} aria-labelledby={titleId}>
       <header className={styles.head}>
         <span className={styles.color} style={{ '--set-color': setColorVar(set.set_color) }} aria-hidden="true" />
-        <h3 id={titleId} className={styles.title}>Sada {set.set_number}</h3>
+        <h3 id={titleId} className={styles.title}>Sada {letter}</h3>
         <span className={styles.range}>
-          dresy {set.min_actual}–{set.max_actual} → systém {set.min_display}–{set.max_display}
+          dresy {set.min_actual}–{set.max_actual} → {set.min_display}–{set.max_display}
         </span>
         <span className={styles.badges}>
           <Badge tone="open" size="sm">{active} aktivních</Badge>
@@ -44,7 +45,7 @@ export default function NumberSetCard({ set, numbersApi }) {
           <div className={styles.colorRow}>
             <span className={styles.caps}>Barva sady</span>
             <ColorSwatches
-              label={`Barva sady ${set.set_number}`}
+              label={`Barva sady ${letter}`}
               value={set.set_color}
               onChange={(color) => updateSetColor(set.set_number, color)}
             />
@@ -56,14 +57,11 @@ export default function NumberSetCard({ set, numbersApi }) {
             </Button>
             {showAddNumber && (
               <form className={styles.addForm} onSubmit={addNumber}>
-                <Field label="Reálné" id={`sada-${set.set_number}-actual`}>
+                <Field label="Dres" id={`sada-${set.set_number}-actual`}>
                   <Input size="sm" type="number" mono min="1" required value={addNumberData.actual_number}
                     onChange={(e) => updateAddNumber('actual_number', e.target.value)} />
                 </Field>
-                <Field label="Systémové" id={`sada-${set.set_number}-display`}>
-                  <Input size="sm" type="number" mono min="1" required value={addNumberData.display_number}
-                    onChange={(e) => updateAddNumber('display_number', e.target.value)} />
-                </Field>
+                <span className={styles.addCode} aria-live="polite">→ {letter}{addNumberData.actual_number || '…'}</span>
                 <Button type="submit" size="sm" variant="primary" icon="plus">Přidat</Button>
               </form>
             )}

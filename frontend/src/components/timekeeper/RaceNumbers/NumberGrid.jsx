@@ -30,14 +30,14 @@ export default function NumberGrid({ numbers, updatingNumberId, onToggle }) {
                   className={cx(styles.cell, !n.is_active && styles.off, saving && styles.busy)}
                   style={{ '--set-color': setColorVar(n.set_color) }}
                   aria-pressed={Boolean(n.is_active)}
-                  aria-label={`Dres ${n.actual_number}, systémové ${n.display_number} – ${state}`}
-                  title={`Číslo dresu ${n.actual_number} | Sys. ${n.display_number}`}
+                  aria-label={`Dres ${n.actual_number}, ${n.display_number} – ${state}`}
+                  title={`Číslo dresu ${n.actual_number} | ${n.display_number}`}
                   disabled={saving}
                   onClick={() => onToggle(n.id, !n.is_active)}
                 >
                   <span className={cx(styles.dot, saving ? styles.saving : n.is_active ? styles.active : styles.inactive)} aria-hidden="true" />
                   <span className={styles.number}>{n.actual_number}</span>
-                  <span className={styles.system}>s. {n.display_number}</span>
+                  <span className={styles.system}>{n.display_number}</span>
                 </button>
               );
             })}

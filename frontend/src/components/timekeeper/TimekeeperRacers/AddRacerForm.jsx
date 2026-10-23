@@ -1,5 +1,6 @@
 import { Badge, Button, Field, Input, Paska, Tooltip } from '../../ms/index.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
+import { setLetter } from '../../../utils/raceNumbers.js';
 import RacerFields from './RacerFields.jsx';
 import RacerSearchResults from './RacerSearchResults.jsx';
 import { racerSearchQuery } from './racers.js';
@@ -42,11 +43,12 @@ export default function AddRacerForm({ racers }) {
         >
           <Input
             size="sm"
-            type="number"
             mono
-            placeholder="Automatický návrh"
+            placeholder="A12"
+            maxLength={6}
+            autoCapitalize="characters"
             value={formData.race_number_display}
-            onChange={(e) => updateField('race_number_display', e.target.value)}
+            onChange={(e) => updateField('race_number_display', e.target.value.toUpperCase())}
           />
         </Field>
         <div className={styles.bib}>
@@ -54,7 +56,7 @@ export default function AddRacerForm({ racers }) {
           <span className={styles.bibRow}>
             <BibNumber number={selectedRaceNumberOption?.actual_number} setColor={selectedRaceNumberOption?.set_color} />
             <span className={styles.set}>
-              {selectedRaceNumberOption ? `Sada ${selectedRaceNumberOption.set_number}` : 'Bez sady'}
+              {selectedRaceNumberOption ? `Sada ${setLetter(selectedRaceNumberOption.set_number)}` : 'Bez sady'}
             </span>
           </span>
         </div>

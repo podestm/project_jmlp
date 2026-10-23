@@ -78,12 +78,7 @@ export default function TimingToolbar({
           label="Vybraná kategorie"
           busy={printBusy}
           disabled={selectedCategory === 'all'}
-          onPrint={(runMode) => onPrintResults(runMode, 'category')}
-        />
-        <PrintRunButtons
-          label="Všechny kategorie"
-          busy={printBusy}
-          onPrint={(runMode) => onPrintResults(runMode, 'all')}
+          onPrint={onPrintResults}
         />
       </div>
     </div>

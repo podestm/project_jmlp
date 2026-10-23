@@ -5,14 +5,14 @@
 // aritmetika a porovnávání.
 
 /**
- * Čas z pole nebo ze serveru na číslo. Nula („0“, „0.0“, „0.00“) je prázdné
- * pole, ne naměřený čas - jinak by se nula sčítala do celkového času a řádek
+ * Čas z pole nebo ze serveru na číslo. Nula („0“, „0.0“, „0.00“) i záporný čas
+ * je prázdné pole, ne naměřený čas - jinak by se nula sčítala do celkového času a řádek
  * by vypadal jako hotový.
  */
 export const parseStoredTime = (value) => {
   if (value === '' || value === null || value === undefined) return null;
   const parsed = parseFloat(value);
-  return Number.isNaN(parsed) || parsed === 0 ? null : parsed;
+  return Number.isNaN(parsed) || parsed <= 0 ? null : parsed;
 };
 
 /** Nulové časy v rozepsaném řádku vyprázdní (pole pak ukáže jen nápovědu). */
@@ -113,4 +113,17 @@ export const formatConflictValue = (value) => {
   if (value == null || value === '') return '—';
   if (typeof value === 'boolean') return value ? 'Ano' : 'Ne';
   return String(value);
+};
+
+/**
+ * Šipka nahoru/dolů při zadávání časů: index nejbližšího řádku ve směru
+ * `direction` (-1 nahoru, +1 dolů), jehož políčko jde vyplnit. Řádky se
+ * zamčeným políčkem (DNF/DNS/DSQ, zamčené kolo) se přeskočí. Za okrajem
+ * seznamu zůstane fokus, kde je (null).
+ */
+export const findRowInDirection = (list, currentIndex, direction, isEnabled) => {
+  for (let index = currentIndex + direction; index >= 0 && index < list.length; index += direction) {
+    if (isEnabled(list[index])) return index;
+  }
+  return null;
 };

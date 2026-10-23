@@ -15,6 +15,7 @@ from ...utils import (
     get_category_snapshot_for_birth_year,
 )
 from .idempotency import try_get_idempotent_response, store_idempotent_response
+from ...services.race_number_codes import normalize_code
 from ...services.start_list import (
     _apply_category_snapshot,
     _apply_race_number_snapshot,
@@ -295,7 +296,6 @@ def generate_start_list(
             club_name=racer_row["club_name"],
             category_name=racer_row["category_name"],
             category_sex=racer_row["category_sex"],
-            race_number_actual=race_number.actual_number if race_number else None,
             race_number_display=race_number.display_number if race_number else None,
         )
         db.add(entry)
@@ -425,7 +425,11 @@ def update_start_list_entry(
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)
     if race_number_provided:
         next_display = data.get("race_number_display", None)
-        if next_display not in ("", None) and entry.race_number_display is not None and int(next_display) == entry.race_number_display:
+        try:
+            next_display = normalize_code(next_display)
+        except ValueError:
+            next_display = None     # neplatný tvar už odmítl _resolve_race_number_for_assignment
+        if next_display is not None and entry.race_number_display is not None and next_display == entry.race_number_display:
             race_number = entry.race_number_id and _get_race_number_by_id(int(entry.race_number_id), db, require_active=False)
         _validate_race_number_assignment(db, entry.race_id, race_number.id if race_number else None, exclude_entry_id=entry.id)
         _apply_race_number_snapshot(entry, race_number)
@@ -636,7 +640,7 @@ def add_manual_start_list_entry(
     Body: {
         "racer_id": 123,            // optional - existing racer
         "start_number": 50,        // optional - auto-assigns next if not provided
-        "race_number_display": 201, // optional - system number
+        "race_number_display": "B1", // optional - písmeno sady + dres
         "racer_name": "Jan",       // required for new racer, optional snapshot override
         "racer_surname": "Nový",   // required for new racer, optional snapshot override
         "racer_year": 2010,        // required for new racer
@@ -739,7 +743,6 @@ def add_manual_start_list_entry(
         club_name=club_name,
         category_name=category_name,
         category_sex=category_sex,
-        race_number_actual=race_number.actual_number if race_number else None,
         race_number_display=race_number.display_number if race_number else None,
     )
     db.add(entry)

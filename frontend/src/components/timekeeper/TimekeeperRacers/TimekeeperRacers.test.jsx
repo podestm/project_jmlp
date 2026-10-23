@@ -10,8 +10,8 @@ const { default: TimekeeperRacers } = await import('./TimekeeperRacers.jsx');
 const { SELECTED_RACE_KEY } = await import('../frame/selectedRace.js');
 
 const ROWS = [
-  { id: 1, start_number: 1, racer_name: 'Tereza', racer_surname: 'Svobodová', racer_year: 2019, racer_sex: 2, club_name: 'SK Meteor Brno', category_id: 3, category_name: 'Přípravka dívky', race_number_display: 6, race_number_actual: 6, set_color: 'blue', excluded: false },
-  { id: 2, start_number: 2, racer_name: 'Linda', racer_surname: 'Fialová', racer_year: 2015, racer_sex: 2, club_name: 'FreeSki Academy Brno', category_id: 7, category_name: 'Mladší žačky', race_number_display: 42, race_number_actual: 42, set_color: 'blue', excluded: true },
+  { id: 1, start_number: 1, racer_name: 'Tereza', racer_surname: 'Svobodová', racer_year: 2019, racer_sex: 2, club_name: 'SK Meteor Brno', category_id: 3, category_name: 'Přípravka dívky', race_number_display: 'A6', race_number_actual: 6, set_color: 'blue', excluded: false },
+  { id: 2, start_number: 2, racer_name: 'Linda', racer_surname: 'Fialová', racer_year: 2015, racer_sex: 2, club_name: 'FreeSki Academy Brno', category_id: 7, category_name: 'Mladší žačky', race_number_display: 'A42', race_number_actual: 42, set_color: 'blue', excluded: true },
 ];
 
 const GET = {
