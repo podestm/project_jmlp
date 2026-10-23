@@ -28,7 +28,6 @@ const TimekeeperRacerRow = React.memo(function TimekeeperRacerRow({ entry, onEdi
           actualNumber={entry.race_number_actual}
           displayNumber={entry.race_number_display}
           setColor={entry.set_color}
-          smallTopMargin={false}
         />
       </td>
       <td>

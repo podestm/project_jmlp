@@ -50,7 +50,6 @@ const TimingRow = React.memo(function TimingRow({
           actualNumber={entry.race_number_actual}
           displayNumber={entry.race_number_display}
           setColor={entry.set_color}
-          smallTopMargin={false}
         />
       </td>
       {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů -
