@@ -15,6 +15,18 @@
   max-inline-size: 100%;
 }
 
+/* Velké číslo chyby – jen pro oko, čtečka slyší „Chyba 404“ z popisku. */
+.big {
+  margin-block-end: calc(-1 * var(--ms-space-2));
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: clamp(96px, 14vw, 168px);
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--ms-navy);
+}
+
 .code {
   font-family: var(--ms-font-display);
   font-weight: 700;

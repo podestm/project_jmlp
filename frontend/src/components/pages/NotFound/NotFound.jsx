@@ -22,6 +22,7 @@ export default function NotFound() {
     <Screen>
       <Container className={styles.page}>
         <div className={styles.intro}>
+          <p className={styles.big} aria-hidden="true">404</p>
           <p className={styles.code}>Chyba <span className={styles.number}>404</span></p>
           <h1 className={styles.title}>Tady nic není. <br className={styles.break} />Asi jste sjeli z trati.</h1>
           <p className={styles.text}>

@@ -4,10 +4,27 @@
 // nedala testovat bez vykreslení celé tabulky, přestože je to obyčejná
 // aritmetika a porovnávání.
 
+/**
+ * Čas z pole nebo ze serveru na číslo. Nula („0“, „0.0“, „0.00“) je prázdné
+ * pole, ne naměřený čas - jinak by se nula sčítala do celkového času a řádek
+ * by vypadal jako hotový.
+ */
 export const parseStoredTime = (value) => {
   if (value === '' || value === null || value === undefined) return null;
   const parsed = parseFloat(value);
-  return Number.isNaN(parsed) ? null : parsed;
+  return Number.isNaN(parsed) || parsed === 0 ? null : parsed;
+};
+
+/** Nulové časy v rozepsaném řádku vyprázdní (pole pak ukáže jen nápovědu). */
+export const clearZeroTimes = (data) => {
+  if (!data) return data;
+  const cleared = { ...data };
+  ['time1', 'time2'].forEach((field) => {
+    if (cleared[field] !== '' && cleared[field] != null && parseStoredTime(cleared[field]) == null) {
+      cleared[field] = '';
+    }
+  });
+  return cleared;
 };
 
 /** Stejné pravidlo jako v backend/app/routers/timekeeper/timing.py. */
@@ -23,8 +40,8 @@ export const calculateTimeSum = (data) => {
 export const buildTimeUpdate = (data) => ({
   base_revision: data.base_revision || null,
   force_apply: Boolean(data.force_apply) || false,
-  time1: data.time1 !== '' ? parseFloat(data.time1) : null,
-  time2: data.time2 !== '' ? parseFloat(data.time2) : null,
+  time1: parseStoredTime(data.time1),
+  time2: parseStoredTime(data.time2),
   dnf: data.dnf || false,
   dns: data.dns || false,
   dsq: data.dsq || false,
@@ -32,8 +49,8 @@ export const buildTimeUpdate = (data) => ({
 
 /** Hodnoty na společný tvar, aby '25.50' a 25.5 nebyly dvě různé věci. */
 export const normalizeDraft = (data) => ({
-  time1: data?.time1 !== '' && data?.time1 != null ? parseFloat(data.time1) : null,
-  time2: data?.time2 !== '' && data?.time2 != null ? parseFloat(data.time2) : null,
+  time1: parseStoredTime(data?.time1),
+  time2: parseStoredTime(data?.time2),
   dnf: Boolean(data?.dnf),
   dns: Boolean(data?.dns),
   dsq: Boolean(data?.dsq),

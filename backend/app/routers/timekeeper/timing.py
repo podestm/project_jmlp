@@ -46,13 +46,50 @@ def _raise_stale_conflict(entry_id: int, endpoint: str, client_revision: str | N
     )
 
 
+TIME_FIELDS = ("time1", "time2", "dnf", "dns", "dsq")
+
+
+def _time_or_none(value: Any) -> Decimal | None:
+    """Čas na Decimal; nula ("0", "0.00") je prázdný čas, ne naměřená hodnota."""
+    if value is None:
+        return None
+    parsed = Decimal(str(value))
+    return None if parsed == 0 else parsed
+
+
+def _same_stored_value(field: str, stored: Any, incoming: Any) -> bool:
+    if field in ("time1", "time2"):
+        incoming = _time_or_none(incoming)
+        if stored is None or incoming is None:
+            return stored is None and incoming is None
+        return Decimal(str(stored)) == incoming
+    return bool(stored) == bool(incoming)
+
+
+def _matches_stored(entry: models.StartListEntry, values: Dict[str, Any]) -> bool:
+    """Zápis by na řádku nic nezměnil (všechna poslaná pole časů už tak jsou).
+
+    Zastaralá revize je pak jen jiné razítko u téže hodnoty - typicky fronta
+    zápis mezitím doručila, nebo tentýž čas přišel z impulzu i ručně. Konflikt
+    by obsluze ukázal dvě stejná čísla a chtěl po ní rozhodnutí, které nemá
+    smysl.
+    """
+    sent = [field for field in TIME_FIELDS if field in values]
+    return bool(sent) and all(
+        _same_stored_value(field, getattr(entry, field), values[field]) for field in sent
+    )
+
+
 def _check_revision_or_raise(
     entry: models.StartListEntry,
     client_revision: str | None,
     endpoint: str,
     force_apply: bool = False,
+    values: Dict[str, Any] | None = None,
 ) -> None:
     if force_apply:
+        return
+    if values is not None and _matches_stored(entry, values):
         return
 
     normalized_client = _normalize_revision(client_revision)
@@ -105,10 +142,11 @@ def save_times(
             client_revision=time_entry.base_revision,
             endpoint=endpoint,
             force_apply=bool(time_entry.force_apply),
+            values={field: getattr(time_entry, field) for field in TIME_FIELDS},
         )
         
-        entry.time1 = Decimal(str(time_entry.time1)) if time_entry.time1 is not None else None
-        entry.time2 = Decimal(str(time_entry.time2)) if time_entry.time2 is not None else None
+        entry.time1 = _time_or_none(time_entry.time1)
+        entry.time2 = _time_or_none(time_entry.time2)
         entry.dnf = time_entry.dnf
         entry.dns = time_entry.dns
         entry.dsq = time_entry.dsq
@@ -189,14 +227,15 @@ def update_single_time(
         client_revision=update_data.get("base_revision"),
         endpoint=endpoint,
         force_apply=bool(update_data.get("force_apply")),
+        values=update_data,
     )
 
     update_data.pop("base_revision", None)
     update_data.pop("force_apply", None)
     
     for key, value in update_data.items():
-        if key in ('time1', 'time2') and value is not None:
-            setattr(entry, key, Decimal(str(value)))
+        if key in ('time1', 'time2'):
+            setattr(entry, key, _time_or_none(value))
         else:
             setattr(entry, key, value)
     
