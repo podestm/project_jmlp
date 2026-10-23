@@ -108,7 +108,7 @@ describe('ClubManagement', () => {
     await screen.findByText('SK Zaniklý');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub SK Zaniklý' }));
-    expect(screen.getByText(/převádět není co/)).toBeInTheDocument();
+    expect(screen.getByText(/nemá závodníky ani pořádané závody/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub' }));
 

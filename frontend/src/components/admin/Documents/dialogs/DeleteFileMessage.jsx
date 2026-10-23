@@ -1,4 +1,3 @@
-import { Icon } from '../../../ms/index.js';
 import { formatDateShort } from '../../../../utils/date.js';
 import { formatFileSize } from '../../../../utils/files.js';
 import FileInfo from '../../shared/FileInfo/FileInfo.jsx';
@@ -37,10 +36,6 @@ export default function DeleteFileMessage({ file }) {
           </li>
         ))}
       </ul>
-      <p className={styles.tip}>
-        <Icon name="info" size={18} />
-        Chcete ho jen nahradit novější verzí? Nahrajte novou u vlastníka a tuhle pak odpojte.
-      </p>
     </div>
   );
 }

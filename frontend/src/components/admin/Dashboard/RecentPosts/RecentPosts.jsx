@@ -6,7 +6,7 @@ import styles from './RecentPosts.module.css';
 /** Poslední příspěvky (AdminDashboard): název, datum, Koncept / Publikováno. */
 export default function RecentPosts({ posts }) {
   if (posts.length === 0) {
-    return <EmptyState icon="news" title="Žádné příspěvky" hint="Zatím jste nenapsali ani jednu aktualitu." headingLevel={3} />;
+    return <EmptyState icon="news" title="Žádné příspěvky" headingLevel={3} />;
   }
   return (
     <Panel padding="none">

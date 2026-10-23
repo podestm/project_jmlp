@@ -17,7 +17,6 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
       tone: 'open',
       lead: <BibDate date={nextOpenRace.datum} variant="row" />,
       title: `Přihlásit na závod ${raceTitle(nextOpenRace)}`,
-      hint: 'Přihlášky na tenhle závod běží.',
       to: `/zavod/${nextOpenRace.id}#prihlaska`,
       action: 'Přihlásit',
       primary: true,
@@ -26,7 +25,7 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
       key: 'poradatel',
       icon: 'mail',
       title: 'Zeptat se pořadatele',
-      hint: organizer ? `${organizer} – e-mail najdete v seznamu klubů` : 'E-maily klubů najdete v kontaktech',
+      hint: organizer || undefined,
       to: '/kontakty',
       action: 'Kontakty',
     },
@@ -34,7 +33,6 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
       key: 'aktuality',
       icon: 'volume',
       title: 'Počkat na oznámení',
-      hint: 'Otevření přihlášek oznamujeme v aktualitách.',
       to: '/aktuality',
       action: 'Aktuality',
     },
@@ -42,7 +40,6 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
       key: 'pravidla',
       icon: 'file-text',
       title: 'Připravit se podle pravidel',
-      hint: 'Soutěžní řád a pokyny – kategorie podle ročníku a bodování.',
       to: '/dokumenty',
       action: 'Dokumenty',
     },
@@ -56,7 +53,7 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
           <span className={styles.noticeIcon}><Icon name="lock" size={22} /></span>
           <div className={styles.noticeText}>
             <h3 className={styles.noticeTitle}>Na tento závod se teď přihlásit nedá</h3>
-            <p>Přihlašování přes web je zavřené. Až ho pořadatel otevře, objeví se formulář přímo tady na této stránce – jinde se na závod přihlásit nedá.</p>
+            <p>Až pořadatel přihlašování otevře, formulář bude tady.</p>
           </div>
         </div>
         <h3 className={styles.subTitle}>Co můžete udělat teď</h3>

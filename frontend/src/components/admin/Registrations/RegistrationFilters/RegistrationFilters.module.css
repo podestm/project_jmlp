@@ -19,32 +19,6 @@
   inline-size: 220px;
 }
 
-.export {
-  display: flex;
-  align-items: center;
-  gap: var(--ms-space-2);
-  margin: 0 0 0 auto;
-  padding-block-end: 12px;
-  font-size: var(--ms-fs-base);
-  color: var(--ms-ink-body);
-}
-
-/* Na šířce je export tlačítkem v záhlaví, odkaz tu jen na mobilu. */
-.exportIcon,
-.exportLink {
-  display: none;
-}
-
-.exportLink {
-  align-items: center;
-  min-block-size: var(--ms-target);
-  font-family: var(--ms-font-display);
-  font-weight: 700;
-  font-size: var(--ms-fs-base);
-  color: var(--ms-navy);
-  white-space: nowrap;
-}
-
 .result {
   display: flex;
   align-items: center;
@@ -75,30 +49,7 @@
     min-inline-size: 0;
   }
 
-  .search,
-  .export {
+  .search {
     grid-column: 1 / -1;
-  }
-
-  .export {
-    margin: 0;
-    padding: 10px var(--ms-space-3);
-    border-radius: var(--ms-radius-card);
-    background: var(--ms-surface-sunken);
-    font-size: var(--ms-fs-md);
-    line-height: 1.45;
-  }
-
-  .export > span {
-    flex-grow: 1;
-  }
-
-  .exportIcon {
-    display: block;
-    flex-shrink: 0;
-  }
-
-  .exportLink {
-    display: inline-flex;
   }
 }

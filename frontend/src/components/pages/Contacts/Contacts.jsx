@@ -59,7 +59,7 @@ export default function Contacts() {
           <div className={styles.clubsHead}>
             <div className={styles.clubsTitle}>
               <Paska id="kluby">Kluby v poháru</Paska>
-              <p className={styles.note}>{CLUBS.length} klubů · e-maily otevřou váš poštovní program</p>
+              <p className={styles.note}>{CLUBS.length} klubů</p>
             </div>
             <Field label="Najít klub" className={styles.search}>
               <Input type="search" placeholder="Název klubu nebo město" value={query} onChange={(event) => setQuery(event.target.value)} />

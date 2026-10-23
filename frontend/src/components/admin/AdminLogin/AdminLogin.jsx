@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../../config/auth.jsx';
 import trat from '../../../assets/images/trat.jpg';
 import znak from '../../../assets/images/jmlp-znak-inverse.svg';
-import { Alert, Button, Field, Icon, Input, PasswordInput } from '../../ms/index.js';
+import { Alert, Button, Field, Icon, Input, PasswordInput, Tooltip } from '../../ms/index.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
 import styles from './AdminLogin.module.css';
 
@@ -60,9 +60,7 @@ export default function AdminLogin() {
             </Alert>
           )}
           {error && (
-            <Alert type="danger" compact title={error}>
-              Zkontrolujte e-mail i heslo. Hláška zůstane na obrazovce, dokud to nezkusíte znovu.
-            </Alert>
+            <Alert type="danger" compact title={error} />
           )}
 
           <Field label="E-mail" id="admin-email">
@@ -87,17 +85,11 @@ export default function AdminLogin() {
             />
           </Field>
 
-          <Button type="submit" variant="primary" size="lg" block iconEnd="arrow-right" busy={loading} className={styles.submit}>
-            {loading ? 'Přihlašování…' : 'Přihlásit se'}
-          </Button>
-
-          <p className={styles.hint}>
-            <Icon name="lock" size={18} className={styles.hintIcon} />
-            <span>
-              Jedno přihlášení platí pro administraci i pro <Link to="/timekeeper">časomíru</Link>.
-              Účet časoměřiče pustí jen do časomíry.
-            </span>
-          </p>
+          <Tooltip text="Platí i pro časomíru" className={styles.submit}>
+            <Button type="submit" variant="primary" size="lg" block iconEnd="arrow-right" busy={loading}>
+              {loading ? 'Přihlašování…' : 'Přihlásit se'}
+            </Button>
+          </Tooltip>
         </form>
 
         <Link to="/" className={styles.back}>

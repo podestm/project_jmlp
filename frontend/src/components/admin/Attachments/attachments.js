@@ -10,21 +10,15 @@ const GROUP_LABELS = {
   [`${ROLE.vysledky}+${ROLE.prubezne}`]: 'Výsledky sezóny',
 };
 
-/** Popisky a nápovědy jednotlivých rolí - jedno místo pro celou administraci. */
+/** Přípony jednotlivých rolí (nápověda jen tam, kde jde o formát) - jedno místo pro celou administraci. */
 const SLOT_CONFIG = {
-  [ROLE.propozice]: { accept: DOCUMENT_ACCEPT, hint: 'Zveřejní se u závodu jako propozice' },
-  [ROLE.vysledky]: { accept: DOCUMENT_ACCEPT, hint: 'Zveřejní se u závodu jako výsledková listina' },
-  [ROLE.prubezne]: { accept: DOCUMENT_ACCEPT, hint: 'Průběžné pořadí sezóny' },
-  [ROLE.document]: {
-    accept: DOCUMENT_ACCEPT,
-    hint: 'Zveřejní se na /dokumenty, název souboru je zároveň popiskem odkazu',
-  },
-  [ROLE.image]: { accept: IMAGE_ACCEPT, hint: 'Obrázek zobrazený u příspěvku' },
-  [ROLE.logo]: { accept: IMAGE_ACCEPT, hint: 'Logo klubu, použije se v hlavičce výsledkové listiny' },
-  [ROLE.sponzori]: {
-    accept: IMAGE_ACCEPT,
-    hint: 'Pruh s logy sponzorů - tiskne se pod výsledkovou listinou závodu (široký obrázek, cca 7 : 1)',
-  },
+  [ROLE.propozice]: { accept: DOCUMENT_ACCEPT },
+  [ROLE.vysledky]: { accept: DOCUMENT_ACCEPT },
+  [ROLE.prubezne]: { accept: DOCUMENT_ACCEPT },
+  [ROLE.document]: { accept: DOCUMENT_ACCEPT },
+  [ROLE.image]: { accept: IMAGE_ACCEPT },
+  [ROLE.logo]: { accept: IMAGE_ACCEPT },
+  [ROLE.sponzori]: { accept: IMAGE_ACCEPT, hint: 'Široký obrázek, cca 7 : 1' },
 };
 
 /** Přípona a nápověda role (neznámá role = dokument bez nápovědy). */

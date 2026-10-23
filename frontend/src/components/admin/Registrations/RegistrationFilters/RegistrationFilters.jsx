@@ -1,12 +1,10 @@
-import { Link } from 'react-router-dom';
-import { Button, Field, Icon, Input, Select } from '../../../ms/index.js';
+import { Button, Field, Input, Select } from '../../../ms/index.js';
 import { clubLabel } from '../registrations.js';
 import styles from './RegistrationFilters.module.css';
 
 /**
  * Hledání, filtr klubu a kategorie a řazení přihlášek; při aktivním filtru řádek
- * „Zobrazeno X z Y“ s tlačítkem Zrušit filtr. Export CSV je u závodu
- * ve správě závodů – tady jen odkaz (AdminPrihlasky).
+ * „Zobrazeno X z Y“ s tlačítkem Zrušit filtr (AdminPrihlasky).
  */
 export default function RegistrationFilters({
   filter, onFilterChange, sort, onSortChange, clubs, categories, shown, total, filtered, onReset,
@@ -37,11 +35,6 @@ export default function RegistrationFilters({
             <option value="name">Podle příjmení</option>
           </Select>
         </Field>
-        <p className={styles.export}>
-          <Icon name="download" size={18} className={styles.exportIcon} />
-          <span>Export do CSV je u závodu ve správě závodů.</span>
-          <Link to="/admin/races" className={styles.exportLink}>Export CSV</Link>
-        </p>
       </div>
       {filtered && (
         <p className={styles.result} aria-live="polite">

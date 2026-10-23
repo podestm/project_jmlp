@@ -136,8 +136,8 @@ export default function CoverageReport({ report, showDetails, onToggleDetails, o
           compact
           autoDismissDelay={0}
           title={bySex
-            ? 'Všechny ročníky od roku 1900 do současnosti jsou správně pokryty kategoriemi pro obě pohlaví bez překryvů.'
-            : 'Všechny ročníky od roku 1900 do současnosti jsou správně pokryty kategoriemi bez překryvů.'}
+            ? 'Všechny ročníky jsou pokryté pro obě pohlaví, bez překryvů.'
+            : 'Všechny ročníky jsou pokryté, bez překryvů.'}
         />
       )}
     </section>

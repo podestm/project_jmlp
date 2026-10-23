@@ -13,7 +13,7 @@ export const deleteRaceConfirm = (race) => {
     title: name ? `Smazat závod ${name}?` : 'Smazat závod?',
     message: race
       ? <DeleteRaceMessage race={race} />
-      : 'Závod zmizí z kalendáře i z administrace. Akci nelze vzít zpět.',
+      : 'Smazání nejde vrátit.',
     confirmLabel: count > 0 ? `Smazat závod i ${count} ${registrationsWord(count)}` : 'Smazat závod',
     danger: true,
     icon: 'trash',

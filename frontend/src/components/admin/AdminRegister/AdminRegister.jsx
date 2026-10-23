@@ -14,8 +14,6 @@ export default function AdminRegister() {
   return (
     <AdminPage
       title="Nový správce"
-      meta="účet do administrace"
-      description="Založení účtu administrátora."
       actions={<Button size="sm" icon="arrow-left" onClick={reg.goBack}>Zpět</Button>}
     >
       <form className={styles.form} onSubmit={reg.handleSubmit} noValidate aria-label="Nový správce">
@@ -35,7 +33,6 @@ export default function AdminRegister() {
         </Field>
         <Checkbox
           label="Aktivní účet"
-          description="Neaktivní administrátoři se nemohou přihlásit."
           checked={formData.is_active}
           onChange={(e) => reg.setField('is_active', e.target.checked)}
         />

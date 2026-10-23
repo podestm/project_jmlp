@@ -24,7 +24,7 @@ import styles from './AttachmentManager.module.css';
  * knihovny. Které role jsou povolené, hlídá i backend (ATTACHMENT_ROLES_BY_OWNER).
  *
  * `ownerId` může být zpočátku null (nový, dosud neuložený závod) - komponenta
- * pak jen vysvětlí, že je potřeba věc nejdřív uložit.
+ * pak jen řekne, že je potřeba věc nejdřív uložit.
  *
  * `stacked` dá sloty pod sebe i na širokém displeji - pro úzký sloupec
  * formuláře, kde by se dva sloty vedle sebe nevešly. `title` je nadpis nad
@@ -39,7 +39,7 @@ export default function AttachmentManager({ ownerType, ownerId, roles, title, st
     return (
       <div className={styles.unsaved}>
         {title && <h3 className={styles.title}>{title}</h3>}
-        <p className={styles.unsavedText}>Dokumenty půjde nahrát hned po prvním uložení.</p>
+        <p className={styles.unsavedText}>Nahrát půjde po uložení.</p>
       </div>
     );
   }

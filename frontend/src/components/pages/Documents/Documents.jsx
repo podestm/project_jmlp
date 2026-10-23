@@ -63,7 +63,7 @@ export default function Documents() {
       </Alert>
     );
   } else if (!current && archive.length === 0) {
-    content = <EmptyState size="lg" icon="file-text" title="Zatím tu nejsou žádné dokumenty" hint="Jakmile budou zveřejněny, najdete je na této stránce." />;
+    content = <EmptyState size="lg" icon="file-text" title="Zatím tu nejsou žádné dokumenty" />;
   } else {
     const archived = archive.flatMap((season) => season.documents.map((document) => ({ season, document })));
     const shown = showAll ? archived : archived.slice(0, ARCHIVE_PREVIEW);
@@ -82,7 +82,7 @@ export default function Documents() {
         )}
         {archived.length > 0 && (
           <section className={styles.section} aria-labelledby="archiv">
-            <Paska id="archiv" aside={<span className={styles.archiveNote}>Dokumenty starších ročníků</span>}>Archiv</Paska>
+            <Paska id="archiv">Archiv</Paska>
             <ul className={styles.archiveList}>
               {shown.map(({ season, document }) => <ArchiveDocument key={document.id} season={season} document={document} />)}
             </ul>
@@ -97,7 +97,7 @@ export default function Documents() {
         )}
         <p className={styles.info}>
           <Icon name="info" size={20} />
-          <span>Propozice a výsledkové listiny jednotlivých závodů najdete u každého závodu v <Link to="/zavody">kalendáři</Link>, ne tady. Tato stránka obsahuje jen celoroční dokumenty.</span>
+          <span>Propozice a výsledky závodů jsou v <Link to="/zavody">kalendáři</Link>.</span>
         </p>
       </>
     );

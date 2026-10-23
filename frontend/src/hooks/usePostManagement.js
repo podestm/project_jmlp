@@ -200,7 +200,7 @@ export const usePostManagement = ({ confirm } = {}) => {
         const post = posts.find((item) => item.id === postId);
         const confirmed = await confirm({
             title: post?.title ? `Smazat příspěvek „${post.title}“?` : 'Smazat příspěvek?',
-            message: 'Příspěvek zmizí z webu i z administrace. Akci nelze vzít zpět.',
+            message: 'Smazání nejde vrátit.',
             confirmLabel: 'Smazat příspěvek',
             danger: true,
             icon: 'trash'

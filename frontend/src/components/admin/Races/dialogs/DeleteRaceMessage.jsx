@@ -29,20 +29,13 @@ export default function DeleteRaceMessage({ race }) {
       <p className={styles.caps}>Se závodem zmizí</p>
       <ul className={styles.list}>
         {count > 0 && (
-          <li><Icon name="trash" size={18} className={styles.danger} />Smaže se všech {count} {registrationsWord(count)} i startovní listina. Rodiče by je museli podat znovu.</li>
+          <li><Icon name="trash" size={18} className={styles.danger} />Všech {count} {registrationsWord(count)} i startovní listina.</li>
         )}
-        <li><Icon name="globe" size={18} />Závod zmizí z kalendáře na webu i s registračním formulářem.</li>
+        <li><Icon name="globe" size={18} />Závod v kalendáři webu.</li>
         {hasDocuments && (
-          <li><Icon name="unlink" size={18} />Dokumenty závodu se jen odpojí – v knihovně dokumentů zůstanou.</li>
+          <li><Icon name="unlink" size={18} />Dokumenty se odpojí, v knihovně zůstanou.</li>
         )}
       </ul>
-
-      {count > 0 && race.registration && (
-        <p className={styles.note}>
-          <Icon name="info" size={18} />
-          <span>Chcete jen zastavit přihlašování? Stačí v seznamu nebo ve formuláři vypnout <strong>registraci</strong> – přihlášky zůstanou.</span>
-        </p>
-      )}
 
       <p className={styles.warning}><Icon name="warning" size={18} />Smazání nejde vrátit.</p>
     </div>

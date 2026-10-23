@@ -8,7 +8,7 @@ export default function ShowMore({ shown, total, onMore }) {
   return (
     <div className={styles.bar}>
       <p className={styles.text}>
-        Zobrazeno <strong>{formatCount(shown)}</strong> z <strong>{formatCount(total)}</strong> závodníků – upřesněte hledání.
+        Zobrazeno <strong>{formatCount(shown)}</strong> z <strong>{formatCount(total)}</strong> závodníků
       </p>
       <Button size="sm" icon="chevron-down" onClick={onMore}>
         Zobrazit dalších {Math.min(PAGE_SIZE, total - shown)}

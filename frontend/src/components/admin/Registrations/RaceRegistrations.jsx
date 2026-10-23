@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Badge, Button, ButtonLink, EmptyState, LoadingState } from '../../ms/index.js';
+import { Alert, Badge, Button, ButtonLink, EmptyState, LoadingState, Tooltip } from '../../ms/index.js';
 import AdminPage from '../frame/AdminPage/AdminPage.jsx';
 import RaceInfo from '../shared/RaceInfo/RaceInfo.jsx';
 import { raceSubtitle } from '../shared/raceText.js';
@@ -13,7 +13,6 @@ import {
   EMPTY_FILTER, categoryOptions, clubOptions, filterRegistrations, groupRegistrations, isFiltered, raceMeta, registrationStats,
 } from './registrations.js';
 import { useAdminRaceRegistrations } from './useAdminRaceRegistrations.js';
-import styles from './RaceRegistrations.module.css';
 
 /** Seznam přihlášených podle filtru a řazení; prázdný filtr řekne proč. */
 function RegistrationsBody({ registrations }) {
@@ -41,7 +40,6 @@ function RegistrationsBody({ registrations }) {
         <EmptyState
           icon="search-x"
           title="Filtru nikdo neodpovídá"
-          hint="Zkuste jiné jméno, klub nebo kategorii."
           action={<Button size="sm" onClick={reset}>Zrušit filtr</Button>}
         />
       ) : (
@@ -66,7 +64,9 @@ export default function RaceRegistrations() {
 
   const actions = (
     <>
-      <ButtonLink to="/admin/races" size="sm" icon="download" className={styles.export}>Export CSV ve správě závodů</ButtonLink>
+      <Tooltip text="Ve správě závodů">
+        <ButtonLink to="/admin/races" size="sm" icon="download">Export CSV</ButtonLink>
+      </Tooltip>
       <ButtonLink to="/admin/races" size="sm" icon="arrow-left">Zpět na závody</ButtonLink>
     </>
   );
@@ -97,7 +97,7 @@ export default function RaceRegistrations() {
         <RegistrationStats stats={stats} />
         <WaitingClubNotice count={stats.waitingForClub} />
         {registrations.length === 0 ? (
-          <EmptyState icon="user" title="Žádní registrovaní závodníci" hint="Pro tento závod se zatím nikdo nepřihlásil." />
+          <EmptyState icon="user" title="Žádní registrovaní závodníci" />
         ) : (
           <RegistrationsBody registrations={registrations} />
         )}

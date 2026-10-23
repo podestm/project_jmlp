@@ -54,17 +54,3 @@
   border-left: 4px solid var(--ms-navy);
   border-radius: var(--ms-radius-control);
 }
-
-.tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0;
-  padding: var(--ms-space-3) var(--ms-space-4);
-  border-left: 4px solid var(--ms-navy);
-  border-radius: var(--ms-radius-control);
-  background: var(--ms-surface-sunken);
-  font-size: var(--ms-fs-base);
-  line-height: 1.5;
-  color: var(--ms-ink);
-}

@@ -88,7 +88,6 @@ export default function RaceManagement() {
     <AdminPage
       title="Závody"
       meta={seasonMeta(rm.seasonFilter)}
-      description="Registrace otevřete nebo zavřete přepínačem, přihlášky najdete u závodu."
       actions={<Button variant="primary" size="sm" icon="plus" onClick={() => rm.setShowForm(true)} className={styles.add}>Nový závod</Button>}
     >
       <RaceFilters
@@ -99,7 +98,7 @@ export default function RaceManagement() {
       />
       {messages}
       {rm.races.length === 0 ? (
-        <EmptyState icon="calendar" title="Žádné závody nebyly nalezeny" hint="Nový závod přidáte tlačítkem Nový závod." />
+        <EmptyState icon="calendar" title="Žádné závody nebyly nalezeny" />
       ) : (
         <>
           <RaceTable races={rm.races} {...rowProps} />

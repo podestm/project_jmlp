@@ -13,7 +13,7 @@ const When = ({ iso }) => {
  */
 export default function RecentRegistrations({ registrations }) {
   if (registrations.length === 0) {
-    return <EmptyState icon="user" title="Žádné registrace" hint="Zatím se nikdo nepřihlásil." headingLevel={3} />;
+    return <EmptyState icon="user" title="Žádné registrace" headingLevel={3} />;
   }
 
   return (

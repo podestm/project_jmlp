@@ -106,7 +106,6 @@ export default function RaceCalendar() {
             size="lg"
             icon="inbox"
             title="V sezóně zatím nejsou vypsané žádné závody"
-            hint="Termíny se sem doplní, jakmile je pořadatelé potvrdí."
           />
         ) : (
           <Stack gap={7}>
@@ -146,10 +145,11 @@ export default function RaceCalendar() {
                       <Icon name="calendar" size={30} strokeWidth={1.6} className={styles.noPastIcon} />
                       <div className={styles.noPastText}>
                         <p className={styles.noPastTitle}>V této sezóně se zatím nezávodilo</p>
-                        <p className={styles.noPastHint}>
-                          {firstUpcoming && `První závod je ${formatDate(firstUpcoming.datum, { day: 'numeric', month: 'long' })} – ${fixEncoding(firstUpcoming.areal_name)}. `}
-                          Výsledky se sem doplní hned po něm – starší ročníky najdete přepnutím sezóny.
-                        </p>
+                        {firstUpcoming && (
+                          <p className={styles.noPastHint}>
+                            {`První závod je ${formatDate(firstUpcoming.datum, { day: 'numeric', month: 'long' })} – ${fixEncoding(firstUpcoming.areal_name)}.`}
+                          </p>
+                        )}
                       </div>
                       <ButtonLink to="/vysledky">Výsledky a pořadí</ButtonLink>
                     </div>

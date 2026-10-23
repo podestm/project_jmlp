@@ -11,9 +11,7 @@ export default function DeleteRacerMessage({ racer }) {
   return (
     <div className={styles.body}>
       <RacerInfo racer={racer} />
-      <p className={styles.text}>
-        Záznam zmizí z databáze závodníků natrvalo. Závodníka, který má přihlášky na závody, server nesmaže.
-      </p>
+      <p className={styles.text}>Závodníka s přihláškami smazat nejde.</p>
       <p className={styles.warning}><Icon name="warning" size={18} />Smazání nejde vrátit.</p>
     </div>
   );

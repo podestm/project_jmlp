@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert, Badge, BibDate, Button, ButtonLink, Container, EmptyState, Field, Icon, LoadingState, Paska, Screen, SegmentedControl,
-  Select,
+  Select, Tooltip,
 } from '../../ms/index.js';
 import { formatDate, formatTime } from '../../../utils/date.js';
 import { fixEncoding } from '../../../utils/text.js';
@@ -57,7 +57,7 @@ function Calm() {
   return (
     <>
       <StateBand icon="clock" eyebrow="Živé výsledky" title="Právě se nezávodí">
-        <p className={styles.bandLead}>Tahle stránka se sama přepne do živého přenosu, jakmile časomíra na trati zapíše první čas.</p>
+        <p className={styles.bandLead}>Přenos začne s prvním časem z trati.</p>
       </StateBand>
       {(next || last) && (
         <Container className={styles.page}>
@@ -85,7 +85,7 @@ function Ended({ race }) {
   return (
     <>
       <StateBand icon="flag" eyebrow="Živé výsledky" title="Živé vysílání skončilo">
-        <p className={styles.bandLead}>{race?.name} · Výsledky budou po ověření rozhodčím u závodu v kalendáři.</p>
+        <p className={styles.bandLead}>{race?.name} · Oficiální výsledky budou u závodu.</p>
       </StateBand>
       <Container className={styles.page}>
         <div className={styles.endedActions}>
@@ -137,15 +137,16 @@ function Running({ data, stale, lastUpdate, refresh }) {
           </div>
           <div className={styles.refresh}>
             <p className={styles.updated}>Aktualizováno <span className={styles.clock}>{lastUpdate ? formatTime(lastUpdate, TIME_WITH_SECONDS) : '—'}</span></p>
-            <Button variant="on-dark" size="sm" icon="refresh" onClick={refresh}>Obnovit</Button>
-            <p className={styles.auto}>automaticky každých {POLL_MS / 1000} s</p>
+            <Tooltip text={`Samo každých ${POLL_MS / 1000} s`}>
+              <Button variant="on-dark" size="sm" icon="refresh" onClick={refresh}>Obnovit</Button>
+            </Tooltip>
           </div>
         </Container>
       </div>
       <div className={styles.warning}>
         <Container className={styles.warningInner}>
           <Icon name="warning" size={20} />
-          <p><strong>Neoficiální výsledky.</strong> Průběžné časy z živého přenosu nejsou závazné ani ověřené rozhodčím. Oficiální listina vyjde po skončení závodu.</p>
+          <p><strong>Neoficiální výsledky.</strong> Oficiální listina vyjde po závodě.</p>
         </Container>
       </div>
       <Container className={styles.page}>
@@ -155,7 +156,7 @@ function Running({ data, stale, lastUpdate, refresh }) {
           </Alert>
         )}
         {categories.length === 0 ? (
-          <EmptyState size="lg" icon="clock" title="Čeká se na první časy" hint="Výsledky se tu objeví, jakmile časomíra zapíše první čas." />
+          <EmptyState size="lg" icon="clock" title="Čeká se na první časy" />
         ) : (
           <>
             {/* Na počítači řada tlačítek, na telefonu výběr (MobilZive) – CSS ukáže jedno z nich. */}
@@ -173,15 +174,11 @@ function Running({ data, stale, lastUpdate, refresh }) {
                 <header className={styles.categoryHead}>
                   <h2 id="kategorie" className={styles.categoryTitle}>{selected.category_name}</h2>
                   <p className={styles.categoryMeta}>{categorySummary(selected.entries)}</p>
-                  <p className={styles.categoryNote}>Časy v sekundách, dvě desetinná místa</p>
                 </header>
                 <LiveResultsTable category={selected} ranked={ranked} className={styles.desktopOnly} />
                 <LiveResultsList ranked={ranked} className={styles.mobileOnly} />
               </section>
             )}
-            <p className={styles.footnote}>
-              Barva dresu odpovídá sadě startovních čísel. Při shodném čase závodníci sdílejí pořadí. Bez pořadí zůstávají ti, kdo nedokončili, nestartovali nebo byli diskvalifikováni.
-            </p>
           </>
         )}
       </Container>

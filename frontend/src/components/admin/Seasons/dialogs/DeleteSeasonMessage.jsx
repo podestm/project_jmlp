@@ -12,7 +12,7 @@ export default function DeleteSeasonMessage({ season }) {
           <span className={styles.meta}>{seasonRange(season.year_start)} · {seasonCounts(season)}</span>
         </span>
       </div>
-      <p className={styles.note}>Dokumenty sezóny se odpojí, soubory zůstanou v knihovně. Sezónu se závody smazat nejde.</p>
+      <p className={styles.note}>Dokumenty se odpojí, soubory zůstanou v knihovně.</p>
     </div>
   );
 }

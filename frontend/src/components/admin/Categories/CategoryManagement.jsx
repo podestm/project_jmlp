@@ -1,5 +1,5 @@
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
-import { Alert, Button, EmptyState, LoadingState } from '../../ms/index.js';
+import { Alert, Button, EmptyState, LoadingState, Tooltip } from '../../ms/index.js';
 import AdminPage from '../frame/AdminPage/AdminPage.jsx';
 import { categoriesMeta } from './categories.js';
 import CategoryDialog from './CategoryDialog/CategoryDialog.jsx';
@@ -33,14 +33,16 @@ export default function CategoryManagement() {
 
   const actions = (
     <>
-      <Button size="sm" icon="coverage" busy={cm.checkingCoverage} onClick={cm.handleCheckCoverage}
-        title="Zkontroluje pokrytí kategorií od roku 1900 do současnosti">
-        {cm.checkingCoverage ? 'Kontroluji…' : 'Kontrola pokrytí'}
-      </Button>
-      <Button size="sm" icon="repeat" busy={cm.recalculating} onClick={cm.handleRecalculate}
-        title="Přepočítá kategorie pro všechny závodníky podle roku narození a pohlaví">
-        {cm.recalculating ? 'Přepočítávám…' : 'Přepočítat kategorie'}
-      </Button>
+      <Tooltip text="Ročníky od 1900 do dneška">
+        <Button size="sm" icon="coverage" busy={cm.checkingCoverage} onClick={cm.handleCheckCoverage}>
+          {cm.checkingCoverage ? 'Kontroluji…' : 'Kontrola pokrytí'}
+        </Button>
+      </Tooltip>
+      <Tooltip text="Všem závodníkům podle ročníku a pohlaví">
+        <Button size="sm" icon="repeat" busy={cm.recalculating} onClick={cm.handleRecalculate}>
+          {cm.recalculating ? 'Přepočítávám…' : 'Přepočítat kategorie'}
+        </Button>
+      </Tooltip>
       <Button variant="primary" size="sm" icon="plus" onClick={cm.openCreate}>Nová kategorie</Button>
     </>
   );
@@ -49,7 +51,6 @@ export default function CategoryManagement() {
     <AdminPage
       title="Kategorie"
       meta={categoriesMeta(cm.categories)}
-      description="Rozdělení závodníků podle ročníku a pohlaví."
       actions={actions}
     >
       {cm.recalculateResult && <RecalculateSummary result={cm.recalculateResult} onDismiss={cm.dismissRecalculate} />}
@@ -66,7 +67,7 @@ export default function CategoryManagement() {
         />
       )}
       {cm.sortedCategories.length === 0 ? (
-        <EmptyState icon="tag" title="Zatím nebyly vytvořeny žádné kategorie" hint="Kategorii založte tlačítkem Nová kategorie." />
+        <EmptyState icon="tag" title="Zatím nebyly vytvořeny žádné kategorie" />
       ) : (
         <CategoryTable
           categories={cm.sortedCategories}

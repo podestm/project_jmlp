@@ -29,11 +29,11 @@ export default function SeasonDialog({ editing, formData, setFormData, saving, o
         <Field
           label="Počáteční rok"
           required
-          hint={`${editing ? 'Rok už nelze změnit — váží se na něj závody i dokumenty. ' : ''}Sezóna poběží ${seasonRange(formData.year_start)}.`}
+          hint={`${editing ? 'Nelze změnit · ' : ''}${seasonRange(formData.year_start)}`}
         >
           <Input type="number" size="sm" mono value={formData.year_start} disabled={Boolean(editing)} onChange={(e) => set('year_start', e.target.value)} />
         </Field>
-        <Field label="Ročník" hint="Zobrazí se v hlavičce výsledkové listiny.">
+        <Field label="Ročník">
           {(props) => (
             <span className={styles.edition}>
               <Input {...props} type="number" size="sm" mono min="1" value={formData.edition} onChange={(e) => set('edition', e.target.value)} />

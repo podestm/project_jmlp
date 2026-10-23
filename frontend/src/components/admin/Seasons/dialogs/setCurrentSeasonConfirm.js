@@ -7,11 +7,9 @@
  */
 export const setCurrentSeasonConfirm = (season, current) => ({
   title: `Nastavit sezónu ${season.season_label} jako aktuální?`,
-  message: [
-    `Web, administrace i časomíra budou jako výchozí ukazovat sezónu ${season.season_label}`
-      + `${season.edition_label ? ` (${season.edition_label} ročník)` : ''}.`,
-    current && `Sezóna ${current.season_label} přestane být aktuální.`,
-  ].filter(Boolean).join(' '),
+  message: current
+    ? `Sezóna ${current.season_label} přestane být aktuální.`
+    : 'Bude výchozí na webu, v administraci i v časomíře.',
   confirmLabel: 'Nastavit jako aktuální',
   icon: 'check',
 });

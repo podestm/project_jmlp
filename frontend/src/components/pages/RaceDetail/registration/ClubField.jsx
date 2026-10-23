@@ -15,7 +15,7 @@ export default function ClubField({ formData, updateField, clubs, error, clubNot
     return (
       <div className={styles.clubBlock}>
         <Field label="Klub – název napište ručně" required error={error}
-          hint={`Pište celý název, jak ho klub používá. Povolená jsou písmena, číslice, mezery, pomlčky a tečky. ${note.length}/${CLUB_NOTE_MAX}`}>
+          hint={`Písmena, číslice, mezery, pomlčky a tečky · ${note.length}/${CLUB_NOTE_MAX}`}>
           <Textarea
             rows={2}
             maxLength={CLUB_NOTE_MAX}

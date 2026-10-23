@@ -30,12 +30,9 @@ export default function PublishDialog({ file, seasons, onPublish, onClose }) {
       )}
     >
       <div className={styles.body}>
-        <p className={styles.lead}>Soubor se objeví na stránce Dokumenty u vybrané sezóny.</p>
+        <p className={styles.lead}>Soubor se objeví na stránce Dokumenty.</p>
         <RadioList label="Ke které sezóně" options={choices} value={year} onChange={setYear} />
-        <p className={styles.note}>Nabízíme čtyři nejnovější sezóny.</p>
-        <Alert type="warning" compact title="Popiskem odkazu na webu bude název souboru.">
-          Když návštěvníkovi nic neřekne, přejmenujte soubor v knihovně, než ho zveřejníte.
-        </Alert>
+        <Alert type="warning" compact title="Popiskem odkazu bude název souboru." />
       </div>
     </Modal>
   );

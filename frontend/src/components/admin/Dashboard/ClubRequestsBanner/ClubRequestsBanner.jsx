@@ -15,9 +15,7 @@ export default function ClubRequestsBanner({ count }) {
       <Icon name="warning" size={22} className={styles.icon} />
       <span className={styles.text}>
         <span className={styles.title}>{heading(count)}</span>
-        <span className={styles.hint}>
-          Závodníci se přihlásili s klubem, který není v seznamu. Dokud je nepřiřadíte, nepočítají se jim body.
-        </span>
+        <span className={styles.hint}>Bez přiřazení se nepočítají body.</span>
       </span>
       <span className={styles.action}>
         Vyřídit

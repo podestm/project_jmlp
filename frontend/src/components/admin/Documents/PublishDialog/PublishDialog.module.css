@@ -10,9 +10,3 @@
   line-height: 1.5;
   color: var(--ms-ink-body);
 }
-
-.note {
-  margin: calc(var(--ms-space-2) * -1) 0 0;
-  font-size: var(--ms-fs-md);
-  color: var(--ms-ink-body);
-}

@@ -20,7 +20,6 @@ export default function ClubRequests() {
     <AdminPage
       title="Žádosti o kluby"
       meta={cr.loading ? undefined : pendingMeta(cr.requests.length)}
-      description="Závodníci, kteří napsali klub ručně."
       actions={<ButtonLink to="/admin/clubs" size="sm" icon="building">Správa klubů</ButtonLink>}
     >
       {cr.error && <Alert type="danger" compact title={cr.error} onDismiss={() => cr.setError(null)} />}
@@ -30,13 +29,10 @@ export default function ClubRequests() {
         <EmptyState
           icon="check"
           title="Žádné nevyřízené žádosti"
-          hint="Všechny žádosti o přiřazení klubu jsou vyřízeny. Nové se objeví, jak se někdo přihlásí s klubem mimo seznam."
         />
       ) : (
         <>
-          <Alert type="warning" compact title="Závodník napsal klub ručně, protože ho nenašel v seznamu.">
-            Dokud ho nepřiřadíte, nezapočítají se mu body do celkového pořadí – startovat ale může.
-          </Alert>
+          <Alert type="warning" compact title="Bez přiřazení klubu se nepočítají body." />
           <div className={styles.list}>
             {cr.requests.map((request) => (
               <RequestCard

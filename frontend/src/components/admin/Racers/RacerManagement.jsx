@@ -13,12 +13,11 @@ import styles from './RacerManagement.module.css';
 function RacerResults({ rm }) {
   if (rm.visibleRacers.length === 0) {
     return rm.racers.length === 0 ? (
-      <EmptyState icon="user" title="Žádní závodníci nenalezeni" hint="V databázi zatím není ani jeden závodník." />
+      <EmptyState icon="user" title="Žádní závodníci nenalezeni" />
     ) : (
       <EmptyState
         icon="search-x"
         title="Žádní závodníci neodpovídají filtru"
-        hint="Zkuste jiné jméno, klub nebo kategorii."
         action={<Button size="sm" onClick={rm.resetFilters}>Zrušit filtry</Button>}
       />
     );
@@ -50,8 +49,6 @@ export default function RacerManagement() {
   return (
     <AdminPage
       title="Závodníci"
-      meta="databáze napříč ročníky"
-      description="Úprava a mazání závodníků, jméno vede na kartu člena SLČR."
       actions={actions}
     >
       {rm.loading ? (
@@ -82,7 +79,6 @@ export default function RacerManagement() {
         formData={rm.formData}
         setFormData={rm.setFormData}
         clubs={rm.clubs}
-        racersCount={rm.racers.length}
         saving={rm.saving}
         error={rm.error}
         onDismissError={() => rm.setError(null)}

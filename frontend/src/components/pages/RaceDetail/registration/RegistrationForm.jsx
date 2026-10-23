@@ -81,7 +81,7 @@ export default function RegistrationForm({ raceId, onSuccess }) {
 
       <div className={styles.row}>
         <Field label={<>Registrační číslo SLČR <span className={styles.optional}>(nepovinné)</span></>}
-          hint="Šest číslic. Kdo číslo nemá, pole nechá prázdné.">
+          hint="Šest číslic">
           <Input size="lg" mono inputMode="numeric" maxLength={6} pattern="\d{0,6}" placeholder="000000" value={formData.slcr_id}
             onChange={(event) => updateField('slcr_id', event.target.value.replace(/\D/g, '').slice(0, 6))} />
         </Field>
@@ -96,13 +96,11 @@ export default function RegistrationForm({ raceId, onSuccess }) {
         <Button type="submit" variant="primary" size="lg" iconEnd="arrow-right" busy={registration.isSubmitting}>
           {registration.isSubmitting ? 'Ukládám přihlášku…' : 'Přihlásit závodníka'}
         </Button>
-        {errorCount > 0 ? (
+        {errorCount > 0 && (
           <p className={styles.submitError} role="alert">
             <Icon name="error" size={18} />
             Přihlášku jsme neodeslali. Opravte {errorCount} {czechPlural(errorCount, ['pole označené', 'pole označená', 'polí označených'])} červeně.
           </p>
-        ) : (
-          <p className={styles.submitNote}>Po odeslání můžete rovnou přihlásit dalšího.</p>
         )}
       </div>
     </form>

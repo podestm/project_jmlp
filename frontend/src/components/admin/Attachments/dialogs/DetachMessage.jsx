@@ -10,8 +10,7 @@ export default function DetachMessage({ attachment }) {
         <FileInfo file={attachment} />
       </div>
       <p className={styles.text}>
-        <strong>Odpojit, soubor ponechat</strong> odebere soubor jen tady.{' '}
-        <strong>Odpojit a smazat soubor</strong> ho smaže úplně – zmizí ze všech míst a vrátit to nejde.
+        <strong>Odpojit a smazat soubor</strong> ho smaže všude. Vrátit to nejde.
       </p>
     </div>
   );

@@ -127,7 +127,6 @@ export default function Results() {
         size="lg"
         icon="trophy"
         title={`V sezóně ${formatSeasonShort(seasonId)} zatím pořadí není`}
-        hint="Pořadí poháru se počítá z výsledků odjetých závodů. Objeví se tu po prvním závodě, který má výsledky z časomíry."
         action={previousSeason
           ? <Button variant="primary" onClick={() => setChosen(previousSeason)}>Pořadí sezóny {formatSeasonShort(previousSeason)}</Button>
           : <ButtonLink to="/zavody" variant="primary" iconEnd="arrow-right">Kalendář závodů</ButtonLink>}

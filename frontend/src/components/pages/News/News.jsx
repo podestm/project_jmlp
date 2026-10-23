@@ -43,13 +43,12 @@ export default function News() {
     content = (
       <Alert type="danger" title="Zprávy se teď nepodařilo načíst"
         actions={<><Button variant="primary" icon="refresh" onClick={() => archive.reload()}>Zkusit znovu</Button>{calendarLink}</>}>
-        Server neodpověděl. Nejčastěji jde o slabý signál – zkuste to za chvíli znovu, zbytek webu funguje dál.
+        Server neodpověděl. Zkuste to za chvíli znovu.
       </Alert>
     );
   } else if (archive.posts.length === 0) {
     content = (
       <EmptyState size="lg" icon="news" title="Zatím tu nejsou žádné zprávy"
-        hint="Jakmile pořadatelé něco zveřejní, objeví se to tady. Termíny závodů a přihlášky mezitím najdete v kalendáři."
         action={<><ButtonLink to="/zavody" variant="primary" icon="calendar">Kalendář závodů</ButtonLink><ButtonLink to="/dokumenty">Dokumenty</ButtonLink></>} />
     );
   } else {
@@ -59,7 +58,6 @@ export default function News() {
         <div className={styles.list}>
           {archive.filteredPosts.length === 0 ? (
             <EmptyState size="lg" icon="search-x" title="Hledání nic nenašlo"
-              hint={`Prošli jsme nadpisy i text všech ${archive.posts.length} zpráv. Zkuste kratší nebo jiný výraz – nebo filtry vymažte.`}
               action={<Button variant="primary" onClick={archive.clearFilters}>Vymazat filtry</Button>} />
           ) : (
             <>

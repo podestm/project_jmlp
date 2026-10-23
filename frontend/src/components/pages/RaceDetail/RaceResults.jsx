@@ -18,7 +18,7 @@ export default function RaceResults({ race }) {
               <span className={styles.documentIcon}><Icon name="file-text" size={22} /></span>
               <span className={styles.noticeText}>
                 <span className={styles.documentTitle}>Oficiální výsledková listina</span>
-                <span>Ověřená rozhodčím, platí pro body do poháru. Otevře se jako PDF v nové kartě.</span>
+                <span>PDF</span>
               </span>
               <span className={styles.published}><Icon name="check" size={16} />Zveřejněno</span>
             </a>
@@ -27,7 +27,6 @@ export default function RaceResults({ race }) {
               <span className={styles.noticeIcon}><Icon name="clock" size={22} /></span>
               <div className={styles.noticeText}>
                 <h3 className={styles.noticeTitle}>Výsledky se připravují</h3>
-                <p>Listina se tu objeví, jakmile ji rozhodčí ověří.</p>
               </div>
             </div>
           )}

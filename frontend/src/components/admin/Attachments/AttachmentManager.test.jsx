@@ -32,9 +32,9 @@ describe('správce příloh', () => {
     mockUpdate.mockReset().mockResolvedValue({});
   });
 
-  it('neuložená věc jen vysvětlí, že dokumenty půjdou nahrát po uložení', () => {
+  it('neuložená věc jen řekne, že dokumenty půjdou nahrát po uložení', () => {
     render(<AttachmentManager ownerType="race" ownerId={null} roles={['propozice']} />);
-    expect(screen.getByText('Dokumenty půjde nahrát hned po prvním uložení.')).toBeInTheDocument();
+    expect(screen.getByText('Nahrát půjde po uložení.')).toBeInTheDocument();
     expect(mockList).not.toHaveBeenCalled();
   });
 

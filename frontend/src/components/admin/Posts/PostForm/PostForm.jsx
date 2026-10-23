@@ -30,12 +30,11 @@ export default function PostForm({ editingPost, formData, setFormData, handleSub
         <Field label="Nadpis" required>
           <Input size="sm" value={formData.title} onChange={(e) => set('title', e.target.value)} placeholder="Zadejte nadpis příspěvku..." />
         </Field>
-        <Field label="Obsah" required hint="Pro formátování textu můžete použít: **tučný text**, *kurzíva*.">
+        <Field label="Obsah" required hint="**tučně**, *kurzíva*">
           <Textarea rows={10} value={formData.content} onChange={(e) => set('content', e.target.value)} placeholder="Napište obsah příspěvku..." />
         </Field>
         <Checkbox
           label="Publikovat příspěvek"
-          description="Zaškrtnuté = příspěvek je hned vidět v Aktualitách. Odškrtnuté = zůstane jako koncept jen pro vás."
           checked={formData.published}
           onChange={(e) => set('published', e.target.checked)}
           className={styles.publish}

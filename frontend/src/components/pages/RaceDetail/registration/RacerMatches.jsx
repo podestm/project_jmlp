@@ -20,8 +20,8 @@ export default function RacerMatches({ racers, isSearching, hasQuery, onSelect, 
       <p className={styles.state}>
         <Icon name={hasQuery ? 'search-x' : 'search'} size={18} />
         {hasQuery
-          ? 'V databázi jsme nikoho takového nenašli – vyplňte údaje ručně.'
-          : 'Začněte psát jméno nebo příjmení – kdo už v JMLP jel, toho vám nabídneme k vyplnění.'}
+          ? 'V databázi jsme nikoho takového nenašli.'
+          : 'Napište jméno nebo příjmení.'}
       </p>
     );
   } else {
@@ -42,7 +42,7 @@ export default function RacerMatches({ racers, isSearching, hasQuery, onSelect, 
             </li>
           ))}
         </ul>
-        {racers.length > SHOWN && <p className={styles.more}>… a dalších {racers.length - SHOWN} závodníků. Upřesněte jméno.</p>}
+        {racers.length > SHOWN && <p className={styles.more}>… a dalších {racers.length - SHOWN} závodníků</p>}
       </>
     );
   }

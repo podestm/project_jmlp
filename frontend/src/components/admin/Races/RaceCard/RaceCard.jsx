@@ -34,7 +34,6 @@ export default function RaceCard({ race, onEdit, onToggleRegistration, onDownloa
       <div className={styles.body}>
         <Switch
           label={race.registration ? 'Registrace otevřená' : 'Registrace uzavřená'}
-          description={race.registration ? undefined : 'Na webu se místo formuláře ukazuje „Registrace je uzavřená“'}
           checked={Boolean(race.registration)}
           onChange={() => onToggleRegistration(race.id)}
           className={styles.switch}
@@ -47,7 +46,7 @@ export default function RaceCard({ race, onEdit, onToggleRegistration, onDownloa
         {!race.registration && !race.proposition_file_id && (
           <p className={styles.hint}>
             <Icon name="info" size={16} />
-            <span>Závod zatím nemá propozice. Než registraci otevřete, nahrajte je v Upravit.</span>
+            <span>Chybí propozice.</span>
           </p>
         )}
       </div>

@@ -32,9 +32,9 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
         <>
           <p className={styles.text}>
             Na klubu <strong>{club.name}</strong> visí <strong>{racers} {racersWord(racers)}</strong>
-            {' '}a <strong>{races} {racesWord(races)}</strong>. Než klub zmizí, musí je převzít jiný klub.
+            {' '}a <strong>{races} {racesWord(races)}</strong>. Musí je převzít jiný klub.
           </p>
-          <Field label="Převést na klub" hint={`Nabízíme všech ${options.length} zbývajících klubů. Dokud žádný nevyberete, mazací tlačítko je zamčené.`}>
+          <Field label="Převést na klub">
             <Select size="sm" value={target} onChange={(event) => setTarget(event.target.value)}>
               <option value="">— vyberte klub —</option>
               {options.map((option) => (
@@ -52,11 +52,11 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
         </>
       ) : (
         <p className={styles.text}>
-          Klub <strong>{club.name}</strong> se smaže natrvalo. Nemá žádné závodníky ani pořádané závody, převádět není co.
+          Klub <strong>{club.name}</strong> nemá závodníky ani pořádané závody.
         </p>
       )}
-      {club.has_logo && <p className={styles.text}>Logo se odpojí, samotný soubor zůstane v knihovně dokumentů.</p>}
-      <p className={styles.text}>Klub zmizí ze seznamu klubů na webu i z nabídky v přihlášce. Vrátit to nejde.</p>
+      {club.has_logo && <p className={styles.text}>Logo se odpojí, soubor zůstane v knihovně.</p>}
+      <p className={styles.text}>Smazání nejde vrátit.</p>
     </div>
   );
 

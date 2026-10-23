@@ -44,7 +44,7 @@ export default function RequestCard({ request, clubOptions, state, onChange, onR
               />
             </Field>
           ) : (
-            <Field label="Název nového klubu" hint="Předvyplněno tím, co závodník napsal při registraci." className={styles.field}>
+            <Field label="Název nového klubu" className={styles.field}>
               <Input size="sm" value={state.newName} onChange={(e) => onChange(id, { newName: e.target.value })} placeholder="Název klubu…" />
             </Field>
           )}

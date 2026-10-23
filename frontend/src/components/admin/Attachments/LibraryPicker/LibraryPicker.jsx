@@ -47,7 +47,6 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
           <EmptyState
             icon="folder"
             title="Žádný odpovídající soubor"
-            hint="Zkuste jiný výraz, nebo soubor rovnou nahrajte přetažením."
             action={query && <Button size="sm" onClick={() => setQuery('')}>Vymazat hledání</Button>}
           />
         )}

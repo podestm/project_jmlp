@@ -8,7 +8,7 @@ import styles from './TopPages.module.css';
  */
 export default function TopPages({ pages }) {
   if (pages.length === 0) {
-    return <EmptyState icon="chart" title="Žádná data" hint="O návštěvnosti se zatím nic nesesbíralo." headingLevel={3} />;
+    return <EmptyState icon="chart" title="Žádná data" headingLevel={3} />;
   }
   const max = Math.max(...pages.map((page) => page.visits), 1);
   return (

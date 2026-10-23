@@ -14,11 +14,10 @@ function LibraryResults({ lib }) {
       <EmptyState
         icon="search-x"
         title="Filtru neodpovídá žádný soubor"
-        hint="Zkuste jiný výraz nebo zrušte filtry."
         action={<Button size="sm" onClick={lib.clearFilters}>Zrušit filtry</Button>}
       />
     ) : (
-      <EmptyState icon="folder" title="Knihovna je prázdná" hint="Soubory se sem dostanou nahráním u závodu, článku, sezóny nebo klubu." />
+      <EmptyState icon="folder" title="Knihovna je prázdná" />
     );
   }
   return (
@@ -51,8 +50,6 @@ export default function DocumentLibrary() {
   return (
     <AdminPage
       title="Knihovna dokumentů"
-      meta="všechno, co kdy někdo nahrál — propozice, výsledky, řády i loga"
-      description="Soubory najdete, přejmenujete, zveřejníte nebo smažete."
       actions={(
         <Button size="sm" icon="download" busy={lib.exporting} onClick={lib.exportZip}>
           {lib.filtersActive ? 'Stáhnout vyfiltrované (ZIP)' : 'Stáhnout vše (ZIP)'}
@@ -68,10 +65,6 @@ export default function DocumentLibrary() {
           onDismiss={() => lib.setMessage(null)}
         />
       )}
-      <Alert type="info" compact title="Do knihovny se nenahrává přímo">
-        Soubor vždy vzniká u svého vlastníka – u závodu, sezóny, klubu nebo článku – a knihovna ho
-        pak jen eviduje. Tady je najdete všechny pohromadě.
-      </Alert>
       <Paska>Knihovna</Paska>
       <DocumentFilters
         filters={lib.filters}

@@ -10,7 +10,7 @@ export default function NewsFilters({ archive }) {
   return (
     <Panel as="aside" padding="md" className={styles.filters} aria-labelledby="hledat">
       <Paska id="hledat" as="h2">Hledat v archivu</Paska>
-      <Field label="Hledat v příspěvcích" hint="Hledá v nadpisech i textu, na velikosti písmen nezáleží.">
+      <Field label="Hledat v příspěvcích">
         <Input type="search" placeholder="Např. Olešnice" value={archive.searchTerm}
           onChange={(event) => archive.setSearchTerm(event.target.value)} />
       </Field>
@@ -20,7 +20,7 @@ export default function NewsFilters({ archive }) {
           {archive.getAvailableYears().map((year) => <option key={year} value={year}>{year}</option>)}
         </Select>
       </Field>
-      <Field label="Měsíc" hint={archive.selectedYear ? undefined : 'Měsíc jde vybrat, až zvolíte rok.'}>
+      <Field label="Měsíc">
         <Select value={archive.selectedMonth} disabled={!archive.selectedYear} onChange={(event) => archive.setSelectedMonth(event.target.value)}>
           <option value="">{archive.selectedYear ? 'Všechny měsíce' : 'Nejdřív vyberte rok'}</option>
           {archive.getAvailableMonths().map((month) => (

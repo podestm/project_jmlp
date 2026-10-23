@@ -11,9 +11,3 @@
   flex: 1 1 200px;
   min-inline-size: 0;
 }
-
-.hint {
-  flex-shrink: 0;
-  font-size: var(--ms-fs-xs);
-  color: var(--ms-ink-body);
-}

@@ -25,7 +25,6 @@ export default function ClubManagement() {
     <AdminPage
       title="Kluby"
       meta={`${counts.total} ${clubsWord(counts.total)} · loga má ${counts.withLogo} z ${counts.organizers} pořadatelů`}
-      description="Logo pořádajícího klubu se tiskne v hlavičce výsledkové listiny."
       actions={<ButtonLink to="/admin/club-requests" size="sm">Žádosti o kluby</ButtonLink>}
     >
       {cm.message && (
@@ -41,7 +40,7 @@ export default function ClubManagement() {
       {cm.loading && cm.clubs.length === 0 ? (
         <LoadingState label="Načítám kluby…" />
       ) : cm.visibleClubs.length === 0 ? (
-        <EmptyState icon="search-x" title="Žádný klub neodpovídá filtru" hint="Zkuste jiný výraz nebo filtry zrušte." />
+        <EmptyState icon="search-x" title="Žádný klub neodpovídá filtru" />
       ) : (
         <ClubTable
           clubs={cm.visibleClubs}

@@ -3,7 +3,7 @@ import styles from './ActionList.module.css';
 
 /**
  * Seznam „Co můžete udělat teď“ (ZavodDetailUzavreno): řádek s ikonou nebo
- * datem vlevo, nadpisem, vysvětlením a jednou akcí vpravo.
+ * datem vlevo, nadpisem, případným údajem a jednou akcí vpravo.
  * items: [{ key, lead (uzel) | icon, title, hint, to, action, primary?, tone? }]
  */
 export default function ActionList({ items }) {

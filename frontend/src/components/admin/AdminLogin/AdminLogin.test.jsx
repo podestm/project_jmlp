@@ -40,9 +40,9 @@ describe('přihlášení do administrace', () => {
     expect(screen.queryByText(/smí jen do časomíry/)).toBeNull();
   });
 
-  it('odkaz na časomíru a zpět na veřejný web', () => {
+  it('poznámka o společném přihlášení a odkaz zpět na veřejný web', () => {
     renderLogin();
-    expect(screen.getByRole('link', { name: 'časomíru' })).toHaveAttribute('href', '/timekeeper');
+    expect(screen.getByRole('button', { name: 'Přihlásit se' })).toHaveAccessibleDescription('Platí i pro časomíru');
     expect(screen.getByRole('link', { name: 'Zpět na veřejný web' })).toHaveAttribute('href', '/');
   });
 });

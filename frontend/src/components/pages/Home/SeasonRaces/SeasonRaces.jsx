@@ -40,7 +40,7 @@ export default function SeasonRaces({ races, today, className }) {
       </Alert>
     );
   } else if (races.list.length === 0) {
-    content = <EmptyState icon="calendar" headingLevel={3} title="V sezóně zatím nejsou vypsané žádné závody" hint="Termíny se objeví, jakmile je pořadatelé potvrdí." />;
+    content = <EmptyState icon="calendar" headingLevel={3} title="V sezóně zatím nejsou vypsané žádné závody" />;
   } else {
     content = (
       <Panel as="ul" padding="none" className={styles.list}>

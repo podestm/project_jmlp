@@ -85,28 +85,6 @@
   margin-block-start: var(--ms-space-1);
 }
 
-.hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0;
-  padding-block-start: var(--ms-space-1);
-  font-size: var(--ms-fs-md);
-  line-height: 1.5;
-  color: var(--ms-ink-body);
-}
-
-.hint a {
-  color: var(--ms-navy);
-  font-weight: 600;
-}
-
-.hintIcon {
-  flex-shrink: 0;
-  margin-block-start: 2px;
-  color: var(--ms-ink-body);
-}
-
 .back {
   display: inline-flex;
   align-items: center;

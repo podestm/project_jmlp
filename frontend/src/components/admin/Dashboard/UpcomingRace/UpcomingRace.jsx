@@ -15,7 +15,7 @@ const registrationsText = (count) => {
 export default function UpcomingRace({ race }) {
   if (!race) {
     return (
-      <EmptyState icon="calendar" title="Žádný vypsaný závod" hint="V kalendáři teď není žádný budoucí závod." headingLevel={3} />
+      <EmptyState icon="calendar" title="Žádný vypsaný závod" headingLevel={3} />
     );
   }
 

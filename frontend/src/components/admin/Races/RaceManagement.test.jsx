@@ -133,7 +133,7 @@ describe('správa závodů', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Smazat závod' }));
     const dialog = screen.getByRole('dialog', { name: 'Smazat závod Brno – Kohoutovice?' });
     expect(within(dialog).getByRole('button', { name: 'Smazat závod i 58 přihlášek' })).toBeInTheDocument();
-    expect(within(dialog).getByText(/Dokumenty závodu se jen odpojí/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Dokumenty se odpojí, v knihovně zůstanou/)).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Zrušit' }));
     expect(mockDelete).not.toHaveBeenCalled();
     expect(screen.getByRole('heading', { level: 2, name: 'Upravit závod' })).toBeInTheDocument();

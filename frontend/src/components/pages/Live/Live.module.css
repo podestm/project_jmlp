@@ -89,11 +89,6 @@
   color: var(--ms-on-dark);
 }
 
-.auto {
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ice);
-}
-
 .warning {
   background: var(--ms-dry-bg);
   border-block-end: 1px solid var(--ms-line);
@@ -235,17 +230,6 @@
   color: var(--ms-ink-body);
 }
 
-.categoryNote {
-  font-size: var(--ms-fs-md);
-  color: var(--ms-ink-body);
-}
-
-.footnote {
-  font-size: var(--ms-fs-base);
-  line-height: 1.55;
-  color: var(--ms-ink-body);
-}
-
 .categorySelect,
 .mobileOnly {
   display: none;
@@ -297,9 +281,5 @@
 
   .raceCard {
     padding: var(--ms-space-5);
-  }
-
-  .categoryNote {
-    display: none;
   }
 }

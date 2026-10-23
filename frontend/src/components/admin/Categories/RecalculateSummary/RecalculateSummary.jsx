@@ -14,10 +14,7 @@ export default function RecalculateSummary({ result, onDismiss }) {
     <section className={styles.summary} aria-labelledby="prepocet-nadpis">
       <header className={styles.head}>
         <Icon name="check" size={22} className={styles.icon} />
-        <span className={styles.heading}>
-          <h3 id="prepocet-nadpis" className={styles.title}>Přepočet kategorií dokončen</h3>
-          <span className={styles.lead}>Kategorie byly aktualizovány podle ročníků narození a pohlaví závodníků.</span>
-        </span>
+        <h3 id="prepocet-nadpis" className={styles.title}>Přepočet kategorií dokončen</h3>
         <IconButton icon="close" variant="quiet" label="Skrýt výsledky" onClick={onDismiss} className={styles.close} />
       </header>
 

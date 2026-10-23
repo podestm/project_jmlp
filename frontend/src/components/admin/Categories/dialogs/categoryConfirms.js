@@ -4,7 +4,7 @@ import { categoryLabel } from '../categories.js';
 /** AdminDialogSmazatKategorii: název i rozsah ročníků, ať je jasné, co zmizí. */
 export const deleteCategoryConfirm = (category) => ({
   title: `Smazat kategorii ${categoryLabel(category)}?`,
-  message: `Kategorie „${categoryLabel(category)}“ (ročníky ${category.min_birth_year}–${category.max_birth_year}) se smaže. Tuto akci nelze vrátit zpět.`,
+  message: `Ročníky ${category.min_birth_year}–${category.max_birth_year}. Smazání nejde vrátit.`,
   confirmLabel: 'Smazat kategorii',
   danger: true,
   icon: 'trash',
@@ -21,7 +21,7 @@ export const mirrorCategoryConfirm = (category, sexName) => ({
 /** AdminDialogPrepocetKategorii. */
 export const recalculateConfirm = () => ({
   title: 'Přepočítat kategorie všech závodníků?',
-  message: 'Každému závodníkovi se znovu přiřadí kategorie podle ročníku a pohlaví, i tam, kde jste ji předtím nastavili ručně. Trvá to několik sekund.',
+  message: 'Přepíše i ručně nastavené kategorie.',
   confirmLabel: 'Přepočítat kategorie',
   icon: 'repeat',
 });

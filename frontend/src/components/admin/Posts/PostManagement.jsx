@@ -52,7 +52,6 @@ export default function PostManagement() {
     <AdminPage
       title="Aktuality"
       meta={postsMeta(pm.posts)}
-      description="Příspěvky na úvodní stránce a v Aktualitách."
       actions={<Button variant="primary" size="sm" icon="plus" onClick={pm.handleAdd}>Nový příspěvek</Button>}
     >
       <Messages pm={pm} />
@@ -63,7 +62,6 @@ export default function PostManagement() {
         <EmptyState
           icon="inbox"
           title="Žádné příspěvky k zobrazení"
-          hint="Buď tu ještě nic není, nebo filtru neodpovídá žádný příspěvek. Začněte tlačítkem Nový příspěvek."
         />
       ) : (
         <PostTable

@@ -103,7 +103,7 @@ describe('PostManagement', () => {
     render(<PostManagement />);
 
     await user.click(await screen.findByRole('button', { name: 'Nový příspěvek' }));
-    expect(screen.getByText('Dokumenty půjde nahrát hned po prvním uložení.')).toBeInTheDocument();
+    expect(screen.getByText('Nahrát půjde po uložení.')).toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText('Zadejte nadpis příspěvku...'), 'Výsledky 1. kola');
     await user.type(screen.getByPlaceholderText('Napište obsah příspěvku...'), 'Gratulujeme');
@@ -114,7 +114,7 @@ describe('PostManagement', () => {
 
     // Okno je teď úprava uloženého příspěvku a nabízí nahrání příloh
     expect(await screen.findByRole('heading', { level: 1, name: 'Upravit příspěvek' })).toBeInTheDocument();
-    expect(screen.queryByText('Dokumenty půjde nahrát hned po prvním uložení.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nahrát půjde po uložení.')).not.toBeInTheDocument();
     expect(await screen.findAllByRole('button', { name: 'Vybrat z knihovny' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Uložit příspěvek' })).toBeInTheDocument();
   });

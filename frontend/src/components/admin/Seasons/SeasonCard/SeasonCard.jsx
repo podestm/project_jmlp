@@ -1,4 +1,4 @@
-import { Badge, Button } from '../../../ms/index.js';
+import { Badge, Button, Tooltip } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { seasonCounts, seasonRange, seasonState } from '../seasons.js';
 import styles from './SeasonCard.module.css';
@@ -49,17 +49,18 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
             </Button>
           )}
           <Button size="sm" onClick={() => onEdit(season)} aria-label={`Upravit sezónu ${season.season_label}`}>Upravit</Button>
-          <Button
-            size="sm"
-            variant="danger"
-            icon="trash"
-            disabled={Boolean(lockReason)}
-            title={lockReason ? `Sezóna ${lockReason} a nelze ji smazat` : undefined}
-            aria-label={lockReason ? `Sezóna ${season.season_label} ${lockReason} a nelze ji smazat` : `Smazat sezónu ${season.season_label}`}
-            onClick={() => onDelete(season)}
-          >
-            Smazat
-          </Button>
+          <Tooltip text={lockReason ? `Sezóna ${lockReason}` : ''}>
+            <Button
+              size="sm"
+              variant="danger"
+              icon="trash"
+              disabled={Boolean(lockReason)}
+              aria-label={lockReason ? `Sezóna ${season.season_label} ${lockReason} a nelze ji smazat` : `Smazat sezónu ${season.season_label}`}
+              onClick={() => onDelete(season)}
+            >
+              Smazat
+            </Button>
+          </Tooltip>
         </span>
       </div>
       {expanded && <div id={documentsId} className={styles.documents}>{children}</div>}

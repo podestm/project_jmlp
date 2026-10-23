@@ -75,11 +75,6 @@
   color: var(--ms-ink-body);
 }
 
-.archiveNote {
-  font-size: var(--ms-fs-base);
-  color: var(--ms-ink-body);
-}
-
 .archiveList {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -1,6 +1,6 @@
 import { OWNER, ROLE } from '../../../../config/attachmentsApi.js';
 import AttachmentManager from '../../Attachments/AttachmentManager.jsx';
-import { Badge, BibDate, Button, Field, Icon, IconButton, Input, Paska } from '../../../ms/index.js';
+import { Badge, BibDate, Button, Field, IconButton, Input, Paska } from '../../../ms/index.js';
 import DeleteZone from '../DeleteZone/DeleteZone.jsx';
 import OptionTile from '../OptionTile/OptionTile.jsx';
 import SuggestField from '../SuggestField/SuggestField.jsx';
@@ -11,13 +11,7 @@ import styles from './RaceForm.module.css';
 // i backend (ATTACHMENT_ROLES_BY_OWNER / ATTACHMENT_EXCLUSIVE_GROUPS).
 const RACE_ROLES = [ROLE.propozice, ROLE.vysledky, ROLE.sponzori];
 
-const registrationHint = (checked, race) => {
-  const count = race?.registrations_count || 0;
-  const signed = race ? ` Přihlášek: ${count}.` : '';
-  return checked
-    ? `Přihlašování na webu je otevřené.${signed} Odškrtnutím se zavře – hotové přihlášky zůstanou.`
-    : `Na webu se místo formuláře ukáže „Registrace je uzavřená“.${signed}`;
-};
+const registrationCount = (race) => (race ? `Přihlášek: ${race.registrations_count || 0}` : undefined);
 
 /**
  * Formulář závodu (AdminZavodForm) pro založení i úpravu. Číslo a sezóna se
@@ -65,12 +59,7 @@ export default function RaceForm({
   return (
     <form className={styles.form} onSubmit={handleSubmit} aria-labelledby="zavod-formular">
       <div className={styles.head}>
-        <span className={styles.heading}>
-          <h2 id="zavod-formular" className={styles.title}>{editingRace ? 'Upravit závod' : 'Přidat nový závod'}</h2>
-          <span className={styles.lead}>
-            {editingRace ? 'Změny se na webu projeví hned po uložení.' : 'Číslo závodu i sezóna se dopočítají z data.'}
-          </span>
-        </span>
+        <h2 id="zavod-formular" className={styles.title}>{editingRace ? 'Upravit závod' : 'Přidat nový závod'}</h2>
         {order && <Badge tone="neutral" size="sm">{order}</Badge>}
         <IconButton icon="close" label="Zavřít formulář" onClick={onClose} />
       </div>
@@ -79,7 +68,7 @@ export default function RaceForm({
         <section className={styles.section} aria-labelledby="zavod-kdy">
           <Paska id="zavod-kdy">Kdy se jede</Paska>
           <div className={styles.when}>
-            <Field label="Datum závodu" hint="Podle data se dopočítá číslo i sezóna." required className={styles.grow}>
+            <Field label="Datum závodu" required className={styles.grow}>
               <Input type="date" size="sm" value={formData.datum} onChange={onDateChange} />
             </Field>
             <div className={styles.preview}>
@@ -88,10 +77,10 @@ export default function RaceForm({
                 {formData.datum ? <BibDate date={formData.datum} variant="table" /> : <span aria-hidden="true">—</span>}
               </span>
             </div>
-            <Field label="Číslo závodu (automatické)" hint="Číslo se vygeneruje podle data. Nejde přepsat." className={styles.grow}>
+            <Field label="Číslo závodu (automatické)" className={styles.grow}>
               <Input size="sm" mono value={raceNumberPreview} readOnly placeholder="Vyberte datum pro automatické generování" className={styles.readonly} />
             </Field>
-            <Field label="Sezóna (automatická)" hint="Sezóna běží od srpna do července." className={styles.grow}>
+            <Field label="Sezóna (automatická)" className={styles.grow}>
               <Input size="sm" value={seasonPreview} readOnly placeholder="Automaticky podle data" className={styles.readonly} />
             </Field>
           </div>
@@ -102,7 +91,6 @@ export default function RaceForm({
           <div className={styles.pair}>
             <SuggestField
               label="Areál"
-              hint="Vyberte z nabídky, nebo dopište nový – založí se sám. Název areálu je zároveň názvem závodu na webu."
               value={arealSearch}
               onChange={handleArealSearch}
               suggestions={arealSuggestions}
@@ -111,7 +99,6 @@ export default function RaceForm({
             />
             <SuggestField
               label="Pořadatel"
-              hint="Vyberte z nabídky, nebo dopište nový – založí se sám."
               value={organizerSearch}
               onChange={handleOrganizerSearch}
               suggestions={organizerSuggestions}
@@ -128,7 +115,6 @@ export default function RaceForm({
             <div className={styles.stack}>
               <OptionTile
                 label="Suchý slalom"
-                description="Nezaškrtnuto znamená závod na sněhu – to je výchozí způsob. Finále poháru může být jen závod na sněhu."
                 checked={isDry}
                 onChange={(e) => setFormData((prev) => ({
                   ...prev,
@@ -140,7 +126,6 @@ export default function RaceForm({
               {!isDry && (
                 <OptionTile
                   label="Finále poháru"
-                  description="V pořadí poháru sloupec „F“; při shodě bodů rozhoduje umístění ve finále."
                   checked={Boolean(formData.is_final)}
                   onChange={(e) => setFormData((prev) => ({ ...prev, is_final: e.target.checked }))}
                 />
@@ -149,7 +134,7 @@ export default function RaceForm({
             <OptionTile
               tone="open"
               label="Povolit registrace"
-              description={registrationHint(formData.registration, editingRace)}
+              description={registrationCount(editingRace)}
               checked={Boolean(formData.registration)}
               onChange={(e) => setFormData((prev) => ({ ...prev, registration: e.target.checked }))}
             />
@@ -162,19 +147,7 @@ export default function RaceForm({
           <AttachmentManager ownerType={OWNER.race} ownerId={editingRace?.id || null} roles={RACE_ROLES} />
         </section>
 
-        <p className={styles.note}>
-          <Icon name="info" size={18} />
-          <span>
-            <strong>Tady se nenastavuje:</strong> počet kol – ten zadává časomíra až na místě; viditelnost dokumentu – ta se
-            přepíná přímo u souboru přepínačem Zveřejněno / Skryto; název závodu – ten je vždy názvem areálu.
-          </span>
-        </p>
-
         <div className={styles.footer}>
-          <span className={styles.footerHint}>
-            <Icon name="clock" size={18} />
-            Klávesa Escape ani klik mimo formulář nic nezavřou. Odejdete tlačítkem.
-          </span>
           <span className={styles.footerActions}>
             <Button onClick={onClose}>Zrušit</Button>
             <Button type="submit" variant="primary" icon="check" busy={loading}>

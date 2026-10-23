@@ -52,5 +52,5 @@ export const mirrorSex = (sex) => {
 /** Text meta vedle H1: „14 kategorií · 12 aktivních“. */
 export const categoriesMeta = (categories) => {
   const active = categories.filter((c) => c.active).length;
-  return `${categories.length} kategorií · ${active} aktivních · platí pro celý pohár`;
+  return `${categories.length} kategorií · ${active} aktivních`;
 };

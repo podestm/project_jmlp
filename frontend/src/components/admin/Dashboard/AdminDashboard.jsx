@@ -45,7 +45,6 @@ export default function AdminDashboard() {
     <AdminPage
       title="Přehled"
       meta={data ? `${todayLabel()} · sezóna ${data.season.label}` : todayLabel()}
-      description="Co dnes čeká na vaše rozhodnutí a jak jsou na tom přihlášky."
       actions={(
         <>
           <ButtonLink to="/admin/races" variant="primary" size="sm" icon="plus">Nový závod</ButtonLink>

@@ -1,15 +1,11 @@
 import { useId } from 'react';
 import { Alert, Button, Field, Input, Modal, Select } from '../../../ms/index.js';
-import { MIN_BIRTH_YEAR, formatCount } from '../racers.js';
+import { MIN_BIRTH_YEAR } from '../racers.js';
 import styles from './RacerForm.module.css';
 
-/** Úvodní věta dialogu: koho upravuji, nebo kolikátý závodník přibude. */
-const lead = (racer, racersCount) => {
-  if (!racer) return `Do databáze přibude jako ${formatCount(racersCount + 1)}. závodník.`;
-  const who = [`${racer.lastName || ''} ${racer.firstName || ''}`.trim(), racer.birthYear, racer.club_name]
-    .filter(Boolean).join(' · ');
-  return `${who}. Změny se projeví ve všech jeho přihláškách.`;
-};
+/** Úvodní řádek dialogu úpravy: koho upravuji. */
+const lead = (racer) => [`${racer.lastName || ''} ${racer.firstName || ''}`.trim(), racer.birthYear, racer.club_name]
+  .filter(Boolean).join(' · ');
 
 /**
  * Formulář závodníka v dialogu (AdminDialogZavodnik, AdminDialogZavodnikChyba).
@@ -17,7 +13,7 @@ const lead = (racer, racersCount) => {
  * nezahodí. Chyba uložení se ukáže v dialogu nad poli, údaje zůstanou.
  */
 export default function RacerForm({
-  open, editingRacer, formData, setFormData, clubs, racersCount, saving, error, onDismissError, onSubmit, onClose,
+  open, editingRacer, formData, setFormData, clubs, saving, error, onDismissError, onSubmit, onClose,
 }) {
   const formId = useId();
   const maxYear = new Date().getFullYear();
@@ -41,7 +37,7 @@ export default function RacerForm({
         </>
       )}
     >
-      <p className={styles.lead}>{lead(editingRacer, racersCount)}</p>
+      {editingRacer && <p className={styles.lead}>{lead(editingRacer)}</p>}
       {error && (
         <Alert type="danger" compact title={editingRacer ? 'Změny se neuložily.' : 'Závodník se neuložil.'} onDismiss={onDismissError}>
           {error}
@@ -79,7 +75,7 @@ export default function RacerForm({
             <Input size="sm" mono value={formData.idSlcr} onChange={set('idSlcr')} maxLength={10} placeholder="Bez čísla nechte prázdné" />
           </Field>
         </div>
-        <Field label="Klub" hint={`Nabídka je ze seznamu klubů (${clubs.length}). Prázdná volba znamená bez klubu.`}>
+        <Field label="Klub">
           <Select size="sm" value={formData.club_id} onChange={set('club_id')}>
             <option value="">— bez klubu —</option>
             {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}

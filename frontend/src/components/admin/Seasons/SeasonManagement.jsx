@@ -55,7 +55,6 @@ export default function SeasonManagement() {
     <AdminPage
       title="Sezóny"
       meta={seasonsMeta(sm.seasons, currentSeasonId)}
-      description="Ročník a název se propisují do hlavičky výsledkové listiny."
       actions={<Button variant="primary" size="sm" icon="plus" onClick={sm.openCreate}>Nová sezóna</Button>}
     >
       {sm.message && (
@@ -66,14 +65,12 @@ export default function SeasonManagement() {
       {sm.loading && sm.seasons.length === 0 ? (
         <LoadingState label="Načítám sezóny…" />
       ) : sm.seasons.length === 0 ? (
-        <EmptyState icon="calendar" title="Zatím žádná sezóna" hint="Sezónu založte tlačítkem Nová sezóna." />
+        <EmptyState icon="calendar" title="Zatím žádná sezóna" />
       ) : (
         <>
           {upcoming.length > 0 && (
             <section className={styles.section} aria-labelledby="sezony-bezici">
-              <Paska id="sezony-bezici" aside={<span className={styles.aside}>sezóna běží od 1. srpna do 31. července</span>}>
-                Běžící a připravené
-              </Paska>
+              <Paska id="sezony-bezici">Běžící a připravené</Paska>
               {upcoming.map((season) => renderCard(season, false))}
             </section>
           )}

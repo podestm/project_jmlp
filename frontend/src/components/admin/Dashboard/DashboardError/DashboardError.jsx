@@ -18,10 +18,7 @@ export default function DashboardError({ message, onRetry }) {
         </>
       )}
     >
-      <p className={styles.text}>
-        Server na dotaz o čísla přehledu neodpověděl. <strong>V datech se nic nestalo</strong> – závody,
-        přihlášky ani dokumenty tím nejsou dotčené. Nejčastěji pomůže načíst stránku za chvíli znovu.
-      </p>
+      <p className={styles.text}>Server neodpověděl. Data jsou v pořádku.</p>
       {message && <p className={styles.detail}><span className={styles.detailLabel}>Pro správce webu:</span> {message}</p>}
     </Alert>
   );

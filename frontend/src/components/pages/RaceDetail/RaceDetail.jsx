@@ -42,7 +42,7 @@ function RegistrationEnded() {
           <span className={styles.noticeIcon}><Icon name="lock" size={22} /></span>
           <div className={styles.noticeText}>
             <h3 className={styles.noticeTitle}>Přihlašování skončilo před závodem</h3>
-            <p>Kdo nakonec startoval a jak dojel, najdete ve výsledkové listině. Seznam přihlášených dětí po závodě už nezveřejňujeme.</p>
+            <p>Seznam přihlášených po závodě nezveřejňujeme.</p>
           </div>
         </div>
       </Panel>
@@ -60,7 +60,6 @@ function ListAfterOpening() {
         icon="lock"
         headingLevel={3}
         title="Seznam se ukáže s otevřením přihlášek"
-        hint="Když pořadatel registraci otevře, objeví se tady formulář i přihlášení rozdělení podle klubů."
       />
     </section>
   );

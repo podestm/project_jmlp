@@ -37,7 +37,6 @@ export default function DocumentFilters({ filters, setFilter, extensions, shown,
         <span className={styles.count}>
           Zobrazeno <strong>{shown}</strong> z <strong>{total}</strong> souborů
         </span>
-        <span className={styles.hint}>Druhé číslo je celá knihovna, ne výsledek filtru.</span>
       </p>
     </div>
   );

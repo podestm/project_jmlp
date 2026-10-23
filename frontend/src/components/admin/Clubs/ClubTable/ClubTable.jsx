@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { Badge, Button, Icon, IconButton, Table, TableScroll, VisuallyHidden } from '../../../ms/index.js';
+import { Badge, Button, Icon, IconButton, Table, TableScroll, Tooltip, VisuallyHidden } from '../../../ms/index.js';
 import styles from './ClubTable.module.css';
 
 /** Logo ano/ne: ikona a slovo pro čtečku. */
@@ -42,9 +42,11 @@ export default function ClubTable({ clubs, expandedClub, onToggleLogo, onDelete,
                   <td data-align="center"><LogoState hasLogo={club.has_logo} /></td>
                   <td data-align="end">
                     <span className={styles.actions}>
-                      <Button size="sm" icon="image" aria-expanded={expanded} onClick={() => onToggleLogo(club)}>
-                        {club.has_logo ? 'Změnit logo' : 'Nahrát logo'}
-                      </Button>
+                      <Tooltip text="Tiskne se na výsledkové listině">
+                        <Button size="sm" icon="image" aria-expanded={expanded} onClick={() => onToggleLogo(club)}>
+                          {club.has_logo ? 'Změnit logo' : 'Nahrát logo'}
+                        </Button>
+                      </Tooltip>
                       <IconButton icon="trash" variant="danger" label={`Smazat klub ${club.name}`} onClick={() => onDelete(club)} />
                     </span>
                   </td>

@@ -21,7 +21,6 @@ export default function RenameInput({ value, onChange, onCommit, onCancel }) {
           if (e.key === 'Escape') onCancel();
         }}
       />
-      <span className={styles.hint}>Enter uloží, Escape zruší.</span>
     </span>
   );
 }

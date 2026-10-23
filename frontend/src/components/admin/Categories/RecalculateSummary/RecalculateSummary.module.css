@@ -22,23 +22,12 @@
   color: var(--ms-open);
 }
 
-.heading {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .title {
   margin: 0;
   font-family: var(--ms-font-display);
   font-weight: 700;
   font-size: var(--ms-fs-xl);
   color: var(--ms-ink);
-}
-
-.lead {
-  font-size: var(--ms-fs-md);
-  color: var(--ms-ink-body);
 }
 
 .close {

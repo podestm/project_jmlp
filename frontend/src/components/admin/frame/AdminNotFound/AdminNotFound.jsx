@@ -16,15 +16,14 @@ export default function AdminNotFound() {
   const { pathname } = useLocation();
 
   return (
-    <AdminPage title="Neznámá stránka" meta="adresa pod /admin, která nikam nevede">
+    <AdminPage title="Neznámá stránka">
       <Panel padding="lg" className={styles.card}>
         <h2 className={styles.title}>
           <Icon name="search-x" size={30} className={styles.icon} />
           Tahle stránka v administraci není
         </h2>
         <p className={styles.text}>
-          Adresa <code className={styles.path}>{pathname}</code> žádné obrazovce neodpovídá. Zůstáváte
-          přihlášení a menu funguje dál – vyberte si v něm, nebo jděte rovnou na některou z obvyklých obrazovek.
+          Adresa <code className={styles.path}>{pathname}</code> žádné obrazovce neodpovídá.
         </p>
         <div className={styles.actions}>
           <ButtonLink to="/admin" variant="primary" size="sm">Zpět na přehled</ButtonLink>

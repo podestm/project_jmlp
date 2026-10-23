@@ -41,11 +41,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.hint {
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-muted);
-}
-
 /* Užší obrazovky: pole po dvou, hledání přes celou šířku. */
 @media (max-width: 1279.98px) {
   .filters {

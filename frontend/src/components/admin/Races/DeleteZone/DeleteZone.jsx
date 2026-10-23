@@ -9,12 +9,11 @@ export default function DeleteZone({ race, onDelete }) {
     <section className={styles.zone} aria-labelledby="zavod-smazat">
       <span className={styles.text}>
         <h2 id="zavod-smazat" className={styles.title}>Smazat závod</h2>
-        <span className={styles.desc}>
-          {count > 0
-            ? <>Smaže i <span className={styles.mono}>{count}</span> {registrationsWord(count)} a startovní listinu. </>
-            : 'Nikdo se zatím nepřihlásil. '}
-          Před smazáním se ještě zeptáme a ukážeme, co se závodem zmizí.
-        </span>
+        {count > 0 && (
+          <span className={styles.desc}>
+            Smaže i <span className={styles.mono}>{count}</span> {registrationsWord(count)} a startovní listinu.
+          </span>
+        )}
       </span>
       <Button variant="danger" size="sm" icon="trash" onClick={onDelete}>Smazat závod</Button>
     </section>
