@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { onBackOnline } from '../../../offline/connectivity.js';
 import { toForm, toPayload } from './raceHeader.js';
 
 /**
@@ -34,8 +35,7 @@ export const useRaceHeader = (raceId) => {
   useEffect(() => { loadDetail(); }, [loadDetail]);
   useEffect(() => {
     if (!unavailable) return undefined;
-    window.addEventListener('online', loadDetail);
-    return () => window.removeEventListener('online', loadDetail);
+    return onBackOnline(loadDetail);
   }, [unavailable, loadDetail]);
 
   const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));

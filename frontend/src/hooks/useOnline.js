@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
+import { isOnline, onConnectivityChange } from '../offline/connectivity.js';
 
-/** Hlásí prohlížeč připojení k síti? Živě podle událostí online/offline. */
+/**
+ * Je spojení se serverem? Živě podle prohlížeče (online/offline) i podle
+ * toho, jestli server odpovídá (offline/connectivity.js) - na slabém signálu
+ * navigator.onLine lže.
+ */
 export const useOnline = () => {
-  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+  const [online, setOnline] = useState(isOnline);
 
   useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
-    };
+    setOnline(isOnline());
+    return onConnectivityChange(setOnline);
   }, []);
 
   return online;

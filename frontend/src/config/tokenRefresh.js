@@ -10,6 +10,7 @@
 // 401) jen nechá token, jaký je - o vypršení se postará obvyklá cesta
 // (v časomíře přihlášení v okně na místě, viz timekeeperAuth.jsx).
 import API from './api.js';
+import { isOnline, onBackOnline } from '../offline/connectivity.js';
 
 /** Když token nemá `iat` (vydaný před zavedením obnovy), počítá se s 12 h. */
 export const FALLBACK_LIFETIME_SECONDS = 12 * 60 * 60;
@@ -44,8 +45,6 @@ export function needsRefresh(token, nowMs = Date.now()) {
   const lifetime = times.iat != null ? times.exp - times.iat : FALLBACK_LIFETIME_SECONDS;
   return remaining < lifetime / 2;
 }
-
-const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 /**
  * Hlídač obnovy tokenu pro jednu sekci.
@@ -84,8 +83,8 @@ export function startTokenRefresh({ endpoint, store, onRefreshed, intervalMs = R
     if (typeof document === 'undefined' || !document.hidden) check();
   };
 
+  const stopBackOnline = onBackOnline(check);
   if (typeof window !== 'undefined') {
-    window.addEventListener('online', check);
     window.addEventListener('focus', check);
     document.addEventListener('visibilitychange', onVisible);
   }
@@ -96,8 +95,8 @@ export function startTokenRefresh({ endpoint, store, onRefreshed, intervalMs = R
     check,
     stop: () => {
       stopped = true;
+      stopBackOnline();
       if (typeof window !== 'undefined') {
-        window.removeEventListener('online', check);
         window.removeEventListener('focus', check);
         document.removeEventListener('visibilitychange', onVisible);
         window.clearInterval(timer);

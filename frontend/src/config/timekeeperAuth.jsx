@@ -22,6 +22,7 @@ import { startTimekeeperSync, TimekeeperAPI } from './timekeeperApi.js';
 import { startTokenRefresh } from './tokenRefresh.js';
 import { releaseAuthParked } from '../offline/syncQueue.js';
 import { AUTH_EXPIRED_MESSAGE } from '../offline/sync.js';
+import { isOnline } from '../offline/connectivity.js';
 
 const TimekeeperAuthContext = createContext();
 const store = createTokenStore(SESSION_TOKEN_KEY);
@@ -46,7 +47,8 @@ const cacheUser = (user) => {
   }
 };
 
-const isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine;
+// Skutečné spojení se serverem (connectivity.js), ne jen navigator.onLine.
+const isOffline = () => !isOnline();
 
 const isAuthStatus = (error) => error?.status === 401;
 

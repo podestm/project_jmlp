@@ -1,4 +1,5 @@
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
+import { isOnline } from './connectivity.js';
 
 /**
  * Data vybraného závodu, která potřebují obrazovky časomíry, se uloží do
@@ -16,6 +17,6 @@ export const raceEndpoints = (raceId) => [
 
 export const preloadRaceData = async (raceId) => {
   if (!raceId) return;
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  if (!isOnline()) return;
   await Promise.allSettled(raceEndpoints(raceId).map((endpoint) => TimekeeperAPI.get(endpoint)));
 };

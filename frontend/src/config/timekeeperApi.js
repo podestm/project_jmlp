@@ -16,21 +16,19 @@ import {
 } from '../offline/syncQueue.js';
 import { processSyncQueue, startSyncLoop } from '../offline/sync.js';
 import { resolveTempIdsStored } from '../offline/offlineEntries.js';
+import {
+  isNetworkError,
+  isOnline,
+  markReachable,
+  markUnreachable,
+  TIMEOUT_MESSAGE
+} from '../offline/connectivity.js';
 
 const extractStatusFromError = (error) => {
   if (typeof error?.status === 'number') return error.status;
   if (!error?.message) return null;
   const match = error.message.match(/API Error: (\d+)/);
   return match ? parseInt(match[1], 10) : null;
-};
-
-const isNetworkError = (error) => {
-  const message = error?.message || '';
-  return (
-    message.includes('Failed to fetch') ||
-    message.includes('NetworkError') ||
-    message.includes('Load failed')
-  );
 };
 
 const isAuthError = (status) => status === 401 || status === 403;
@@ -49,9 +47,27 @@ const RETRIABLE_SERVER_STATUSES = new Set([500, 502, 503, 504]);
 const isRetriableServerError = (status) => RETRIABLE_SERVER_STATUSES.has(status);
 
 /**
+ * Na slabém signálu požadavek nespadne, jen visí. Bez limitu by obrazovka
+ * i fronta čekaly minuty; po vypršení se s ním zachází jako s výpadkem sítě
+ * (zápis do fronty, čtení z keše).
+ */
+const REQUEST_TIMEOUT_MS = 15000;
+// Služby třetích stran (evidence SLČR) odpovídají pomaleji - jdou přes server.
+const SLOW_REQUEST_TIMEOUT_MS = 60000;
+
+/** Chyba bez HTTP odpovědi: označená `network`, aby ji všichni poznali stejně. */
+const networkFailure = (error, timedOut) => {
+  const failure = timedOut ? new Error(TIMEOUT_MESSAGE) : (error instanceof Error ? error : new Error(String(error)));
+  if (timedOut) failure.name = 'TimeoutError';
+  failure.network = true;
+  return failure;
+};
+
+/**
  * @param {boolean} [options.background] true for requests nobody is waiting on -
  *   the sync loop. A 401 on one of those must not navigate the tab: that would
  *   close the Web Serial port mid-race. See createAuthErrorHandler in api.js.
+ * @param {number} [options.timeoutMs] limit odpovědi, po něm síťová chyba
  */
 const timekeeperFetch = async (
   method,
@@ -59,38 +75,70 @@ const timekeeperFetch = async (
   data = null,
   params = null,
   extraHeaders = {},
-  { background = false } = {}
+  { background = false, timeoutMs = REQUEST_TIMEOUT_MS } = {}
 ) => {
-  const response = await fetch(buildUrl(endpoint, params || {}), {
-    method,
-    headers: {
-      ...API_CONFIG.DEFAULT_HEADERS,
-      ...timekeeperAuthHeaders(),
-      ...extraHeaders
-    },
-    ...(data != null ? { body: JSON.stringify(data) } : {}),
-    redirect: 'follow'
-  });
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  const timedOut = () => Boolean(controller?.signal.aborted);
 
-  if (!response.ok) {
-    handleTimekeeperAuthError(response.status, { background });
-    let parsedDetail = null;
+  try {
+    let response;
     try {
-      parsedDetail = await response.json();
-    } catch {
-      parsedDetail = null;
+      response = await fetch(buildUrl(endpoint, params || {}), {
+        method,
+        headers: {
+          ...API_CONFIG.DEFAULT_HEADERS,
+          ...timekeeperAuthHeaders(),
+          ...extraHeaders
+        },
+        ...(data != null ? { body: JSON.stringify(data) } : {}),
+        ...(controller ? { signal: controller.signal } : {}),
+        redirect: 'follow'
+      });
+    } catch (error) {
+      // Žádná odpověď - server je (aspoň teď) nedosažitelný, ať prohlížeč
+      // hlásí cokoli.
+      markUnreachable();
+      throw networkFailure(error, timedOut());
     }
 
-    const error = new Error(`API Error: ${response.status} ${response.statusText}`);
-    error.status = response.status;
-    error.detail = parsedDetail?.detail || parsedDetail || null;
-    throw error;
-  }
+    // Jakákoli odpověď, i 4xx/5xx, znamená, že spojení se serverem je.
+    markReachable();
 
-  return response.json();
+    if (!response.ok) {
+      handleTimekeeperAuthError(response.status, { background });
+      let parsedDetail = null;
+      try {
+        parsedDetail = await response.json();
+      } catch {
+        parsedDetail = null;
+      }
+
+      const error = new Error(`API Error: ${response.status} ${response.statusText}`);
+      error.status = response.status;
+      error.detail = parsedDetail?.detail || parsedDetail || null;
+      throw error;
+    }
+
+    try {
+      return await response.json();
+    } catch (error) {
+      // Tělo odpovědi uvízlo na slabém signálu až do vypršení.
+      if (timedOut()) {
+        markUnreachable();
+        throw networkFailure(error, true);
+      }
+      throw error;
+    }
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 };
 
-const opts = (meta = {}) => ({ background: Boolean(meta.background) });
+const opts = (meta = {}) => ({
+  background: Boolean(meta.background),
+  ...(meta.timeoutMs ? { timeoutMs: meta.timeoutMs } : {})
+});
 
 const TimekeeperAPIOnline = {
   get: async (endpoint, params = {}, meta = {}) => timekeeperFetch('GET', endpoint, null, params, {}, opts(meta)),
@@ -148,8 +196,6 @@ const syncExecutor = async (item) => {
  * @returns {function} teardown
  */
 export const startTimekeeperSync = () => startSyncLoop(syncExecutor);
-
-const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 // POST/PUT/DELETE share the same online-try / offline-queue decision.
 const mutate = async (method, rawEndpoint, rawData) => {
@@ -274,11 +320,11 @@ export const TimekeeperAPI = {
    */
   getOnline: async (endpoint, params = {}) => {
     if (!isOnline()) throw new Error('Vyžaduje připojení k internetu.');
-    return TimekeeperAPIOnline.get(endpoint, params);
+    return TimekeeperAPIOnline.get(endpoint, params, { timeoutMs: SLOW_REQUEST_TIMEOUT_MS });
   },
   postOnline: async (endpoint, data = {}) => {
     if (!isOnline()) throw new Error('Vyžaduje připojení k internetu.');
-    return TimekeeperAPIOnline.post(endpoint, data);
+    return TimekeeperAPIOnline.post(endpoint, data, { timeoutMs: SLOW_REQUEST_TIMEOUT_MS });
   },
 
   flushQueue: async () => {

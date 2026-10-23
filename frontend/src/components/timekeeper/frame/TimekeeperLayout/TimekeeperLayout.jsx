@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../../config/timekeeperAuth.jsx';
 import { useConfirm } from '../../../../hooks/useConfirm.jsx';
+import { onBackOnline } from '../../../../offline/connectivity.js';
 import { useSyncStatus } from '../../../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../../../pdf/pdfmake.js';
 import { preloadOfflineRacerData } from '../../../../offline/racerRegistry.js';
@@ -48,10 +49,10 @@ export default function TimekeeperLayout({ children }) {
   useEffect(() => {
     const preload = () => { preloadOfflineRacerData().catch(() => {}); };
     const timer = setTimeout(preload, 5000);
-    window.addEventListener('online', preload);
+    const stopBackOnline = onBackOnline(preload);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('online', preload);
+      stopBackOnline();
     };
   }, []);
 

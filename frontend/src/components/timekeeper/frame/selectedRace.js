@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
+import { onBackOnline } from '../../../offline/connectivity.js';
 import { preloadRaceData } from '../../../offline/racePreload.js';
 
 /**
@@ -79,8 +80,7 @@ export const useSelectedRace = () => {
     if (!raceId) return undefined;
     const preload = () => { preloadRaceData(raceId).catch(() => {}); };
     preload();
-    window.addEventListener('online', preload);
-    return () => window.removeEventListener('online', preload);
+    return onBackOnline(preload);
   }, [raceId]);
 
   const race = raceId ? races.find((item) => String(item.id) === String(raceId)) || null : null;

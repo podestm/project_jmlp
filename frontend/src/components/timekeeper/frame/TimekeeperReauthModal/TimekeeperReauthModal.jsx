@@ -1,25 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTimekeeperAuth } from '../../../../config/timekeeperAuth.jsx';
+import { useOnline } from '../../../../hooks/useOnline.js';
 import { Alert, Button, Field, Input, Modal, PasswordInput } from '../../../ms/index.js';
 import styles from './TimekeeperReauthModal.module.css';
 
-const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 const knownEmail = (user) => (user?.email && user.email !== 'offline' ? user.email : '');
-
-/** Online/offline podle prohlížeče – offline se okno neukazuje. */
-const useOnline = () => {
-  const [online, setOnline] = useState(isOnline());
-  useEffect(() => {
-    const update = () => setOnline(isOnline());
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
-    };
-  }, []);
-  return online;
-};
 
 /**
  * Přihlášení v okně na místě, když přihlášení vypršelo (401).

@@ -1,3 +1,4 @@
+import { isNetworkError, isOnline, markUnreachable, onBackOnline } from './connectivity.js';
 import { timekeeperDb } from './db.js';
 import { mutationKeys } from './entryTargets.js';
 import { applySyncedRevisions } from './localEdits.js';
@@ -7,6 +8,7 @@ import {
   MAX_RETRIES,
   notifyQueueChanged,
   recoverStaleProcessing,
+  reviveNetworkFailures,
   saveConflict,
   supersedeParkedOpsFor
 } from './syncQueue.js';
@@ -55,13 +57,18 @@ const extractStatusCode = (error) => {
  */
 export const processSyncQueue = async (executor) => {
   if (syncInProgress) return;
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  // Skutečné spojení, ne jen navigator.onLine - ten na slabém signálu lže
+  // a fronta by pálila pokusy o server, na který nic nedojde.
+  if (!isOnline()) return;
 
   syncInProgress = true;
   try {
     const recovered = await recoverStaleProcessing();
+    // Zápisy, které dřív (před rozlišením výpadku spojení) spálily pokusy
+    // jen o nedostupný server, se vrací do fronty.
+    const revived = await reviveNetworkFailures();
     const candidates = await getQueueCandidates();
-    let changed = recovered > 0;
+    let changed = recovered + revived > 0;
 
     const blockedKeys = new Set();
     const keysOf = (row) => mutationKeys(row.method, row.endpoint, row.payload);
@@ -122,6 +129,22 @@ export const processSyncQueue = async (executor) => {
             last_error: AUTH_EXPIRED_MESSAGE,
             next_retry_at: new Date(Date.now() + 60000).toISOString()
           });
+          changed = true;
+          break;
+        }
+
+        // Výpadek spojení (žádná odpověď serveru, vypršení) taky není chyba
+        // té mutace: řádek zpátky do fronty beze změny počtu pokusů a konec
+        // průchodu. Pokračuje se, až zkouška spojení server zase zastihne -
+        // jinak by se ze slabého signálu stala „chyba synchronizace“ a po pár
+        // minutách zaparkované mrtvé zápisy.
+        if (statusCode == null && isNetworkError(error)) {
+          await timekeeperDb.syncQueue.update(row.id, {
+            status: 'pending',
+            updated_at: nowIso(),
+            next_retry_at: null
+          });
+          markUnreachable();
           changed = true;
           break;
         }
@@ -198,7 +221,9 @@ export const startSyncLoop = (executor) => {
     if (!document.hidden) trySync();
   };
 
-  window.addEventListener('online', trySync);
+  // Návrat spojení: událost prohlížeče i zkouška spojení, která server
+  // znovu zastihla (connectivity.js).
+  const stopBackOnline = onBackOnline(trySync);
   window.addEventListener('focus', trySync);
   document.addEventListener('visibilitychange', onVisibility);
 
@@ -206,7 +231,7 @@ export const startSyncLoop = (executor) => {
   trySync();
 
   return () => {
-    window.removeEventListener('online', trySync);
+    stopBackOnline();
     window.removeEventListener('focus', trySync);
     document.removeEventListener('visibilitychange', onVisibility);
     window.clearInterval(intervalId);
