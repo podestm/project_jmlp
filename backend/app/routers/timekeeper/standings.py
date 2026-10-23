@@ -8,7 +8,7 @@ zveřejnění nahradí ten dosavadní.
 PDF vzniká v prohlížeči stejně jako výsledková listina závodu; sem se posílá
 hotový soubor, takže je zveřejněné přesně to, co bylo v náhledu.
 """
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
@@ -34,12 +34,15 @@ def _season_or_404(db: Session, season_id: int) -> models.Season:
 @router.get("/seasons/{season_id}/standings")
 def get_standings(
     season_id: int,
-    final: bool = Query(default=False, description="Celkové výsledky místo průběžných"),
+    final: Optional[bool] = Query(default=None, description="Celkové výsledky místo průběžných; "
+                                  "bez parametru celkové, jakmile má finále sezóny výsledky"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Pořadí poháru po kategoriích jako podklad pro PDF."""
     _season_or_404(db, season_id)
+    if final is None:
+        final = standings_service.season_finished(db, season_id)
     return standings_service.season_standings(db, season_id, final=final)
 
 

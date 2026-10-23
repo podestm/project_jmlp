@@ -183,10 +183,10 @@ export default function ResultsView() {
    * závodů sezóny; závody bez výsledků v aplikaci (měřené jen v LiZe)
    * v něm chybí, a to musí obsluha vědět dřív, než pořadí zveřejní.
    */
-  const printStandings = async (final) => {
+  const printStandings = async () => {
     if (!selectedRace?.season_id) return;
     try {
-      const standings = await pdf.generateStandings({ seasonId: selectedRace.season_id, final });
+      const standings = await pdf.generateStandings({ seasonId: selectedRace.season_id });
       const missing = standings?.races_without_results || [];
       if (missing.length) {
         setMessage({
@@ -288,29 +288,19 @@ export default function ResultsView() {
               <i className="bi bi-file-earmark-pdf me-1"></i>
               Celková listina
             </button>
-            <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
-              <button
-                className="btn btn-outline-secondary"
-                onClick={() => printStandings(false)}
-                disabled={pdf.generating || !isOnline || !selectedRace?.season_id}
-                title={isOnline
-                  ? 'Průběžné výsledky poháru za sezónu tohoto závodu'
-                  : 'Pořadí poháru vyžaduje připojení k internetu'}
-              >
-                <i className="bi bi-bar-chart-steps me-1"></i>
-                Pohár průběžně
-              </button>
-              <button
-                className="btn btn-outline-secondary"
-                onClick={() => printStandings(true)}
-                disabled={pdf.generating || !isOnline || !selectedRace?.season_id}
-                title={isOnline
-                  ? 'Celkové výsledky poháru - po skončení sezóny'
-                  : 'Pořadí poháru vyžaduje připojení k internetu'}
-              >
-                celkově
-              </button>
-            </div>
+            {/* Pořadí poháru: průběžné, a jakmile má finále sezóny výsledky,
+                celkové - rozhodne server (standings.season_finished). */}
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => printStandings()}
+              disabled={pdf.generating || !isOnline || !selectedRace?.season_id}
+              title={isOnline
+                ? 'Pořadí poháru za sezónu tohoto závodu - průběžné, po finále celkové'
+                : 'Pořadí poháru vyžaduje připojení k internetu'}
+            >
+              <i className="bi bi-bar-chart-steps me-1"></i>
+              Pohár
+            </button>
             <button
               className="btn btn-sm btn-outline-danger"
               onClick={clearResults}

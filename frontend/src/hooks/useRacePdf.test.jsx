@@ -25,6 +25,7 @@ vi.mock('../config/timekeeperApi.js', () => ({
   }
 }));
 const { useRacePdf } = await import('./useRacePdf.js');
+const { TimekeeperAPI } = await import('../config/timekeeperApi.js');
 
 const categories = [{
   category_name: 'Myšáci dívky',
@@ -89,6 +90,19 @@ describe('výsledková listina z náhledu', () => {
 
     await act(async () => { await result.current.publish(); });
     expect(fetch.mock.calls[0][0]).toBe('/api/timekeeper/seasons/2026/standings/publish?final=false');
+  });
+
+  it('bez volby rozhodne server: po finále celkové výsledky', async () => {
+    TimekeeperAPI.get.mockImplementationOnce(async () => ({
+      final: true, season_label: '2026-27', races: [], categories: [], races_without_results: []
+    }));
+    const { result } = renderHook(() => useRacePdf(132));
+    await act(async () => { await result.current.generateStandings({ seasonId: 2026 }); });
+
+    expect(TimekeeperAPI.get.mock.calls.at(-1)[0]).toBe('/api/timekeeper/seasons/2026/standings');
+    expect(result.current.previewTitle).toBe('Celkové výsledky poháru 2026-27');
+    await act(async () => { await result.current.publish(); });
+    expect(fetch.mock.calls[0][0]).toBe('/api/timekeeper/seasons/2026/standings/publish?final=true');
   });
 
   it('po pořadí poháru jde výsledková listina zase k závodu', async () => {

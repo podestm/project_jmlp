@@ -186,14 +186,15 @@ export function useRacePdf(raceId) {
    *
    * @param {object}  options
    * @param {number}  options.seasonId  sezóna (rok začátku, season_id závodu)
-   * @param {boolean} [options.final]   celkové výsledky místo průběžných
+   * @param {boolean} [options.final]   celkové (true) / průběžné (false); bez
+   *   něj rozhodne server - celkové, jakmile má finále sezóny výsledky
    */
-  const generateStandings = useCallback(async ({ seasonId, final = false }) => {
+  const generateStandings = useCallback(async ({ seasonId, final: requested }) => {
     setGenerating(true);
     try {
-      const standings = await TimekeeperAPI.get(
-        `/api/timekeeper/seasons/${seasonId}/standings?final=${final}`
-      );
+      const query = requested == null ? '' : `?final=${requested}`;
+      const standings = await TimekeeperAPI.get(`/api/timekeeper/seasons/${seasonId}/standings${query}`);
+      const final = Boolean(standings?.final);
       // Logo svazu má jen celkové pořadí (stejně jako u LIP).
       const logo = final ? await loadSvazLogo() : null;
       const blob = await createPdfBlob(buildStandingsDoc({ standings, printedOn: new Date(), logo }));

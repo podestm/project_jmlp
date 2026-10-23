@@ -241,6 +241,22 @@ def test_api_vrati_poradi_po_kategoriich(client, timekeeper_headers, sezona_s_vy
     assert radky[1]["cells"][1] == {"text": "DSQ", "counted": True, "kind": "S"}
 
 
+def test_bez_volby_je_pred_finale_prubezne_a_po_finale_celkove(client, db, timekeeper_headers, sezona_s_vysledky, kategorie):
+    url = "/api/timekeeper/seasons/2031/standings"
+    assert client.get(url, headers=timekeeper_headers).json()["final"] is False
+
+    finale = _zavod(db, "JMLP2031-05", date(2032, 3, 8), method=1)
+    finale.is_final = True
+    db.commit()
+    # Finále je označené, ale ještě nemá výsledky - pořád průběžné.
+    assert client.get(url, headers=timekeeper_headers).json()["final"] is False
+
+    _start(db, finale, _zavodnik(db, "Dana", "Dvořáková"), kategorie, 1, time=41.0)
+    assert client.get(url, headers=timekeeper_headers).json()["final"] is True
+    # Výslovná volba má přednost.
+    assert client.get(url + "?final=false", headers=timekeeper_headers).json()["final"] is False
+
+
 def test_api_celkove_vysledky(client, timekeeper_headers, sezona_s_vysledky):
     data = client.get("/api/timekeeper/seasons/2031/standings?final=true", headers=timekeeper_headers).json()
 
