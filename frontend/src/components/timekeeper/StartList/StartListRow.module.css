@@ -2,7 +2,6 @@
   background: var(--ms-surface-sunken);
 }
 
-.system,
 .year {
   font-weight: 400;
   color: var(--ms-ink-body);

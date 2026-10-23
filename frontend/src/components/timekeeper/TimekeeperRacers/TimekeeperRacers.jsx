@@ -11,7 +11,7 @@ import { isFiltered } from './racers.js';
 import { useTimekeeperRacers } from './useTimekeeperRacers.js';
 import styles from './TimekeeperRacers.module.css';
 
-const COLUMNS = ['Poř.', 'Dres', 'Systém', 'Závodník a oddíl', 'Ročník', 'Pohlaví', 'Kategorie', 'Řádek'];
+const COLUMNS = ['Poř.', 'Dres', 'Závodník a oddíl', 'Ročník', 'Pohlaví', 'Kategorie', 'Řádek'];
 
 /**
  * Závodníci závodu (TkZavodnici): vlevo dopsání závodníka přímo k trati,

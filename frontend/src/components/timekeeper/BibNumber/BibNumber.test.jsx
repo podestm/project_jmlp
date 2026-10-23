@@ -19,4 +19,10 @@ describe('BibNumber', () => {
     render(<BibNumber number={193} plain />);
     expect(screen.getByText('193').style.getPropertyValue('--bib-color')).toBe('');
   });
+
+  it('systémové označení nevypisuje, je jen v bublině', () => {
+    render(<BibNumber number={12} setColor="emerald" code="B12" />);
+    expect(screen.getByText('12')).toHaveAttribute('title', 'B12');
+    expect(screen.queryByText('B12')).not.toBeInTheDocument();
+  });
 });

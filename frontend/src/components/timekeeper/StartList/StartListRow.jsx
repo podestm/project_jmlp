@@ -24,8 +24,7 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
   return (
     <tr data-state={excluded ? 'muted' : undefined} className={excluded ? styles.excludedRow : undefined}>
       <td data-numeric>{entry.start_number || '—'}</td>
-      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} /></td>
-      <td data-numeric className={styles.system}>{entry.race_number_display ?? '—'}</td>
+      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} code={entry.race_number_display} /></td>
       {/* Kategorie se neopakuje – řádek je v části své kategorie */}
       <td>
         <span className={styles.racer}>

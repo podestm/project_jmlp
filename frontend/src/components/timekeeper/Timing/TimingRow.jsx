@@ -3,7 +3,6 @@ import { cx } from '../../ms/cx.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
 import OfflineBadge from '../OfflineBadge/OfflineBadge.jsx';
 import RaceFlag, { FLAGS } from '../StartList/RaceFlag.jsx';
-import { formatSystemRaceNumber } from '../../../utils/raceNumbers.js';
 import styles from './TimingRow.module.css';
 
 const FLAG_KEYS = Object.freeze(['dnf', 'dns', 'dsq']);
@@ -60,12 +59,7 @@ const TimingRow = memo(function TimingRow({
     <tr data-state={flag ? 'muted' : undefined}>
       <td data-numeric className={styles.start}>{entry.start_number || '—'}</td>
       <td>
-        <span className={styles.bib}>
-          <BibNumber number={entry.race_number_actual ?? entry.race_number_display} setColor={entry.set_color} size="sm" />
-          {entry.race_number_display != null && (
-            <span className={styles.system}>{formatSystemRaceNumber(entry.race_number_display)}</span>
-          )}
-        </span>
+        <BibNumber number={entry.race_number_actual ?? entry.race_number_display} setColor={entry.set_color} code={entry.race_number_display} size="sm" />
       </td>
       {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů. */}
       <td className={styles.racerCell}>

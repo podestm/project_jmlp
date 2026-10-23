@@ -6,7 +6,6 @@ import styles from './StartListTable.module.css';
 const COLUMNS = [
   { label: 'Poř.' },
   { label: 'Dres' },
-  { label: 'Systém' },
   { label: 'Závodník a oddíl' },
   { label: 'Ročník' },
   { label: 'Kolo 1', align: 'end' },

@@ -20,8 +20,7 @@ const RacerRow = memo(function RacerRow({ entry, onEdit }) {
   return (
     <tr data-state={excluded ? 'muted' : undefined}>
       <td data-numeric>{entry.start_number || '—'}</td>
-      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} /></td>
-      <td data-numeric>{entry.race_number_display ?? '—'}</td>
+      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} code={entry.race_number_display} /></td>
       <td>
         <span className={styles.racer}>
           <span className={styles.nameRow}>

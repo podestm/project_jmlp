@@ -3,18 +3,6 @@
   color: var(--ms-ink);
 }
 
-.bib {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ms-space-2);
-}
-
-.system {
-  font-size: var(--ms-fs-2xs);
-  color: var(--ms-ink-muted);
-  white-space: nowrap;
-}
-
 /* max-inline-size 0 dovolí buňce jít pod šířku textu – jinak by zkrácení
    trojtečkou nezabralo a tabulka by přetekla do strany. */
 .racerCell {
