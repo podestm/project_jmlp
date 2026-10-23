@@ -223,12 +223,7 @@ export default function TimingToolbar({
               disabled={selectedCategory === 'all'}
               onPrint={(runMode) => onPrintResults(runMode, 'category')}
             />
-            <ResultsPrintButtons
-              label="Všechny kategorie"
-              title="Výsledky kol všech kategorií"
-              busy={printBusy}
-              onPrint={(runMode) => onPrintResults(runMode, 'all')}
-            />
+            {/* Všechny kategorie se tisknou z obrazovky Výsledky. */}
           </div>
         </div>
       </div>

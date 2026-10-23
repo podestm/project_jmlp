@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildTimeUpdate,
   calculateTimeSum,
+  findRowInDirection,
   formatConflictValue,
   isSameDraft,
   mergeRestoredDrafts,
@@ -135,5 +136,21 @@ describe('formatConflictValue', () => {
     expect(formatConflictValue(true)).toBe('Ano');
     expect(formatConflictValue(false)).toBe('Ne');
     expect(formatConflictValue(25.5)).toBe('25.5');
+  });
+});
+
+describe('findRowInDirection - šipky mezi řádky', () => {
+  const list = [{ id: 1 }, { id: 2, locked: true }, { id: 3 }, { id: 4 }];
+  const enabled = (row) => !row.locked;
+
+  it('dolů i nahoru na sousední řádek, zamčený přeskočí', () => {
+    expect(findRowInDirection(list, 0, 1, enabled)).toBe(2);
+    expect(findRowInDirection(list, 2, -1, enabled)).toBe(0);
+    expect(findRowInDirection(list, 2, 1, enabled)).toBe(3);
+  });
+
+  it('za okrajem seznamu nikam', () => {
+    expect(findRowInDirection(list, 0, -1, enabled)).toBeNull();
+    expect(findRowInDirection(list, 3, 1, enabled)).toBeNull();
   });
 });

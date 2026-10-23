@@ -97,3 +97,16 @@ export const formatConflictValue = (value) => {
   if (typeof value === 'boolean') return value ? 'Ano' : 'Ne';
   return String(value);
 };
+
+/**
+ * Šipka nahoru/dolů při zadávání časů: index nejbližšího řádku ve směru
+ * `direction` (-1 nahoru, +1 dolů), jehož políčko jde vyplnit. Řádky se
+ * zamčeným políčkem (DNF/DNS/DSQ, zamčené kolo) se přeskočí. Za okrajem
+ * seznamu zůstane fokus, kde je (null).
+ */
+export const findRowInDirection = (list, currentIndex, direction, isEnabled) => {
+  for (let index = currentIndex + direction; index >= 0 && index < list.length; index += direction) {
+    if (isEnabled(list[index])) return index;
+  }
+  return null;
+};

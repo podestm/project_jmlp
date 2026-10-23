@@ -4,6 +4,7 @@ import ConflictDialogMessage from './ConflictDialogMessage.jsx';
 import {
   buildTimeUpdate,
   calculateTimeSum,
+  findRowInDirection,
   isSameDraft,
   normalizeDraft,
   parseStoredTime,
@@ -362,7 +363,26 @@ export function useTimeSaving({
     saveSingleTime(entryId);
   }, [saveSingleTime]);
 
+  // Šipka nahoru/dolů: na stejné políčko o řádek výš/níž (v číselném poli by
+  // jinak měnila hodnotu). Opuštěné políčko se uloží přes onBlur jako při
+  // kliknutí jinam; zamčená políčka (DNF/DNS/DSQ, druhé kolo) se přeskočí.
+  const focusRowInDirection = useCallback((entryId, field, direction) => {
+    const list = filteredListRef.current;
+    const currentIndex = list.findIndex((entry) => entry.id === entryId);
+    if (currentIndex === -1) return;
+    const target = findRowInDirection(list, currentIndex, direction, (entry) => {
+      const input = inputRefs.current[`${entry.id}-${field}`];
+      return Boolean(input && !input.disabled);
+    });
+    if (target != null) focusInput(list[target].id, field);
+  }, [focusInput]);
+
   const handleKeyDown = useCallback(async (e, entryId, field) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusRowInDirection(entryId, field, e.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
     if (!hasWriteLockRef.current) return;
 
     if (e.key === 'Enter') {
@@ -389,7 +409,7 @@ export function useTimeSaving({
       await saveSingleTime(entryId);
       focusNextInput(entryId, field);
     }
-  }, [saveSingleTime, focusInput, focusNextInput]);
+  }, [saveSingleTime, focusInput, focusNextInput, focusRowInDirection]);
 
   return {
     updateTime,
