@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ButtonLink, EmptyState, LoadingState, PageHeader, Paska } from '../../ms/index.js';
+import { Link } from 'react-router-dom';
+import { Alert, ButtonLink, EmptyState, LoadingState, PageHeader, Paska } from '../../ms/index.js';
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
 import CategoryChips from '../CategoryChips/CategoryChips.jsx';
 import NoRaceSelected from '../frame/NoRaceSelected/NoRaceSelected.jsx';
 import TkPage from '../frame/TkPage/TkPage.jsx';
 import PdfPreviewModal from '../PdfPreviewModal.jsx';
 import TimekeeperMessage from '../TimekeeperMessage.jsx';
-import ResultsInfo from './ResultsInfo.jsx';
 import ResultsTable from './ResultsTable.jsx';
 import ResultsToolbar from './ResultsToolbar.jsx';
 import SlcrCategoryPanel from './Slcr/SlcrCategoryPanel/SlcrCategoryPanel.jsx';
@@ -59,6 +59,12 @@ export default function ResultsView() {
     <TkPage>
       {header}
       {hasEntries && <ResultsToolbar api={api} />}
+      {hasEntries && api.queueStats.total > 0 && (
+        <Alert type="warning" compact>
+          Než budete publikovat, odešlete frontu – {api.queueStats.total} změn je zatím jen v tomhle zařízení.
+          {' '}<Link to="/timekeeper/sync">Otevřít synchronizaci</Link>
+        </Alert>
+      )}
       <TimekeeperMessage message={message} onDismiss={api.clearMessage} />
 
       {loading && <LoadingState label="Načítám výsledky…" />}
@@ -104,8 +110,6 @@ export default function ResultsView() {
           )}
         </section>
       )}
-
-      {hasEntries && <ResultsInfo race={api.selectedRace} queueTotal={api.queueStats.total} />}
 
       {pdf.objectUrl && (
         <PdfPreviewModal
