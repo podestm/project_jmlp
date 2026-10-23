@@ -1,3 +1,4 @@
+import { isNetworkErrorMessage } from './connectivity.js';
 import { timekeeperDb } from './db.js';
 import { createTempIdOf, removeLocalEntry } from './offlineEntries.js';
 import {
@@ -146,6 +147,32 @@ export const recoverStaleProcessing = async () => {
   })));
 
   return stale.length;
+};
+
+/**
+ * Vrátí do fronty zápisy, které skončily jako 'failed' / 'dead' JEN kvůli
+ * výpadku spojení (last_error je síťová chyba bez odpovědi serveru).
+ *
+ * Dřív každý nedoručený požadavek na slabém signálu spálil pokus, takže se
+ * zápis za pár minut zaparkoval mezi mrtvé, přestože ho server nikdy neviděl.
+ * Teď výpadek pokusy nepálí; tohle opraví řádky z dřívějška. Počet pokusů se
+ * nuluje, ostatní (payload, klíč idempotence, pořadí) zůstává. Cokoli jiného
+ * - 5xx, konflikty, překonané - se nechává být.
+ * @returns {number} kolik řádků se vrátilo do fronty
+ */
+export const reviveNetworkFailures = async () => {
+  const rows = await timekeeperDb.syncQueue.where('status').anyOf('failed', 'dead').toArray();
+  const stuck = rows.filter((row) => isNetworkErrorMessage(row.last_error));
+
+  await Promise.all(stuck.map((row) => timekeeperDb.syncQueue.update(row.id, {
+    status: 'pending',
+    retry_count: 0,
+    next_retry_at: null,
+    last_error: null,
+    updated_at: nowIso()
+  })));
+
+  return stuck.length;
 };
 
 /**

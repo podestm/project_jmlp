@@ -8,6 +8,7 @@ import {
   getSyncQueueStats,
   hasUnsyncedMutationFor,
   resolveConflict,
+  reviveNetworkFailures,
   saveConflict,
   supersedeParkedOpsFor
 } from './syncQueue.js';
@@ -274,5 +275,31 @@ describe('vyřazení ze startky ve frontě', () => {
 
     expect(await supersedeParkedOpsFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(0);
     expect((await timekeeperDb.syncQueue.get(parkedExclusion)).status).toBe('dead');
+  });
+});
+
+describe('reviveNetworkFailures', () => {
+  it('vrátí do fronty jen řádky zaseklé kvůli výpadku spojení, nic jiného nemění', async () => {
+    const payload = { time1: 12.34, base_revision: 'r5' };
+    const failed = await timekeeperDb.syncQueue.add(queueRow({
+      op_id: 'a', status: 'failed', retry_count: 3, last_error: 'Failed to fetch',
+      next_retry_at: '2099-01-01T00:00:00.000Z', payload
+    }));
+    const dead = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'b', status: 'dead', retry_count: 8, last_error: 'NetworkError when attempting to fetch resource.' }));
+    const timeout = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'c', status: 'dead', retry_count: 8, last_error: 'Server neodpověděl včas (výpadek spojení).' }));
+    const server = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'd', status: 'dead', retry_count: 8, last_error: 'API Error: 504 Gateway Timeout' }));
+    const conflict = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'e', status: 'conflict', last_error: 'Failed to fetch' }));
+    const unknown = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'f', status: 'failed', retry_count: 1, last_error: 'Sync failed' }));
+
+    expect(await reviveNetworkFailures()).toBe(3);
+
+    const revived = await timekeeperDb.syncQueue.get(failed);
+    expect(revived).toMatchObject({ status: 'pending', retry_count: 0, next_retry_at: null, last_error: null, op_id: 'a', payload });
+    expect((await timekeeperDb.syncQueue.get(dead)).status).toBe('pending');
+    expect((await timekeeperDb.syncQueue.get(timeout)).status).toBe('pending');
+    expect(await timekeeperDb.syncQueue.get(server)).toMatchObject({ status: 'dead', retry_count: 8 });
+    expect((await timekeeperDb.syncQueue.get(conflict)).status).toBe('conflict');
+    expect(await timekeeperDb.syncQueue.get(unknown)).toMatchObject({ status: 'failed', retry_count: 1 });
+    expect(await timekeeperDb.syncQueue.count()).toBe(6);
   });
 });

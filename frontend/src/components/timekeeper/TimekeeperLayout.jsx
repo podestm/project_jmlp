@@ -7,6 +7,7 @@ import { useSyncStatus } from '../../offline/useSyncStatus.js';
 import { preloadPdfMake } from '../../pdf/pdfmake.js';
 import { preloadOfflineRacerData } from '../../offline/racerRegistry.js';
 import { preloadSelectedRace } from '../../offline/racePreload.js';
+import { onBackOnline } from '../../offline/connectivity.js';
 import SectionSwitch from '../ui/SectionSwitch.jsx';
 
 export default function TimekeeperLayout({ children }) {
@@ -54,10 +55,10 @@ export default function TimekeeperLayout({ children }) {
       preloadSelectedRace().catch(() => {});
     };
     const timer = setTimeout(preload, 5000);
-    window.addEventListener('online', preload);
+    const stopBackOnline = onBackOnline(preload);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('online', preload);
+      stopBackOnline();
     };
   }, []);
 

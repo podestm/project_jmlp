@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { onBackOnline } from '../../offline/connectivity.js';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import LoadingState, { ButtonSpinner } from '../ui/LoadingState.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -84,9 +85,7 @@ export default function RaceHeaderForm() {
   // Bez dat v zařízení se po návratu signálu načte samo.
   useEffect(() => {
     if (!unavailable) return undefined;
-    const onOnline = () => { loadDetail(); };
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
+    return onBackOnline(() => { loadDetail(); });
   }, [unavailable, loadDetail]);
 
   const updateRun = (runNumber, field, value) => {

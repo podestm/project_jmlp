@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isOnline as connectivityOnline, onBackOnline, onConnectivityChange } from './connectivity.js';
 import { getSyncQueueStats, SYNC_QUEUE_EVENT } from './syncQueue.js';
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
 
@@ -17,7 +18,9 @@ const sameStats = (a, b) => (
 );
 
 export const useSyncStatus = () => {
-  const [isOnline, setIsOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  // Skutečné spojení se serverem (connectivity.js), ne jen navigator.onLine:
+  // na slabém signálu má obsluha vidět „offline“, ne „chyba synchronizace“.
+  const [isOnline, setIsOnline] = useState(connectivityOnline);
   const [stats, setStats] = useState(EMPTY_STATS);
   const statsRef = useRef(EMPTY_STATS);
 
@@ -34,8 +37,7 @@ export const useSyncStatus = () => {
   useEffect(() => {
     refreshStats();
 
-    const onOnline = async () => {
-      setIsOnline(true);
+    const onBack = async () => {
       try {
         await TimekeeperAPI.flushQueue();
       } finally {
@@ -43,19 +45,16 @@ export const useSyncStatus = () => {
       }
     };
 
-    const onOffline = () => {
-      setIsOnline(false);
-    };
-
-    window.addEventListener('online', onOnline);
-    window.addEventListener('offline', onOffline);
+    setIsOnline(connectivityOnline());
+    const stopChange = onConnectivityChange(setIsOnline);
+    const stopBack = onBackOnline(onBack);
     window.addEventListener(SYNC_QUEUE_EVENT, refreshStats);
 
     const interval = window.setInterval(refreshStats, POLL_INTERVAL_MS);
 
     return () => {
-      window.removeEventListener('online', onOnline);
-      window.removeEventListener('offline', onOffline);
+      stopChange();
+      stopBack();
       window.removeEventListener(SYNC_QUEUE_EVENT, refreshStats);
       window.clearInterval(interval);
     };

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
 import { ButtonSpinner } from '../ui/LoadingState.jsx';
+import { isOnline, onConnectivityChange } from '../../offline/connectivity.js';
 
-const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 /**
  * Přihlášení v okně na místě, když přihlášení vypršelo (401).
@@ -20,15 +20,8 @@ export default function TimekeeperReauthModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const update = () => setOnline(isOnline());
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
-    };
-  }, []);
+  // Skutečné spojení se serverem (connectivity.js), ne jen navigator.onLine.
+  useEffect(() => onConnectivityChange(setOnline), []);
 
   useEffect(() => {
     if (!email && user?.email && user.email !== 'offline') setEmail(user.email);

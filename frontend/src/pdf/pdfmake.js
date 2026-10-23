@@ -16,6 +16,7 @@
  */
 import { loadLizaVfs, lizaFonts } from './liza/fonts.js';
 import { isModuleLoadError } from '../utils/moduleLoad.js';
+import { isOnline } from '../offline/connectivity.js';
 
 let pdfMakePromise = null;
 
@@ -89,9 +90,9 @@ export async function printPdf(docDefinition) {
 /**
  * Hláška pro obsluhu, když PDF nevznikne - s důvodem, ne jen "nepovedlo se".
  * @param {unknown} err
- * @param {boolean} [online] stav sítě (default navigator.onLine)
+ * @param {boolean} [online] stav spojení (default offline/connectivity.js)
  */
-export function pdfErrorMessage(err, online = typeof navigator === 'undefined' || navigator.onLine !== false) {
+export function pdfErrorMessage(err, online = isOnline()) {
   const reason = String(err?.message || err || '');
   if (isModuleLoadError(err)) {
     return online

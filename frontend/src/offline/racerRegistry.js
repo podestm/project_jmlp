@@ -5,6 +5,7 @@
 // v IndexedDB - jde přes TimekeeperAPI.get, takže se online obnoví a offline
 // se čte z keše - a hledá v něm lokálně.
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
+import { isOnline } from './connectivity.js';
 import { readCachedResponse } from './startListCache.js';
 
 export const RACER_SNAPSHOT_ENDPOINT = '/api/timekeeper/racers/snapshot';
@@ -27,7 +28,7 @@ export const loadRacerRegistry = async () => {
  * se online vůbec neotevřela.
  */
 export const preloadOfflineRacerData = async () => {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  if (!isOnline()) return;
   await Promise.allSettled([
     TimekeeperAPI.get(RACER_SNAPSHOT_ENDPOINT),
     TimekeeperAPI.get('/api/timekeeper/categories'),

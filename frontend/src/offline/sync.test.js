@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { timekeeperDb } from './db.js';
-import { processSyncQueue } from './sync.js';
+import { processSyncQueue, startSyncLoop } from './sync.js';
+import { isOnline, markUnreachable } from './connectivity.js';
 import { apiError, resetTimekeeperDb, setOnline, startListEntry } from '../test/helpers.js';
 
 const queueRow = (overrides = {}) => ({
@@ -139,15 +140,17 @@ describe('processSyncQueue - chybové stavy', () => {
     expect(executor).toHaveBeenCalledTimes(1);
   });
 
-  it('síťová chyba zvýší počet pokusů a nastaví odklad', async () => {
+  it('chyba 5xx zvýší počet pokusů a nastaví odklad', async () => {
     const id = await timekeeperDb.syncQueue.add(queueRow());
 
-    await processSyncQueue(vi.fn().mockRejectedValue(new Error('Failed to fetch')));
+    await processSyncQueue(vi.fn().mockRejectedValue(apiError(503)));
 
     const row = await timekeeperDb.syncQueue.get(id);
     expect(row.status).toBe('failed');
     expect(row.retry_count).toBe(1);
     expect(Date.parse(row.next_retry_at)).toBeGreaterThan(Date.now());
+    // Server odpověděl - spojení je, jen chyba na jeho straně.
+    expect(isOnline()).toBe(true);
   });
 
   it('po vyčerpání pokusů položku zaparkuje jako mrtvou, ne zahodí', async () => {
@@ -242,5 +245,93 @@ describe('processSyncQueue - vyřazení ze startky', () => {
     const entry = await timekeeperDb.startList.get(1);
     expect(entry.updated_at).toBe('moje');
     expect(entry.excluded).toBe(true);
+  });
+});
+
+/**
+ * Slabý signál: navigator.onLine hlásí síť, ale na server nic nedojde.
+ * To není chyba zápisu - nesmí pálit pokusy ani skončit jako „chyba
+ * synchronizace“ či mrtvý zápis.
+ */
+describe('processSyncQueue - výpadek spojení', () => {
+  it('síťová chyba nechá řádek čekat beze změny pokusů a označí spojení za ztracené', async () => {
+    const first = await timekeeperDb.syncQueue.add(queueRow({ retry_count: 2, created_at: '2026-01-01T10:00:00.000Z' }));
+    await timekeeperDb.syncQueue.add(queueRow({
+      created_at: '2026-01-01T11:00:00.000Z', endpoint: '/api/timekeeper/start-list/2/time'
+    }));
+
+    const executor = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    await processSyncQueue(executor);
+
+    const row = await timekeeperDb.syncQueue.get(first);
+    expect(row.status).toBe('pending');
+    expect(row.retry_count).toBe(2);
+    expect(row.next_retry_at).toBeNull();
+    // Průchod skončí - další položky by narazily na tutéž zeď.
+    expect(executor).toHaveBeenCalledTimes(1);
+    expect(isOnline()).toBe(false);
+  });
+
+  it('vypršený požadavek (network) se chová stejně jako výpadek', async () => {
+    const id = await timekeeperDb.syncQueue.add(queueRow());
+    const timeout = Object.assign(new Error('Server neodpověděl včas (výpadek spojení).'), { network: true });
+
+    await processSyncQueue(vi.fn().mockRejectedValue(timeout));
+
+    const row = await timekeeperDb.syncQueue.get(id);
+    expect(row.status).toBe('pending');
+    expect(row.retry_count).toBe(0);
+  });
+
+  it('bez spojení se serverem se přehrávka vůbec nespustí, i když prohlížeč hlásí síť', async () => {
+    markUnreachable();
+    await timekeeperDb.syncQueue.add(queueRow());
+    const executor = vi.fn();
+
+    await processSyncQueue(executor);
+
+    expect(executor).not.toHaveBeenCalled();
+  });
+
+  it('zápisy zaseklé dřív jen kvůli výpadku vrátí do fronty a rovnou odešle', async () => {
+    const failed = await timekeeperDb.syncQueue.add(queueRow({
+      status: 'failed', retry_count: 5, last_error: 'Failed to fetch',
+      next_retry_at: new Date(Date.now() + 60000).toISOString()
+    }));
+    const dead = await timekeeperDb.syncQueue.add(queueRow({
+      status: 'dead', retry_count: 8, last_error: 'Load failed', endpoint: '/api/timekeeper/start-list/2/time'
+    }));
+
+    const executor = vi.fn().mockResolvedValue({});
+    await processSyncQueue(executor);
+
+    expect(executor).toHaveBeenCalledTimes(2);
+    expect((await timekeeperDb.syncQueue.get(failed)).status).toBe('done');
+    expect((await timekeeperDb.syncQueue.get(dead)).status).toBe('done');
+  });
+});
+
+describe('startSyncLoop - návrat spojení', () => {
+  it('úspěšná zkouška spojení obnoví online a spustí přehrávku', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, redirected: false }));
+    markUnreachable();
+    const id = await timekeeperDb.syncQueue.add(queueRow());
+    const executor = vi.fn().mockResolvedValue({});
+
+    const stop = startSyncLoop(executor);
+    try {
+      expect(executor).not.toHaveBeenCalled();
+
+      // Prohlížeč ohlásí síť → zkouška /health hned → server odpověděl.
+      window.dispatchEvent(new Event('online'));
+
+      await vi.waitFor(async () => {
+        expect((await timekeeperDb.syncQueue.get(id)).status).toBe('done');
+      });
+      expect(isOnline()).toBe(true);
+      expect(executor).toHaveBeenCalledTimes(1);
+    } finally {
+      stop();
+    }
   });
 });

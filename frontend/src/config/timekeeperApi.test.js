@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimekeeperAPI } from './timekeeperApi.js';
 import { timekeeperDb } from '../offline/db.js';
 import { cacheGetResponse } from '../offline/startListCache.js';
+import { isOnline, markUnreachable } from '../offline/connectivity.js';
 import { resetTimekeeperDb, setOnline, startListEntry } from '../test/helpers.js';
 
 // Cache se plní přes skutečnou zapisovací cestu, ne ručním řádkem: klíč nese
@@ -337,5 +338,75 @@ describe('vyřazení ze startky', () => {
 
     expect(result.queued).toBeUndefined();
     expect(result.entry.excluded).toBe(true);
+  });
+});
+
+/**
+ * navigator.onLine na slabém signálu lže. Klient proto sám pozná, že server
+ * neodpovídá, a další požadavky už na síť nezkouší, dokud se spojení nevrátí.
+ */
+describe('skutečné spojení se serverem', () => {
+  it('výpadek sítě označí server za nedostupný a další zápis jde rovnou do fronty', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    await TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 });
+    expect(isOnline()).toBe(false);
+
+    fetchMock.mockClear();
+    const result = await TimekeeperAPI.put('/api/timekeeper/start-list/2/time', { time1: 2 });
+    expect(result.queued).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('jakákoli odpověď serveru (i 5xx) spojení obnoví', async () => {
+    // Mezitím (třeba souběžným požadavkem) označený za nedostupný.
+    fetchMock.mockImplementation(async () => {
+      markUnreachable();
+      return jsonResponse({ detail: 'boom' }, 503);
+    });
+
+    const result = await TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 });
+
+    expect(result.queued).toBe(true);
+    expect(isOnline()).toBe(true);
+  });
+
+  it('offline se na síť nezkouší, spojení obnoví až zkouška /health', async () => {
+    markUnreachable();
+    await TimekeeperAPI.flushQueue();
+    await TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fetchMock.mockResolvedValue(jsonResponse('OK'));
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => expect(isOnline()).toBe(true));
+    expect(fetchMock.mock.calls[0][0]).toMatch(/^\/health\?/);
+  });
+
+  it('požadavek, který visí, vyprší: zápis do fronty a server nedostupný', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      fetchMock.mockImplementation((url, { signal }) => new Promise((resolve, reject) => {
+        signal.addEventListener('abort', () => reject(Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' })));
+      }));
+
+      const pending = TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 25.5 });
+      await vi.advanceTimersByTimeAsync(15000);
+      const result = await pending;
+
+      expect(result.queued).toBe(true);
+      expect(isOnline()).toBe(false);
+      const [row] = await timekeeperDb.syncQueue.toArray();
+      expect(row.status).toBe('pending');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('čtení po výpadku jde rovnou z cache, bez čekání na síť', async () => {
+    await seedCache('/api/timekeeper/races', [{ id: 7 }]);
+    markUnreachable();
+
+    expect(await TimekeeperAPI.get('/api/timekeeper/races')).toEqual([{ id: 7 }]);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

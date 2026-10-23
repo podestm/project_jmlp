@@ -6,6 +6,7 @@
 // po spuštění časomíry a po každém obnovení připojení - stáhne všechno, co
 // obrazovky závodu čtou.
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
+import { isOnline } from './connectivity.js';
 
 // Stejný klíč jako SELECTED_RACE_KEY v TimekeeperChrome.jsx (offline vrstva
 // komponenty neimportuje).
@@ -22,7 +23,7 @@ export const raceEndpoints = (raceId) => [
 /** Stáhne do keše data závodu; offline nebo bez závodu nedělá nic. */
 export const preloadRaceData = async (raceId) => {
   if (!raceId) return;
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  if (!isOnline()) return;
   await Promise.allSettled(raceEndpoints(raceId).map((endpoint) => TimekeeperAPI.get(endpoint)));
 };
 
