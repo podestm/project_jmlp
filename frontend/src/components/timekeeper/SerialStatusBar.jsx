@@ -221,11 +221,6 @@ export default function SerialStatusBar({
               <small className="text-muted">Nové serial události se zařadí do zvoleného kola.</small>
             </div>
           </div>
-          <small className="text-muted d-block mt-2">
-            LIP TIMER posílá řádky typu <code>11 65 5.16</code> (pořadí, dres, čas) nebo <code>18 12 DNF</code>.
-            Připojení zůstává aktivní i při přepnutí na jinou obrazovku a po obnovení stránky se obnoví samo.
-            Rychlost a záznam řádků: Nastavení → Časomíra.
-          </small>
         </div>
       </div>
     )}
