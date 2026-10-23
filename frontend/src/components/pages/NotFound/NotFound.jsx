@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ButtonLink, Container, Icon, Paska, Screen } from '../../ms/index.js';
+import { ButtonLink, Container, Icon, Paska, Screen, VisuallyHidden } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { usePageMeta } from '../../../hooks/usePageMeta.js';
 import { PAGE_META } from '../../../seo/pageMeta.js';
@@ -23,7 +23,7 @@ export default function NotFound() {
       <Container className={styles.page}>
         <div className={styles.intro}>
           <p className={styles.big} aria-hidden="true">404</p>
-          <p className={styles.code}>Chyba <span className={styles.number}>404</span></p>
+          <p className={styles.code}>Chyba<VisuallyHidden> 404</VisuallyHidden></p>
           <h1 className={styles.title}>Tady nic není. <br className={styles.break} />Asi jste sjeli z trati.</h1>
           <p className={styles.text}>
             Stránka, kterou hledáte, neexistuje nebo se přesunula. Nejčastěji to bývá stará adresa z uložené záložky.

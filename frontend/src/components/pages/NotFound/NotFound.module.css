@@ -15,7 +15,7 @@
   max-inline-size: 100%;
 }
 
-/* Velké číslo chyby – jen pro oko, čtečka slyší „Chyba 404“ z popisku. */
+/* Velké číslo chyby – jen pro oko; čtečka slyší „Chyba 404“ z popisku pod ním. */
 .big {
   margin-block-end: calc(-1 * var(--ms-space-2));
   font-family: var(--ms-font-display);
@@ -35,12 +35,6 @@
   line-height: 1.4;
   text-transform: uppercase;
   color: var(--ms-ink-body);
-}
-
-.number {
-  font-family: var(--ms-font-mono);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .title {
