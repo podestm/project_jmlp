@@ -275,24 +275,18 @@ export default function ResultsView() {
               busy={pdf.generating}
               onPrint={printAllInterim}
             />
+            {/* Jedno tlačítko: náhled celkové listiny, s připojením i s publikací
+                k závodu (tlačítko v náhledu). Offline jen náhled a tisk. */}
             <button
               className="btn btn-sm btn-outline-secondary"
-              onClick={() => printFinal(false)}
+              onClick={() => printFinal(isOnline)}
               disabled={pdf.generating}
+              title={isOnline
+                ? 'Náhled celkové listiny - v něm ji jde vytisknout i publikovat k závodu'
+                : 'Náhled celkové listiny k tisku (publikovat jde jen s připojením)'}
             >
               <i className="bi bi-file-earmark-pdf me-1"></i>
               Celková listina
-            </button>
-            <button
-              className="btn btn-sm btn-success"
-              onClick={() => printFinal(true)}
-              disabled={pdf.generating || !isOnline}
-              title={isOnline
-                ? 'Vygeneruje listinu a nabídne její publikaci k závodu'
-                : 'Publikování vyžaduje připojení k internetu'}
-            >
-              <i className="bi bi-upload me-1"></i>
-              Publikovat
             </button>
             <div className="btn-group btn-group-sm" role="group" aria-label="Pořadí poháru">
               <button
