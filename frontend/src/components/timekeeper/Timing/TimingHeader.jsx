@@ -1,4 +1,4 @@
-import { Button, PageHeader } from '../../ms/index.js';
+import { Button, PageHeader, Tooltip } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import styles from './TimingHeader.module.css';
 
@@ -23,9 +23,11 @@ export default function TimingHeader({ race, startListLength, hasWriteLock, savi
             {hasWriteLock ? 'Právo zápisu drží tato karta' : 'Jen pro čtení – zápis drží jiná karta'}
           </span>
           {startListLength > 0 && (
-            <Button variant="primary" size="lg" icon="save" busy={saving} disabled={!hasWriteLock} onClick={onSaveAll}>
-              {saving ? 'Ukládám…' : 'Uložit vše'}
-            </Button>
+            <Tooltip text="Pole se ukládá i při opuštění">
+              <Button variant="primary" size="lg" icon="save" busy={saving} disabled={!hasWriteLock} onClick={onSaveAll}>
+                {saving ? 'Ukládám…' : 'Uložit vše'}
+              </Button>
+            </Tooltip>
           )}
         </>
       )}

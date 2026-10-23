@@ -42,4 +42,5 @@ export { default as Switch } from './Switch/Switch.jsx';
 export { default as Table } from './Table/Table.jsx';
 export { default as TableScroll } from './TableScroll/TableScroll.jsx';
 export { default as Textarea } from './Textarea/Textarea.jsx';
+export { default as Tooltip } from './Tooltip/Tooltip.jsx';
 export { default as VisuallyHidden } from './VisuallyHidden/VisuallyHidden.jsx';

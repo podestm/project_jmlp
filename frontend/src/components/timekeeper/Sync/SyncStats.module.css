@@ -49,12 +49,6 @@
   color: var(--ms-ink);
 }
 
-.hint {
-  margin: 0;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}
-
 .send {
   display: flex;
   flex-direction: column;

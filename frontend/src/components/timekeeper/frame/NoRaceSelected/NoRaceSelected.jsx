@@ -9,7 +9,6 @@ export default function NoRaceSelected() {
     <EmptyState
       icon="tag"
       title="Vyberte závod"
-      hint="Závod vyberte v Přehledu závodů."
       action={<ButtonLink to="/timekeeper" size="sm">Přehled závodů</ButtonLink>}
     />
   );

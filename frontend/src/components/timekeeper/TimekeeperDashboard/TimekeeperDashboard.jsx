@@ -35,7 +35,6 @@ export default function TimekeeperDashboard() {
     <PageHeader
       variant="app"
       title="Na kterém závodě dnes měříte?"
-      meta="Výběr si notebook zapamatuje, ostatní obrazovky ho jen čtou."
       actions={(
         <>
           <span className={styles.season}>Sezóna {season} · {edition} ročník</span>
@@ -99,9 +98,7 @@ export default function TimekeeperDashboard() {
             Pokračovat v měření
           </Button>
         </section>
-      ) : races.length > 0 && (
-        <p className={styles.pick}>Závod si vyberte z nabídky níže.</p>
-      )}
+      ) : null}
 
       {upcoming.length > 0 && (
         <section className={styles.section}>
@@ -134,7 +131,7 @@ export default function TimekeeperDashboard() {
       )}
 
       {races.length === 0 && !error && (
-        <EmptyState icon="calendar-x" title="Žádné závody v aktuální sezóně" hint="Závody vypisuje komisař soutěže v administraci webu." />
+        <EmptyState icon="calendar-x" title="Žádné závody v aktuální sezóně" />
       )}
     </TkPage>
   );

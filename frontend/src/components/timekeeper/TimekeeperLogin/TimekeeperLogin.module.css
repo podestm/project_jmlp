@@ -82,13 +82,6 @@
   line-height: 1.1;
 }
 
-.lead {
-  font-size: var(--ms-fs-xl);
-  line-height: 1.6;
-  color: var(--ms-ice);
-  text-wrap: pretty;
-}
-
 .features {
   display: flex;
   flex-direction: column;
@@ -98,21 +91,12 @@
 
 .feature {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
 }
 
 .featureIcon {
   flex-shrink: 0;
-  color: var(--ms-ice);
-}
-
-.featureText {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: var(--ms-fs-lg);
-  line-height: 1.5;
   color: var(--ms-ice);
 }
 
@@ -193,54 +177,6 @@
   font-size: var(--ms-fs-xl);
 }
 
-.hint {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ms-space-3);
-  padding: var(--ms-space-4) 18px;
-  border-inline-start: 4px solid var(--ms-dry-ink);
-  border-radius: var(--ms-radius-control);
-  background: var(--ms-dry-bg);
-  color: var(--ms-dry-ink);
-}
-
-.hintIcon {
-  flex-shrink: 0;
-  margin-block-start: 2px;
-}
-
-.hintText {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ms-space-1);
-  font-size: var(--ms-fs-base);
-  line-height: 1.5;
-}
-
-.hintTitle {
-  font-family: var(--ms-font-display);
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.note {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  font-size: var(--ms-fs-base);
-  line-height: 1.55;
-  color: var(--ms-ink-body);
-}
-
-.note a {
-  font-weight: 600;
-}
-
-.noteIcon {
-  flex-shrink: 0;
-  margin-block-start: 3px;
-}
-
 /* Pod 1024 px pod sebou: krátký navy pruh se značkou a nadpisem, pak formulář. */
 @media (max-width: 1023.98px) {
   .page {
@@ -262,7 +198,6 @@
     font-size: 30px;
   }
 
-  .lead,
   .features {
     display: none;
   }

@@ -1,4 +1,4 @@
-import { Badge, Button, Field, Input, Paska } from '../../ms/index.js';
+import { Badge, Button, Field, Input, Paska, Tooltip } from '../../ms/index.js';
 import BibNumber from '../BibNumber/BibNumber.jsx';
 import RacerFields from './RacerFields.jsx';
 import RacerSearchResults from './RacerSearchResults.jsx';
@@ -69,9 +69,11 @@ export default function AddRacerForm({ racers }) {
 
       <div className={styles.actions}>
         <Button icon="x-circle" onClick={() => resetForm()}>Vymazat</Button>
-        <Button type="submit" variant="primary" icon="plus" busy={submitting} className={styles.submit}>
-          {submitting ? 'Přidávám…' : 'Přidat do závodu'}
-        </Button>
+        <Tooltip text="Do registrací se nezapisuje" className={styles.submit}>
+          <Button type="submit" variant="primary" icon="plus" busy={submitting}>
+            {submitting ? 'Přidávám…' : 'Přidat do závodu'}
+          </Button>
+        </Tooltip>
       </div>
     </form>
   );

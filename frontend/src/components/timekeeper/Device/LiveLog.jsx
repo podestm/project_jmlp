@@ -21,7 +21,6 @@ export default function LiveLog({ log, onClear }) {
       >
         Živý záznam z časomíry
       </Paska>
-      <p className={styles.note}>Posledních 200 řádků od otevření této stránky, tak jak přišly – i nečitelné.</p>
       <div className={styles.log}>
         {log.length === 0 ? (
           <p className={styles.waiting}>Čekám na data z časomíry…</p>
@@ -40,7 +39,6 @@ export default function LiveLog({ log, onClear }) {
           <li><Icon name="check" size={14} /> {KIND.time.label} (např. <code>11 65 5.16</code>, <code>00:03:07 16 213 188.19</code>, <code>18 12 DNF</code>)</li>
           <li><Icon name="info" size={14} /> {KIND.info.label}</li>
           <li><Icon name="question" size={14} /> {KIND.unknown.label}</li>
-          <li>Časy se zapisují na obrazovce Zadávání časů.</li>
         </ul>
       </div>
     </section>

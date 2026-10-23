@@ -12,10 +12,9 @@ export default function FlagLegend() {
         ))}
         <li className={styles.item}>
           <Badge tone="navy" size="sm">vyřazen</Badge>
-          nedorazil – zůstává tu i s dresem, ve startovce, časech ani výsledcích není
+          nedorazil, mimo startovku i výsledky
         </li>
       </ul>
-      <p className={styles.note}>U řádku s příznakem se oba časy zobrazují jako „—“.</p>
     </div>
   );
 }

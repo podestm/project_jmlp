@@ -64,9 +64,6 @@ export default function ConflictPanel({ api, confirm }) {
       <h2 id="otevrene-konflikty" className={styles.title}>
         {conflicts.length === 0 ? 'Žádné otevřené konflikty' : `Otevřené konflikty: ${conflicts.length}`}
       </h2>
-      {conflicts.length === 0 && (
-        <p className={styles.text}>Až se něco nepodaří zapsat, protože záznam mezitím změnil někdo jiný, objeví se to tady.</p>
-      )}
       {conflicts.map((conflict) => {
         const detail = conflict.conflict_detail;
         const expanded = expandedConflictId === conflict.id;

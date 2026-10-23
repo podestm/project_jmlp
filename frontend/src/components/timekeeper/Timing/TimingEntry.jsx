@@ -503,7 +503,7 @@ export default function TimingEntry() {
           <div className={styles.table}>
             {excludedCount > 0 && (
               <p className={styles.excluded}>
-                Vyřazení ze startovní listiny ({excludedCount}) se tu nezobrazují – vrátit je jde v Listině.
+                Vyřazení ze startovní listiny ({excludedCount}) se tu nezobrazují.
               </p>
             )}
             <TimingTable
@@ -555,9 +555,7 @@ export default function TimingEntry() {
 
       {!selectedRaceId && (
         <section className={styles.noRace} aria-label="Bez vybraného závodu">
-          <Alert type="info" compact title="Vyberte závod pro zadávání časů">
-            Tabulka ani schránka se zatím nevykreslí. Závod jde vybrat i tady – jakmile ho vyberete, seznam zmizí.
-          </Alert>
+          <Alert type="info" compact title="Vyberte závod pro zadávání časů" />
           <label className={styles.caps} htmlFor="tk-timing-race">Závod</label>
           <Select id="tk-timing-race" value={selectedRaceId} onChange={(e) => setSelectedRaceId(e.target.value)}>
             <option value="">— Vyberte závod —</option>
@@ -569,7 +567,7 @@ export default function TimingEntry() {
           </Select>
           {inboxEvents.length > 0 && (
             <Alert type="info" compact title={`Časomíra už poslala ${inboxEvents.length} událostí, které zatím nepatří k žádnému závodu`}>
-              Nic se neztratilo – čekají ve schránce a přiřadí se, jakmile závod vyberete.
+              Přiřadí se po výběru závodu.
             </Alert>
           )}
         </section>

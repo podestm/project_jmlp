@@ -1,4 +1,4 @@
-import { Button, Icon, Select } from '../../ms/index.js';
+import { Button, Icon, Select, Tooltip } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { describeSerialPort } from '../../../utils/serial.js';
 import styles from './PortPanel.module.css';
@@ -53,9 +53,10 @@ export default function PortPanel({ serial, usable, detecting }) {
         ) : (
           <Button onClick={() => serial.connect()} disabled={!usable || !serial.port || detecting}>Připojit</Button>
         )}
-        <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>Obnovit připojení</Button>
+        <Tooltip text="Zavře a znovu otevře port">
+          <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>Obnovit připojení</Button>
+        </Tooltip>
       </div>
-      <p className={styles.note}>Obnovit připojení vynutí zavření a znovuotevření portu.</p>
     </div>
   );
 }

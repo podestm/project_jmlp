@@ -1,9 +1,3 @@
-.note {
-  max-inline-size: 360px;
-  font-size: var(--ms-fs-base);
-  color: var(--ms-ink-body);
-}
-
 .sets {
   display: flex;
   flex-direction: column;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Alert, Badge, BibDate, Button, ButtonLink, Checkbox, CloseButton, Cluster, Container, DataRow, EmptyState,
   Field, Grid, Icon, IconButton, Input, LiveBand, LoadingState, Modal, PageHeader, Pagination, Panel, Paska, PasswordInput,
-  Rank, SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, VisuallyHidden,
+  Rank, SegmentedControl, Select, Spinner, Split, Stack, Switch, Table, TableScroll, Textarea, Tooltip, VisuallyHidden,
 } from '../index.js';
 import { ICONS } from '../Icon/icons.js';
 import { adminNav, publicLiveNav, publicNav, timekeeperNav } from '../navItems.js';
@@ -81,6 +81,11 @@ function ActionsSection() {
         <span className={styles.dark}><IconButton icon="logout" label="Odhlásit se" variant="on-dark" /></span>
         <span className={styles.dark}><Button variant="accent" iconEnd="arrow-right">Přihlásit na závod</Button></span>
         <CloseButton label="Zavřít ukázku" />
+      </Cluster>
+      <Cluster gap={3}>
+        <Tooltip text="Vyžaduje připojení"><Button icon="upload">Publikovat</Button></Tooltip>
+        <Tooltip text="Vyžaduje připojení"><Button disabled>Publikovat offline</Button></Tooltip>
+        <Tooltip text="Tiskne i časy ve frontě" placement="top"><IconButton icon="printer" label="Tisk" /></Tooltip>
       </Cluster>
     </Stack>
   );

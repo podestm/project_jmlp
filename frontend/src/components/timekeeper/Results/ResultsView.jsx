@@ -21,8 +21,8 @@ import styles from './ResultsView.module.css';
 /**
  * Výsledky závodu (TkVysledky, TkVysledkyPrazdne): tisk a publikace nahoře,
  * pořadí ve vybrané kategorii s panelem Evidence SLČR (kategorie se posílá
- * a zveřejňuje hned, jak je hotová; stav nesou i značky na čipech), pod ním
- * vysvětlivky k bodům, zveřejnění a pořadí poháru. Data a akce drží useResults.
+ * a zveřejňuje hned, jak je hotová; stav nesou i značky na čipech).
+ * Data a akce drží useResults.
  */
 export default function ResultsView() {
   const { confirm, confirmElement } = useConfirm();
@@ -38,7 +38,6 @@ export default function ResultsView() {
     <PageHeader
       variant="app"
       title="Výsledky závodu"
-      description="Pořadí se počítá ze součtu obou kol. Tisk funguje i offline – na web se listina dostane až s připojením."
       actions={api.selectedRace && <SlcrEntry isOnline={api.isOnline} onOpen={() => setSlcrOpen(true)} />}
     />
   );
@@ -73,7 +72,6 @@ export default function ResultsView() {
         <EmptyState
           icon="trophy"
           title="Závod zatím nemá žádné výsledky"
-          hint="Nejprve zadejte časy závodníkům. Tisk a publikace se ukážou, jakmile bude na startovní listině aspoň jeden závodník."
           action={<ButtonLink to="/timekeeper/timing" size="sm" iconEnd="arrow-right">Zadat časy</ButtonLink>}
         />
       )}
@@ -96,7 +94,6 @@ export default function ResultsView() {
             <EmptyState
               icon="stopwatch"
               title={`V kategorii ${selectedCategory.category_name} zatím nikdo nemá čas`}
-              hint="Jakmile první čas zapíšete, pořadí i body se tady spočítají samy – i bez signálu."
               action={(
                 <>
                   <ButtonLink to="/timekeeper/start-list" size="sm">Startovní listina</ButtonLink>

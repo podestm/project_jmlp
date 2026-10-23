@@ -18,8 +18,7 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
     <div className={styles.alerts}>
       {!serial.supported && selectedRaceId && (
         <Alert type="info" compact title="Časomíra na USB v tomto prohlížeči nefunguje">
-          Prohlížeč neumí číst sériový port, takže impulzy z časomíry sem nedorazí. Čas opište z displeje
-          časomíry nebo z papíru a zadejte ho ručně.
+          Časy zadejte ručně.
         </Alert>
       )}
 
@@ -47,10 +46,8 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
 
       {health.unparsedStreak >= unparsedStreakAlert && (
         <Alert type="warning" compact title={`${health.unparsedStreak} řádky po sobě se nepodařilo rozpoznat`}>
-          Časomíra posílá data, ale posledních {health.unparsedStreak} řádků se nepodařilo rozpoznat
-          (celkem {health.unparsedTotal}). Zkontrolujte formát výstupu zařízení.
+          Celkem {health.unparsedTotal}, řádky jsou ve schránce. Zkontrolujte formát výstupu zařízení.
           {health.lastUnparsedLine ? <> Poslední řádek: <code className={styles.code}>{health.lastUnparsedLine}</code></> : null}
-          {' '}Řádky jsou uložené ve schránce, žádný impulz se neztratil.
         </Alert>
       )}
 
@@ -61,8 +58,7 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
           actions={<Button size="sm" onClick={() => serial.cancelDetection()}>Zastavit</Button>}
         >
           Hledám rychlost časomíry: <span className={styles.mono}>{serial.detection.baud}</span>
-          {' '}({serial.detection.index + 1} z {serial.detection.total}).
-          Posílejte z časomíry časy (nebo ji vypněte a zapněte), dokud se rychlost nenajde.
+          {' '}({serial.detection.index + 1} z {serial.detection.total}). Posílejte z časomíry časy.
         </Alert>
       )}
 
@@ -72,8 +68,7 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
           compact
           actions={<Button size="sm" icon="search" onClick={serial.detectBaud}>Zjistit rychlost</Button>}
         >
-          Časomíra posílá data, kterým aplikace nerozumí – nejspíš vysílá jinou rychlostí
-          než <span className={styles.mono}>{serial.baud}</span>. Rychlost se sama nepřepíná, zjistěte ji tlačítkem.
+          Časomíra nejspíš vysílá jinou rychlostí než <span className={styles.mono}>{serial.baud}</span>.
         </Alert>
       )}
 
@@ -84,13 +79,13 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
           title="Časomíru obsluhuje jiná karta"
           actions={<Button size="sm" icon="plug" onClick={onTakeOver}>Převzít časomíru</Button>}
         >
-          Události se ukládají společně a zobrazují se i zde.
+          Události se zobrazují i zde.
         </Alert>
       )}
 
       {!hasWriteLock && selectedRaceId && (
         <Alert type="warning" compact title="Zápis časů drží jiná karta">
-          Tato karta je pouze pro čtení. Editace probíhá v jiné otevřené kartě stejného závodu.
+          Tato karta je jen pro čtení.
         </Alert>
       )}
     </div>

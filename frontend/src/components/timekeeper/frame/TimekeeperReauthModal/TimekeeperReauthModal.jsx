@@ -59,8 +59,7 @@ export default function TimekeeperReauthModal() {
     >
       <form id={formId} className={styles.form} onSubmit={submit}>
         <p className={styles.lead}>
-          Nic se neztratilo: měření, rozepsané časy i neodeslané změny zůstávají v zařízení.
-          Po přihlášení se fronta odešle sama a můžete pokračovat, kde jste skončili.
+          Nic se neztratilo, data zůstávají v zařízení.
         </p>
         {error && <Alert type="danger" compact title={error} />}
         <Field label="E-mail" id="tk-reauth-email">

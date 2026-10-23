@@ -61,10 +61,6 @@ export default function TimingToolbar({
           <progress className={styles.bar} max={100} value={percent} aria-label="Hotovo" />
           <span className={styles.percent}>{percent} %</span>
         </div>
-        <span className={styles.hint}>
-          Ukládá se při opuštění pole, <kbd className={styles.kbd}>Enter</kbd> na další řádek,
-          {' '}<kbd className={styles.kbd}>Tab</kbd> na další pole.
-        </span>
       </div>
 
       <div className={styles.row}>
@@ -80,18 +76,15 @@ export default function TimingToolbar({
         <span className={styles.caps}><Icon name="printer" size={16} /> Tisk</span>
         <PrintRunButtons
           label="Vybraná kategorie"
-          title="Výsledky kol vybrané kategorie"
           busy={printBusy}
           disabled={selectedCategory === 'all'}
           onPrint={(runMode) => onPrintResults(runMode, 'category')}
         />
         <PrintRunButtons
           label="Všechny kategorie"
-          title="Výsledky kol všech kategorií"
           busy={printBusy}
           onPrint={(runMode) => onPrintResults(runMode, 'all')}
         />
-        <span className={styles.hint}>Tiskne se z toho, co je na obrazovce, i s časy, které ještě čekají ve frontě.</span>
       </div>
     </div>
   );

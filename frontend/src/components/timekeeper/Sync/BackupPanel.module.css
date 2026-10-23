@@ -38,9 +38,3 @@
   outline: var(--ms-focus-width) solid var(--ms-focus-color);
   outline-offset: var(--ms-focus-offset);
 }
-
-.note {
-  margin: 0;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}

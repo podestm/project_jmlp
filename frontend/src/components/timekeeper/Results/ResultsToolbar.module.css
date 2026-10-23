@@ -26,9 +26,3 @@
 .clear {
   margin-inline-start: auto;
 }
-
-.note {
-  margin: 0;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}

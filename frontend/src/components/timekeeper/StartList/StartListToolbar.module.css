@@ -42,8 +42,3 @@
 .group > * + * {
   margin-inline-start: -1.5px;
 }
-
-.note {
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}

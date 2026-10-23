@@ -58,7 +58,7 @@ describe('SlcrCategoryPanel', () => {
   it('bez vybrané akce pošle do Evidence SLČR', async () => {
     const onOpenEvidence = vi.fn();
     setup(slcrApi({ eventId: '' }), { onOpenEvidence });
-    expect(screen.getByText(/Nejdřív vyberte akci/)).toBeInTheDocument();
+    expect(screen.getByText(/Akce zatím není vybraná/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Evidence SLČR' }));
     expect(onOpenEvidence).toHaveBeenCalled();
   });
@@ -67,7 +67,7 @@ describe('SlcrCategoryPanel', () => {
     const { rerender } = setup(slcrApi({ item: { slcr_race_id: null } }));
     expect(screen.getByText(/nemá v akci svůj závod/)).toBeInTheDocument();
     rerender(<SlcrCategoryPanel category={CATEGORY} slcr={slcrApi()} isOnline={false} onOpenEvidence={() => {}} />);
-    expect(screen.getByText(/potřebuje připojení/)).toBeInTheDocument();
+    expect(screen.getByText(/vyžaduje připojení/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Odeslat a zveřejnit v SLČR' })).toBeDisabled();
   });
 

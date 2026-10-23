@@ -1,6 +1,5 @@
 import { Alert } from '../../ms/index.js';
 import { czechPlural } from '../../../utils/races.js';
-import styles from './dialogs.module.css';
 
 /**
  * Odhlášení s neodeslanou frontou (TkDialogOdhlaseniFronta). Odhlášení
@@ -11,16 +10,9 @@ export const logoutConfirm = ({ queueTotal, isOnline }) => ({
   title: `Odhlásit se, když v notebooku ${czechPlural(queueTotal, ['čeká', 'čekají', 'čeká'])} ${queueTotal} ${czechPlural(queueTotal, ['neodeslaná změna', 'neodeslané změny', 'neodeslaných změn'])}?`,
   message: (
     <>
-      <p className={styles.caps}>Co se stane s daty</p>
-      <ul className={styles.list}>
-        <li>Změny se nesmažou. Zůstanou uložené v tomto notebooku a odejdou, až se tu znovu přihlásíte a bude signál.</li>
-        <li>Otevřené konflikty i schránka impulzů zůstanou, jak jsou.</li>
-      </ul>
+      <p>Změny zůstanou v notebooku a odejdou po dalším přihlášení.</p>
       {!isOnline && (
-        <Alert type="warning" compact title="Zpátky se hned nedostanete">
-          Přihlásit se jde jen se spojením. Jste offline – po odhlášení tady do návratu signálu nepůjde zapisovat
-          časy. Předáváte notebook kolegovi? Nechte ho přihlášený.
-        </Alert>
+        <Alert type="warning" compact title="Jste offline – znovu se přihlásíte až se signálem" />
       )}
     </>
   ),

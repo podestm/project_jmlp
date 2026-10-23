@@ -14,6 +14,6 @@ describe('SlcrEntry', () => {
   it('offline je vypnutá a řekne proč', () => {
     render(<SlcrEntry isOnline={false} onOpen={() => {}} />);
     expect(screen.getByRole('button', { name: 'Evidence SLČR' })).toBeDisabled();
-    expect(screen.getByText(/potřebuje připojení/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Evidence SLČR' })).toHaveAccessibleDescription('Vyžaduje připojení');
   });
 });

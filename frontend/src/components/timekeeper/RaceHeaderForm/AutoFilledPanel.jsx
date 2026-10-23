@@ -33,12 +33,10 @@ export default function AutoFilledPanel({ detail }) {
       </section>
 
       {detail.organizer_logo_url ? (
-        <Alert type="info" compact title="Logo pořadatele je nahrané">
-          V hlavičce listin bude vlevo logo pořadatele, vpravo logo Svazu lyžařů.
-        </Alert>
+        <Alert type="info" compact title="Logo pořadatele je nahrané" />
       ) : (
         <Alert type="warning" compact title="Pořádající klub nemá nahrané logo">
-          V hlavičce bude logo JMLP. Logo se nahrává v administraci klubů.
+          V hlavičce bude logo JMLP.
         </Alert>
       )}
     </aside>

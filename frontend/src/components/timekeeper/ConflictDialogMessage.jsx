@@ -15,8 +15,7 @@ export default function ConflictDialogMessage({ racerLabel, mine, fresh }) {
   return (
     <>
       <p>
-        Čas závodníka <strong>{racerLabel}</strong> byl mezitím upraven jinde (jiná karta, jiné zařízení,
-        nebo přečíslování dresů). Vyberte, která hodnota platí.
+        Čas závodníka <strong>{racerLabel}</strong> byl mezitím upraven jinde. Která hodnota platí?
       </p>
       <TableScroll label="Srovnání hodnot">
         <Table density="compact">

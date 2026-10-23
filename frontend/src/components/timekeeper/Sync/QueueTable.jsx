@@ -12,7 +12,7 @@ import styles from './QueueTable.module.css';
  */
 export default function QueueTable({ items, busy, onRetry }) {
   if (items.length === 0) {
-    return <EmptyState icon="check" title="Fronta je prázdná" hint="Všechno, co tady vzniklo, už leží na serveru." />;
+    return <EmptyState icon="check" title="Fronta je prázdná" />;
   }
 
   return (

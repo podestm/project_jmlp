@@ -4,7 +4,7 @@ import styles from './SlcrCategoryPanel.module.css';
 
 /** Co panel řekne pod stavem a jestli jde odeslat – slovy, ne jen vypnutým tlačítkem. */
 const panelNote = ({ slcr, item, missing, isOnline }) => {
-  if (!isOnline) return { text: 'Odeslání do SLČR potřebuje připojení k internetu.' };
+  if (!isOnline) return { text: 'Odeslání do SLČR vyžaduje připojení.' };
   if (slcr.loading && !item) return { text: 'Načítám stav v evidenci SLČR…' };
   if (slcr.error) return { text: slcr.error, retry: true };
   if (!item) return { text: 'Stav kategorie v evidenci se nepodařilo zjistit.', retry: true };
@@ -30,7 +30,7 @@ export default function SlcrCategoryPanel({ category, slcr, isOnline, onOpenEvid
         <div className={styles.row}>
           <div className={styles.info}>
             {title}
-            <p className={styles.note}>Nejdřív vyberte akci v Evidenci SLČR – pak se tady kategorie posílají a zveřejňují jednotlivě.</p>
+            <p className={styles.note}>Akce zatím není vybraná.</p>
           </div>
           <Button size="sm" icon="cloud-upload" disabled={!isOnline} onClick={onOpenEvidence}>Evidence SLČR</Button>
         </div>

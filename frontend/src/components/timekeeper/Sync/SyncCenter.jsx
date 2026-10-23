@@ -24,13 +24,12 @@ export default function SyncCenter() {
       <PageHeader
         variant="app"
         title="Synchronizace"
-        meta="Co je uložené jen v tomhle notebooku a co už doopravdy leží na serveru"
         actions={<Button size="sm" icon="refresh" onClick={api.loadData}>Obnovit přehled</Button>}
       />
 
       {api.authExpired && (
         <Alert type="warning" title="Přihlášení vypršelo – fronta stojí, i když jste online">
-          Server změny nepřijme, dokud se znovu nepřihlásíte. Nic se neztratilo – čekají tady v notebooku a odejdou samy.
+          Změny čekají v notebooku a odejdou po přihlášení.
         </Alert>
       )}
 
@@ -39,7 +38,6 @@ export default function SyncCenter() {
       <SyncStats
         stats={queueStats}
         conflictCount={api.conflicts.length}
-        isOnline={api.isOnline}
         busy={api.busy}
         onSyncNow={api.syncNow}
       />
@@ -48,16 +46,6 @@ export default function SyncCenter() {
         <section className={styles.queue} aria-labelledby="fronta-zmen">
           <Paska id="fronta-zmen" aside="Od nejnovějšího">Fronta změn</Paska>
           <QueueTable items={api.queueItems} busy={api.busy} onRetry={api.retryItem} />
-          {queueStats.total > 0 && (
-            <div className={styles.closing}>
-              <h2 className={styles.closingTitle}>Když teď zavřete notebook</h2>
-              <ul className={styles.closingList}>
-                <li>Všech {queueStats.total} neodeslaných změn zůstane uložených tady v notebooku. Zavření víka ani vypnutí je nesmaže.</li>
-                <li>Až se příště přihlásíte, fronta se rozjede sama.</li>
-                <li>Jiný notebook, jiný prohlížeč nebo smazaná data prohlížeče – a časy jsou pryč. Proto záloha vedle.</li>
-              </ul>
-            </div>
-          )}
         </section>
 
         <aside className={styles.side}>

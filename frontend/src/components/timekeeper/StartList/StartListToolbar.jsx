@@ -1,4 +1,4 @@
-import { Button, ButtonLink } from '../../ms/index.js';
+import { Button, ButtonLink, Tooltip } from '../../ms/index.js';
 import { SECOND_RUN_BY_RESULTS, SECOND_RUN_SAME } from '../../../pdf/liza/adapters.js';
 import styles from './StartListToolbar.module.css';
 
@@ -39,37 +39,28 @@ export default function StartListToolbar({ hasEntries, setup, print, onClear }) 
               icon="printer"
               busy={pdf.generating}
               onClick={() => printStartList(1)}
-              title="Startovní listina 1. kola všech kategorií – funguje i offline"
             >
               Startovka 1. kola
             </Button>
-            <Button
-              size="sm"
-              disabled={pdf.generating}
-              onClick={() => printStartList(2, SECOND_RUN_SAME)}
-              title="2. kolo ve stejném pořadí jako 1. kolo; bez těch, kdo měli v 1. kole DSQ/DNF/DNS"
-            >
-              2. kolo
-            </Button>
-            <Button
-              size="sm"
-              disabled={pdf.generating}
-              onClick={() => printStartList(2, SECOND_RUN_BY_RESULTS)}
-              title="2. kolo podle výsledků 1. kola – nejrychlejší startuje první; bez DSQ/DNF/DNS"
-            >
-              2. kolo podle výsledků
-            </Button>
+            <Tooltip text="Pořadí jako 1. kolo, bez DSQ/DNF/DNS">
+              <Button size="sm" disabled={pdf.generating} onClick={() => printStartList(2, SECOND_RUN_SAME)}>
+                2. kolo
+              </Button>
+            </Tooltip>
+            <Tooltip text="Nejrychlejší startuje první">
+              <Button size="sm" disabled={pdf.generating} onClick={() => printStartList(2, SECOND_RUN_BY_RESULTS)}>
+                2. kolo podle výsledků
+              </Button>
+            </Tooltip>
           </div>
           <Button
             size="sm"
             icon="users"
             disabled={pdf.generating}
             onClick={printClubList}
-            title="Seznam startujících podle oddílu – funguje i offline"
           >
             Rozpis po klubech
           </Button>
-          <span className={styles.note}>Tiskne se z dat v notebooku, i offline. Vyřazení závodníci se na listinu nedostanou.</span>
         </div>
       )}
     </div>

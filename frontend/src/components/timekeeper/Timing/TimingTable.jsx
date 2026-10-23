@@ -39,11 +39,10 @@ export default function TimingTable({
       <EmptyState
         icon="list"
         title="Startovní listina je prázdná"
-        hint="Časy zatím není komu zapsat. Nejdřív listinu vygenerujte, pak se tu objeví."
         action={<ButtonLink to="/timekeeper/start-list" size="sm" icon="list-numbered">Přejít na startovní listinu</ButtonLink>}
       />
     ) : (
-      <EmptyState icon="filter" title="Ve vybraném filtru nikdo není" hint="Změňte filtr nebo kategorii nahoře." />
+      <EmptyState icon="filter" title="Ve vybraném filtru nikdo není" />
     );
   }
 

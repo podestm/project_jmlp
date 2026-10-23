@@ -1,5 +1,4 @@
 import { Alert, Icon } from '../../ms/index.js';
-import dialogStyles from '../dialogs/dialogs.module.css';
 import styles from './resultsDialogs.module.css';
 
 const FileCard = ({ fileName, detail }) => (
@@ -24,16 +23,8 @@ export const publishConfirm = ({ target, fileName, race }) => {
       title: `Zveřejnit ${what} výsledky poháru?`,
       message: (
         <>
-          <p>
-            Pořadí se zveřejní na webu u sezóny {target.seasonLabel || ''} a nahradí dosavadní průběžné
-            nebo celkové výsledky.
-          </p>
+          <p>Pořadí se zveřejní u sezóny {target.seasonLabel || ''} a nahradí dosavadní výsledky poháru.</p>
           {fileName && <FileCard fileName={fileName} detail={`${target.final ? 'Celkové' : 'Průběžné'} výsledky poháru`} />}
-          <p className={dialogStyles.caps}>Co se stane</p>
-          <ul className={dialogStyles.list}>
-            <li>Sezóna má vždy jen jeden výsledkový dokument – dosavadní průběžné nebo celkové výsledky zmizí.</li>
-            <li>Zveřejnění nikdy nejde do offline fronty. Když spojení během odesílání spadne, nic se nezveřejní a můžete to zkusit znovu.</li>
-          </ul>
         </>
       ),
       confirmLabel: 'Zveřejnit',
@@ -44,13 +35,11 @@ export const publishConfirm = ({ target, fileName, race }) => {
     title: 'Publikovat výsledkovou listinu?',
     message: (
       <>
-        <p>Soubor bude připojen k závodu a zveřejněn na webu. Nahradí dosud publikovanou listinu.</p>
+        <p>
+          Listina se připojí k závodu{race?.race_nr ? ` ${race.race_nr}` : ''}, hned je vidět na webu
+          a nahradí dosud publikovanou.
+        </p>
         {fileName && <FileCard fileName={fileName} detail="Celková výsledková listina" />}
-        <p className={dialogStyles.caps}>Co se stane</p>
-        <ul className={dialogStyles.list}>
-          <li>Listina se připojí k závodu{race?.race_nr ? ` ${race.race_nr}` : ''} a hned je vidět na webu.</li>
-          <li>Publikace nikdy nejde do offline fronty. Když spojení během odesílání spadne, nic se nezveřejní a můžete to zkusit znovu.</li>
-        </ul>
       </>
     ),
     confirmLabel: 'Publikovat',
@@ -69,11 +58,9 @@ export const clearResultsConfirm = ({ race, total }) => ({
       <p>
         Smažou se časy obou kol, příznaky DNF/DNS/DSQ i body
         {total ? ` u všech ${total} závodníků` : ' u všech závodníků'}.
-        Startovní listina zůstane, závod se dá měřit znovu bez opakovaného losování.
+        Startovní listina zůstane.
       </p>
-      <Alert type="warning" compact title="Akce je nevratná">
-        Mazání jde jen online a s prázdnou frontou – jinak by se čekající časy po smazání vrátily zpátky.
-      </Alert>
+      <Alert type="warning" compact title="Akce je nevratná" />
     </>
   ),
   cancelLabel: 'Zrušit',

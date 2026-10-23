@@ -1,4 +1,4 @@
-import { Alert, Button, EmptyState, Modal } from '../../../../ms/index.js';
+import { Alert, Button, EmptyState, Modal, Tooltip } from '../../../../ms/index.js';
 import SlcrEventForm from '../SlcrEventForm/SlcrEventForm.jsx';
 import SlcrPlanTable from '../SlcrPlanTable/SlcrPlanTable.jsx';
 import SlcrStep from '../SlcrStep/SlcrStep.jsx';
@@ -15,7 +15,7 @@ const stepState = (done, current) => {
 /** Proč nejde odeslat výsledky – řečeno slovy, ne jen vypnutým tlačítkem. */
 const sendBlocker = (slcr, hasResults) => {
   if (!hasResults) return 'Závod zatím nemá žádné výsledky.';
-  if (slcr.missingRaces) return 'Nejdřív v kroku 2 založte všechny závody – výsledky se k nim přiřazují podle kodexu.';
+  if (slcr.missingRaces) return 'Nejdřív v kroku 2 založte všechny závody.';
   if (!slcr.eventId) return 'Vyberte akci v kroku 1.';
   return null;
 };
@@ -56,10 +56,10 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
       title="Závody a výsledky v evidenci"
       footer={<Button size="sm" data-cancel disabled={Boolean(busy)} onClick={() => onClose('button')}>Zavřít</Button>}
     >
-      {slcr.dryRun && <Alert type="info" compact title={DRY_RUN_TEXT}>Závody se nezaloží a výsledky se neodešlou – aplikace jen předvede, co by se stalo.</Alert>}
+      {slcr.dryRun && <Alert type="info" compact title={DRY_RUN_TEXT} />}
       {slcr.problems.length > 0 && (
         <Alert type="warning" compact title="SLČR není na serveru nastavené">
-          {`Chybí ${slcr.problems.join(' a ')}. Bez nich nejde akce načíst, závody založit ani výsledky odeslat – doplní je správce serveru do secret/.env.`}
+          {`Chybí ${slcr.problems.join(' a ')} (secret/.env na serveru).`}
         </Alert>
       )}
       {slcr.message && (
@@ -79,26 +79,24 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
               <p className={styles.note}>{planNote(slcr)}</p>
               {!summary.manual && (
                 <Alert type="warning" compact>
-                  Akce používá kategorie z číselníku. Než se závody založí, přepněte ji v evidenci v nastavení akce na vlastní kategorie.
+                  Akce používá kategorie z číselníku – v evidenci ji přepněte na vlastní kategorie.
                 </Alert>
               )}
               <SlcrPlanTable items={plan.items} className={styles.table} />
               <div className={styles.actions}>
-                <Button
-                  size="sm"
-                  variant={step === 2 ? 'primary' : 'outline'}
-                  icon="plus-circle"
-                  busy={busy === 'races'}
-                  disabled={!slcr.canCreate}
-                  onClick={slcr.createRaces}
-                >
-                  {summary.changes ? `Založit závody (${summary.changes})` : 'Založit závody'}
-                </Button>
-                <p className={styles.note}>
-                  {summary.changes
-                    ? 'Stávající závody akce se pošlou beze změny.'
-                    : 'Všechny kategorie už v akci mají svůj závod.'}
-                </p>
+                <Tooltip text="Stávající závody se nezmění">
+                  <Button
+                    size="sm"
+                    variant={step === 2 ? 'primary' : 'outline'}
+                    icon="plus-circle"
+                    busy={busy === 'races'}
+                    disabled={!slcr.canCreate}
+                    onClick={slcr.createRaces}
+                  >
+                    {summary.changes ? `Založit závody (${summary.changes})` : 'Založit závody'}
+                  </Button>
+                </Tooltip>
+                {!summary.changes && <p className={styles.note}>Všechny kategorie už v akci mají svůj závod.</p>}
               </div>
             </>
           ) : (
@@ -106,26 +104,24 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
               icon="list"
               headingLevel={4}
               title="Náhled zatím není"
-              hint="Vyberte akci a disciplínu a načtěte náhled. Ukáže, které kategorie se v akci založí, kde se doplní kodex a které tam už jsou."
             />
           )}
         </SlcrStep>
 
         <SlcrStep number={3} title="Výsledky" state={stepState(slcr.sent, step === 3)} className={styles.results}>
-          <p className={styles.text}>
-            Pošle výsledky všech kategorií do akce. V evidenci zůstanou nezveřejněné – zveřejňují se až tam.
-          </p>
           {blocker && <p className={styles.note}>{blocker}</p>}
-          <Button
-            size="sm"
-            variant={step === 3 && !slcr.sent ? 'primary' : 'outline'}
-            icon="upload"
-            busy={busy === 'results'}
-            disabled={!slcr.canSend}
-            onClick={slcr.sendResults}
-          >
-            {slcr.sent ? 'Odeslat výsledky znovu' : 'Odeslat výsledky'}
-          </Button>
+          <Tooltip text="V evidenci zůstanou nezveřejněné">
+            <Button
+              size="sm"
+              variant={step === 3 && !slcr.sent ? 'primary' : 'outline'}
+              icon="upload"
+              busy={busy === 'results'}
+              disabled={!slcr.canSend}
+              onClick={slcr.sendResults}
+            >
+              {slcr.sent ? 'Odeslat výsledky znovu' : 'Odeslat výsledky'}
+            </Button>
+          </Tooltip>
         </SlcrStep>
       </div>
       {confirmElement}

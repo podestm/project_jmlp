@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Button, IconButton } from '../../../ms/index.js';
+import { Button, IconButton, Tooltip } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import BibNumber from '../../BibNumber/BibNumber.jsx';
 import RaceFlag from '../../StartList/RaceFlag.jsx';
@@ -162,15 +162,9 @@ const BridgeEventRow = memo(function BridgeEventRow({
       </div>
 
       {isAutoWritten ? (
-        <Button
-          size="sm"
-          icon="undo"
-          className={styles.action}
-          onClick={() => onRejectAuto?.(event.id)}
-          title="Vrátí kolo závodníka na hodnotu před automatickým zápisem"
-        >
-          Zamítnout
-        </Button>
+        <Tooltip text="Vrátí kolo před zápisem" placement="top" className={styles.action}>
+          <Button size="sm" icon="undo" onClick={() => onRejectAuto?.(event.id)}>Zamítnout</Button>
+        </Tooltip>
       ) : !isLockedRow && (
         <div className={styles.actions}>
           <IconButton

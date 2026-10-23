@@ -39,7 +39,6 @@ export default function StartListManager() {
         <EmptyState
           icon="list"
           title="Startovní listina je prázdná"
-          hint="Klikněte na Generovat z přihlášek, nebo dopište závodníky ručně. Tiskové akce se ukážou, až bude na listině aspoň jeden řádek."
         />
       );
     }
@@ -65,11 +64,7 @@ export default function StartListManager() {
 
   return (
     <TkPage>
-      <PageHeader
-        variant="app"
-        title="Startovní listina"
-        meta="Generování z přihlášek a správa listiny. Závod se tady přepnout nedá – jen v Přehledu."
-      />
+      <PageHeader variant="app" title="Startovní listina" />
 
       {raceId ? (
         <>

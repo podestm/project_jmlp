@@ -32,12 +32,6 @@
   padding: var(--ms-space-4) 18px 18px;
 }
 
-.intro {
-  font-size: var(--ms-fs-md);
-  line-height: 1.5;
-  color: var(--ms-ink-body);
-}
-
 .caps {
   font-family: var(--ms-font-display);
   font-weight: 700;

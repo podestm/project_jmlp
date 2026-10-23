@@ -5,12 +5,6 @@
   min-inline-size: 0;
 }
 
-.note {
-  margin: 0;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}
-
 .log {
   display: flex;
   flex-direction: column;

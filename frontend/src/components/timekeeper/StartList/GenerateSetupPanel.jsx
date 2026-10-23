@@ -1,4 +1,4 @@
-import { Button, CloseButton, Icon, IconButton, LoadingState } from '../../ms/index.js';
+import { Button, CloseButton, Icon, IconButton, LoadingState, Tooltip } from '../../ms/index.js';
 import { categoryLabel } from '../startListHelpers.js';
 import styles from './GenerateSetupPanel.module.css';
 
@@ -22,11 +22,6 @@ export default function GenerateSetupPanel({ setup }) {
         <LoadingState variant="inline" label="Načítám nastavení…" />
       ) : (
         <div className={styles.body}>
-          <p className={styles.intro}>
-            Přidají se jen přihlášení, kteří na listině ještě nejsou. Stávající řádky, startovní čísla
-            ani zapsané časy se nemění. Vyřazené ze startovní listiny generování znovu nepřidá – vrací
-            se tlačítkem Vrátit.
-          </p>
           <span className={styles.caps}>Pořadí kategorií na startu</span>
           <ol className={styles.list}>
             {orderedCategories.map((category, index) => (
@@ -60,9 +55,11 @@ export default function GenerateSetupPanel({ setup }) {
             ))}
           </ol>
           <div className={styles.actions}>
-            <Button variant="primary" icon="lightning" busy={generating} onClick={generate} className={styles.generate}>
-              {generating ? 'Generuji…' : 'Vygenerovat listinu'}
-            </Button>
+            <Tooltip text="Přidá jen chybějící přihlášené" className={styles.generate}>
+              <Button variant="primary" icon="lightning" busy={generating} onClick={generate}>
+                {generating ? 'Generuji…' : 'Vygenerovat listinu'}
+              </Button>
+            </Tooltip>
             <Button data-cancel onClick={closeSetup}>Zrušit</Button>
           </div>
         </div>

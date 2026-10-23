@@ -43,7 +43,6 @@ export default function TimingDeviceSettings() {
       <PageHeader
         variant="app"
         title="Zařízení"
-        meta="Přímé připojení přes Web Serial (Chrome, Edge). Spojení platí pro celou časomíru."
         actions={<ButtonLink to="/timekeeper/timing" variant="primary" iconEnd="arrow-right">Zpět k zadávání časů</ButtonLink>}
       />
 
@@ -61,12 +60,12 @@ export default function TimingDeviceSettings() {
 
           {!serial.supported && (
             <Alert type="warning" title="Tento prohlížeč nepodporuje Web Serial">
-              Použijte Google Chrome nebo Microsoft Edge. Ani to není konec závodu – časy jde pořád psát ručně a offline.
+              Použijte Chrome nebo Edge. Časy jde psát ručně.
             </Alert>
           )}
           {serial.supported && !serial.canUse && (
             <Alert type="warning" title="Web Serial funguje jen na HTTPS nebo localhost">
-              Přes http jsou tlačítka nahoře neaktivní. Časy jde pořád psát ručně a offline.
+              Časy jde psát ručně.
             </Alert>
           )}
         </div>

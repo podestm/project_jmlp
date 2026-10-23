@@ -21,18 +21,11 @@ export default function RacerSearchResults({ racers, isSearching, hasQuery = fal
     return (
       <p className={styles.state} role="status">
         <Icon name="search" size={18} />
-        V databázi nikoho takového nemáme – vyplňte údaje a přidá se jako nový závodník.
+        Nikdo nenalezen – přidá se jako nový závodník.
       </p>
     );
   }
-  if (racers.length === 0) {
-    return (
-      <p className={styles.state}>
-        <Icon name="search" size={18} />
-        Začněte psát příjmení nebo jméno – najdeme závodníka v databázi.
-      </p>
-    );
-  }
+  if (racers.length === 0) return null;
   return (
     <div className={styles.results}>
       <span className={styles.caps}>Nalezení závodníci</span>

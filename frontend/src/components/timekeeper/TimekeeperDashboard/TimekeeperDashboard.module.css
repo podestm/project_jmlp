@@ -66,11 +66,6 @@
   color: var(--ms-ink-body);
 }
 
-.pick {
-  font-size: var(--ms-fs-base);
-  color: var(--ms-ink-body);
-}
-
 .section {
   display: flex;
   flex-direction: column;

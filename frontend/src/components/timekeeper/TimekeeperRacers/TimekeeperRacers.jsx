@@ -35,7 +35,6 @@ export default function TimekeeperRacers() {
         <EmptyState
           icon="search"
           title="Žádní závodníci neodpovídají aktuálním filtrům."
-          hint={isFiltered(filters) ? 'Závodníci se nesmazali, jen je filtry schovaly.' : undefined}
           action={isFiltered(filters) && <Button size="sm" onClick={resetFilters}>Zrušit filtry</Button>}
         />
       );
@@ -79,7 +78,6 @@ export default function TimekeeperRacers() {
       <PageHeader
         variant="app"
         title="Závodníci závodu"
-        meta="Dopsání přímo k trati – do registrací se nezapisuje."
         actions={raceId && <ButtonLink to="/timekeeper/start-list" size="sm" icon="list">Na startovní listinu</ButtonLink>}
       />
 
@@ -98,7 +96,6 @@ export default function TimekeeperRacers() {
               total={startList.length}
             />
             {table()}
-            <p className={styles.note}>Řazení odpovídá startovní listině. Řádek uložený jen do notebooku vypadá stejně jako odeslaný – kolik jich čeká, říká odznak Fronta.</p>
           </div>
         </Split>
       ) : (

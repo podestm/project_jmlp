@@ -1,5 +1,5 @@
 import { useConfirm } from '../../../hooks/useConfirm.jsx';
-import { Button, EmptyState, LoadingState, PageHeader, Paska } from '../../ms/index.js';
+import { Button, EmptyState, LoadingState, PageHeader, Paska, Tooltip } from '../../ms/index.js';
 import TkPage from '../frame/TkPage/TkPage.jsx';
 import TimekeeperMessage from '../TimekeeperMessage.jsx';
 import NewSetForm from './NewSetForm.jsx';
@@ -26,14 +26,12 @@ export default function RaceNumbersManager() {
       <PageHeader
         variant="app"
         title="Startovní čísla"
-        meta="Sady dresů a jejich přiřazení k systémovým číslům."
         actions={(
-          <>
-            <span className={styles.note}>Sady platí pro celou sezónu, ne pro vybraný závod.</span>
+          <Tooltip text="Sady platí pro celou sezónu">
             <Button variant="primary" icon={showSetForm ? 'close' : 'plus'} aria-expanded={showSetForm} onClick={() => setShowSetForm(!showSetForm)}>
               {showSetForm ? 'Zrušit' : 'Nová sada'}
             </Button>
-          </>
+          </Tooltip>
         )}
       />
 
@@ -53,7 +51,7 @@ export default function RaceNumbersManager() {
             {sets.length > 0 ? (
               sets.map((set) => <NumberSetCard key={set.set_number} set={set} numbersApi={numbersApi} />)
             ) : (
-              <EmptyState icon="numbers" title="Žádné sady startovních čísel" hint="Vytvořte první sadu kliknutím na Nová sada." />
+              <EmptyState icon="numbers" title="Žádné sady startovních čísel" />
             )}
           </section>
           {showSetForm && <NewSetForm numbersApi={numbersApi} />}

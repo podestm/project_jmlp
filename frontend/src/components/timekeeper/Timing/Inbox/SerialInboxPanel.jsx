@@ -1,4 +1,4 @@
-import { Button, EmptyState, IconButton } from '../../../ms/index.js';
+import { Button, EmptyState, IconButton, Tooltip } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { EMPTY_RESOLUTION } from '../../inboxMatching.js';
 import { INBOX_RENDER_LIMIT } from '../../useInboxEvents.js';
@@ -88,8 +88,7 @@ export default function SerialInboxPanel({
       {hiddenCount > 0 && (
         <div className={styles.limit}>
           <span>
-            Zobrazeno {visibleEvents.length} z {events.length} uložených událostí
-            (starší vyřízené jsou skryté, ale nejsou smazané).
+            Zobrazeno {visibleEvents.length} z {events.length} uložených událostí.
           </span>
           <Button size="sm" onClick={() => onShowAllChange(true)}>Zobrazit všech {events.length}</Button>
         </div>
@@ -107,7 +106,6 @@ export default function SerialInboxPanel({
             icon="inbox"
             headingLevel={3}
             title="Zatím nepřišel žádný impulz z časomíry"
-            hint="Jakmile závodník projede cílem, jeho řádek se tu objeví sám. Zařízení musí být připojené."
           />
         ) : (
           <>
@@ -129,20 +127,16 @@ export default function SerialInboxPanel({
 
       <footer className={styles.footer}>
         {unparsedCount > 0 && (
-          <Button size="sm" onClick={onDismissUnparsed} title="Označí nerozpoznané řádky jako zamítnuté">
-            Odbavit nerozpoznané ({unparsedCount})
-          </Button>
+          <Tooltip text="Označí je jako zamítnuté" placement="top">
+            <Button size="sm" onClick={onDismissUnparsed}>Odbavit nerozpoznané ({unparsedCount})</Button>
+          </Tooltip>
         )}
-        <Button size="sm" onClick={onClearResolved} disabled={resolvedCount === 0} title="Smaže potvrzené a zamítnuté řádky">
-          Smazat vyřízené
-        </Button>
-        <IconButton
-          icon="trash"
-          label="Smazat vše"
-          title="Smaže celou schránku tohoto závodu včetně nepotvrzených"
-          onClick={onClearAll}
-          disabled={events.length === 0}
-        />
+        <Tooltip text="Potvrzené a zamítnuté řádky" placement="top">
+          <Button size="sm" onClick={onClearResolved} disabled={resolvedCount === 0}>Smazat vyřízené</Button>
+        </Tooltip>
+        <Tooltip text="Včetně nepotvrzených" placement="top">
+          <IconButton icon="trash" label="Smazat vše" onClick={onClearAll} disabled={events.length === 0} />
+        </Tooltip>
       </footer>
     </section>
   );

@@ -52,21 +52,6 @@
   color: var(--ms-dry-ink);
 }
 
-.hint {
-  margin-inline-start: auto;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}
-
-.kbd {
-  padding: 1px 6px;
-  border-radius: var(--ms-radius-control);
-  background: var(--ms-surface-sunken);
-  font-family: var(--ms-font-mono);
-  font-size: var(--ms-fs-xs);
-  color: var(--ms-ink);
-}
-
 .categories {
   flex: 1 1 100%;
 }

@@ -52,9 +52,3 @@
   flex-wrap: wrap;
   gap: var(--ms-space-2);
 }
-
-.note {
-  margin: 0;
-  font-size: var(--ms-fs-sm);
-  color: var(--ms-ink-body);
-}

@@ -39,11 +39,6 @@
   line-height: 1.25;
 }
 
-.note {
-  font-size: var(--ms-fs-md);
-  color: var(--ms-ink-body);
-}
-
 .fields {
   display: grid;
   /* Minima i s mezerami a odsazením se vejdou do levého sloupce od 1280 px. */

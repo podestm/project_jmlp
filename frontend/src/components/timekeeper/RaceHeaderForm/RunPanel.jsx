@@ -1,20 +1,19 @@
 import { Field, Input } from '../../ms/index.js';
 import styles from './RunPanel.module.css';
 
-/** Pole jednoho kola: popisek, typ a nápověda (TkHlavickaZavodu). */
+/** Pole jednoho kola: popisek, typ a formát (TkHlavickaZavodu). */
 const FIELDS = [
-  { key: 'course_setter', label: 'Stavitel trati', hint: 'Tiskne se v hlavičce.', size: 'wide' },
-  { key: 'gates_count', label: 'Počet branek', hint: 'Celé číslo.', number: true },
-  { key: 'start_time', label: 'Čas startu', hint: 'Volný text.', placeholder: '10:00' },
+  { key: 'course_setter', label: 'Stavitel trati', size: 'wide' },
+  { key: 'gates_count', label: 'Počet branek', number: true },
+  { key: 'start_time', label: 'Čas startu', placeholder: '10:00' },
   {
     key: 'course_length_m',
     label: 'Délka trati',
-    hint: 'Samotné číslo v metrech, jinak volný text.',
+    hint: 'Číslo = metry',
     placeholder: 'např. 400 nebo 400m, 7 stanovišť',
-    title: 'Samotné číslo se vytiskne v metrech (400 → 400m), jinak se text vytiskne, jak je',
     maxLength: 60,
   },
-  { key: 'conditions', label: 'Podmínky', hint: 'Povrch, počasí, teplota.', placeholder: 'např. zataženo', size: 'grow' },
+  { key: 'conditions', label: 'Podmínky', placeholder: 'např. zataženo', size: 'grow' },
 ];
 
 /**
@@ -28,7 +27,6 @@ export default function RunPanel({ run, onChange }) {
       <header className={styles.head}>
         <span className={styles.number} aria-hidden="true">{n}</span>
         <h3 id={`kolo-${n}`} className={styles.title}>Kolo {n}</h3>
-        <span className={styles.note}>Nevyplněné kolo se do hlavičky netiskne</span>
       </header>
       <div className={styles.fields}>
         {FIELDS.map((field) => (
@@ -38,7 +36,6 @@ export default function RunPanel({ run, onChange }) {
               min={field.number ? '0' : undefined}
               mono={field.number}
               placeholder={field.placeholder}
-              title={field.title}
               maxLength={field.maxLength}
               value={run[field.key]}
               onChange={(e) => onChange(n, field.key, e.target.value)}

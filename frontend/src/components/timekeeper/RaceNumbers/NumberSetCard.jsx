@@ -48,7 +48,6 @@ export default function NumberSetCard({ set, numbersApi }) {
               value={set.set_color}
               onChange={(color) => updateSetColor(set.set_number, color)}
             />
-            <span className={styles.note}>Barva se propíše hned; když ji server odmítne, vrátí se zpět.</span>
           </div>
 
           <div className={styles.addRow}>

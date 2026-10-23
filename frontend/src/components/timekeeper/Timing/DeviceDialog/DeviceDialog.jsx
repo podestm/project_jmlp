@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Button, Modal, Select } from '../../../ms/index.js';
+import { Button, Modal, Select, Tooltip } from '../../../ms/index.js';
 import { cx } from '../../../ms/cx.js';
 import { BAUD_OPTIONS, describeSerialPort } from '../../../../utils/serial.js';
 import styles from './DeviceDialog.module.css';
@@ -79,9 +79,9 @@ export default function DeviceDialog({
           ) : (
             <Button variant="primary" onClick={() => serial.connect()} disabled={!serial.port || !usable}>Připojit</Button>
           )}
-          <Button icon="sync" onClick={serial.reconnect} disabled={!usable} title="Vynutí zavření a znovuotevření portu">
-            Obnovit
-          </Button>
+          <Tooltip text="Zavře a znovu otevře port">
+            <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>Obnovit</Button>
+          </Tooltip>
         </div>
 
         <ul className={styles.counts}>
@@ -96,12 +96,7 @@ export default function DeviceDialog({
           )}
         </ul>
 
-        <p className={styles.note}>
-          <span className={styles.caps}>Formát řádků</span>{' '}
-          LIP TIMER posílá řádky typu <code className={styles.code}>11 65 5.16</code> (pořadí, dres, čas)
-          nebo <code className={styles.code}>18 12 DNF</code>. Připojení zůstává aktivní i při přepnutí obrazovky
-          a po obnovení stránky se obnoví samo. Rychlost a záznam řádků: <Link to="/timekeeper/device">Zařízení</Link>.
-        </p>
+        <Link to="/timekeeper/device" className={styles.more}>Rychlost a záznam řádků</Link>
       </div>
     </Modal>
   );

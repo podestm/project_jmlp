@@ -1,4 +1,4 @@
-import { Icon, Spinner } from '../../ms/index.js';
+import { Icon, Spinner, Tooltip } from '../../ms/index.js';
 import styles from './PrintRunButtons.module.css';
 
 /**
@@ -11,29 +11,28 @@ import styles from './PrintRunButtons.module.css';
  * Záměrně bez rozbalovacího menu: na závodě se kliká jednou, ne dvakrát.
  *
  * @param {string}   label     popisek skupiny („Všechny kategorie“)
- * @param {string}   [title]   tooltip
  * @param {boolean}  [busy]    běží generování
  * @param {boolean}  [disabled]
  * @param {(runMode: string) => void} onPrint
  */
-export default function PrintRunButtons({ label, title, busy = false, disabled = false, onPrint }) {
+export default function PrintRunButtons({ label, busy = false, disabled = false, onPrint }) {
   return (
-    <div className={styles.group} role="group" aria-label={label} title={title}>
+    <div className={styles.group} role="group" aria-label={label}>
       <span className={styles.label}>
         {busy ? <Spinner size={16} tone="current" /> : <Icon name="printer" size={16} />}
         {label}
       </span>
       {['1', '2'].map((runMode) => (
-        <button
-          key={runMode}
-          type="button"
-          className={styles.run}
-          onClick={() => onPrint(runMode)}
-          disabled={disabled || busy}
-          title={runMode === '1' ? 'Výsledky 1. kola' : 'Výsledky 2. kola - oba časy a součet'}
-        >
-          {runMode}. kolo
-        </button>
+        <Tooltip key={runMode} text={runMode === '2' ? 'Oba časy a součet' : ''}>
+          <button
+            type="button"
+            className={styles.run}
+            onClick={() => onPrint(runMode)}
+            disabled={disabled || busy}
+          >
+            {runMode}. kolo
+          </button>
+        </Tooltip>
       ))}
     </div>
   );

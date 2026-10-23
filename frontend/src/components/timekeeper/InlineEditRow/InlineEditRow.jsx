@@ -21,7 +21,6 @@ export default function InlineEditRow({ colSpan, columns, categoryPreview, onSav
         <p className={styles.category}>
           <span className={styles.caps}>Kategorie po uložení</span>
           <strong>{categoryPreview}</strong>
-          <span className={styles.note}>Kategorie se přepočítá z ročníku a pohlaví – ručně ji tu nastavit nejde.</span>
         </p>
       </td>
     </tr>

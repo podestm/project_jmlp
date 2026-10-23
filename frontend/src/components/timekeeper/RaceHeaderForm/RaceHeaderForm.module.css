@@ -30,18 +30,12 @@
 .saveBar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--ms-space-5);
   padding: 18px 20px;
   border: 1px solid var(--ms-line);
   border-radius: var(--ms-radius-card);
   background: var(--ms-surface-card);
-}
-
-.saveNote {
-  flex-grow: 1;
-  font-size: var(--ms-fs-base);
-  line-height: 1.5;
-  color: var(--ms-ink-body);
 }
 
 @media (max-width: 1279.98px) {
