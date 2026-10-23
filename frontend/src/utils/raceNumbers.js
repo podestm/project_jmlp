@@ -27,8 +27,31 @@ export const getRaceNumberBadgeStyle = (setColor) => {
   };
 };
 
+/**
+ * Systémové označení čísla: písmeno sady + číslo dresu ("B12" = dres 12
+ * ze sady 2). Ukládá ho server (display_number / race_number_display).
+ */
 export const formatSystemRaceNumber = (displayNumber) => (
-  displayNumber != null && displayNumber !== '' ? `Sys. ${displayNumber}` : 'Sys. -'
+  displayNumber != null && displayNumber !== '' ? String(displayNumber) : ''
 );
+
+const RACE_NUMBER_CODE = /^([A-Z])(\d{1,4})$/;
+
+/** "b 12" -> "B12"; prázdné -> ''; jiný tvar vrátí, jak je (validace ho odmítne). */
+export const normalizeRaceNumberCode = (value) => {
+  const text = String(value ?? '').replace(/\s+/g, '').toUpperCase();
+  const match = RACE_NUMBER_CODE.exec(text);
+  return match ? `${match[1]}${Number(match[2])}` : text;
+};
+
+export const isRaceNumberCode = (value) => RACE_NUMBER_CODE.test(normalizeRaceNumberCode(value));
+
+/** Řazení A1, A2 ... A200, B1 (ne podle textu, kde je A10 před A2). */
+export const compareRaceNumberCodes = (a, b) => {
+  const left = RACE_NUMBER_CODE.exec(normalizeRaceNumberCode(a));
+  const right = RACE_NUMBER_CODE.exec(normalizeRaceNumberCode(b));
+  if (!left || !right) return left ? -1 : right ? 1 : 0;
+  return left[1].localeCompare(right[1]) || Number(left[2]) - Number(right[2]);
+};
 
 export { SET_COLOR_OPTIONS };

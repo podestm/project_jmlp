@@ -15,6 +15,7 @@ import { SELECTED_RACE_KEY, SelectedRaceBar, TimekeeperMessage, TK_ACCENT, TK_AC
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 import StartListRow from './StartListRow.jsx';
 import { preloadRaceData } from '../../offline/racePreload.js';
+import { normalizeRaceNumberCode } from '../../utils/raceNumbers.js';
 import {
   OFFLINE_QUEUED_TEXT,
   activeEntries,
@@ -272,7 +273,7 @@ export default function StartListManager() {
       body.racer_year = editForm.racer_year !== '' && editForm.racer_year !== null && editForm.racer_year !== undefined
         ? parseInt(editForm.racer_year)
         : null;
-      body.race_number_display = editForm.race_number_display !== '' ? parseInt(editForm.race_number_display) : null;
+      body.race_number_display = editForm.race_number_display !== '' ? normalizeRaceNumberCode(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
       if (result?.entry) {
@@ -666,11 +667,11 @@ export default function StartListManager() {
                               />
                             </td>
                             <td style={{ padding: '4px 8px' }}>
-                              <input type="number" className={`form-control form-control-sm ${(liveEditRaceNumberError || editValidationError) ? 'is-invalid' : ''}`}
-                                style={{ width: '78px', fontSize: '0.8rem', padding: '2px 4px' }}
+                              <input type="text" className={`form-control form-control-sm ${(liveEditRaceNumberError || editValidationError) ? 'is-invalid' : ''}`}
+                                style={{ width: '78px', fontSize: '0.8rem', padding: '2px 4px', textTransform: 'uppercase' }}
                                 value={editForm.race_number_display}
-                                onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value })); setEditValidationError(''); }}
-                                placeholder="St. číslo"
+                                onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value.toUpperCase() })); setEditValidationError(''); }}
+                                placeholder="např. A12" maxLength={6} autoCapitalize="characters"
                               />
                               <small className="text-muted d-block mt-1">
                                 Číslo dresu: {findRaceNumberOption(raceNumberOptions, editForm.race_number_display)?.actual_number ?? entry.race_number_actual ?? '—'}

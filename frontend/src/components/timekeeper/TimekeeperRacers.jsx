@@ -14,7 +14,7 @@ import {
   resolveCategoryPreview,
   sortStartListEntries,
 } from './startListHelpers.js';
-import { getRaceNumberBadgeStyle, getSetColorTheme } from '../../utils/raceNumbers.js';
+import { compareRaceNumberCodes, getRaceNumberBadgeStyle, getSetColorTheme, normalizeRaceNumberCode } from '../../utils/raceNumbers.js';
 import { buildLocalEntry, loadRacerRegistry, searchRacers } from '../../offline/racerRegistry.js';
 import {
   addLocalEntry,
@@ -81,20 +81,22 @@ export default function TimekeeperRacers() {
   const [editForm, setEditForm] = useState({});
   const [editValidationError, setEditValidationError] = useState('');
 
+  // Návrh čísla pro dohlášku: hned za posledním přiděleným (A1..A200, B1..).
+  // Nabídka čísel je seřazená podle sady a dresu, stejně jako na serveru.
   const getNextAvailableRaceNumberDisplay = (entries = startList) => {
     const assigned = entries
       .map(entry => entry.race_number_display)
-      .filter(value => value !== null && value !== undefined)
-      .map(value => Number(value))
-      .filter(value => Number.isFinite(value));
+      .filter(value => value !== null && value !== undefined && value !== '')
+      .sort(compareRaceNumberCodes);
 
     if (assigned.length === 0) {
       return raceNumberOptions.length > 0 ? String(raceNumberOptions[0].display_number) : '';
     }
 
-    const candidate = Math.max(...assigned) + 1;
-    const exactOption = raceNumberOptions.find(option => Number(option.display_number) === candidate);
-    return exactOption ? String(exactOption.display_number) : '';
+    const last = assigned[assigned.length - 1];
+    const next = raceNumberOptions.find(option => compareRaceNumberCodes(option.display_number, last) > 0);
+    const taken = new Set(assigned.map(normalizeRaceNumberCode));
+    return next && !taken.has(normalizeRaceNumberCode(next.display_number)) ? String(next.display_number) : '';
   };
 
   const resetForm = (entries = startList) => {
@@ -308,7 +310,7 @@ export default function TimekeeperRacers() {
       body.racer_sex = editForm.racer_sex !== '' && editForm.racer_sex != null
         ? parseInt(editForm.racer_sex) : null;
       body.race_number_display = editForm.race_number_display !== '' && editForm.race_number_display != null
-        ? parseInt(editForm.race_number_display) : null;
+        ? normalizeRaceNumberCode(editForm.race_number_display) : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
 
@@ -367,7 +369,7 @@ export default function TimekeeperRacers() {
       if (formData.telefon.trim()) payload.racer_telefon = formData.telefon.trim();
       if (formData.email.trim()) payload.racer_email = formData.email.trim();
       if (formData.slcr_id.trim()) payload.racer_slcr_id = formData.slcr_id.trim();
-      if (formData.race_number_display) payload.race_number_display = Number(formData.race_number_display);
+      if (formData.race_number_display) payload.race_number_display = normalizeRaceNumberCode(formData.race_number_display);
 
       const result = await TimekeeperAPI.post(
         `/api/timekeeper/races/${selectedRaceId}/start-list/entry`,
@@ -553,11 +555,13 @@ export default function TimekeeperRacers() {
                         Systémové číslo
                       </label>
                       <input
-                        type="number"
+                        type="text"
+                        maxLength={6}
+                        autoCapitalize="characters"
                         className={`form-control form-control-sm registration-input ${liveRaceNumberError ? 'is-invalid' : ''}`}
-                        placeholder="Automatický návrh"
+                        placeholder="např. A12"
                         value={formData.race_number_display}
-                        onChange={(e) => updateField('race_number_display', e.target.value)}
+                        onChange={(e) => updateField('race_number_display', e.target.value.toUpperCase())}
                         style={{
                           background: 'rgba(255, 255, 255, 0.15)',
                           color: 'var(--text-primary)',
@@ -748,10 +752,11 @@ export default function TimekeeperRacers() {
                         <tr key={entry.id} style={{ background: '#fffbea' }}>
                           <td className="fw-bold">{entry.start_number || '—'}</td>
                           <td>
-                            <input type="number" className={`form-control form-control-sm ${(liveEditRaceNumberError || editValidationError) ? 'is-invalid' : ''}`}
+                            <input type="text" maxLength={6} autoCapitalize="characters" placeholder="A12"
+                              className={`form-control form-control-sm ${(liveEditRaceNumberError || editValidationError) ? 'is-invalid' : ''}`}
                               style={{ width: '78px', fontSize: '0.8rem', padding: '2px 4px' }}
                               value={editForm.race_number_display}
-                              onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value })); setEditValidationError(''); }}
+                              onChange={(e) => { setEditForm(p => ({ ...p, race_number_display: e.target.value.toUpperCase() })); setEditValidationError(''); }}
                             />
                             {(liveEditRaceNumberError || editValidationError) && (
                               <div className="invalid-feedback d-block" style={{ fontSize: '0.7rem' }}>{liveEditRaceNumberError || editValidationError}</div>

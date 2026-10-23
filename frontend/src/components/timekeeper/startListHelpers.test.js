@@ -22,9 +22,9 @@ const entry = (overrides) => ({
 });
 
 const OPTIONS = [
-  { display_number: 11 },
-  { display_number: 12 },
-  { display_number: 13 }
+  { display_number: 'A11' },
+  { display_number: 'A12' },
+  { display_number: 'A13' }
 ];
 
 describe('sortStartListEntries', () => {
@@ -55,13 +55,13 @@ describe('sortStartListEntries', () => {
 });
 
 describe('findRaceNumberOption', () => {
-  it('najde číslo bez ohledu na typ hodnoty', () => {
-    expect(findRaceNumberOption(OPTIONS, '12')).toEqual({ display_number: 12 });
-    expect(findRaceNumberOption(OPTIONS, 12)).toEqual({ display_number: 12 });
+  it('najde číslo podle označení bez ohledu na velikost písmen a mezery', () => {
+    expect(findRaceNumberOption(OPTIONS, 'A12')).toEqual({ display_number: 'A12' });
+    expect(findRaceNumberOption(OPTIONS, 'a 12')).toEqual({ display_number: 'A12' });
   });
 
   it('neexistující nebo prázdné číslo vrací null', () => {
-    expect(findRaceNumberOption(OPTIONS, 99)).toBeNull();
+    expect(findRaceNumberOption(OPTIONS, 'A99')).toBeNull();
     expect(findRaceNumberOption(OPTIONS, '')).toBeNull();
     expect(findRaceNumberOption(OPTIONS, null)).toBeNull();
   });
@@ -69,7 +69,7 @@ describe('findRaceNumberOption', () => {
 
 describe('getRaceNumberValidationError', () => {
   it('volné a existující číslo projde', () => {
-    expect(getRaceNumberValidationError(12, { options: OPTIONS, entries: [] })).toBe('');
+    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries: [] })).toBe('');
   });
 
   it('prázdné číslo se nekontroluje - dres přidělí až rozhodčí', () => {
@@ -77,33 +77,38 @@ describe('getRaceNumberValidationError', () => {
   });
 
   it('neexistující číslo odmítne', () => {
-    expect(getRaceNumberValidationError(99, { options: OPTIONS, entries: [] }))
-      .toBe('St. číslo 99 neexistuje nebo je neaktivní');
+    expect(getRaceNumberValidationError('A99', { options: OPTIONS, entries: [] }))
+      .toBe('St. číslo A99 neexistuje nebo je neaktivní');
   });
 
   it('obsazené číslo pojmenuje závodníka, který ho má', () => {
-    const entries = [entry({ id: 5, race_number_display: 12, racer_surname: 'Svoboda', racer_name: 'Petr' })];
+    const entries = [entry({ id: 5, race_number_display: 'A12', racer_surname: 'Svoboda', racer_name: 'Petr' })];
 
-    expect(getRaceNumberValidationError(12, { options: OPTIONS, entries }))
-      .toBe('St. číslo 12 už má Svoboda Petr');
+    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries }))
+      .toBe('St. číslo A12 už má Svoboda Petr');
   });
 
   it('při opravě záznamu jeho vlastní číslo konflikt nedělá', () => {
-    const entries = [entry({ id: 5, race_number_display: 12 })];
+    const entries = [entry({ id: 5, race_number_display: 'A12' })];
 
-    expect(getRaceNumberValidationError(12, { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
+    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
   });
 
   it('vlastní číslo projde, i když už mezi aktivními není', () => {
     // Sada dresů se mohla vyměnit; zablokovat uložení kvůli tomu by znamenalo,
     // že se závodník nedá opravit vůbec.
-    const entries = [entry({ id: 5, race_number_display: 77 })];
+    const entries = [entry({ id: 5, race_number_display: 'A77' })];
 
-    expect(getRaceNumberValidationError(77, { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
+    expect(getRaceNumberValidationError('A77', { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
+  });
+
+  it('samotné číslo bez písmena sady odmítne', () => {
+    expect(getRaceNumberValidationError('12', { options: OPTIONS, entries: [] }))
+      .toBe('Číslo zadejte jako písmeno sady a číslo dresu, např. A12');
   });
 
   it('bez kontextu nespadne', () => {
-    expect(getRaceNumberValidationError(12)).toBe('St. číslo 12 neexistuje nebo je neaktivní');
+    expect(getRaceNumberValidationError('A12')).toBe('St. číslo A12 neexistuje nebo je neaktivní');
   });
 });
 

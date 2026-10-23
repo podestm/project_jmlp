@@ -62,7 +62,7 @@ _STARTOVKA_SLOUPCE = (
     ("category_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("category_sex", "smallint DEFAULT NULL"),
     ("race_number_actual", "int DEFAULT NULL"),
-    ("race_number_display", "int DEFAULT NULL"),
+    ("race_number_display", "varchar(8) DEFAULT NULL"),
     ("name_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("surname_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("year_override", "int DEFAULT NULL"),
@@ -1033,6 +1033,54 @@ def _m_course_length_text(conn):
     logger.info("Migrace: fuj_jmlp_race_run.course_length_m jako text")
 
 
+# --------------------------------------------------------------------------
+# 015 - systémové označení čísel písmenem sady ("B12" místo 212)
+#
+# fuj_jmlp_race_numbers.display_number i snapshot ve startovkách
+# (race_number_display) se z čísla mění na text: písmeno sady (1 = A,
+# 2 = B, ...) + číslo dresu. Vazba startovky na číselník je race_number_id;
+# snapshot se přepočítá podle ní, u řádků bez vazby podle starého čísla.
+# --------------------------------------------------------------------------
+def _column_data_type(conn, table: str, column: str):
+    return conn.execute(text("""
+        SELECT DATA_TYPE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME = :column
+    """), {"table": table, "column": column}).scalar()
+
+
+def _m_race_number_codes(conn):
+    if not _table_exists(conn, "fuj_jmlp_race_numbers"):
+        return
+    if _column_data_type(conn, "fuj_jmlp_race_numbers", "display_number") == "varchar":
+        return
+    code = "CONCAT(CHAR(64 + rn.set_number USING ascii), rn.actual_number)"
+    has_start_list = _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_display")
+    if has_start_list:
+        conn.execute(text(
+            "ALTER TABLE fuj_jmlp_race_start_list MODIFY race_number_display VARCHAR(8) NULL DEFAULT NULL"
+        ))
+        # Podle vazby na číselník.
+        conn.execute(text(f"""
+            UPDATE fuj_jmlp_race_start_list sl
+            JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
+            SET sl.race_number_display = {code}
+        """))
+        # Bez vazby (číslo mezitím smazané): podle starého systémového čísla.
+        conn.execute(text(f"""
+            UPDATE fuj_jmlp_race_start_list sl
+            JOIN fuj_jmlp_race_numbers rn ON rn.display_number = CAST(sl.race_number_display AS UNSIGNED)
+            SET sl.race_number_display = {code}
+            WHERE sl.race_number_id IS NULL AND sl.race_number_display REGEXP '^[0-9]+$'
+        """))
+        conn.execute(text(
+            "UPDATE fuj_jmlp_race_start_list SET race_number_display = NULL "
+            "WHERE race_number_display REGEXP '^[0-9]+$'"
+        ))
+    conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers MODIFY display_number VARCHAR(8) NOT NULL"))
+    conn.execute(text(f"UPDATE fuj_jmlp_race_numbers rn SET rn.display_number = {code}"))
+    logger.info("Migrace: systémová čísla jako písmeno sady + dres (B12)")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -1050,6 +1098,7 @@ MIGRATIONS = (
     _m_slcr_applied,
     _m_slcr_member_links,
     _m_course_length_text,
+    _m_race_number_codes,
 )
 
 

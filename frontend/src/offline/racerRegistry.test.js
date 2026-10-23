@@ -20,7 +20,7 @@ describe('řádek startovky pro offline přidaného závodníka', () => {
     { id: 8, name: 'Přípravka dívky', display_name: 'Přípravka dívky', min_birth_year: 2017, max_birth_year: 2018, sex: 2 },
     { id: 7, name: 'Přípravka chlapci', display_name: 'Přípravka chlapci', min_birth_year: 2017, max_birth_year: 2018, sex: 1 },
   ];
-  const raceNumberOptions = [{ id: 312, display_number: 12, actual_number: 12, set_number: 1, set_color: 'rose' }];
+  const raceNumberOptions = [{ id: 312, display_number: 'A12', actual_number: 12, set_number: 1, set_color: 'rose' }];
   const startList = [
     { id: 1, start_number: 4, category_id: 8, category_rank: 3 },
     { id: 2, start_number: 9, category_id: 7, category_rank: 4 },
@@ -30,14 +30,14 @@ describe('řádek startovky pro offline přidaného závodníka', () => {
     const entry = buildLocalEntry({
       tempId: -5,
       raceId: '133',
-      payload: { racer_name: 'Nova', racer_surname: 'Offline', racer_year: '2017', racer_sex: '2', club_name: 'SK', race_number_display: 12 },
+      payload: { racer_name: 'Nova', racer_surname: 'Offline', racer_year: '2017', racer_sex: '2', club_name: 'SK', race_number_display: 'a12' },
       startList,
       categories,
       raceNumberOptions,
     });
     expect(entry).toMatchObject({
       id: -5, race_id: 133, category_id: 8, category_name: 'Přípravka dívky', category_rank: 3,
-      start_number: 10, race_number_display: 12, race_number_actual: 12, race_number_id: 312, set_color: 'rose',
+      start_number: 10, race_number_display: 'A12', race_number_actual: 12, race_number_id: 312, set_color: 'rose',
       time1: null, excluded: false,
     });
   });

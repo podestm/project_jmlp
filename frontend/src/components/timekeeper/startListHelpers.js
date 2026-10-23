@@ -3,6 +3,7 @@
 // The bib-number uniqueness rule guards race-day data integrity and used to
 // exist in three near-identical copies; keeping one implementation is the point
 // of this module. Everything here is pure - no React, no fetching.
+import { isRaceNumberCode, normalizeRaceNumberCode } from '../../utils/raceNumbers.js';
 
 /**
  * Vyřazený ze startky - nedorazil nebo nestihl start.
@@ -46,7 +47,8 @@ const isBlank = (value) => value === '' || value === null || value === undefined
 /** Look a system (display) number up in the active race-number options. */
 export const findRaceNumberOption = (options, displayNumber) => {
   if (isBlank(displayNumber)) return null;
-  return options.find((option) => String(option.display_number) === String(displayNumber)) || null;
+  const code = normalizeRaceNumberCode(displayNumber);
+  return options.find((option) => normalizeRaceNumberCode(option.display_number) === code) || null;
 };
 
 /**
@@ -60,15 +62,19 @@ export const findRaceNumberOption = (options, displayNumber) => {
  *   `null` is the add-a-racer path: nothing to exempt, every entry conflicts.
  * @returns {string} Czech error message, or '' when the number is usable
  */
-export const getRaceNumberValidationError = (displayNumber, { options = [], entries = [], excludeEntryId = null } = {}) => {
-  if (isBlank(displayNumber)) return '';
+export const getRaceNumberValidationError = (rawNumber, { options = [], entries = [], excludeEntryId = null } = {}) => {
+  if (isBlank(rawNumber)) return '';
+  if (!isRaceNumberCode(rawNumber)) {
+    return 'Číslo zadejte jako písmeno sady a číslo dresu, např. A12';
+  }
+  const displayNumber = normalizeRaceNumberCode(rawNumber);
 
   const currentEntry = excludeEntryId != null
     ? entries.find((entry) => entry.id === excludeEntryId) || null
     : null;
   const isCurrentEntryNumber = currentEntry
     && currentEntry.race_number_display != null
-    && String(currentEntry.race_number_display) === String(displayNumber);
+    && normalizeRaceNumberCode(currentEntry.race_number_display) === displayNumber;
 
   if (!findRaceNumberOption(options, displayNumber) && !isCurrentEntryNumber) {
     return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
@@ -77,7 +83,7 @@ export const getRaceNumberValidationError = (displayNumber, { options = [], entr
   const conflict = entries.find((entry) => (
     entry.id !== excludeEntryId
     && entry.race_number_display != null
-    && String(entry.race_number_display) === String(displayNumber)
+    && normalizeRaceNumberCode(entry.race_number_display) === displayNumber
   ));
 
   if (conflict) {

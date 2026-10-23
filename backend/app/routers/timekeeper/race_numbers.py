@@ -7,6 +7,7 @@ from sqlalchemy import text
 from ...database import get_db
 from ... import models, auth
 from ...utils import StandardExceptions
+from ...services.race_number_codes import MAX_SETS, race_number_code, set_letter
 from .idempotency import try_get_idempotent_response, store_idempotent_response
 
 router = APIRouter(tags=["timekeeper-race-numbers"])
@@ -35,9 +36,7 @@ def get_race_number_sets(
                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
                SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_count,
                MIN(actual_number) as min_actual,
-               MAX(actual_number) as max_actual,
-               MIN(display_number) as min_display,
-               MAX(display_number) as max_display
+               MAX(actual_number) as max_actual
         FROM fuj_jmlp_race_numbers
         GROUP BY set_number
         ORDER BY set_number ASC
@@ -52,8 +51,9 @@ def get_race_number_sets(
         "inactive_count": int(row.inactive_count or 0),
         "min_actual": row.min_actual,
         "max_actual": row.max_actual,
-        "min_display": row.min_display,
-        "max_display": row.max_display,
+        "letter": set_letter(row.set_number) if 1 <= row.set_number <= MAX_SETS else "",
+        "min_display": race_number_code(row.set_number, row.min_actual) if 1 <= row.set_number <= MAX_SETS else None,
+        "max_display": race_number_code(row.set_number, row.max_actual) if 1 <= row.set_number <= MAX_SETS else None,
     } for row in rows]
 
 
@@ -92,7 +92,7 @@ def get_active_race_number_options(
         SELECT id, set_number, set_color, actual_number, display_number, is_active
         FROM fuj_jmlp_race_numbers
         WHERE is_active = 1
-        ORDER BY display_number ASC
+        ORDER BY set_number ASC, actual_number ASC
     """)
     rows = db.execute(query).fetchall()
 
@@ -115,7 +115,8 @@ def add_single_race_number(
 ) -> Dict[str, Any]:
     """Add a single race number to a set.
 
-    Body: { "set_number": 1, "actual_number": 201, "display_number": 201 }
+    Body: { "set_number": 1, "actual_number": 201 } - označení (A201) se
+    dopočítá z písmena sady a čísla dresu.
     """
     endpoint = "/api/timekeeper/race-numbers"
     replay = try_get_idempotent_response(
@@ -130,10 +131,13 @@ def add_single_race_number(
 
     set_number = data.get("set_number")
     actual_number = data.get("actual_number")
-    display_number = data.get("display_number")
-    
-    if not all([set_number, actual_number, display_number]):
-        raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_number, display_number")
+
+    if not all([set_number, actual_number]):
+        raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_number")
+    try:
+        display_number = race_number_code(int(set_number), int(actual_number))
+    except ValueError as exc:
+        raise StandardExceptions.bad_request(str(exc)) from exc
 
     duplicate_actual = db.query(models.RaceNumber).filter(
         models.RaceNumber.set_number == set_number,
@@ -144,15 +148,6 @@ def add_single_race_number(
             f"Dresové číslo {actual_number} již v sadě {set_number} existuje"
         )
     
-    # Check display_number uniqueness
-    existing = db.query(models.RaceNumber).filter(
-        models.RaceNumber.display_number == display_number
-    ).first()
-    if existing:
-        raise StandardExceptions.bad_request(
-            f"Zobrazovací číslo {display_number} již existuje (sada {existing.set_number})"
-        )
-
     existing_set_number = db.query(models.RaceNumber).filter(
         models.RaceNumber.set_number == set_number
     ).first()
@@ -170,7 +165,7 @@ def add_single_race_number(
     db.refresh(entry)
 
     response_payload = {
-        "message": f"Přidáno číslo {actual_number} (zobrazení: {display_number}) do sady {set_number}",
+        "message": f"Přidáno číslo {display_number} (dres {actual_number}) do sady {set_number}",
         "id": entry.id,
         "set_color": entry.set_color,
         "actual_number": actual_number,
@@ -255,7 +250,7 @@ def delete_single_race_number(
     
     db.delete(number)
     db.commit()
-    return {"message": f"Smazáno číslo {number.actual_number} (zobrazení: {number.display_number})"}
+    return {"message": f"Smazáno číslo {number.display_number} (dres {number.actual_number})"}
 
 
 @router.put("/race-number-sets/{set_number}")
@@ -297,9 +292,9 @@ def create_race_number_set(
     Body: {
         "set_number": 3,
         "actual_from": 1,
-        "actual_to": 200,
-        "display_from": 401
+        "actual_to": 200
     }
+    Označení čísel je písmeno sady + číslo dresu (sada 3 = C1 ... C200).
     """
     endpoint = "/api/timekeeper/race-number-sets"
     replay = try_get_idempotent_response(
@@ -315,12 +310,13 @@ def create_race_number_set(
     set_number = data.get("set_number")
     actual_from = data.get("actual_from", 1)
     actual_to = data.get("actual_to")
-    display_from = data.get("display_from")
     set_color = _normalize_set_color(data.get("set_color"))
-    
-    if not all([set_number, actual_to, display_from]):
-        raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_to, display_from")
-    
+
+    if not all([set_number, actual_to]):
+        raise StandardExceptions.bad_request("Chybí povinné parametry: set_number, actual_to")
+    if not 1 <= int(set_number) <= MAX_SETS:
+        raise StandardExceptions.bad_request(f"Číslo sady musí být 1-{MAX_SETS} (písmeno A-Z)")
+
     if actual_from > actual_to:
         raise StandardExceptions.bad_request("actual_from musí být menší než actual_to")
     
@@ -331,27 +327,17 @@ def create_race_number_set(
     if existing > 0:
         raise StandardExceptions.bad_request(f"Sada č. {set_number} již existuje ({existing} čísel)")
     
-    # Check display_number overlap
-    count = actual_to - actual_from + 1
-    display_to = display_from + count - 1
-    
-    overlap = db.query(models.RaceNumber).filter(
-        models.RaceNumber.display_number >= display_from,
-        models.RaceNumber.display_number <= display_to
-    ).count()
-    if overlap > 0:
-        raise StandardExceptions.bad_request(
-            f"Zobrazovací čísla {display_from}-{display_to} se překrývají s existujícími ({overlap} konfliktů)"
-        )
-    
+    display_from = race_number_code(set_number, actual_from)
+    display_to = race_number_code(set_number, actual_to)
+
     # Create numbers
     created = 0
-    for i, actual in enumerate(range(actual_from, actual_to + 1)):
+    for actual in range(actual_from, actual_to + 1):
         entry = models.RaceNumber(
             set_number=set_number,
             set_color=set_color,
             actual_number=actual,
-            display_number=display_from + i,
+            display_number=race_number_code(set_number, actual),
         )
         db.add(entry)
         created += 1
@@ -359,7 +345,7 @@ def create_race_number_set(
     db.commit()
 
     response_payload = {
-        "message": f"Vytvořeno {created} závodních čísel v sadě {set_number} (zobrazení: {display_from}-{display_to})",
+        "message": f"Vytvořeno {created} závodních čísel v sadě {set_letter(set_number)} ({display_from}-{display_to})",
         "created": created,
         "set_number": set_number,
         "set_color": set_color,

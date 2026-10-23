@@ -318,7 +318,8 @@ class RaceNumber(Base):
     set_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     set_color: Mapped[str] = mapped_column(String(20), nullable=False, default="rose")
     actual_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    display_number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    # Systémové označení "B12" (písmeno sady + dres), viz services/race_number_codes.py
+    display_number: Mapped[str] = mapped_column(String(8), nullable=False, unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -344,7 +345,7 @@ class StartListEntry(Base):
     category_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category_sex: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     race_number_actual: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    race_number_display: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    race_number_display: Mapped[str | None] = mapped_column(String(8), nullable=True)
     time1: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time2: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time_sum: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)

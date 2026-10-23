@@ -7,11 +7,12 @@ jen práce s daty, takže se to dá volat i odjinud a testovat bez HTTP.
 import json
 from typing import Any, Dict
 
-from sqlalchemy import func, text
+from sqlalchemy import and_, func, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models
+from .race_number_codes import normalize_code
 from ..utils import (
     category_display_sql,
     convert_utf8_field,
@@ -188,7 +189,11 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
     return racer, source_snapshot, True
 
 
-def _get_race_number_by_display(display_number: int, db: Session, require_active: bool = True) -> models.RaceNumber:
+def _get_race_number_by_display(display_number: Any, db: Session, require_active: bool = True) -> models.RaceNumber:
+    try:
+        display_number = normalize_code(display_number)
+    except ValueError as exc:
+        raise StandardExceptions.bad_request(str(exc)) from exc
     race_number = db.query(models.RaceNumber).filter(
         models.RaceNumber.display_number == display_number
     ).first()
@@ -215,7 +220,7 @@ def _resolve_race_number_for_assignment(data: Dict[str, Any], db: Session) -> tu
         display_number = data.get("race_number_display")
         if display_number in ("", None):
             return True, None
-        return True, _get_race_number_by_display(int(display_number), db, require_active=True)
+        return True, _get_race_number_by_display(display_number, db, require_active=True)
 
     if "race_number_id" in data:
         race_number_id = data.get("race_number_id")
@@ -227,20 +232,23 @@ def _resolve_race_number_for_assignment(data: Dict[str, Any], db: Session) -> tu
 
 
 def _get_next_available_race_number_for_race(race_id: int, db: Session) -> models.RaceNumber | None:
-    max_display = db.query(func.max(models.StartListEntry.race_number_display)).filter(
-        models.StartListEntry.race_id == race_id,
-        models.StartListEntry.race_number_display.isnot(None)
-    ).scalar()
+    """Číslo hned za posledním přiděleným v závodě (pořadí sad a dresů: A1..A200, B1..)."""
+    last = db.query(models.RaceNumber).join(
+        models.StartListEntry, models.StartListEntry.race_number_id == models.RaceNumber.id
+    ).filter(
+        models.StartListEntry.race_id == race_id
+    ).order_by(models.RaceNumber.set_number.desc(), models.RaceNumber.actual_number.desc()).first()
 
-    if max_display is None:
-        return db.query(models.RaceNumber).filter(
-            models.RaceNumber.is_active.is_(True)
-        ).order_by(models.RaceNumber.display_number).first()
+    query = db.query(models.RaceNumber).filter(models.RaceNumber.is_active.is_(True))
+    if last is None:
+        return query.order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number).first()
 
-    return db.query(models.RaceNumber).filter(
-        models.RaceNumber.is_active.is_(True),
-        models.RaceNumber.display_number == int(max_display) + 1
-    ).first()
+    # Jen bezprostředně následující číslo, stejně jako dřív "systémové + 1".
+    following = db.query(models.RaceNumber).filter(or_(
+        models.RaceNumber.set_number > last.set_number,
+        and_(models.RaceNumber.set_number == last.set_number, models.RaceNumber.actual_number > last.actual_number),
+    )).order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number).first()
+    return following if following is not None and following.is_active else None
 
 
 def _get_next_available_start_number_for_race(race_id: int, db: Session) -> int:

@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { TimekeeperAPI } from '../../config/timekeeperApi.js';
 import { SET_COLOR_OPTIONS, getSetColorTheme } from '../../utils/raceNumbers.js';
+
+/** Písmeno sady pro systémové označení čísel: sada 1 = A, 2 = B ... (max 26). */
+const setLetter = (setNumber) => {
+  const n = parseInt(setNumber, 10);
+  return n >= 1 && n <= 26 ? String.fromCharCode(64 + n) : '?';
+};
 import { TK_ACCENT, TK_ACCENT_GRADIENT } from './TimekeeperChrome.jsx';
 
 export default function RaceNumbersManager() {
@@ -9,7 +15,7 @@ export default function RaceNumbersManager() {
   const [message, setMessage] = useState(null);
   const [showSetForm, setShowSetForm] = useState(false);
   const [setFormData, setSetFormData] = useState({
-    set_number: '', actual_from: '1', actual_to: '200', display_from: '', set_color: 'rose',
+    set_number: '', actual_from: '1', actual_to: '200', set_color: 'rose',
   });
   const [creating, setCreating] = useState(false);
 
@@ -22,7 +28,7 @@ export default function RaceNumbersManager() {
   // Add single number form
   const [showAddNumber, setShowAddNumber] = useState(false);
   const [addNumberData, setAddNumberData] = useState({
-    actual_number: '', display_number: '',
+    actual_number: '',
   });
 
   useEffect(() => { loadSets(); }, []);
@@ -34,10 +40,9 @@ export default function RaceNumbersManager() {
       setSets(data);
       if (data.length > 0) {
         const maxSet = Math.max(...data.map(s => s.set_number));
-        const maxDisplay = Math.max(...data.map(s => s.max_display));
-        setSetFormData(prev => ({ ...prev, set_number: String(maxSet + 1), display_from: String(maxDisplay + 1) }));
+        setSetFormData(prev => ({ ...prev, set_number: String(maxSet + 1) }));
       } else {
-        setSetFormData(prev => ({ ...prev, set_number: '1', display_from: '1' }));
+        setSetFormData(prev => ({ ...prev, set_number: '1' }));
       }
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst sady čísel' });
@@ -69,10 +74,7 @@ export default function RaceNumbersManager() {
       setShowAddNumber(false);
       const set = sets.find(s => s.set_number === setNumber);
       if (set) {
-        setAddNumberData({
-          actual_number: String(set.max_actual + 1),
-          display_number: String(set.max_display + 1),
-        });
+        setAddNumberData({ actual_number: String(set.max_actual + 1) });
       }
     }
   };
@@ -85,7 +87,6 @@ export default function RaceNumbersManager() {
         set_number: parseInt(setFormData.set_number),
         actual_from: parseInt(setFormData.actual_from),
         actual_to: parseInt(setFormData.actual_to),
-        display_from: parseInt(setFormData.display_from),
         set_color: setFormData.set_color,
       });
       setMessage({ type: 'success', text: result.message });
@@ -124,7 +125,7 @@ export default function RaceNumbersManager() {
   };
 
   const deleteSet = async (setNumber) => {
-    if (!window.confirm(`Opravdu smazat celou sadu č. ${setNumber}?`)) return;
+    if (!window.confirm(`Opravdu smazat celou sadu ${setLetter(setNumber)} (č. ${setNumber})?`)) return;
     try {
       const result = await TimekeeperAPI.delete(`/api/timekeeper/race-number-sets/${setNumber}`);
       setMessage({ type: 'success', text: result.message });
@@ -141,15 +142,11 @@ export default function RaceNumbersManager() {
       const result = await TimekeeperAPI.post('/api/timekeeper/race-numbers', {
         set_number: expandedSet,
         actual_number: parseInt(addNumberData.actual_number),
-        display_number: parseInt(addNumberData.display_number),
       });
       setMessage({ type: 'success', text: result.message });
       loadNumbers(expandedSet);
       loadSets();
-      setAddNumberData({
-        actual_number: String(parseInt(addNumberData.actual_number) + 1),
-        display_number: String(parseInt(addNumberData.display_number) + 1),
-      });
+      setAddNumberData({ actual_number: String(parseInt(addNumberData.actual_number) + 1) });
     } catch (err) {
       setMessage({ type: 'danger', text: err.message || 'Nelze přidat číslo' });
     }
@@ -252,7 +249,7 @@ export default function RaceNumbersManager() {
                 <div className="col-md-3">
                   <label className="form-label small fw-semibold mb-1">Číslo sady</label>
                   <input type="number" className="form-control form-control-sm" value={setFormData.set_number}
-                    onChange={(e) => setSetFormData(prev => ({ ...prev, set_number: e.target.value }))} min="1" required />
+                    onChange={(e) => setSetFormData(prev => ({ ...prev, set_number: e.target.value }))} min="1" max="26" required />
                 </div>
                 <div className="col-md-3">
                   <label className="form-label small fw-semibold mb-1">Reálná od</label>
@@ -263,11 +260,6 @@ export default function RaceNumbersManager() {
                   <label className="form-label small fw-semibold mb-1">Reálná do</label>
                   <input type="number" className="form-control form-control-sm" value={setFormData.actual_to}
                     onChange={(e) => setSetFormData(prev => ({ ...prev, actual_to: e.target.value }))} min="1" required />
-                </div>
-                <div className="col-md-3">
-                  <label className="form-label small fw-semibold mb-1">Zobrazení od</label>
-                  <input type="number" className="form-control form-control-sm" value={setFormData.display_from}
-                    onChange={(e) => setSetFormData(prev => ({ ...prev, display_from: e.target.value }))} min="1" required />
                 </div>
                 <div className="col-12">
                   <label className="form-label small fw-semibold mb-1">Barva sady</label>
@@ -293,10 +285,10 @@ export default function RaceNumbersManager() {
                   </div>
                 </div>
               </div>
-              {setFormData.actual_from && setFormData.actual_to && setFormData.display_from && (
+              {setFormData.set_number && setFormData.actual_from && setFormData.actual_to && (
                 <div className="mt-2 px-2 py-1 rounded small" style={{ background: '#f8f9fa' }}>
-                  Dresy {setFormData.actual_from}–{setFormData.actual_to} → systém{' '}
-                  <strong>{setFormData.display_from}–{parseInt(setFormData.display_from) + (parseInt(setFormData.actual_to) - parseInt(setFormData.actual_from))}</strong>
+                  Dresy {setFormData.actual_from}–{setFormData.actual_to} → označení{' '}
+                  <strong>{setLetter(setFormData.set_number)}{setFormData.actual_from}–{setLetter(setFormData.set_number)}{setFormData.actual_to}</strong>
                   {' '}({parseInt(setFormData.actual_to) - parseInt(setFormData.actual_from) + 1} ks)
                 </div>
               )}
@@ -321,13 +313,13 @@ export default function RaceNumbersManager() {
                 <div className="d-flex align-items-center gap-3">
                   <i className={`bi ${expandedSet === set.set_number ? 'bi-chevron-down' : 'bi-chevron-right'} text-muted`}></i>
                   <span className="badge" style={{ background: getSetColorTheme(set.set_color).solid, fontSize: '0.8rem' }}>
-                    Sada {set.set_number}
+                    Sada {set.letter || setLetter(set.set_number)}
                   </span>
                   <span className="small">
                     <strong>{set.active_count ?? set.count}</strong> aktivních
                     <span className="text-muted ms-1">/ {set.count} celkem</span>
                     <span className="text-muted ms-2">
-                      Dresy {set.min_actual}–{set.max_actual} → Systém {set.min_display}–{set.max_display}
+                      Dresy {set.min_actual}–{set.max_actual} → {set.min_display}–{set.max_display}
                     </span>
                   </span>
                 </div>
@@ -381,11 +373,8 @@ export default function RaceNumbersManager() {
                             value={addNumberData.actual_number}
                             onChange={(e) => setAddNumberData(prev => ({ ...prev, actual_number: e.target.value }))} min="1" required />
                         </div>
-                        <div>
-                          <label className="form-label small mb-0 fw-semibold">Zobrazení</label>
-                          <input type="number" className="form-control form-control-sm" style={{ width: '100px' }}
-                            value={addNumberData.display_number}
-                            onChange={(e) => setAddNumberData(prev => ({ ...prev, display_number: e.target.value }))} min="1" required />
+                        <div className="small text-muted pb-1">
+                          → {setLetter(expandedSet)}{addNumberData.actual_number || '…'}
                         </div>
                         <button type="submit" className="btn btn-sm text-white"
                           style={{ background: TK_ACCENT_GRADIENT, border: 'none', borderRadius: '6px' }}>
@@ -414,7 +403,7 @@ export default function RaceNumbersManager() {
                                 key={n.id}
                                 type="button"
                                 className={`timekeeper-race-number-item ${n.is_active ? 'is-active' : 'is-inactive'}`}
-                                title={`Číslo dresu ${n.actual_number} | Sys. ${n.display_number}`}
+                                title={`Číslo dresu ${n.actual_number} | ${n.display_number}`}
                                 disabled={updatingNumberId === n.id}
                                 onClick={() => toggleNumberActive(n.id, !n.is_active)}
                                 style={{
@@ -427,9 +416,7 @@ export default function RaceNumbersManager() {
                                   background: n.is_active ? getSetColorTheme(n.set_color).solid : '#adb5bd',
                                 }}></span>
                                 <span className="fw-semibold timekeeper-race-number-display">{n.actual_number}</span>
-                                {n.actual_number !== n.display_number && (
-                                  <span className="text-muted timekeeper-race-number-actual">({n.display_number})</span>
-                                )}
+                                <span className="text-muted timekeeper-race-number-actual">({n.display_number})</span>
                               </button>
                             ))}
                           </div>
