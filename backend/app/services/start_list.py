@@ -328,12 +328,10 @@ def _apply_category_snapshot(entry: models.StartListEntry, db: Session) -> None:
 def _apply_race_number_snapshot(entry: models.StartListEntry, race_number: models.RaceNumber | None) -> None:
     if race_number is None:
         entry.race_number_id = None
-        entry.race_number_actual = None
         entry.race_number_display = None
         return
 
     entry.race_number_id = race_number.id
-    entry.race_number_actual = race_number.actual_number
     entry.race_number_display = race_number.display_number
 
 
@@ -420,7 +418,7 @@ def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
                {category_display_sql('cat')} as category_display_name,
-               sl.race_number_actual, sl.race_number_display,
+               CAST(SUBSTRING(sl.race_number_display, 2) AS UNSIGNED) AS race_number_actual, sl.race_number_display,
                rn.set_color, rn.set_number, rac.slcr_id,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
                sl.excluded, sl.updated_at
@@ -440,7 +438,7 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
                sl.racer_name, sl.racer_surname, sl.racer_year, sl.racer_sex,
                sl.club_name, sl.category_name, sl.category_sex,
                {category_display_sql('cat')} as category_display_name,
-               sl.race_number_actual, sl.race_number_display,
+               CAST(SUBSTRING(sl.race_number_display, 2) AS UNSIGNED) AS race_number_actual, sl.race_number_display,
                rn.set_color, rn.set_number, rac.slcr_id,
                sl.time1, sl.time2, sl.time_sum, sl.dnf, sl.dns, sl.dsq, sl.points,
                sl.excluded, sl.updated_at

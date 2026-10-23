@@ -296,7 +296,6 @@ def generate_start_list(
             club_name=racer_row["club_name"],
             category_name=racer_row["category_name"],
             category_sex=racer_row["category_sex"],
-            race_number_actual=race_number.actual_number if race_number else None,
             race_number_display=race_number.display_number if race_number else None,
         )
         db.add(entry)
@@ -733,7 +732,6 @@ def add_manual_start_list_entry(
         club_name=club_name,
         category_name=category_name,
         category_sex=category_sex,
-        race_number_actual=race_number.actual_number if race_number else None,
         race_number_display=race_number.display_number if race_number else None,
     )
     db.add(entry)

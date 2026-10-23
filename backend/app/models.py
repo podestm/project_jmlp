@@ -1,5 +1,6 @@
 from sqlalchemy import Integer, BigInteger, SmallInteger, String, ForeignKey, Date, Boolean, DateTime, UniqueConstraint, Enum, Numeric
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import cast, func
+from sqlalchemy.orm import Mapped, column_property, mapped_column
 from sqlalchemy.types import TypeDecorator
 from .database import Base
 from datetime import datetime, date
@@ -317,16 +318,14 @@ class RaceNumber(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     set_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     set_color: Mapped[str] = mapped_column(String(20), nullable=False, default="rose")
-    actual_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    # Systémové označení "B12" (písmeno sady + dres), viz services/race_number_codes.py
+    # Systémové označení "B12" (písmeno sady + dres), viz services/race_number_codes.py.
+    # Je to jediné číslo v databázi; číslo dresu je označení bez písmena.
     display_number: Mapped[str] = mapped_column(String(8), nullable=False, unique=True)
+    actual_number = column_property(cast(func.substr(display_number, 2), Integer))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    __table_args__ = (
-        UniqueConstraint("set_number", "actual_number", name="uq_race_numbers_set_actual"),
-    )
 
 
 class StartListEntry(Base):
@@ -344,8 +343,9 @@ class StartListEntry(Base):
     club_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category_sex: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
-    race_number_actual: Mapped[int | None] = mapped_column(Integer, nullable=True)
     race_number_display: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    # Číslo dresu = označení bez písmena sady ("B12" -> 12), v databázi není.
+    race_number_actual = column_property(cast(func.substr(race_number_display, 2), Integer))
     time1: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time2: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     time_sum: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)

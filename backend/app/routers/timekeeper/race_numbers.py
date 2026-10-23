@@ -35,8 +35,8 @@ def get_race_number_sets(
                COUNT(*) as count,
                SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
                SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive_count,
-               MIN(actual_number) as min_actual,
-               MAX(actual_number) as max_actual
+               MIN(CAST(SUBSTRING(display_number, 2) AS UNSIGNED)) as min_actual,
+               MAX(CAST(SUBSTRING(display_number, 2) AS UNSIGNED)) as max_actual
         FROM fuj_jmlp_race_numbers
         GROUP BY set_number
         ORDER BY set_number ASC
@@ -65,10 +65,11 @@ def get_race_numbers(
 ) -> List[Dict[str, Any]]:
     """Get all race numbers for a given set."""
     query = text("""
-        SELECT id, set_number, set_color, actual_number, display_number, is_active
+        SELECT id, set_number, set_color, display_number, is_active,
+               CAST(SUBSTRING(display_number, 2) AS UNSIGNED) AS actual_number
         FROM fuj_jmlp_race_numbers
         WHERE set_number = :set_number
-        ORDER BY actual_number ASC
+        ORDER BY CAST(SUBSTRING(display_number, 2) AS UNSIGNED) ASC
     """)
     rows = db.execute(query, {"set_number": set_number}).fetchall()
     
@@ -89,10 +90,11 @@ def get_active_race_number_options(
 ) -> List[Dict[str, Any]]:
     """Get all active race numbers across sets for assignment by system number."""
     query = text("""
-        SELECT id, set_number, set_color, actual_number, display_number, is_active
+        SELECT id, set_number, set_color, display_number, is_active,
+               CAST(SUBSTRING(display_number, 2) AS UNSIGNED) AS actual_number
         FROM fuj_jmlp_race_numbers
         WHERE is_active = 1
-        ORDER BY set_number ASC, actual_number ASC
+        ORDER BY set_number ASC, CAST(SUBSTRING(display_number, 2) AS UNSIGNED) ASC
     """)
     rows = db.execute(query).fetchall()
 
@@ -140,8 +142,7 @@ def add_single_race_number(
         raise StandardExceptions.bad_request(str(exc)) from exc
 
     duplicate_actual = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number,
-        models.RaceNumber.actual_number == actual_number,
+        models.RaceNumber.display_number == display_number,
     ).first()
     if duplicate_actual:
         raise StandardExceptions.bad_request(
@@ -156,7 +157,6 @@ def add_single_race_number(
     entry = models.RaceNumber(
         set_number=set_number,
         set_color=set_color,
-        actual_number=actual_number,
         display_number=display_number,
         is_active=True,
     )
@@ -336,7 +336,6 @@ def create_race_number_set(
         entry = models.RaceNumber(
             set_number=set_number,
             set_color=set_color,
-            actual_number=actual,
             display_number=race_number_code(set_number, actual),
         )
         db.add(entry)

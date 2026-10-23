@@ -96,7 +96,6 @@ def _cisla(db, set_number=1, actual_from=1, actual_to=10, display_from=1,
         cislo = models.RaceNumber(
             set_number=set_number,
             set_color=color,
-            actual_number=actual,
             display_number=race_number_code(set_number, actual),
             is_active=active,
         )
@@ -117,7 +116,6 @@ def _polozka(db, zavod, zavodnik, start_number=None, cislo=None, category_id=Non
         category_id=category_id,
         start_number=start_number,
         race_number_id=cislo.id if cislo else None,
-        race_number_actual=cislo.actual_number if cislo else None,
         race_number_display=cislo.display_number if cislo else None,
         racer_name=jmeno if jmeno is not None else zavodnik.name,
         racer_surname=prijmeni if prijmeni is not None else zavodnik.surname,

@@ -11,6 +11,11 @@ import re
 from typing import Any, Optional
 
 MAX_SETS = 26
+
+
+def actual_from_code_sql(column: str) -> str:
+    """SQL: číslo dresu z označení ("B12" -> 12); NULL zůstane NULL."""
+    return f"CAST(SUBSTRING({column}, 2) AS UNSIGNED)"
 _CODE = re.compile(r"^([A-Z])(\d{1,4})$")
 
 

@@ -171,7 +171,7 @@ def get_live_race(response: Response, db: Session = Depends(get_db)):
     # Vyřazení ze startky (nedorazili) na web nepatří - ani do startovky, ani
     # do pořadí, které si stránka počítá z těchhle řádků.
     entries = db.execute(text(f"""
-        SELECT sl.id, sl.start_number, sl.race_number_actual, sl.race_number_display,
+        SELECT sl.id, sl.start_number, CAST(SUBSTRING(sl.race_number_display, 2) AS UNSIGNED) AS race_number_actual, sl.race_number_display,
                sl.racer_name, sl.racer_surname, sl.racer_year,
                sl.club_name,
                COALESCE({category_display_sql('cat')}, sl.category_name) as category_name,

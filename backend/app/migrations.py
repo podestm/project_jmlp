@@ -61,7 +61,6 @@ _STARTOVKA_SLOUPCE = (
     ("club_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("category_name", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("category_sex", "smallint DEFAULT NULL"),
-    ("race_number_actual", "int DEFAULT NULL"),
     ("race_number_display", "varchar(8) DEFAULT NULL"),
     ("name_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
     ("surname_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
@@ -1081,6 +1080,51 @@ def _m_race_number_codes(conn):
     logger.info("Migrace: systémová čísla jako písmeno sady + dres (B12)")
 
 
+# --------------------------------------------------------------------------
+# 016 - číslo dresu už jen v označení
+#
+# Po migraci 015 je číslo dresu vždy obsažené v označení (B12 -> 12), takže
+# sloupce fuj_jmlp_race_numbers.actual_number a snapshot
+# fuj_jmlp_race_start_list.race_number_actual jsou zbytečné. Aplikace číslo
+# dresu odvozuje (models.RaceNumber.actual_number, CAST(SUBSTRING(..., 2)).
+# Zahodí se jen tehdy, když všude souhlasí s označením - jinak se nic nesmaže.
+# --------------------------------------------------------------------------
+def _m_drop_actual_numbers(conn):
+    if _column_exists(conn, "fuj_jmlp_race_numbers", "actual_number"):
+        mismatch = conn.execute(text("""
+            SELECT COUNT(*) FROM fuj_jmlp_race_numbers
+            WHERE display_number NOT REGEXP '^[A-Z][0-9]+$'
+               OR CAST(SUBSTRING(display_number, 2) AS UNSIGNED) <> actual_number
+        """)).scalar()
+        if mismatch:
+            logger.warning("Migrace 016 přeskočena: %s čísel nesouhlasí s označením", mismatch)
+            return
+        # Indexy nad dresem (v produkci "unique_set_actual", v novějších
+        # instalacích "uq_race_numbers_set_actual") - jinak by po zrušení
+        # sloupce zbyl unikátní index jen nad set_number a ALTER by spadl.
+        indexes = [row[0] for row in conn.execute(text("""
+            SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'fuj_jmlp_race_numbers'
+              AND COLUMN_NAME = 'actual_number'
+        """))]
+        for index in indexes:
+            conn.execute(text(f"ALTER TABLE fuj_jmlp_race_numbers DROP INDEX `{index}`"))
+        conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers DROP COLUMN actual_number"))
+        logger.info("Migrace: fuj_jmlp_race_numbers.actual_number zrušen")
+    if _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_actual"):
+        mismatch = conn.execute(text("""
+            SELECT COUNT(*) FROM fuj_jmlp_race_start_list
+            WHERE race_number_actual IS NOT NULL AND (
+                race_number_display IS NULL
+                OR CAST(SUBSTRING(race_number_display, 2) AS UNSIGNED) <> race_number_actual)
+        """)).scalar()
+        if mismatch:
+            logger.warning("Migrace 016: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch)
+            return
+        conn.execute(text("ALTER TABLE fuj_jmlp_race_start_list DROP COLUMN race_number_actual"))
+        logger.info("Migrace: fuj_jmlp_race_start_list.race_number_actual zrušen")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -1099,6 +1143,7 @@ MIGRATIONS = (
     _m_slcr_member_links,
     _m_course_length_text,
     _m_race_number_codes,
+    _m_drop_actual_numbers,
 )
 
 
