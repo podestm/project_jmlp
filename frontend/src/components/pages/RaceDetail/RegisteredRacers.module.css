@@ -98,3 +98,15 @@
   text-align: center;
   color: var(--ms-ink-body);
 }
+
+/* Filtr klubu a kategorie nad seznamem. */
+.filterField {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+}
+
+.filterResult {
+  min-block-size: var(--ms-target);
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

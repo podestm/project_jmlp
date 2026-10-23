@@ -37,7 +37,7 @@ describe('závodníci v administraci', () => {
     const rows = within(await table()).getAllByRole('row');
     expect(rows).toHaveLength(4);
     expect(rows[1]).toHaveTextContent('Novák MatyášMuž2013Starší žáciSKI KLUB JUNIOR BRNO204118');
-    expect(rows[3]).toHaveTextContent('Říha OndřejMuž2012–Bez klubu–');
+    expect(rows[3]).toHaveTextContent('Říha OndřejMuž2012Bez klubuUpravit');
     expect(within(rows[1]).getByRole('link', { name: 'Novák Matyáš' })).toHaveAttribute('href', 'https://evidence.czech-ski.com/clenove/7/novak-matyas');
     expect(within(rows[3]).queryByRole('link')).not.toBeInTheDocument();
     expect(screen.getByText(/Zobrazeno/)).toHaveTextContent('Zobrazeno 3 z 3');

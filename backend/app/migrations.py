@@ -1047,6 +1047,30 @@ def _m_season_current(conn):
     logger.info("Migrace: fuj_jmlp_season.active -> is_current, aktuálních sezón: %s", flagged)
 
 
+# --------------------------------------------------------------------------
+# 015 - délka trati jako text
+#
+# LiZa má v hlavičce listiny délku trati volným textem ("400m, 7 stanovišť",
+# "350,700,1050,1500,2000,2500 m"); číslo v metrech to neuneslo. Stávající
+# čísla zůstanou (120 -> "120"), tisk k samotnému číslu dál doplní "m".
+# --------------------------------------------------------------------------
+def _m_course_length_text(conn):
+    if not _column_exists(conn, "fuj_jmlp_race_run", "course_length_m"):
+        return
+    column_type = conn.execute(text("""
+        SELECT DATA_TYPE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'fuj_jmlp_race_run'
+          AND COLUMN_NAME = 'course_length_m'
+    """)).scalar()
+    if column_type == "varchar":
+        return
+    conn.execute(text(
+        "ALTER TABLE fuj_jmlp_race_run MODIFY course_length_m VARCHAR(60) "
+        "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL"
+    ))
+    logger.info("Migrace: fuj_jmlp_race_run.course_length_m jako text")
+
+
 MIGRATIONS = (
     _m_legacy_schema,
     _m_registration_club_request_note,
@@ -1064,6 +1088,7 @@ MIGRATIONS = (
     _m_slcr_applied,
     _m_slcr_member_links,
     _m_season_current,
+    _m_course_length_text,
 )
 
 

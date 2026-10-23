@@ -19,7 +19,7 @@ const DETAIL = {
   race_director: 'Ing. Tomáš Malík',
   technical_delegate: null,
   chief_timekeeper: null,
-  runs: [{ run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: 320 }],
+  runs: [{ run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: '320' }],
 };
 
 const renderScreen = () => render(<MemoryRouter><RaceHeaderForm /></MemoryRouter>);
@@ -47,12 +47,17 @@ describe('detail závodu', () => {
     expect(screen.getByText('Pořádající klub nemá nahrané logo')).toBeInTheDocument();
 
     await userEvent.type(screen.getByLabelText('Počet branek', { selector: '#kolo-2-gates_count' }), '20');
+    const length = screen.getByLabelText('Délka trati', { selector: '#kolo-2-course_length_m' });
+    expect(length).toHaveAttribute('type', 'text');
+    expect(length).toHaveAttribute('maxLength', '60');
+    await userEvent.type(length, '400m, 7 stanovišť');
     await userEvent.click(screen.getByRole('button', { name: 'Uložit údaje závodu' }));
 
     expect(api.get).toHaveBeenCalledWith('/api/timekeeper/races/7/detail');
     const [url, payload] = api.put.mock.calls[0];
     expect(url).toBe('/api/timekeeper/races/7/detail');
-    expect(payload.runs[1]).toMatchObject({ run_number: 2, gates_count: 20 });
+    expect(payload.runs[1]).toMatchObject({ run_number: 2, gates_count: 20, course_length_m: '400m, 7 stanovišť' });
+    expect(payload.runs[0].course_length_m).toBe('320');
     expect(await screen.findByText('Údaje závodu uloženy')).toBeInTheDocument();
   });
 
@@ -66,6 +71,17 @@ describe('detail závodu', () => {
 
     api.get.mockResolvedValue(DETAIL);
     await userEvent.click(screen.getByRole('button', { name: 'Zkusit znovu' }));
+    expect(await screen.findByLabelText('Ředitel závodu')).toHaveValue('Ing. Tomáš Malík');
+  });
+
+  it('bez dat v zařízení se po návratu signálu načte samo', async () => {
+    localStorage.setItem(SELECTED_RACE_KEY, '7');
+    api.get.mockRejectedValue(new Error('Offline režim: data nejsou dostupná v lokální cache.'));
+    renderScreen();
+    await screen.findByText('Údaje závodu nejsou v zařízení');
+
+    api.get.mockResolvedValue(DETAIL);
+    window.dispatchEvent(new Event('online'));
     expect(await screen.findByLabelText('Ředitel závodu')).toHaveValue('Ing. Tomáš Malík');
   });
 });

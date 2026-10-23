@@ -391,10 +391,9 @@ def test_novy_zavodnik_bez_rocniku_se_neulozi(client, db):
 
 
 def test_prihlaska_bez_klubu_i_bez_poznamky_se_neulozi(client, db, klient_jako_v_provozu):
-    """CHYBA: přihláška se sice neuloží, ale místo 422 s českou hláškou
-    "Musíte vybrat klub nebo uvést poznámku" dostane uživatel 500 a obecnou
-    chybu - obsluha validačních chyb v app/main.py neumí zabalit výjimku
-    z vlastního validátoru. Test drží současné chování."""
+    """Přihláška se neuloží a uživatel dostane 422 s českou hláškou. Dřív tu
+    byla 500 - obsluha validačních chyb v app/main.py neuměla zabalit výjimku
+    z vlastního validátoru."""
     zavod = _zavod(db)
 
     odpoved = klient_jako_v_provozu.post("/registrations/", json={
@@ -402,8 +401,8 @@ def test_prihlaska_bez_klubu_i_bez_poznamky_se_neulozi(client, db, klient_jako_v
         "racer_year": 2010, "racer_sex": 1,
     })
 
-    assert odpoved.status_code == 500
-    assert odpoved.json() == {"detail": "Interní chyba serveru"}
+    assert odpoved.status_code == 422
+    assert odpoved.json()["detail"][0]["msg"] == "Musíte vybrat klub nebo uvést poznámku"
     assert db.query(models.Racer).count() == 0
     assert _pocet_registraci(db, zavod.id) == 0
 
@@ -416,8 +415,7 @@ def test_prazdna_poznamka_o_klubu_se_bere_jako_nevyplnena(client, db, klient_jak
         "racer_year": 2010, "racer_sex": 1, "club_request_note": "   ",
     })
 
-    # Stejná chyba jako výš - validátor projde, ale odpověď se nezabalí.
-    assert odpoved.status_code == 500
+    assert odpoved.status_code == 422
     assert db.query(models.Racer).count() == 0
 
 
@@ -461,8 +459,7 @@ def test_prihlaska_do_zruseneho_klubu_se_odmitne(client, db):
 def test_jmeno_zacinajici_rovnitkem_se_neulozi(client, db, klient_jako_v_provozu):
     """Ochrana proti CSV injection - jméno se exportuje do CSV pro pořadatele.
 
-    Zápis se zastaví, ale odpověď je zase 500 místo 422 (viz
-    test_prihlaska_bez_klubu_i_bez_poznamky_se_neulozi)."""
+    Zápis se zastaví s chybou 422."""
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
 
@@ -470,7 +467,7 @@ def test_jmeno_zacinajici_rovnitkem_se_neulozi(client, db, klient_jako_v_provozu
         zavod.id, racer_name="=SUM(A1:A9)", racer_surname="Novak",
         racer_year=2010, racer_sex=1, club_id=klub.id))
 
-    assert odpoved.status_code == 500
+    assert odpoved.status_code == 422
     assert db.query(models.Racer).count() == 0
     assert _pocet_registraci(db, zavod.id) == 0
 
@@ -1019,16 +1016,15 @@ def test_zadost_nelze_vyridit_zrusenym_klubem(client, db, admin_headers):
 
 def test_vyrizeni_bez_klubu_i_bez_nazvu_zadost_nezmeni(client, db, admin_headers,
                                                        klient_jako_v_provozu):
-    """Stejná chyba jako u přihlášky - vlastní validátor skončí 500 místo 422
-    s hláškou "Musíte vybrat existující klub nebo zadat název nového".
-    Podstatné je, že žádost zůstane nevyřízená."""
+    """Vlastní validátor skončí 422 s českou hláškou a žádost zůstane
+    nevyřízená."""
     zavod = _zavod(db)
     zadost = _zadost(db, zavod)
 
     odpoved = klient_jako_v_provozu.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
                                          json={"new_club_name": "   "}, headers=admin_headers)
 
-    assert odpoved.status_code == 500
+    assert odpoved.status_code == 422
     assert db.query(models.Club).count() == 0
     _obnov(db)
     assert db.query(models.Registration).filter(
@@ -1169,3 +1165,23 @@ def test_jiny_rocnik_zalozi_noveho_zavodnika(client, db):
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
     assert sorted(z.year for z in db.query(models.Racer).filter(models.Racer.surname == "Junova")) == [2016, 2022]
+
+
+def test_seznam_prihlasenych_ma_kategorii_zeny_a_muzi_zvlast(client, db, admin_headers):
+    """Kategorie pro filtr v administraci - podle ročníku a pohlaví."""
+    zavod = _zavod(db)
+    for name, sex in (("Přípravka dívky", 2), ("Přípravka chlapci", 1)):
+        db.add(models.Category(name="U10", display_name=name, min_birth_year=2017,
+                               max_birth_year=2018, sex=sex, active=True))
+    db.commit()
+    divka = _zavodnik(db, name="Anna", surname="A", year=2017, sex=2)
+    chlapec = _zavodnik(db, name="Petr", surname="B", year=2018, sex=1)
+    dospely = _zavodnik(db, name="Karel", surname="C", year=1980, sex=1)
+    for zavodnik in (divka, chlapec, dospely):
+        _registrace(db, zavod.id, zavodnik.id)
+
+    odpoved = client.get(f"/api/admin/races/{zavod.id}/registrations", headers=admin_headers)
+
+    assert odpoved.status_code == 200
+    kategorie = {r["firstName"].strip(): r["category_name"] for r in odpoved.json()}
+    assert kategorie == {"Anna": "Přípravka dívky", "Petr": "Přípravka chlapci", "Karel": None}

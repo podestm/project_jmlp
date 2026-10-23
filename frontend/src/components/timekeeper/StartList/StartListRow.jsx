@@ -36,7 +36,7 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
               <Badge tone="navy" size="sm">vyřazen</Badge>
             )}
           </span>
-          <span className={styles.club}>{entry.club_name || '—'}</span>
+          {entry.club_name && <span className={styles.club}>{entry.club_name}</span>}
         </span>
       </td>
       <td data-numeric className={styles.year}>{entry.racer_year}</td>

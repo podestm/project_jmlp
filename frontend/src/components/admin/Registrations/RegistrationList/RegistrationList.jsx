@@ -8,6 +8,7 @@ function RegistrationRow({ registration, showClub }) {
   const details = [
     showClub && clubLabel(registration.club_name),
     sexLabel(registration.sex),
+    registration.category_name,
     registration.idSlcr && `SLČR ${registration.idSlcr}`,
     formatRegisteredAt(registration.registration_date),
   ].filter(Boolean).join(' · ');

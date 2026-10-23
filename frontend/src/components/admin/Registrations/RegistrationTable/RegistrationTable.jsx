@@ -9,7 +9,7 @@ import styles from './RegistrationTable.module.css';
  */
 export default function RegistrationTable({ groups }) {
   const showClub = groups.some((group) => !group.label);
-  const columns = showClub ? 6 : 5;
+  const columns = showClub ? 7 : 6;
 
   return (
     <TableScroll label="Přihlášení závodníci" className={styles.wrap}>
@@ -19,6 +19,7 @@ export default function RegistrationTable({ groups }) {
             <th scope="col">Závodník</th>
             <th scope="col" className={styles.narrow}>Ročník</th>
             <th scope="col" className={styles.narrow}>Pohlaví</th>
+            <th scope="col">Kategorie</th>
             <th scope="col" className={styles.narrow}>SLČR</th>
             {showClub && <th scope="col">Klub</th>}
             <th scope="col" data-align="end">Přihlášen</th>
@@ -47,7 +48,8 @@ export default function RegistrationTable({ groups }) {
                     </td>
                     <td data-numeric>{registration.birthYear}</td>
                     <td>{sexLabel(registration.sex) && <Badge size="sm">{sexLabel(registration.sex)}</Badge>}</td>
-                    <td className={styles.mono}>{registration.idSlcr || '–'}</td>
+                    <td>{registration.category_name}</td>
+                    <td className={styles.mono}>{registration.idSlcr}</td>
                     {showClub && <td>{clubLabel(registration.club_name)}</td>}
                     <td data-align="end" className={styles.mono}>{formatRegisteredAt(registration.registration_date)}</td>
                   </tr>

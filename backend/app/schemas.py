@@ -22,6 +22,14 @@ def _reject_formula_prefix(v):
     return v
 
 
+def _empty_slcr_id(v):
+    """Starší záznamy mají místo chybějícího ID SLČR pomlčku ("-") nebo nulu;
+    formulář je při úpravě pošle zpátky. Pomlčka, nula i prázdný text = bez ID."""
+    if isinstance(v, str) and (v.strip() in ('', '-') or set(v.strip()) == {'0'}):
+        return None
+    return v.strip() if isinstance(v, str) else v
+
+
 class RacerCreate(BaseModel):
     firstName: str  # Will be mapped to 'name' field
     lastName: str   # Will be mapped to 'surname' field
@@ -29,6 +37,11 @@ class RacerCreate(BaseModel):
     birthYear: int  # Will be mapped to 'year' field
     club_id: Optional[int] = None
     idSlcr: Optional[str] = None  # Will be mapped to 'slcr_id' field
+
+    @field_validator('idSlcr', mode='before')
+    @classmethod
+    def empty_slcr_id(cls, v):
+        return _empty_slcr_id(v)
 
     @field_validator('firstName', 'lastName', 'idSlcr')
     @classmethod
@@ -149,12 +162,20 @@ class RaceRunIn(BaseModel):
     gates_count: Optional[int] = None       # BRANEK
     conditions: Optional[str] = None        # PODMÍNKY
     start_time: Optional[str] = None        # ČAS STARTU ("10:00")
-    course_length_m: Optional[int] = None   # DÉLKA TRATI
+    course_length_m: Optional[str] = None   # DÉLKA TRATI ("400m, 7 stanovišť")
 
-    @field_validator('gates_count', 'course_length_m', mode='before')
+    @field_validator('gates_count', mode='before')
     @classmethod
     def empty_to_none(cls, v):
         return None if v in ('', None) else v
+
+    @field_validator('course_length_m', mode='before')
+    @classmethod
+    def length_text(cls, v):
+        if v is None:
+            return None
+        text = str(v).strip()
+        return text[:60] or None
 
 
 class RaceRunOut(RaceRunIn):
@@ -211,6 +232,11 @@ class RegistrationCreate(BaseModel):
     # Klub - buď ID existujícího nebo poznámka pro admina
     club_id: Optional[int] = None
     club_request_note: Optional[str] = None
+
+    @field_validator('racer_slcr_id', mode='before')
+    @classmethod
+    def empty_slcr_id(cls, v):
+        return _empty_slcr_id(v)
 
     @field_validator('racer_name', 'racer_surname', 'racer_slcr_id')
     @classmethod

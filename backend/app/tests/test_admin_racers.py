@@ -204,3 +204,38 @@ def test_seznam_zavodniku_odkazuje_na_kartu_clena_slcr(client, db, admin_headers
     assert urls[podle_jmena.id] == "https://evidence.czech-ski.com/clenove/5038/podestova-renata"
     assert urls[bez_diakritiky.id] is None
     assert urls[jiny_rocnik.id] is None
+
+
+def test_uprava_zavodnika_s_pomlckou_misto_id_slcr(client, db, admin_headers, kategorie):
+    """806 starších záznamů má místo chybějícího ID SLČR pomlčku. Formulář ji
+    pošle zpátky a ochrana proti vzorcům (nic nesmí začínat "-") pak
+    zablokovala jakoukoli úpravu - ani příjmení, ani oddíl nešlo změnit."""
+    klub = _klub(db)
+    racer = _zavodnik(db, surname="Wolf", slcr_id="-")
+    odpoved = client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "Wolff", "sex": 1, "birthYear": 2010,
+        "club_id": klub.id, "idSlcr": "-",
+    })
+    assert odpoved.status_code == 200, odpoved.text
+    db.expire_all()
+    ulozeny = db.get(models.Racer, racer.id)
+    assert (ulozeny.surname.strip(), ulozeny.club_id, ulozeny.slcr_id) == ("Wolff", klub.id, None)
+
+
+def test_neplatna_hodnota_je_chyba_422_ne_500(client, db, admin_headers, kategorie):
+    racer = _zavodnik(db)
+    odpoved = client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "=SUM(A1)", "sex": 1, "birthYear": 2010,
+    })
+    assert odpoved.status_code == 422
+    assert "nesmí začínat" in odpoved.json()["detail"][0]["msg"]
+
+
+def test_nula_misto_id_slcr_se_ulozi_jako_prazdne(client, db, admin_headers, kategorie):
+    racer = _zavodnik(db, slcr_id="0")
+    odpoved = client.put(f"/api/admin/racers/{racer.id}", headers=admin_headers, json={
+        "firstName": "Jan", "lastName": "Novak", "sex": 1, "birthYear": 2010, "idSlcr": "0",
+    })
+    assert odpoved.status_code == 200, odpoved.text
+    db.expire_all()
+    assert db.get(models.Racer, racer.id).slcr_id is None

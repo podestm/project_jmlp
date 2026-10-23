@@ -4,11 +4,13 @@ import { clubLabel } from '../registrations.js';
 import styles from './RegistrationFilters.module.css';
 
 /**
- * Hledání, filtr klubu a řazení přihlášek; při aktivním filtru řádek
+ * Hledání, filtr klubu a kategorie a řazení přihlášek; při aktivním filtru řádek
  * „Zobrazeno X z Y“ s tlačítkem Zrušit filtr. Export CSV je u závodu
  * ve správě závodů – tady jen odkaz (AdminPrihlasky).
  */
-export default function RegistrationFilters({ filter, onFilterChange, sort, onSortChange, clubs, shown, total, filtered, onReset }) {
+export default function RegistrationFilters({
+  filter, onFilterChange, sort, onSortChange, clubs, categories, shown, total, filtered, onReset,
+}) {
   const set = (key) => (event) => onFilterChange({ ...filter, [key]: event.target.value });
 
   return (
@@ -21,6 +23,12 @@ export default function RegistrationFilters({ filter, onFilterChange, sort, onSo
           <Select size="sm" value={filter.club} onChange={set('club')}>
             <option value="">Všechny kluby</option>
             {clubs.map((club) => <option key={club} value={club}>{clubLabel(club)}</option>)}
+          </Select>
+        </Field>
+        <Field label="Kategorie" className={styles.select}>
+          <Select size="sm" value={filter.category} onChange={set('category')}>
+            <option value="">Všechny kategorie</option>
+            {categories.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </Select>
         </Field>
         <Field label="Řazení" className={styles.select}>

@@ -118,8 +118,11 @@ function drawRaceHeader(canvas, header, runCount) {
   headerRow(canvas, { label: 'BRANEK', labelBase: 191.76, boxTop: 182.16, boxBottom: 194.4, valueBase: 191.76, values: perRun('gates_count') });
   headerRow(canvas, { label: 'PODMÍNKY', labelBase: 207.6, boxTop: 199.44, boxBottom: 211.68, valueBase: 209.04, values: perRun('conditions') });
   headerRow(canvas, { label: 'ČAS STARTU', labelBase: 223.44, boxTop: 216.0, boxBottom: 228.24, valueBase: 225.6, values: perRun('start_time') });
-  // Délka trati je v LiZe jedna pro celý závod.
-  const length = perRun('course_length_m', 'm').find(Boolean) || '';
+  // Délka trati je v LiZe jedna pro celý závod. Samotné číslo jsou metry
+  // ("120" -> "120m"), jinak volný text jako v LiZe ("400m, 7 stanovišť").
+  const length = perRun('course_length_m')
+    .map((value) => (/^\d+$/.test(String(value).trim()) ? `${String(value).trim()}m` : value))
+    .find(Boolean) || '';
   headerRow(canvas, { label: 'DÉLKA TRATI', labelBase: 239.28, boxTop: 232.56, boxBottom: 244.8, valueBase: 242.16, values: [length], wide: true });
 }
 

@@ -195,7 +195,9 @@ class RaceRun(Base):
         String(120, collation='utf8mb4_unicode_ci'), nullable=True)
     # Jen popisek do listiny ("10:00") - jako TIME by z překlepu byla chyba 500.
     start_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    course_length_m: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Text jako v LiZe ("400m, 7 stanovišť"); samotné číslo = metry.
+    course_length_m: Mapped[str | None] = mapped_column(
+        String(60, collation='utf8mb4_unicode_ci'), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("race_id", "run_number", name="uq_race_run"),

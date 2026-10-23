@@ -165,8 +165,9 @@ def rank_rows(rows: Sequence[StandingRow], final: bool = False) -> List[Standing
 
     Nejdřív klasifikovaní podle bodů a pravidel pro shodu, plná shoda dělí
     místo (1., 2., 2., 4.). Za nimi bez pořadí: v celkových výsledcích ti, kdo
-    na sněhu startovali bez bodu (podle abecedy), a nakonec ti, kdo jeli jen
-    přípravné závody (podle bodů, které by se jim započetly).
+    na sněhu startovali bez bodu, a nakonec ti, kdo jeli jen přípravné závody.
+    I ti bez pořadí se řadí podle bodů a stejných pravidel pro shodu (u
+    přípravných rozhodne součet bodů ze všech závodů) - abeceda až nakonec.
     """
     for row in rows:
         score_row(row)
@@ -182,7 +183,7 @@ def rank_rows(rows: Sequence[StandingRow], final: bool = False) -> List[Standing
         previous_key = key
 
     unclassified = sorted((row for row in rows if not row.classified(final)),
-                          key=lambda row: (not row.raced_on_snow, -row.total, by_name(row)))
+                          key=lambda row: (not row.raced_on_snow, _tie_break_key(row, width), by_name(row)))
     for row in unclassified:
         row.rank = None
     return classified + unclassified

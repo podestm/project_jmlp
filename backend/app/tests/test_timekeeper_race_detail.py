@@ -107,3 +107,11 @@ def test_detail_nese_obrazek_sponzoru(client, db, zavod, timekeeper_headers):
 
     detail = client.get(f"/api/timekeeper/races/{zavod.id}/detail", headers=timekeeper_headers).json()
     assert detail["sponsors_url"] == "/uploads/documents/sponzori-abc.png"
+
+
+def test_delka_trati_je_text_jako_v_lize(client, zavod, timekeeper_headers):
+    ulozeno = _uloz(client, zavod, timekeeper_headers, {
+        "runs": [{"run_number": 1, "course_length_m": "400m, 7 stanovišť"},
+                 {"run_number": 2, "course_length_m": 350}],
+    })
+    assert [kolo["course_length_m"] for kolo in ulozeno["runs"]] == ["400m, 7 stanovišť", "350"]

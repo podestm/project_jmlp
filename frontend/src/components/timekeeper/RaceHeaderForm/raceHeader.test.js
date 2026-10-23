@@ -5,7 +5,7 @@ const detail = {
   race_director: 'Ing. Tomáš Malík',
   technical_delegate: null,
   chief_timekeeper: '',
-  runs: [{ run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: 320 }],
+  runs: [{ run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: '320' }],
 };
 
 describe('hlavička závodu', () => {
@@ -24,8 +24,17 @@ describe('hlavička závodu', () => {
     const payload = toPayload(form);
     expect(payload.race_director).toBeNull();
     expect(payload.runs[0]).toEqual({
-      run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: 320,
+      run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: '320',
     });
     expect(payload.runs[1]).toMatchObject({ gates_count: 20, course_setter: null, course_length_m: null });
+  });
+
+  it('délka trati je volný text: ořízne mezery, prázdná je null', () => {
+    const form = toForm(detail);
+    form.runs[0].course_length_m = '  400m, 7 stanovišť ';
+    form.runs[1].course_length_m = '   ';
+    const payload = toPayload(form);
+    expect(payload.runs[0].course_length_m).toBe('400m, 7 stanovišť');
+    expect(payload.runs[1].course_length_m).toBeNull();
   });
 });

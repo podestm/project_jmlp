@@ -14,10 +14,10 @@ const RACE = {
 };
 
 const REGISTRATIONS = [
-  { registration_id: 1, firstName: 'Matyáš', lastName: 'Novák', sex: 'M', birthYear: 2013, idSlcr: '204118', club_name: 'SKI KLUB JUNIOR BRNO', registration_date: '2026-09-23T14:02:00' },
-  { registration_id: 2, firstName: 'Eliška', lastName: 'Nováková', sex: 'Z', birthYear: 2016, idSlcr: null, club_name: 'SKI KLUB JUNIOR BRNO', registration_date: '2026-09-22T18:50:00' },
-  { registration_id: 3, firstName: 'Tereza', lastName: 'Dvořáková', sex: 'Z', birthYear: 2016, idSlcr: '205230', club_name: 'FreeSki Academy Brno', registration_date: '2026-09-22T19:15:00' },
-  { registration_id: 4, firstName: 'Viktorie', lastName: 'Malá', sex: 'Z', birthYear: 2015, idSlcr: null, club_name: 'Nový Klub', registration_date: null },
+  { registration_id: 1, firstName: 'Matyáš', lastName: 'Novák', sex: 'M', birthYear: 2013, idSlcr: '204118', club_name: 'SKI KLUB JUNIOR BRNO', registration_date: '2026-09-23T14:02:00', category_id: 5, category_name: 'Starší žáci', category_order: 6 },
+  { registration_id: 2, firstName: 'Eliška', lastName: 'Nováková', sex: 'Z', birthYear: 2016, idSlcr: null, club_name: 'SKI KLUB JUNIOR BRNO', registration_date: '2026-09-22T18:50:00', category_id: 2, category_name: 'Předžákyně', category_order: 1 },
+  { registration_id: 3, firstName: 'Tereza', lastName: 'Dvořáková', sex: 'Z', birthYear: 2016, idSlcr: '205230', club_name: 'FreeSki Academy Brno', registration_date: '2026-09-22T19:15:00', category_id: 2, category_name: 'Předžákyně', category_order: 1 },
+  { registration_id: 4, firstName: 'Viktorie', lastName: 'Malá', sex: 'Z', birthYear: 2015, idSlcr: null, club_name: 'Nový Klub', registration_date: null, category_id: null, category_name: null, category_order: null },
 ];
 
 const respond = (registrations, race = RACE) => {
@@ -86,6 +86,32 @@ describe('přihlášky k závodu', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Zrušit filtr' })[0]);
     expect(screen.queryByText(/Zobrazeno/)).not.toBeInTheDocument();
     expect(screen.getByRole('table', { name: 'Přihlášení závodníci' })).toBeInTheDocument();
+  });
+
+  it('filtr kategorie v pořadí závodu, Bez kategorie na konci; sloupec Kategorie', async () => {
+    renderScreen();
+    const table = await screen.findByRole('table', { name: 'Přihlášení závodníci' });
+    const headers = within(table).getAllByRole('columnheader').map((th) => th.textContent);
+    expect(headers.indexOf('Kategorie')).toBe(headers.indexOf('SLČR') - 1);
+    expect(within(table).getByText('Starší žáci')).toBeInTheDocument();
+
+    const select = screen.getByLabelText('Kategorie');
+    expect(within(select).getAllByRole('option').map((o) => o.textContent))
+      .toEqual(['Všechny kategorie', 'Předžákyně', 'Starší žáci', 'Bez kategorie']);
+
+    await userEvent.selectOptions(select, 'none');
+    expect(screen.getByText(/Zobrazeno/)).toHaveTextContent('Zobrazeno 1 z 4');
+    expect(within(table).getByText('Malá Viktorie')).toBeInTheDocument();
+
+    await userEvent.selectOptions(select, '2');
+    await userEvent.selectOptions(screen.getByLabelText('Klub'), 'FreeSki Academy Brno');
+    expect(screen.getByText(/Zobrazeno/)).toHaveTextContent('Zobrazeno 1 z 4');
+    expect(within(table).getByText('Dvořáková Tereza')).toBeInTheDocument();
+    expect(within(table).queryByText('Nováková Eliška')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Zrušit filtr' }));
+    expect(screen.getByLabelText('Kategorie')).toHaveValue('');
+    expect(screen.getByLabelText('Klub')).toHaveValue('');
   });
 
   it('bez přihlášek ukáže prázdný stav', async () => {

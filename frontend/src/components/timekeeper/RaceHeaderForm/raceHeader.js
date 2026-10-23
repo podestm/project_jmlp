@@ -22,7 +22,7 @@ export const toForm = (detail) => ({
 const textOrNull = (value) => String(value).trim() || null;
 const numberOrNull = (value) => (value === '' ? null : Number(value));
 
-/** Tělo PUT: prázdné texty a čísla jako null. */
+/** Tělo PUT: prázdné texty a čísla jako null. Délka trati je volný text (400 i „400m, 7 stanovišť“). */
 export const toPayload = (form) => ({
   race_director: form.race_director.trim() || null,
   technical_delegate: form.technical_delegate.trim() || null,
@@ -33,6 +33,6 @@ export const toPayload = (form) => ({
     gates_count: numberOrNull(run.gates_count),
     conditions: textOrNull(run.conditions),
     start_time: textOrNull(run.start_time),
-    course_length_m: numberOrNull(run.course_length_m),
+    course_length_m: textOrNull(run.course_length_m),
   })),
 });

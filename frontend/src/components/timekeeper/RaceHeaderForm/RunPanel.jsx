@@ -6,7 +6,14 @@ const FIELDS = [
   { key: 'course_setter', label: 'Stavitel trati', hint: 'Tiskne se v hlavičce.', size: 'wide' },
   { key: 'gates_count', label: 'Počet branek', hint: 'Celé číslo.', number: true },
   { key: 'start_time', label: 'Čas startu', hint: 'Volný text.', placeholder: '10:00' },
-  { key: 'course_length_m', label: 'Délka trati (m)', hint: 'V metrech.', number: true },
+  {
+    key: 'course_length_m',
+    label: 'Délka trati',
+    hint: 'Samotné číslo v metrech, jinak volný text.',
+    placeholder: 'např. 400 nebo 400m, 7 stanovišť',
+    title: 'Samotné číslo se vytiskne v metrech (400 → 400m), jinak se text vytiskne, jak je',
+    maxLength: 60,
+  },
   { key: 'conditions', label: 'Podmínky', hint: 'Povrch, počasí, teplota.', placeholder: 'např. zataženo', size: 'grow' },
 ];
 
@@ -31,6 +38,8 @@ export default function RunPanel({ run, onChange }) {
               min={field.number ? '0' : undefined}
               mono={field.number}
               placeholder={field.placeholder}
+              title={field.title}
+              maxLength={field.maxLength}
               value={run[field.key]}
               onChange={(e) => onChange(n, field.key, e.target.value)}
             />

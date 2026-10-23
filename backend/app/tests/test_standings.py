@@ -115,6 +115,19 @@ def test_shoda_pak_soucet_bodu_ze_vsech_zavodu():
     assert [r.surname for r in rank_rows([min_, vic])] == ["Víc", "Míň"]
 
 
+def test_bez_poradi_se_pri_shode_radi_podle_pomocnych_kriterii_ne_abecedy():
+    """Průběžné pořadí na podzim: jen přípravné závody, nikdo nemá místo.
+    Při shodě započtených bodů rozhoduje součet ze všech závodů (F.2 bod 3)."""
+    junova = _radek("Junová", _vysledek(P1, 1, 100), _vysledek(P2, 1, 100))
+    mertova = _radek("Mertová", _vysledek(P1, 1, 100))
+    ryskova = _radek("Ryšková", _vysledek(P1, 2, 80), _vysledek(P2, 1, 100), _vysledek(SeasonRace(id=8, kind=PREP, datum=date(2025, 10, 18)), 3, 45))
+
+    radky = rank_rows([junova, mertova, ryskova])
+
+    assert [r.surname for r in radky] == ["Ryšková", "Junová", "Mertová"]
+    assert all(r.rank is None for r in radky)
+
+
 def test_shoda_pak_umisteni_ve_finale():
     finale_lepsi = _radek("Finále", _vysledek(S1, 3, 60), _vysledek(F1, 3, 60))
     finale_horsi = _radek("Bez", _vysledek(F1, 3, 60), _vysledek(S1, 3, 60))

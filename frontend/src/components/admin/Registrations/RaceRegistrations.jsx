@@ -10,7 +10,7 @@ import RegistrationStats from './RegistrationStats/RegistrationStats.jsx';
 import RegistrationTable from './RegistrationTable/RegistrationTable.jsx';
 import WaitingClubNotice from './WaitingClubNotice/WaitingClubNotice.jsx';
 import {
-  EMPTY_FILTER, clubOptions, filterRegistrations, groupRegistrations, isFiltered, raceMeta, registrationStats,
+  EMPTY_FILTER, categoryOptions, clubOptions, filterRegistrations, groupRegistrations, isFiltered, raceMeta, registrationStats,
 } from './registrations.js';
 import { useAdminRaceRegistrations } from './useAdminRaceRegistrations.js';
 import styles from './RaceRegistrations.module.css';
@@ -31,6 +31,7 @@ function RegistrationsBody({ registrations }) {
         sort={sort}
         onSortChange={setSort}
         clubs={clubOptions(registrations)}
+        categories={categoryOptions(registrations)}
         shown={shown.length}
         total={registrations.length}
         filtered={isFiltered(filter)}
@@ -40,7 +41,7 @@ function RegistrationsBody({ registrations }) {
         <EmptyState
           icon="search-x"
           title="Filtru nikdo neodpovídá"
-          hint="Zkuste jiné jméno nebo klub."
+          hint="Zkuste jiné jméno, klub nebo kategorii."
           action={<Button size="sm" onClick={reset}>Zrušit filtr</Button>}
         />
       ) : (

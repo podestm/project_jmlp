@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  clubOptions, filterRegistrations, formatRegisteredAt, groupRegistrations, raceMeta, registrationStats, sexLabel,
+  categoryOptions, clubOptions, filterRegistrations, formatRegisteredAt, groupRegistrations, raceMeta, registrationStats, sexLabel,
 } from './registrations.js';
 
 const R = [
@@ -22,6 +22,23 @@ describe('přihlášky – čisté funkce', () => {
     expect(filterRegistrations(R, { query: 'simon pokor', club: '' }).map((r) => r.registration_id)).toEqual([1]);
     expect(filterRegistrations(R, { query: 'CERNA', club: '' }).map((r) => r.registration_id)).toEqual([2]);
     expect(filterRegistrations(R, { query: '', club: 'Zlín' }).map((r) => r.registration_id)).toEqual([1]);
+  });
+
+  it('kategorie: pořadí závodu, Bez kategorie na konci, filtr podle klíče', () => {
+    const withCategories = [
+      { ...R[0], category_id: 5, category_name: 'Starší žáci', category_order: 6 },
+      { ...R[1], category_id: null, category_name: null, category_order: null },
+      { ...R[2], category_id: 2, category_name: 'Předžákyně', category_order: 1 },
+    ];
+    expect(categoryOptions(withCategories)).toEqual([
+      { value: '2', label: 'Předžákyně' },
+      { value: '5', label: 'Starší žáci' },
+      { value: 'none', label: 'Bez kategorie' },
+    ]);
+    const ids = (category) => filterRegistrations(withCategories, { query: '', club: '', category }).map((r) => r.registration_id);
+    expect(ids('none')).toEqual([2]);
+    expect(ids('5')).toEqual([1]);
+    expect(ids('')).toEqual([1, 2, 3]);
   });
 
   it('skupiny podle klubu a podle příjmení', () => {

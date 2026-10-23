@@ -606,6 +606,24 @@ def test_seznam_prihlasenych_nepridava_pohlavi_k_nazvu_kategorie(client, db):
     assert odpoved.json()["categories"] == [{"id": kategorie.id, "name": "Myšáci dívky"}]
 
 
+def test_kategorie_pro_filtr_prihlasenych_jsou_v_poradi_zavodu(client, db):
+    """Filtr na webu: nejmladší první, ženy před muži - ne podle abecedy."""
+    zavod = _zavod(db)
+    poradi = [
+        ("Přípravka dívky", 2017, 2018, 2), ("Přípravka chlapci", 2017, 2018, 1),
+        ("OPEN ženy", 1900, 2005, 2), ("OPEN muži", 1900, 2005, 1),
+    ]
+    for nazev, od, do, sex in reversed(poradi):
+        kategorie = _kategorie(db, f"K{od}", od, do, sex, display_name=nazev)
+        zavodnik = _zavodnik(db, "X", nazev, od, sex)
+        db.add(models.Registration(race_id=zavod.id, racer_id=zavodnik.id, category_id=kategorie.id))
+    db.commit()
+
+    odpoved = client.get(f"/races/{zavod.id}/registrations")
+
+    assert [k["name"] for k in odpoved.json()["categories"]] == [p[0] for p in poradi]
+
+
 def test_live_prenos_ukazuje_prejmenovanou_kategorii(client, db):
     """Startovka drží název z doby rozlosování; na webu musí být ten současný."""
     kategorie = _kategorie(db, "U10", 2016, 2018, 2, display_name="U10 dívky")

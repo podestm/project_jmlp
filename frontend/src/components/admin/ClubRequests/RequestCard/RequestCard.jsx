@@ -21,7 +21,9 @@ export default function RequestCard({ request, clubOptions, state, onChange, onR
       <div className={styles.who}>
         <h2 className={styles.name}>{request.racer_name}</h2>
         <span className={styles.meta}>{request.race_name} · {formatRequestDate(request.registered_at)}</span>
-        <span className={styles.meta}>Aktuální klub: {request.current_club_name || '—'}</span>
+        {request.current_club_name && (
+          <span className={styles.meta}>Aktuální klub: {request.current_club_name}</span>
+        )}
       </div>
       <div className={styles.note}>
         <span className={styles.noteLabel}>Napsal(a) ručně</span>

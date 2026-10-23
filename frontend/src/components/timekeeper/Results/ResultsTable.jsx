@@ -46,7 +46,7 @@ export default function ResultsTable({ entries, showPoints = false }) {
                 <span className={entry.status ? styles.nameMuted : styles.name}>{entry.racer_surname} {entry.racer_name}</span>
                 {entry.racer_year && <span className={styles.year}> ({entry.racer_year})</span>}
               </td>
-              <td className={styles.club}>{entry.club_name || '—'}</td>
+              <td className={styles.club}>{entry.club_name}</td>
               <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time1)}</td>
               <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time2)}</td>
               <td data-numeric data-align="end" className={styles.total}>
