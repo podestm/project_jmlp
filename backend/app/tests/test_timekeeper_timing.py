@@ -91,6 +91,32 @@ def test_zapis_casu_secte_obe_jizdy(client, db, polozky, timekeeper_headers):
     assert polozky[0].time_sum == Decimal("60.00")
 
 
+@pytest.mark.parametrize("nula", [0, 0.0, "0.00"])
+def test_nulovy_cas_je_nezmereno(client, db, polozky, timekeeper_headers, nula):
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 30.5, "time2": nula},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 200
+    db.refresh(polozky[0])
+    assert polozky[0].time2 is None
+    assert polozky[0].time_sum == Decimal("30.50")
+
+
+def test_nulovy_cas_v_davce_je_nezmereno(client, db, zavod, polozky, timekeeper_headers):
+    odpoved = client.post(
+        f"/api/timekeeper/races/{zavod.id}/times",
+        json={"entries": [{"entry_id": polozky[0].id, "time1": 0.0}]},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 200, odpoved.text
+    db.refresh(polozky[0])
+    assert polozky[0].time1 is None
+
+
 def test_jedina_jizda_je_celkovym_casem(client, db, polozky, timekeeper_headers):
     client.put(
         f"/api/timekeeper/start-list/{polozky[0].id}/time",

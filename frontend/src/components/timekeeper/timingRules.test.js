@@ -154,3 +154,11 @@ describe('findRowInDirection - šipky mezi řádky', () => {
     expect(findRowInDirection(list, 3, 1, enabled)).toBeNull();
   });
 });
+
+describe('nulový čas', () => {
+  it('0, 0.0 i 0.00 je nezměřeno (null) - při čtení i v požadavku', () => {
+    ['0', '0.0', '0.00', 0].forEach((value) => expect(parseStoredTime(value)).toBeNull());
+    expect(buildTimeUpdate({ time1: '0.00', time2: '31.5' })).toMatchObject({ time1: null, time2: 31.5 });
+    expect(normalizeDraft({ time1: 0, time2: '' })).toMatchObject({ time1: null, time2: null });
+  });
+});
