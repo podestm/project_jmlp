@@ -1,0 +1,10 @@
+[Unit]
+Description=Download invoice PDFs from Gmail to Google Drive
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=INVOICES_HOME=/opt/mail
+ExecStart=/usr/bin/python3 /opt/mail/fetch_invoices.py
