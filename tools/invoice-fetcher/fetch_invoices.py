@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Download invoice PDFs from Gmail (IMAP) and upload them to Google Drive (rclone).
 
-Config is read from /opt/mail/invoices.env (see invoices.env.example).
+Config is read from /opt/invoice-fetcher/invoices.env (see invoices.env.example).
 Runs once per invocation; schedule it with the systemd timer.
 """
 import email
@@ -16,7 +16,7 @@ from datetime import datetime
 from email.header import decode_header, make_header
 from pathlib import Path
 
-BASE = Path(os.environ.get("INVOICES_HOME", "/opt/mail"))
+BASE = Path(os.environ.get("INVOICES_HOME", "/opt/invoice-fetcher"))
 STATE_FILE = BASE / "state.json"
 OUT_DIR = BASE / "invoices"
 

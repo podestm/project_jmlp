@@ -6,5 +6,5 @@ After=network-online.target
 [Service]
 Type=oneshot
 User=root
-Environment=INVOICES_HOME=/opt/mail
-ExecStart=/usr/bin/python3 /opt/mail/fetch_invoices.py
+Environment=INVOICES_HOME=/opt/invoice-fetcher
+ExecStart=/usr/bin/python3 /opt/invoice-fetcher/fetch_invoices.py
