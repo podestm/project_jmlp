@@ -1,0 +1,115 @@
+# =============================================================================
+# JMLP - TESTOVACÍ prostředí preprodtest.jmlp.cz na produkčním serveru
+#
+# Běží vedle produkce (docker-compose.server.yml v /opt/jmlp) jako samostatný
+# compose projekt "jmlp-test": vlastní kontejnery, síť, svazky, porty i .env.
+# Checkout větve dev v /opt/jmlp-test. Návod: deploy/test/README.md
+#
+#   docker compose -f docker-compose.test.yml build
+#   docker compose -f docker-compose.test.yml up -d
+#
+# Pevné limity paměti a CPU jsou tu schválně: test nesmí produkci vzít
+# prostředky. Produkce limity nemá.
+# =============================================================================
+name: jmlp-test
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: jmlp-test-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # Malá MySQL: data se každé 2 hodiny přepisují kopií produkce.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=64M
+      - --key-buffer-size=32M
+      - --performance-schema=OFF
+      - --max-connections=40
+    ports:
+      - "127.0.0.1:3308:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init_exact.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - jmlp_test
+    restart: unless-stopped
+    mem_limit: 512m
+    memswap_limit: 768m
+    cpus: 0.75
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: jmlp-test-backend
+    # Jeden worker místo dvou (šetří ~100 MB RAM).
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000",
+              "--workers", "1", "--limit-concurrency", "50",
+              "--proxy-headers", "--forwarded-allow-ips", "*"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # SLČR schválně NE: test nesmí zapisovat do ostré evidence SLČR.
+      SLCR_API_TOKEN: ""
+      SLCR_USERNAME: ""
+      SLCR_PASSWORD: ""
+    volumes:
+      - documents_data:/app/uploads/documents
+    networks:
+      - jmlp_test
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 320m
+    memswap_limit: 512m
+    cpus: 0.75
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE: ${VITE_API_BASE}
+        VITE_ENV_LABEL: "TEST - preprodtest.jmlp.cz (data se každé 2 hodiny přepisují kopií produkce)"
+    container_name: jmlp-test-frontend
+    ports:
+      - "127.0.0.1:8081:80"
+    networks:
+      - jmlp_test
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 64m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+  documents_data:
+
+networks:
+  jmlp_test:
+    driver: bridge
