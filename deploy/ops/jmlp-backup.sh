@@ -3,9 +3,11 @@
 # Týdenní záloha produkce JMLP do Google Drive (jmlp-backup.timer, nebo /backup
 # v Discord botovi).
 #
-#   gdrive:project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz   drží 4 poslední
-#   gdrive:project_jmlp_cz/backup/files/                      jedna aktuální kopie
-#                                                             nahraných dokumentů
+#   gdrive:project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz     drží 4 poslední
+#   gdrive:project_jmlp_cz/backup/jmlp-docs-YYYY-MM-DD.tar.gz   drží 4 poslední,
+#                                                     nahrané dokumenty v jednom
+#                                                     archivu (Drive je pomalý
+#                                                     na stovky malých souborů)
 # Nastavení: /opt/jmlp-ops/.env (DISCORD_WEBHOOK_URL), /opt/jmlp-ops/rclone.conf
 # Log: /opt/jmlp-ops/logs/backup_YYYYmmdd_HHMMSS.log (+ výsledek na Discord)
 # =============================================================================
@@ -19,6 +21,8 @@ DEST=gdrive:project_jmlp_cz/backup
 KEEP=4
 NAME="jmlp-db-$(date +%F).sql.gz"
 DUMP="/var/tmp/$NAME"
+DOCS_NAME="jmlp-docs-$(date +%F).tar.gz"
+DOCS_TAR="/var/tmp/$DOCS_NAME"
 mkdir -p "$OPS/logs"
 LOG="$OPS/logs/backup_$(date +%Y%m%d_%H%M%S).log"
 DISCORD_WEBHOOK_URL=$(grep -s '^DISCORD_WEBHOOK_URL=' "$OPS/.env" | cut -d= -f2- || true)
@@ -40,7 +44,7 @@ notify() {  # notify <ok|fail> <popis>
         "$title" "$color" "$2" "$DB_SIZE" "$DOCS_SIZE")
     curl -s -o /dev/null -F "payload_json=$payload" -F "file=@$LOG;type=text/plain" "$DISCORD_WEBHOOK_URL" || true
 }
-trap 'code=$?; rm -f "$DUMP"; if [[ $code -ne 0 ]]; then log "CHYBA (kód $code)"; notify fail "Záloha selhala, log v příloze."; fi' EXIT
+trap 'code=$?; rm -f "$DUMP" "$DOCS_TAR"; if [[ $code -ne 0 ]]; then log "CHYBA (kód $code)"; notify fail "Záloha selhala, log v příloze."; fi' EXIT
 
 log "Dump produkční DB..."
 docker exec "$PROD_DB" sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" \
@@ -55,16 +59,21 @@ DB_SIZE=$(du -h "$DUMP" | cut -f1)
 log "Nahrávám $NAME ($DB_SIZE)..."
 rc copyto "$DUMP" "$DEST/$NAME"
 
-log "Mažu starší než $KEEP posledních..."
-rc lsf "$DEST" --files-only --include 'jmlp-db-*.sql.gz' | sort | head -n -"$KEEP" | while read -r old; do
-    log "  maže se $old"
-    rc deletefile "$DEST/$old"
-done
-
-log "Synchronizuju dokumenty do files/..."
+log "Balím dokumenty..."
 DOCS_PATH=$(docker volume inspect -f '{{ .Mountpoint }}' "$PROD_DOCS_VOLUME")
-DOCS_SIZE=$(du -sh "$DOCS_PATH" | cut -f1)
-rc sync "$DOCS_PATH" "$DEST/files"
+tar -czf "$DOCS_TAR" -C "$DOCS_PATH" .
+DOCS_SIZE=$(du -h "$DOCS_TAR" | cut -f1)
+
+log "Nahrávám $DOCS_NAME ($DOCS_SIZE)..."
+rc copyto "$DOCS_TAR" "$DEST/$DOCS_NAME"
+
+log "Mažu starší než $KEEP posledních..."
+for pattern in 'jmlp-db-*.sql.gz' 'jmlp-docs-*.tar.gz'; do
+    rc lsf "$DEST" --files-only --include "$pattern" | sort | head -n -"$KEEP" | while read -r old; do
+        log "  maže se $old"
+        rc deletefile "$DEST/$old"
+    done
+done
 
 # Staré logy pryč (půl roku stačí).
 find "$OPS/logs" -name 'backup_*.log' -mtime +180 -delete
