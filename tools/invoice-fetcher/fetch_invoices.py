@@ -51,6 +51,29 @@ def supplier_for(addr):
     return None
 
 
+# (type label, keywords in subject, lowercase, without diacritics); first match wins
+DOC_TYPES = [
+    ("upominka", ["upominka", "reminder", "pripominka"]),
+    ("zaplaceno", ["zaplacen", "uhrazen", "prijeti platby", "payment received", "payment confirmation"]),
+    ("proforma", ["proforma", "zalohov", "vyzva k platbe", "vyzva k uhrade"]),
+    ("faktura", ["faktura", "invoice", "danovy doklad", "rechnung"]),
+]
+SKIP_TYPES = {"upominka"}
+
+
+def strip_accents(text):
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
+
+
+def doc_type(subject, supplier):
+    s = strip_accents(subject).lower()
+    for label, words in DOC_TYPES:
+        if any(w in s for w in words):
+            return label
+    return "faktura" if supplier == "Hetzner" else "doklad"
+
+
 def safe(name):
     name = re.sub(r"[^\w.\-]+", "_", name, flags=re.UNICODE).strip("._")
     return name or "faktura.pdf"
@@ -96,6 +119,12 @@ def main():
         supplier = supplier_for(addr)
         if not supplier:
             continue
+        subject = decode(msg.get("Subject"))
+        kind = doc_type(subject, supplier)
+        if kind in SKIP_TYPES:
+            print(f"skip {kind}: {subject}")
+            done.add(msg_id)
+            continue
         try:
             date = email.utils.parsedate_to_datetime(msg["Date"]).strftime("%Y-%m-%d")
         except Exception:
@@ -109,12 +138,12 @@ def main():
             fname = safe(decode(fname) if fname else "faktura.pdf")
             if not fname.lower().endswith(".pdf"):
                 fname += ".pdf"
-            target = OUT_DIR / f"{date}_{supplier}_{fname}"
+            target = OUT_DIR / f"{supplier}_{kind}_{date}_{fname}"
             payload = part.get_payload(decode=True)
             if payload:
                 target.write_bytes(payload)
                 new_files.append(target)
-                print(f"saved {target.name}  ({decode(msg.get('Subject'))})")
+                print(f"saved {target.name}  ({subject})")
         done.add(msg_id)
 
     imap.logout()
