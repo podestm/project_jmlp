@@ -4,10 +4,10 @@
 # v Discord botovi).
 #
 #   gdrive:project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz     drží 4 poslední
-#   gdrive:project_jmlp_cz/backup/jmlp-docs-YYYY-MM-DD.tar.gz   drží 4 poslední,
-#                                                     nahrané dokumenty v jednom
-#                                                     archivu (Drive je pomalý
-#                                                     na stovky malých souborů)
+#   gdrive:project_jmlp_cz/backup/files/jmlp-files.tar.gz      jen jedna aktuální
+#                                                     kopie nahraných dokumentů
+#                                                     v jednom archivu (Drive je
+#                                                     pomalý na malé soubory)
 # Nastavení: /opt/jmlp-ops/.env (DISCORD_WEBHOOK_URL), /opt/jmlp-ops/rclone.conf
 # Log: /opt/jmlp-ops/logs/backup_YYYYmmdd_HHMMSS.log (+ výsledek na Discord)
 # =============================================================================
@@ -21,7 +21,7 @@ DEST=gdrive:project_jmlp_cz/backup
 KEEP=4
 NAME="jmlp-db-$(date +%F).sql.gz"
 DUMP="/var/tmp/$NAME"
-DOCS_NAME="jmlp-docs-$(date +%F).tar.gz"
+DOCS_NAME="jmlp-files.tar.gz"
 DOCS_TAR="/var/tmp/$DOCS_NAME"
 mkdir -p "$OPS/logs"
 LOG="$OPS/logs/backup_$(date +%Y%m%d_%H%M%S).log"
@@ -65,15 +65,17 @@ tar -czf "$DOCS_TAR" -C "$DOCS_PATH" .
 DOCS_SIZE=$(du -h "$DOCS_TAR" | cut -f1)
 
 log "Nahrávám $DOCS_NAME ($DOCS_SIZE)..."
-rc copyto "$DOCS_TAR" "$DEST/$DOCS_NAME"
+rc copyto "$DOCS_TAR" "$DEST/files/$DOCS_NAME"
+# Ve files/ zůstává jen tenhle jeden archiv.
+rc delete "$DEST/files" --exclude "$DOCS_NAME"
 
 log "Mažu starší než $KEEP posledních..."
-for pattern in 'jmlp-db-*.sql.gz' 'jmlp-docs-*.tar.gz'; do
-    rc lsf "$DEST" --files-only --include "$pattern" | sort | head -n -"$KEEP" | while read -r old; do
-        log "  maže se $old"
-        rc deletefile "$DEST/$old"
-    done
+rc lsf "$DEST" --files-only --include 'jmlp-db-*.sql.gz' | sort | head -n -"$KEEP" | while read -r old; do
+    log "  maže se $old"
+    rc deletefile "$DEST/$old"
 done
+# Archivy dokumentů z prvních verzí skriptu (jmlp-docs-*.tar.gz v kořeni) pryč.
+rc delete "$DEST" --max-depth 1 --include 'jmlp-docs-*.tar.gz'
 
 # Staré logy pryč (půl roku stačí).
 find "$OPS/logs" -name 'backup_*.log' -mtime +180 -delete

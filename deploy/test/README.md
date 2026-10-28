@@ -78,8 +78,9 @@ Pozastavení: `touch /opt/jmlp-test/.sync-paused`, obnovení: `rm` téhož soubo
    sudo crontab -l | grep -v jmlp-backups | sudo crontab -
    sudo systemctl enable --now jmlp-bot.service
    ```
-   Výsledek: `project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz`
-   a `jmlp-docs-YYYY-MM-DD.tar.gz` (dokumenty v jednom archivu), obojí 4 poslední,
+   Výsledek: `project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz` (4 poslední)
+   a `project_jmlp_cz/backup/files/jmlp-files.tar.gz` (dokumenty v jednom archivu,
+   jen jedna aktuální kopie),
    hlášení na Discord. /opt/jmlp-backups se po první úspěšné záloze smaže.
 
    Bot: `/status`, `/health`, `/logs`, `/stream` pro všechny; `/backup`,
