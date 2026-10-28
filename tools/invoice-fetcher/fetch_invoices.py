@@ -53,7 +53,7 @@ def supplier_for(addr):
 
 # (type label, keywords in subject, lowercase, without diacritics); first match wins
 DOC_TYPES = [
-    ("upominka", ["upominka", "reminder", "pripominka"]),
+    ("upominka", ["upominka", "upozorneni", "reminder", "pripominka", "neuhrazen", "nezaplacen"]),
     ("zaplaceno", ["zaplacen", "uhrazen", "prijeti platby", "payment received", "payment confirmation"]),
     ("proforma", ["proforma", "zalohov", "vyzva k platbe", "vyzva k uhrade"]),
     ("faktura", ["faktura", "invoice", "danovy doklad", "rechnung"]),
@@ -138,6 +138,8 @@ def main():
             fname = safe(decode(fname) if fname else "faktura.pdf")
             if not fname.lower().endswith(".pdf"):
                 fname += ".pdf"
+            # drop "Supplier_" / "YYYY-MM-DD_" prefix already present in the attachment name
+            fname = re.sub(rf"^({re.escape(supplier)}_)?(\d{{4}}-\d{{2}}-\d{{2}}_)?", "", fname, flags=re.I)
             target = OUT_DIR / f"{supplier}_{kind}_{date}_{fname}"
             payload = part.get_payload(decode=True)
             if payload:
