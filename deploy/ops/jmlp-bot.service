@@ -1,0 +1,15 @@
+[Unit]
+Description=JMLP Discord bot (stav, logy, záloha, kopie do testu, restart)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/jmlp-ops
+ExecStart=/opt/jmlp-ops/venv/bin/python /opt/jmlp-ops/jmlp_bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -57,20 +57,34 @@ Pozastavení: `touch /opt/jmlp-test/.sync-paused`, obnovení: `rm` téhož soubo
    sudo nginx -t && sudo systemctl reload nginx
    sudo certbot --nginx -d preprodtest.jmlp.cz
    ```
-7. **Týdenní záloha do Google Drive** (`deploy/backup/`):
+7. **Týdenní záloha do Google Drive + Discord bot** (`deploy/ops/`, nahrazuje
+   starý /opt/jmlp-backups s Google Cloud Storage):
    ```bash
-   sudo apt install -y rclone
-   sudo mkdir -p /opt/jmlp-backup
-   sudo cp /opt/jmlp-test/deploy/backup/jmlp-backup.sh /opt/jmlp-backup/
-   # rclone remote "gdrive": zkopírovat ~/.config/rclone/rclone.conf z podm12.com
-   # (tam už remote gdrive je), nebo: sudo rclone config --config /opt/jmlp-backup/rclone.conf
-   sudo chmod 600 /opt/jmlp-backup/rclone.conf
-   sudo /opt/jmlp-backup/jmlp-backup.sh          # první záloha ručně
-   sudo cp /opt/jmlp-test/deploy/backup/jmlp-backup.{service,timer} /etc/systemd/system/
-   sudo systemctl daemon-reload && sudo systemctl enable --now jmlp-backup.timer
+   sudo apt install -y rclone python3-venv
+   sudo mkdir -p /opt/jmlp-ops/logs && sudo chmod 700 /opt/jmlp-ops
+   sudo cp /opt/jmlp-test/deploy/ops/{jmlp-backup.sh,jmlp_bot.py} /opt/jmlp-ops/
+   # rclone remote "gdrive" zkopírovaný z podm12.com (~/.config/rclone/rclone.conf)
+   sudo cp <rclone.conf> /opt/jmlp-ops/rclone.conf && sudo chmod 600 /opt/jmlp-ops/rclone.conf
+   # .env podle deploy/ops/env.ops.example (token a webhook ze /opt/jmlp-backups/.env)
+   sudo chmod 600 /opt/jmlp-ops/.env
+   sudo python3 -m venv /opt/jmlp-ops/venv
+   sudo /opt/jmlp-ops/venv/bin/pip install 'discord.py==2.4.0' 'python-dotenv==1.0.0'
+   sudo cp /opt/jmlp-test/deploy/ops/{jmlp-backup.service,jmlp-backup.timer,jmlp-bot.service} /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl start jmlp-backup.service      # první záloha ručně
+   sudo systemctl enable --now jmlp-backup.timer
+   # starý bot a cron pryč, nový bot zapnout
+   sudo systemctl disable --now jmlp-discord-bot.service
+   sudo crontab -l | grep -v jmlp-backups | sudo crontab -
+   sudo systemctl enable --now jmlp-bot.service
    ```
    Výsledek: `project_jmlp_cz/backup/jmlp-db-YYYY-MM-DD.sql.gz` (4 poslední)
-   a `project_jmlp_cz/backup/files/` (jedna aktuální kopie dokumentů).
+   a `project_jmlp_cz/backup/files/` (jedna aktuální kopie dokumentů),
+   hlášení na Discord. /opt/jmlp-backups se po první úspěšné záloze smaže.
+
+   Bot: `/status`, `/health`, `/logs`, `/stream` pro všechny; `/backup`,
+   `/sync` (teď / pozastavit / obnovit) a `/restart` (test, nebo produkce
+   s potvrzením ANO) jen pro DISCORD_ADMIN_USER_IDS.
 
 ## Nasazení nové verze testu
 
@@ -84,7 +98,7 @@ docker compose -f docker-compose.test.yml up -d
 
 ```bash
 free -h; docker stats --no-stream
-systemctl list-timers 'jmlp-*'
+systemctl list-timers 'jmlp-*'; systemctl status jmlp-bot
 journalctl -u jmlp-test-sync -n 30
 journalctl -u jmlp-backup -n 30
 ```

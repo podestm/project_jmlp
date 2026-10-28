@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/jmlp-backup/jmlp-backup.sh
+ExecStart=/opt/jmlp-ops/jmlp-backup.sh
 Nice=15
 IOSchedulingClass=idle
 CPUWeight=20
