@@ -1,0 +1,11 @@
+[Unit]
+Description=JMLP: týdenní záloha produkce (DB + dokumenty) do Google Drive
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jmlp-backup/jmlp-backup.sh
+Nice=15
+IOSchedulingClass=idle
+CPUWeight=20
