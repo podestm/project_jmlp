@@ -45,6 +45,10 @@ Read the PDF (Read tool). Decide:
    - `proforma` → Stav platby `nezaplaceno`. `zaplaceno`/`faktura`/`doklad` → `zaplaceno`.
    - If a row with the same Číslo faktury already exists (e.g. proforma
      recorded earlier), UPDATE it (Stav platby, PDF) instead of creating a new one.
+   - Forpsi proforma and tax invoice for the same payment can have DIFFERENT
+     numbers. If a Forpsi row with the same amount exists within 45 days of
+     the document date, it is the same payment: create nothing (SYNCED). Never
+     record a proforma as `nezaplaceno` when such a row already exists.
 3. Hetzner `proforma`/other types, any other supplier → SKIPPED.
 
 ## No duplicates (mandatory)
