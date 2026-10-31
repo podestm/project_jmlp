@@ -337,7 +337,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v9']);
+    expect((await worker.caches.keys()).sort()).toEqual(['jmlp-pdf-preview', 'jmlp-shell-v10']);
   });
 
   it('aktivace smaže starší keše i s daty, která v nich zůstala', async () => {
@@ -348,7 +348,7 @@ describe('instalace a aktivace', () => {
 
     await lifecycle('activate');
 
-    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v9']);
+    expect(await worker.caches.keys()).toEqual(['jmlp-shell-v10']);
     expect(worker.caches.peek('/races/')).toBeUndefined();
     expect(worker.self.clients.claim).toHaveBeenCalled();
   });

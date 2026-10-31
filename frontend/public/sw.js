@@ -17,7 +17,7 @@
 //
 // CACHE_NAME se zvedá ručně. Při jeho změně aktivace smaže všechny starší keše,
 // takže se z prohlížečů uklidí i data, která tam nakešovaly starší verze.
-const CACHE_NAME = 'jmlp-shell-v9';
+const CACHE_NAME = 'jmlp-shell-v10';
 const SHELL_URL = '/index.html';
 
 // Náhledy tištěných listin (src/pdf/previewUrl.js). Stránka do téhle keše
