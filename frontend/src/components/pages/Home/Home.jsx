@@ -62,9 +62,10 @@ export default function Home() {
   const { posts, races } = useHome();
   const today = startOfToday();
   const seasonRaces = [...races.data].sort((a, b) => raceDate(a) - raceDate(b));
-  const upcoming = seasonRaces.filter((race) => registrationState(race, today) !== 'past');
+  const upcoming = seasonRaces.filter((race) => !raceDate(race) || raceDate(race) >= today);
   const nextRace = upcoming[0];
-  const openRace = upcoming.find((race) => race.registration);
+  // Přednost má nadcházející závod; jinak i odjetý, kterému admin registraci znovu otevřel.
+  const openRace = upcoming.find((race) => race.registration) ?? seasonRaces.find((race) => race.registration);
 
   return (
     <Screen>
