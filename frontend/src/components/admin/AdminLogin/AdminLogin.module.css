@@ -38,13 +38,6 @@
   text-align: center;
 }
 
-.logo {
-  inline-size: 76px;
-  block-size: 76px;
-  margin-block-end: 9px;
-  object-fit: contain;
-}
-
 .name {
   font-family: var(--ms-font-display);
   font-weight: 700;

@@ -7,13 +7,6 @@
   color: var(--ms-on-dark);
 }
 
-.logo {
-  flex-shrink: 0;
-  inline-size: 38px;
-  block-size: 38px;
-  object-fit: contain;
-}
-
 .text {
   display: flex;
   flex-direction: column;
@@ -41,11 +34,6 @@
 
 .sm {
   gap: 10px;
-}
-
-.sm .logo {
-  inline-size: 34px;
-  block-size: 34px;
 }
 
 .sm .name {

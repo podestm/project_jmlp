@@ -22,13 +22,6 @@
   text-decoration: none;
 }
 
-.logo {
-  flex-shrink: 0;
-  inline-size: 40px;
-  block-size: 40px;
-  object-fit: contain;
-}
-
 .brandText {
   display: flex;
   flex-direction: column;
@@ -61,7 +54,7 @@
   grid-area: chips;
 }
 
-/* Pod 1280 px zůstane ze značky jen znak. */
+/* Pod 1280 px zůstane ze značky jen název. */
 @media (max-width: 1279.98px) {
   .top {
     gap: var(--ms-space-4);
@@ -73,7 +66,7 @@
     min-inline-size: var(--ms-target);
   }
 
-  .brandText {
+  .season {
     display: none;
   }
 }

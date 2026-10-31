@@ -168,12 +168,6 @@
     gap: var(--ms-space-3);
   }
 
-  .mobileLogo {
-    inline-size: 44px;
-    block-size: 44px;
-    object-fit: contain;
-  }
-
   .mobileName {
     max-inline-size: 12em;
     font-family: var(--ms-font-display);

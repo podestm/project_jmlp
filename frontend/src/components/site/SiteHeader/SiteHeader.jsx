@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
-import znak from '../../../assets/images/jmlp-znak.svg';
 import { Container, IconButton, LivePill } from '../../ms/index.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
 import MobileMenu from '../MobileMenu/MobileMenu.jsx';
@@ -11,7 +10,7 @@ import styles from './SiteHeader.module.css';
 const MENU_ID = 'hlavni-menu-mobil';
 
 /**
- * Hlavička veřejného webu (Zavody, MobilZavody): znak a název, šest položek
+ * Hlavička veřejného webu (Zavody, MobilZavody): název poháru, šest položek
  * menu a odznak ŽIVĚ, který je vidět vždy. Pod 1024 px místo menu
  * hamburger, který otevře MobileMenu.
  */
@@ -25,7 +24,6 @@ export default function SiteHeader() {
     <header className={styles.header}>
       <Container className={styles.bar}>
         <Link to="/" className={styles.brand} aria-label={`${CUP_NAME} – úvod`}>
-          <img src={znak} alt="" width="44" height="44" className={styles.logo} />
           <span className={styles.brandText}>
             <span className={styles.nameFull}>{CUP_NAME}</span>
             <span className={styles.nameShort}>JMLP</span>

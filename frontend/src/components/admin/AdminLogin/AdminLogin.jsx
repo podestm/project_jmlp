@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../config/auth.jsx';
 import trat from '../../../assets/images/trat.jpg';
-import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import { Alert, Button, Field, Icon, Input, PasswordInput, Tooltip } from '../../ms/index.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
 import styles from './AdminLogin.module.css';
@@ -41,7 +40,6 @@ export default function AdminLogin() {
       <img src={trat} alt="" className={styles.photo} />
       <div className={styles.content}>
         <div className={styles.brand}>
-          <img src={znak} alt="" width="76" height="76" className={styles.logo} />
           <span className={styles.name}>JMLP Administrace</span>
           <span className={styles.cup}>{CUP_NAME} · {edition} ročník</span>
         </div>

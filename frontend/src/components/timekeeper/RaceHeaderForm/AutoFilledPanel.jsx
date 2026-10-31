@@ -36,7 +36,7 @@ export default function AutoFilledPanel({ detail }) {
         <Alert type="info" compact title="Logo pořadatele je nahrané" />
       ) : (
         <Alert type="warning" compact title="Pořádající klub nemá nahrané logo">
-          V hlavičce bude logo JMLP.
+          Levé místo v hlavičce listiny zůstane prázdné.
         </Alert>
       )}
     </aside>

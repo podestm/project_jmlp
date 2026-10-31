@@ -6,13 +6,12 @@
  * offline tisk.
  *
  * Vlevo je logo pořádajícího klubu (nahrává se v Admin → Kluby), vpravo logo
- * Svazu lyžařů. Když klub logo nemá, vlevo se použije logo JMLP. Pod
- * výsledkovou listinou je pruh sponzorů nahraný u závodu.
+ * Svazu lyžařů. Když klub logo nemá, levé místo zůstane prázdné (JMLP
+ * vlastní logo nemá). Pod výsledkovou listinou je pruh sponzorů nahraný u závodu.
  *
  * Každý obrázek se vrací i s rozměry - listina ho vepisuje do šířky rámečku
  * se zachováním poměru stran, stejně jako LiZa.
  */
-import jmlpLogo from '../assets/images/jmlp_logo.png';
 import svazLogo from '../assets/images/czech_ski_snowboard-logo.png';
 
 const cache = new Map();
@@ -60,15 +59,14 @@ export const loadSvazLogo = () => loadImage(svazLogo);
  * @param {string?} sponsorsUrl       URL obrázku sponzorů závodu z API
  */
 export async function loadHeaderLogos(organizerLogoUrl, sponsorsUrl = null) {
-  const [organizer, jmlp, svaz, sponsors] = await Promise.all([
+  const [organizer, svaz, sponsors] = await Promise.all([
     loadImage(organizerLogoUrl),
-    loadImage(jmlpLogo),
     loadImage(svazLogo),
     loadImage(sponsorsUrl)
   ]);
 
   return {
-    leftLogo: organizer || jmlp,
+    leftLogo: organizer,
     rightLogo: svaz,
     sponsors
   };
