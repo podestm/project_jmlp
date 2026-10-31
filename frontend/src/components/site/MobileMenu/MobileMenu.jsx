@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
-import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import { Icon, useDialog } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { isNavActive, publicLiveNav, publicNav } from '../../ms/navItems.js';
@@ -10,7 +9,7 @@ import styles from './MobileMenu.module.css';
 
 /**
  * Mobilní menu (MobilMenu.dc.html): celoobrazovkový modální dialog na
- * navy-deep – záhlaví se znakem a křížkem, karta ŽIVĚ, šest položek
+ * navy-deep – záhlaví s názvem a křížkem, karta ŽIVĚ, šest položek
  * a tlačítko k přihláškám (kalendář závodů). Chování dialogu (Escape,
  * fokus, zámek scrollu) je z kitu (useDialog); fokus jde na „Zavřít menu“.
  * Výběr položky nebo změna adresy menu zavře.
@@ -35,7 +34,6 @@ export default function MobileMenu({ id, open, onClose }) {
       {open && (
         <div className={styles.panel}>
           <div className={styles.top}>
-            <img src={znak} alt="" width="36" height="36" className={styles.logo} />
             <span className={styles.brandText}>
               <span className={styles.name}>JMLP</span>
               <span className={styles.season}>{edition} ročník · {season}</span>

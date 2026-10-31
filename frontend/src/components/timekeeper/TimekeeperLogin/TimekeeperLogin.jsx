@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../config/timekeeperAuth.jsx';
 import { useOnline } from '../../../hooks/useOnline.js';
 import trat from '../../../assets/images/trat.jpg';
-import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import { Alert, Button, Field, Icon, Input, Paska, PasswordInput, Tooltip } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
@@ -49,7 +48,6 @@ export default function TimekeeperLogin() {
         <img src={trat} alt="" className={styles.photo} />
         <div className={styles.introBody}>
           <div className={styles.brand}>
-            <img src={znak} alt="" width="46" height="46" className={styles.logo} />
             <span className={styles.brandText}>
               <span className={styles.brandName}>JMLP · Časomíra</span>
               <span className={styles.brandSeason}>{CUP_NAME} · {edition} ročník {season}</span>

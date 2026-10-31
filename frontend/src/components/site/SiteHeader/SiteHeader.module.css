@@ -20,12 +20,6 @@
   text-decoration: none;
 }
 
-.logo {
-  inline-size: 44px;
-  block-size: 44px;
-  object-fit: contain;
-}
-
 .brandText {
   display: flex;
   flex-direction: column;
@@ -113,11 +107,6 @@
     flex-grow: 1;
     min-inline-size: 0;
     min-block-size: 48px;
-  }
-
-  .logo {
-    inline-size: 36px;
-    block-size: 36px;
   }
 
   .brandText {

@@ -30,12 +30,6 @@
   border-bottom: 1px solid var(--ms-ink-body);
 }
 
-.logo {
-  inline-size: 36px;
-  block-size: 36px;
-  object-fit: contain;
-}
-
 .brandText {
   display: flex;
   flex-direction: column;

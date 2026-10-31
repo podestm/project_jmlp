@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import znak from '../../../assets/images/jmlp-znak-inverse.svg';
 import svazLogo from '../../../assets/images/svaz_logo_88.png';
 import { Container } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
@@ -10,7 +9,7 @@ import styles from './SiteFooter.module.css';
 /**
  * Patička veřejného webu. Na počítači úzká lišta (Zavody), na úvodu velká
  * patička se dvěma sloupci odkazů (Main, `full`). Pod 768 px vždy mobilní
- * varianta (MobilZavody): znak, šest odkazů ve dvou sloupcích, copyright.
+ * varianta (MobilZavody): název, šest odkazů ve dvou sloupcích, copyright.
  * Odkaz na ochranu osobních údajů je ve všech třech variantách.
  */
 export default function SiteFooter({ full = false }) {
@@ -58,7 +57,6 @@ export default function SiteFooter({ full = false }) {
 
       <div className={styles.mobile}>
         <div className={styles.mobileBrand}>
-          <img src={znak} alt="" width="44" height="44" className={styles.mobileLogo} />
           <span className={styles.mobileName}>{CUP_NAME}</span>
         </div>
         <nav aria-label="Patička" className={styles.mobileNav}>

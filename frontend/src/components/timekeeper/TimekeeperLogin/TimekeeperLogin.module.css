@@ -41,12 +41,6 @@
   gap: 14px;
 }
 
-.logo {
-  inline-size: 46px;
-  block-size: 46px;
-  object-fit: contain;
-}
-
 .brandText {
   display: flex;
   flex-direction: column;
