@@ -21,7 +21,7 @@ function Hero({ openRace }) {
       <Container className={styles.heroInner}>
         <p className={styles.eyebrow}>{edition} ročník · sezóna {season}</p>
         <h1 className={styles.heroTitle}>Jihomoravský Lyžařský Pohár</h1>
-        <p className={styles.lead}>Seriál závodů na sněhu i na suchu, od Myšáků po dospělé (OPEN).</p>
+        <p className={styles.lead}>Seriál závodů pro všechny kategorie.</p>
         <div className={styles.heroActions}>
           <ButtonLink to={registerPath(openRace)} variant="accent" size="lg" iconEnd="arrow-right">Přihlásit na závod</ButtonLink>
           <ButtonLink to="/zavody" variant="on-dark" size="lg">Kalendář sezóny</ButtonLink>
