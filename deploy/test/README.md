@@ -56,6 +56,7 @@ Pozastavení: `touch /opt/jmlp-test/.sync-paused`, obnovení: `rm` téhož soubo
    sudo ln -s /etc/nginx/sites-available/preprodtest.jmlp.cz.conf /etc/nginx/sites-enabled/
    sudo nginx -t && sudo systemctl reload nginx
    sudo certbot --nginx -d preprodtest.jmlp.cz
+   sudo bash /opt/jmlp-test/deploy/test/nginx-gate.sh   # heslo jen jednou (cookie 90 dní)
    ```
 7. **Týdenní záloha do Google Drive + Discord bot** (`deploy/ops/`, nahrazuje
    starý /opt/jmlp-backups s Google Cloud Storage):
