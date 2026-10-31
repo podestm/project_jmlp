@@ -19,14 +19,16 @@ export const raceDate = (race) => {
 
 /**
  * Stav přihlášek:
- * - past: závod už proběhl (datum před dneškem)
- * - open: registrace otevřená a závod teprve bude
+ * - open: registrace otevřená – má přednost před datem, admin ji může
+ *   otevřít i u závodu, který už proběhl
+ * - past: závod už proběhl (datum před dneškem) a registrace je zavřená
  * - closed: závod teprve bude, ale přes web se přihlásit nedá
  */
 export const registrationState = (race, today = startOfToday()) => {
+  if (race.registration) return 'open';
   const date = raceDate(race);
   if (date && date < today) return 'past';
-  return race.registration ? 'open' : 'closed';
+  return 'closed';
 };
 
 /** Odznak stavu: text (nese význam), tón odznaku a lišty řádku. */

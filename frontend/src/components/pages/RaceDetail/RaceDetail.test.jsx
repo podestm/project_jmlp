@@ -83,12 +83,20 @@ describe('RaceDetail', () => {
   });
 
   it('odjetý závod: výsledky, seznam přihlášených se nenačítá', async () => {
-    mockApi({ ...RACE, datum: '2026-09-01', results_file_id: 9 });
+    mockApi({ ...RACE, datum: '2026-09-01', registration: false, results_file_id: 9 });
     renderDetail();
 
     expect(await screen.findByText('Oficiální výsledková listina')).toBeInTheDocument();
     expect(screen.getByText('Přihlašování skončilo před závodem')).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalledWith('/races/7/registrations');
+  });
+
+  it('odjetý závod se znovu otevřenou registrací nabízí přihlášku', async () => {
+    mockApi({ ...RACE, datum: '2026-09-01', results_file_id: 9 });
+    renderDetail();
+
+    expect(await screen.findByRole('button', { name: 'Přihlásit závodníka' })).toBeInTheDocument();
+    expect(screen.queryByText('Oficiální výsledková listina')).not.toBeInTheDocument();
   });
 
   it('neexistující závod a výpadek serveru jsou rozlišené', async () => {

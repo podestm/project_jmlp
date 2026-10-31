@@ -5,7 +5,8 @@ const today = startOfToday(new Date('2026-10-03T15:00:00'));
 
 describe('races', () => {
   it('stav přihlášek podle data a registrace', () => {
-    expect(registrationState({ datum: '2026-10-02', registration: true }, today)).toBe('past');
+    expect(registrationState({ datum: '2026-10-02', registration: false }, today)).toBe('past');
+    expect(registrationState({ datum: '2026-10-02', registration: true }, today)).toBe('open');
     expect(registrationState({ datum: '2026-10-03', registration: true }, today)).toBe('open');
     expect(registrationState({ datum: '2026-10-10', registration: false }, today)).toBe('closed');
   });

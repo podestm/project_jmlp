@@ -39,6 +39,16 @@ describe('Home', () => {
     expect(await screen.findByRole('heading', { name: 'Jubilejní XX. sezóna JMLP začíná' })).toBeInTheDocument();
   });
 
+  it('odjetý závod se znovu otevřenou registrací vede z hrdiny na přihlášku', async () => {
+    vi.setSystemTime(new Date('2026-10-20T12:00:00'));
+    vi.stubGlobal('fetch', vi.fn((url) => json(String(url).includes('/posts/') ? POSTS : RACES)));
+    renderHome();
+
+    const season = screen.getByRole('region', { name: 'Závody sezóny' });
+    expect(await within(season).findByText('Registrace otevřena')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Přihlásit na závod' })).toHaveAttribute('href', '/zavod/1#prihlaska');
+  });
+
   it('výpadek závodů je chyba, ne prázdná sezóna', async () => {
     vi.stubGlobal('fetch', vi.fn((url) => (String(url).includes('/posts/') ? json([]) : json({}, false))));
     renderHome();
