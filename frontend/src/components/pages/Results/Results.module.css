@@ -6,6 +6,14 @@
   padding-block: 44px var(--ms-space-14);
 }
 
+/* Tlačítko PDF lícuje spodní hranou s polem Sezóna (to má nad sebou popisek). */
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
 .season {
   inline-size: 232px;
 }
@@ -115,6 +123,12 @@
   .page {
     gap: var(--ms-space-8);
     padding-block: var(--ms-space-5) var(--ms-space-10);
+  }
+
+  .headerActions {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .season {
