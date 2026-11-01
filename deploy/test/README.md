@@ -104,3 +104,15 @@ systemctl list-timers 'jmlp-*'; systemctl status jmlp-bot
 journalctl -u jmlp-test-sync -n 30
 journalctl -u jmlp-backup -n 30
 ```
+
+## Automatické nasazení dev
+
+`jmlp-test-deploy.timer` každých 5 minut spustí `auto-deploy-dev.sh` (jako podm12):
+když je v `origin/dev` nový commit, fast-forward `/opt/jmlp-test` a přestaví jen
+frontend/backend, kterého se změna týká. Při málo volné paměti počká na další běh.
+Pozastavení: `touch /opt/jmlp-test/.deploy-paused`. Log: `journalctl -u jmlp-test-deploy`.
+
+```bash
+sudo cp /opt/jmlp-test/deploy/test/jmlp-test-deploy.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now jmlp-test-deploy.timer
+```

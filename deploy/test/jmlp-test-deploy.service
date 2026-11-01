@@ -1,0 +1,16 @@
+[Unit]
+Description=JMLP: automatické nasazení větve dev na preprodtest.jmlp.cz
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=podm12
+Group=podm12
+SupplementaryGroups=docker
+Environment=HOME=/home/podm12
+ExecStart=/opt/jmlp-test/deploy/test/auto-deploy-dev.sh
+# Nízká priorita, aby build nebrzdil produkci.
+Nice=15
+IOSchedulingClass=idle
+CPUWeight=20
