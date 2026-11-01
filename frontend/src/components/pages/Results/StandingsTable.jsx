@@ -3,6 +3,12 @@ import { fixEncoding } from '../../../utils/text.js';
 import { cellText, raceColumnLabel } from './standings.js';
 import styles from './StandingsTable.module.css';
 
+// Šířky sloupců z CSS (Poř. + Přípr. + Sníh + Celkem, jeden závod, závodník + klub):
+// tabulka je aspoň tak široká, aby závodník a klub měli místo; jinak se posouvá.
+const FIXED_WIDTH = 72 + 96 + 96 + 104;
+const RACE_WIDTH = 96;
+const NAME_CLUB_WIDTH = 440;
+
 /**
  * Pořadí jedné kategorie (Vysledky): místo, závodník, klub, body v každém
  * závodě (započtené podbarvené – přípravný jantarově, na sněhu modře),
@@ -11,10 +17,15 @@ import styles from './StandingsTable.module.css';
 export default function StandingsTable({ category, races, className }) {
   return (
     <TableScroll label={`Pořadí – ${category.name}`} className={className}>
-      <Table caption={`Pořadí poháru – ${category.name}`} className={styles.table}>
+      <Table
+        caption={`Pořadí poháru – ${category.name}`}
+        fixed
+        className={styles.table}
+        style={{ minInlineSize: `${FIXED_WIDTH + races.length * RACE_WIDTH + NAME_CLUB_WIDTH}px` }}
+      >
         <thead>
           <tr>
-            <th scope="col" data-align="center">Poř.</th>
+            <th scope="col" data-align="center" className={styles.rankHead}>Poř.</th>
             <th scope="col">Závodník</th>
             <th scope="col">Klub</th>
             {races.map((race) => {
@@ -27,9 +38,9 @@ export default function StandingsTable({ category, races, className }) {
                 </th>
               );
             })}
-            <th scope="col" data-align="end">Přípr.</th>
-            <th scope="col" data-align="end">Sníh</th>
-            <th scope="col" data-align="end">Celkem</th>
+            <th scope="col" data-align="center" className={styles.sumHead}>Přípr.</th>
+            <th scope="col" data-align="center" className={styles.sumHead}>Sníh</th>
+            <th scope="col" data-align="center" className={styles.totalHead}>Celkem</th>
           </tr>
         </thead>
         <tbody>
@@ -56,9 +67,9 @@ export default function StandingsTable({ category, races, className }) {
                   {cell?.counted && <VisuallyHidden> (započteno)</VisuallyHidden>}
                 </td>
               ))}
-              <td data-align="end" data-numeric className={styles.sum}>{row.prep_points}</td>
-              <td data-align="end" data-numeric className={styles.sum}>{row.snow_points}</td>
-              <td data-align="end" data-numeric className={styles.total}>{row.total}</td>
+              <td data-align="center" data-numeric className={styles.sum}>{row.prep_points}</td>
+              <td data-align="center" data-numeric className={styles.sum}>{row.snow_points}</td>
+              <td data-align="center" data-numeric className={styles.total}>{row.total}</td>
             </tr>
           ))}
         </tbody>
