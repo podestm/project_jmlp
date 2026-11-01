@@ -72,7 +72,7 @@ function Standings({ standings }) {
       {/* Na počítači tlačítka, na telefonu výběr – CSS ukáže jedno z nich. */}
       <div className={styles.categories}>
         <span className={styles.categoriesLabel} aria-hidden="true">Kategorie</span>
-        <SegmentedControl label="Kategorie" options={options} value={selected.category_id} onChange={setCategoryId} />
+        <SegmentedControl label="Kategorie" className={styles.categoryGrid} options={options} value={selected.category_id} onChange={setCategoryId} />
       </div>
       <Field label="Kategorie" className={styles.categorySelect}>
         <Select size="lg" value={selected.category_id} onChange={(event) => setCategoryId(Number(event.target.value))}>
@@ -83,8 +83,12 @@ function Standings({ standings }) {
       <StandingsList category={selected} className={styles.mobileOnly} />
       <div className={styles.rules}>
         <p className={styles.legend}>
-          <span className={styles.swatch} data-kind="P" aria-hidden="true" /> Započtený přípravný závod
-          <span className={styles.swatch} data-kind="S" aria-hidden="true" /> Započtený závod na sněhu
+          <span className={styles.legendItem}>
+            <span className={styles.swatch} data-kind="P" aria-hidden="true" /> Započtený přípravný závod
+          </span>
+          <span className={styles.legendItem}>
+            <span className={styles.swatch} data-kind="S" aria-hidden="true" /> Započtený závod na sněhu
+          </span>
         </p>
         <p>
           Do pořadí se započítá 1 nejlepší přípravný závod a 3 nejlepší závody na sněhu. Body z přípravných závodů se

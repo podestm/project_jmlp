@@ -1,11 +1,32 @@
 /* Vysledky „Celkové výsledky“: tabulka pořadí jedné kategorie. */
-.table {
-  min-inline-size: 900px;
+/* Sloupce bodů mají stejnou šířku, ať jsou čísla pod sebou v pravidelné mřížce. */
+.rankHead {
+  inline-size: 72px;
+}
+
+.raceHead,
+.sumHead {
+  inline-size: 96px;
+}
+
+.totalHead {
+  inline-size: 104px;
 }
 
 .raceHead {
   font-size: var(--ms-fs-2xs);
   line-height: 1.25;
+  letter-spacing: 0.04em;
+}
+
+.table th.raceHead {
+  padding-inline: 8px;
+}
+
+.raceHead span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .raceHead span {
@@ -14,6 +35,7 @@
 
 .raceDate {
   font-family: var(--ms-font-mono);
+  letter-spacing: 0;
 }
 
 .name {
@@ -28,6 +50,7 @@
 
 .club {
   color: var(--ms-ink-body);
+  overflow-wrap: anywhere;
 }
 
 .cell {
