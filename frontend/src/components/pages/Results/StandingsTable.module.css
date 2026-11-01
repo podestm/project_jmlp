@@ -1,4 +1,8 @@
 /* Vysledky „Celkové výsledky“: tabulka pořadí jedné kategorie. */
+.table {
+  min-inline-size: var(--table-min);
+}
+
 /* Sloupce bodů mají stejnou šířku, ať jsou čísla pod sebou v pravidelné mřížce. */
 .rankHead {
   inline-size: 72px;

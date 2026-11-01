@@ -147,7 +147,7 @@ export default function Results() {
           eyebrow={standings && status === 'ready' ? standingsEyebrow(standings) : `Sezóna ${formatSeasonShort(seasonId)}`}
           title="Výsledky a pořadí"
           actions={(
-            <>
+            <div className={styles.headerActions}>
               {seasons.length > 0 && (
                 <Field label="Sezóna" className={styles.season}>
                   <Select value={seasonId} onChange={(event) => setChosen(Number(event.target.value))}>
@@ -160,7 +160,7 @@ export default function Results() {
                   {standings.document.final ? 'Celkové výsledky (PDF)' : 'Průběžné pořadí (PDF)'}
                 </ButtonLink>
               )}
-            </>
+            </div>
           )}
         />
         {content}

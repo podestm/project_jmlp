@@ -21,7 +21,7 @@ export default function StandingsTable({ category, races, className }) {
         caption={`Pořadí poháru – ${category.name}`}
         fixed
         className={styles.table}
-        style={{ minInlineSize: `${FIXED_WIDTH + races.length * RACE_WIDTH + NAME_CLUB_WIDTH}px` }}
+        style={{ '--table-min': `${FIXED_WIDTH + races.length * RACE_WIDTH + NAME_CLUB_WIDTH}px` }}
       >
         <thead>
           <tr>
