@@ -12,8 +12,8 @@ SSH zavolá na serveru `deploy/prod/ssh-deploy.sh`, který spustí `deploy-main.
 má GitHub, nic jiného neumí (vynucený příkaz v `authorized_keys`). Kdo by chtěl před nasazením ještě
 tlačítko *Approve*, přidá v GitHub Environment `production` *Required reviewers*.
 
-`deploy-main.sh` nasadí commit jen když je špičkou `origin/main`, prošlo na něm CI, není víkend
-(závody) a dřív neselhal. Před nasazením zazálohuje DB (`/var/lib/jmlp-deploy/backups`, posledních
+`deploy-main.sh` nasadí commit jen když je špičkou `origin/main`, prošlo na něm CI a dřív
+neselhal. Kdy nasazovat (např. ne během závodu), hlídá ten, kdo slučuje do `main`. Před nasazením zazálohuje DB (`/var/lib/jmlp-deploy/backups`, posledních
 10) a označí běžící image `jmlp-{backend,frontend}:pred-<commit>`. Po nasazení až 3 minuty kontroluje
 `/health` a healthcheck obou kontejnerů; když neprojde, vrátí předchozí image i kód, commit zapíše do
 `/var/lib/jmlp-deploy/failed` a skončí chybou (úloha v GitHubu zčervená, log je tam). **Databázi
@@ -30,8 +30,7 @@ Agenti tyto skripty nespouštějí ani neinstalují (guard v `.claude/hooks/`); 
    install -d -o podm12 -m 700 /var/lib/jmlp-deploy
    sudo -u podm12 REPO=/opt/jmlp /opt/jmlp-test/deploy/prod/deploy-main.sh
    ```
-   O víkendu nejdřív `touch /opt/jmlp/.deploy-allow-weekend` (po nasazení smazat). `podm12` musí
-   vlastnit `/opt/jmlp` a být ve skupině `docker`.
+   `podm12` musí vlastnit `/opt/jmlp` a být ve skupině `docker`.
 4. **Klíč pro GitHub** (na serveru, jako `podm12`):
    ```
    ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/jmlp-deploy
@@ -54,7 +53,6 @@ Agenti tyto skripty nespouštějí ani neinstalují (guard v `.claude/hooks/`); 
 |---|---|
 | Ruční nasazení | `sudo -u podm12 /opt/jmlp/deploy/prod/deploy-main.sh` |
 | Zablokovat nasazení | `touch /opt/jmlp/.deploy-paused` (zrušit: `rm`) |
-| Povolit nasazení o víkendu | `touch /opt/jmlp/.deploy-allow-weekend` (po nasazení smazat) |
 | Znovu zkusit selhaný commit | `rm /var/lib/jmlp-deploy/failed`, pak *Re-run* úlohy `deploy` v GitHubu |
 | Ruční návrat | `docker tag jmlp-backend:pred-<commit> jmlp-backend:latest` (totéž `jmlp-frontend`), `git -C /opt/jmlp reset --hard <commit>`, pak `up -d --no-build backend frontend` se souborem `docker-compose.server.yml` |
 | Odebrat GitHubu přístup | smazat řádek `github-deploy` z `~podm12/.ssh/authorized_keys` |

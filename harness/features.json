@@ -481,7 +481,7 @@
       "acceptance": [
         "GitHub Actions run lint, style rules, frontend tests, build, backend tests on MySQL and the harness self-test on pushes to dev/main and pull requests to dev/main",
         "The test environment deploys a dev commit only after CI passed on it",
-        "Merging a PR dev -> main deploys that commit to production after CI passed (GitHub job `deploy` over an SSH key restricted to deploy/prod/ssh-deploy.sh, optional approval), never on weekends, with a DB dump and image tags before and automatic rollback if /health fails",
+        "Merging a PR dev -> main deploys that commit to production after CI passed (GitHub job `deploy` over an SSH key restricted to deploy/prod/ssh-deploy.sh, optional approval), with a DB dump and image tags before and automatic rollback if /health fails",
         "The main ruleset requires the frontend, backend and harness checks before merge"
       ],
       "checks": [
@@ -492,9 +492,12 @@
         "deploy/test/auto-deploy-dev.sh"
       ],
       "e2e": [],
-      "status": "unverified",
-      "verified": null,
-      "notes": "CI green on GitHub; deploy script dry-run with stubbed docker/curl passed 9 scenarios; forced-command filter tested. Passing after the first real deployment through the GitHub job and the required checks are set."
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "first production deployment (721a036) + GitHub deploy job re-run green; CI green on dev and main"
+      },
+      "notes": "Deploy timing is the merger's call (owner's decision): no weekend block."
     },
     {
       "id": "HAR-06",

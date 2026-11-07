@@ -11,7 +11,6 @@
 # Commit se nasadí, jen když:
 #   - je to špička origin/main (starší commit se přeskočí - nasadí se ten novější),
 #   - na něm na GitHubu prošlo CI (frontend, backend, harness),
-#   - není víkend (závody; obejití: touch $REPO/.deploy-allow-weekend, po nasazení smazat),
 #   - nejde o commit, který už jednou selhal ($STATE/failed; znovu: smazat ten soubor),
 #   - je dost volné paměti.
 # Před nasazením: záloha DB a označení běžících image (pred-<commit>).
@@ -45,9 +44,10 @@ notify() {  # Discord, pokud je v prostředí DISCORD_WEBHOOK_URL (nepovinné)
 }
 
 [[ -e "$REPO/.deploy-paused" ]] && { log "Nasazení je zablokované ($REPO/.deploy-paused)."; exit 1; }
-exec 9>/tmp/jmlp-prod-deploy.lock
-flock -n 9 || { log "Předchozí nasazení ještě běží."; exit 1; }
 mkdir -p "$BACKUPS"
+# Zámek ve stavovém adresáři (patří uživateli nasazení), ne v /tmp, kde ho mohl založit někdo jiný.
+exec 9>"$STATE/deploy.lock"
+flock -n 9 || { log "Předchozí nasazení ještě běží."; exit 1; }
 
 cd "$REPO"
 git fetch -q origin main
@@ -71,9 +71,6 @@ if ! git merge-base --is-ancestor "$OLD" "$NEW"; then
     log "origin/main ${NEW:0:7} nenavazuje na ${OLD:0:7} (přepsaná historie?), nenasazuji."; exit 1
 fi
 
-if [[ $(date +%u) -ge 6 && ! -e "$REPO/.deploy-allow-weekend" ]]; then
-    log "Víkend - produkci nenasazuji (obejití: touch $REPO/.deploy-allow-weekend)."; exit 1
-fi
 
 # Ze složky skriptu, ne z $REPO: první nasazení běží ze starého checkoutu, který ji ještě nemá.
 source "$(dirname "$(readlink -f "$0")")/../lib/ci-gate.sh"

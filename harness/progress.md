@@ -17,6 +17,17 @@ Template:
 
 ---
 
+## 2026-11-07 — CI/CD live; weekend block removed (HAR-05)
+- Done: first production deployment 08befe1 -> 721a036 (manual run of deploy-main.sh), GitHub deploy job
+  connected and re-ran green. Owner removed the weekend block: only the owner merges to main and decides when
+  to deploy. Deploy lock moved from /tmp to the state dir (a root-owned /tmp lock from the agent's dry-runs
+  had blocked the first run). Calendar empty-state fix (fd39eac) went through dev -> test.
+- Verified: shellcheck clean; dry-run on a Saturday without flag deploys, unhealthy -> rollback; production
+  /health 200, season API reports the migrated is_current flag.
+- Next: HAR-04 Playwright e2e suite; mount the repo root in harness/lib/backend-tests.sh so the API contract
+  test also runs locally (ask first, harness/lib).
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — Production deployment triggered by merge to main (HAR-05)
 - Done: owner's decision — no timer; merging PR dev -> main deploys. CI job `deploy` (needs frontend, backend,
   harness; environment `production`, optional required reviewers) connects with a key whose authorized_keys
