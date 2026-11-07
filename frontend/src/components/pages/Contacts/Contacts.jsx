@@ -11,7 +11,7 @@ import {
 } from '../../ms/index.js';
 import { normalizeForSearch } from '../../../utils/text.js';
 import { czechPlural } from '../../../utils/races.js';
-import { CLUBS, OFFICIALS, ORGANIZER } from './contacts.js';
+import { CLUBS, OFFICIALS } from './contacts.js';
 import { usePageMeta } from '../../../hooks/usePageMeta.js';
 import { useScrollToHash } from '../../../hooks/useScrollToHash.js';
 import { PAGE_META } from '../../../seo/pageMeta.js';
@@ -38,17 +38,7 @@ export default function Contacts() {
   return (
     <Screen>
       <Container className={styles.page}>
-        <PageHeader eyebrow="Pořadatel, výbor a kluby" title="Kontakty" />
-
-        <section className={styles.section} aria-labelledby="poradatel">
-          <Paska id="poradatel">Pořadatel poháru</Paska>
-          <div className={styles.organizer}>
-            <h3 className={styles.name}>{ORGANIZER.name}</h3>
-            <p className={styles.address}>
-              {ORGANIZER.street}, {ORGANIZER.city} · IČO {ORGANIZER.ico}
-            </p>
-          </div>
-        </section>
+        <PageHeader eyebrow="Výbor a kluby" title="Kontakty" />
 
         <section className={styles.section} aria-labelledby="vybor">
           <Paska id="vybor">Soutěžní výbor</Paska>
