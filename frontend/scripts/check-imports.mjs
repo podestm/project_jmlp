@@ -24,7 +24,8 @@ const walk = (dir) => readdirSync(dir).flatMap((name) => {
 });
 
 const resolveImport = (fromFile, spec) => {
-  const base = resolve(dirname(fromFile), spec);
+  // Vite query suffixes (`?url`, `?raw`) are not part of the file name.
+  const base = resolve(dirname(fromFile), spec.replace(/\?.*$/, ''));
   for (const ext of EXTENSIONS) {
     const candidate = base + ext;
     try {

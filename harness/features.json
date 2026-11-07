@@ -1,0 +1,505 @@
+{
+  "schema": 1,
+  "about": "Feature list and backlog for agent sessions. One entry = one user-visible capability with acceptance criteria and the checks that prove it. Agents pick work from here and change `status` only after the listed checks ran in the same session.",
+  "status_values": {
+    "passing": "acceptance criteria hold; the listed checks passed at `verified.at`",
+    "failing": "a listed check fails or a criterion is known to be broken",
+    "unverified": "built, but no automated check covers the criteria yet",
+    "todo": "not built yet"
+  },
+  "rules": [
+    "Never mark a feature passing without running its checks in the current session.",
+    "Never delete or weaken acceptance criteria or tests to make a feature pass; change criteria only with the owner's approval, noted in harness/progress.md.",
+    "`e2e` lists browser steps that are not automated yet; they are verified manually (or with the browser-verifier agent) and do not count toward `passing`."
+  ],
+  "features": [
+    {
+      "id": "PUB-01",
+      "area": "public",
+      "title": "Season race calendar",
+      "acceptance": [
+        "/zavody lists the races of the current season with date, venue and registration status in words",
+        "Races with open registration take precedence over date in the race status shown",
+        "Past races are marked as finished"
+      ],
+      "checks": [
+        "backend/app/tests/test_public_races.py",
+        "backend/app/tests/test_current_season.py",
+        "frontend/src/components/pages/RaceCalendar/",
+        "frontend/src/utils/"
+      ],
+      "e2e": [
+        "Open /zavody, check that the next race has a status badge with text"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-02",
+      "area": "public",
+      "title": "Race detail with documents",
+      "acceptance": [
+        "/zavod/:raceId shows date, venue, categories, attachments (propozice, výsledky) and registered racers",
+        "Only published documents are downloadable"
+      ],
+      "checks": [
+        "backend/app/tests/test_public_races.py",
+        "backend/app/tests/test_downloads.py",
+        "frontend/src/components/pages/RaceDetail/"
+      ],
+      "e2e": [
+        "Open a race detail, download the propozice PDF"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-03",
+      "area": "public",
+      "title": "Online race registration",
+      "acceptance": [
+        "A parent can register a racer for a race with open registration",
+        "Existing racers are matched by name and birth year instead of duplicated",
+        "Category is derived from birth year and season",
+        "Registration is refused when registration is closed"
+      ],
+      "checks": [
+        "backend/app/tests/test_registration.py",
+        "frontend/src/components/pages/RaceDetail/"
+      ],
+      "e2e": [
+        "Register a new racer on the test environment, confirm it appears in admin Registrations"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-04",
+      "area": "public",
+      "title": "Results and season standings",
+      "acceptance": [
+        "/vysledky shows race results and cup standings per category for a chosen season",
+        "Standings points are computed consistently with the competition rules (tests encode them)",
+        "Results and standings export to PDF"
+      ],
+      "checks": [
+        "backend/app/tests/test_standings.py",
+        "backend/app/tests/test_public_standings.py",
+        "frontend/src/components/pages/Results/",
+        "frontend/src/pdf/"
+      ],
+      "e2e": [
+        "Open /vysledky, switch season, download the standings PDF"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-05",
+      "area": "public",
+      "title": "Live timing page",
+      "acceptance": [
+        "/zive shows live results while a race runs and a calm state otherwise",
+        "Header LivePill and LiveBand appear only during a live race"
+      ],
+      "checks": [
+        "frontend/src/components/pages/Live/",
+        "frontend/src/components/ms/LivePill/",
+        "frontend/src/components/ms/LiveBand/"
+      ],
+      "e2e": [
+        "Start a race in the timekeeper on the test environment, check /zive updates"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-06",
+      "area": "public",
+      "title": "News, documents, contacts, privacy",
+      "acceptance": [
+        "/aktuality and /archiv-zprav list published posts only; drafts and their attachments are not reachable by id",
+        "/dokumenty lists published season documents",
+        "/kontakty and /ochrana-osobnich-udaju render"
+      ],
+      "checks": [
+        "backend/app/tests/test_public_misc.py",
+        "backend/app/tests/test_downloads.py",
+        "frontend/src/components/pages/News/",
+        "frontend/src/components/pages/Documents/",
+        "frontend/src/components/pages/Contacts/",
+        "frontend/src/components/pages/Privacy/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "PUB-07",
+      "area": "public",
+      "title": "SEO and sharing metadata",
+      "acceptance": [
+        "Every public route has a title, description and OG image; sitemap lists races"
+      ],
+      "checks": [
+        "backend/app/tests/test_seo.py",
+        "frontend/src/seo/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "AUTH-01",
+      "area": "auth",
+      "title": "Shared admin/timekeeper login",
+      "acceptance": [
+        "One JWT covers admin and timekeeper sections; logout clears both",
+        "Admin endpoints require role admin; timekeeper endpoints accept admin and timekeeper",
+        "Admin UI refuses a timekeeper-role account without logging it out of the timekeeper"
+      ],
+      "checks": [
+        "backend/app/tests/test_auth_me.py",
+        "backend/app/tests/test_auth_refresh.py",
+        "frontend/src/config/",
+        "frontend/src/components/admin/AdminLogin/",
+        "frontend/src/components/timekeeper/TimekeeperLogin/"
+      ],
+      "e2e": [
+        "Log in as timekeeper, open /admin, expect refusal; open /timekeeper, still logged in"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "ADM-01",
+      "area": "admin",
+      "title": "Seasons and current season",
+      "acceptance": [
+        "Admin creates seasons and flags exactly one as current; the public site follows the flag"
+      ],
+      "checks": [
+        "backend/app/tests/test_current_season.py",
+        "frontend/src/components/admin/Seasons/",
+        "frontend/src/hooks/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "ADM-02",
+      "area": "admin",
+      "title": "Races, categories, clubs, racers CRUD",
+      "acceptance": [
+        "Admin creates, edits and deletes races, categories, clubs and racers",
+        "Editing a racer's birth year recomputes the category",
+        "Club requests from the public form can be approved or rejected"
+      ],
+      "checks": [
+        "backend/app/tests/test_admin_crud.py",
+        "backend/app/tests/test_admin_racers.py",
+        "frontend/src/components/admin/Races/",
+        "frontend/src/components/admin/Categories/",
+        "frontend/src/components/admin/Clubs/",
+        "frontend/src/components/admin/Racers/",
+        "frontend/src/components/admin/ClubRequests/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "ADM-03",
+      "area": "admin",
+      "title": "Registrations overview",
+      "acceptance": [
+        "Admin sees and edits registrations per race and exports them"
+      ],
+      "checks": [
+        "backend/app/tests/test_registration.py",
+        "frontend/src/components/admin/Registrations/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "ADM-04",
+      "area": "admin",
+      "title": "Document library with systematic file names",
+      "acceptance": [
+        "Uploaded attachments get a systematic name from their owner (e.g. JMLP2025-05_propozice.pdf) with collision suffixes",
+        "The library is a flat, filterable table; files can be renamed (extension kept)",
+        "Bulk download as ZIP mirrors owners as folders",
+        "Missing files on disk are reported, not crashed on"
+      ],
+      "checks": [
+        "backend/app/tests/test_naming.py",
+        "backend/app/tests/test_attachments_library.py",
+        "backend/app/tests/test_library_filters.py",
+        "backend/app/tests/test_library_export.py",
+        "backend/app/tests/test_chybejici_soubory.py",
+        "frontend/src/components/admin/Documents/",
+        "frontend/src/components/admin/Attachments/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "ADM-05",
+      "area": "admin",
+      "title": "Posts (news) editor",
+      "acceptance": [
+        "Admin writes, publishes and unpublishes posts with an image and a document"
+      ],
+      "checks": [
+        "frontend/src/components/admin/Posts/",
+        "backend/app/tests/test_public_misc.py"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "TK-01",
+      "area": "timekeeper",
+      "title": "Start list and bib numbers",
+      "acceptance": [
+        "Timekeeper builds the start list from registrations, assigns bib numbers by set/colour, excludes racers",
+        "Late entries can be added, also offline (temporary negative id, remapped on sync)",
+        "Start list prints to PDF"
+      ],
+      "checks": [
+        "backend/app/tests/test_timekeeper_start_list.py",
+        "backend/app/tests/test_timekeeper_excluded.py",
+        "backend/app/tests/test_migrace_oznaceni_cisel.py",
+        "frontend/src/components/timekeeper/StartList/",
+        "frontend/src/components/timekeeper/RaceNumbers/",
+        "frontend/src/offline/offlineEntries.test.js"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "TK-02",
+      "area": "timekeeper",
+      "title": "Entering times (manual and timing device)",
+      "acceptance": [
+        "Times for run 1/2 and DNF/DNS/DSQ are saved per racer",
+        "Timing-device impulses arrive over Web Serial into a durable inbox and are matched to bibs",
+        "A typed but not yet saved value survives reload (drafts)",
+        "On a revision conflict the safe choice (keep server value) has focus; Enter never overwrites another device's value"
+      ],
+      "checks": [
+        "backend/app/tests/test_timekeeper_timing.py",
+        "frontend/src/components/timekeeper/Timing/",
+        "frontend/src/components/timekeeper/conflictDialog.test.jsx",
+        "frontend/src/components/timekeeper/timingRules.test.js",
+        "frontend/src/offline/timingDrafts.test.js",
+        "frontend/src/components/timekeeper/Timing/Inbox/"
+      ],
+      "e2e": [
+        "Feed impulses through a virtual serial port and confirm them to bibs (simulator not in repo yet)"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "TK-03",
+      "area": "timekeeper",
+      "title": "Offline-first operation and sync",
+      "acceptance": [
+        "All core screens work with the server unreachable (race detail, start list, timing, late entries, results)",
+        "Mutations queue in IndexedDB and replay in order with idempotency keys; duplicates are ignored by the backend",
+        "Stale writes get 409 and are parked as conflicts, not lost",
+        "Connectivity is real server reachability, not navigator.onLine"
+      ],
+      "checks": [
+        "frontend/src/offline/",
+        "backend/app/tests/test_timekeeper_timing.py",
+        "backend/app/tests/test_timekeeper_start_list.py"
+      ],
+      "e2e": [
+        "Load a race, go offline in DevTools, enter 3 times and a late entry, reload, go online, confirm all synced once"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      },
+      "notes": "Unit coverage is strong; the end-to-end offline scenario is the top candidate for the first Playwright test (HAR-04)."
+    },
+    {
+      "id": "TK-04",
+      "area": "timekeeper",
+      "title": "Local backup export/import",
+      "acceptance": [
+        "All local race data, including unconfirmed timing-device events, exports to a file and imports back without duplicates"
+      ],
+      "checks": [
+        "frontend/src/offline/backup.test.js",
+        "frontend/src/components/timekeeper/Sync/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "TK-05",
+      "area": "timekeeper",
+      "title": "Results and SLČR export",
+      "acceptance": [
+        "Race results by category print to PDF",
+        "Results export to the national federation format (FIS XML / SLČR evidence)"
+      ],
+      "checks": [
+        "backend/app/tests/test_timekeeper_results.py",
+        "backend/app/tests/test_fis_xml.py",
+        "backend/app/tests/test_slcr_categories.py",
+        "backend/app/tests/test_slcr_evidence.py",
+        "frontend/src/components/timekeeper/Results/",
+        "frontend/src/pdf/liza/"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      }
+    },
+    {
+      "id": "UI-01",
+      "area": "design-system",
+      "title": "Modrá stopa kit and style rules",
+      "acceptance": [
+        "Every screen is built from components/ms; no Bootstrap, legacy variables, hex colours or emoji in modules",
+        "Timekeeper routes do not overflow horizontally between 600 and 1366 px"
+      ],
+      "checks": [
+        "frontend/scripts/check-styles.mjs",
+        "frontend/src/components/ms/",
+        "frontend/src/test/"
+      ],
+      "e2e": [
+        "Resize timekeeper routes to 600, 768, 1024, 1366 px and check for horizontal page scroll"
+      ],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/verify.sh full"
+      },
+      "notes": "The 600-1366 px overflow rule is checked by hand only; candidate for an automated Playwright viewport test."
+    },
+    {
+      "id": "HAR-01",
+      "area": "harness",
+      "title": "Agent conventions, guardrails and session loop",
+      "acceptance": [
+        "AGENTS.md is the canonical entry point; CLAUDE.md files import it",
+        "Hooks block production-touching and secret-reading commands",
+        "harness/init.sh and harness/verify.sh run green on a clean checkout"
+      ],
+      "checks": [
+        "harness/tests/run.sh"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/tests/run.sh + harness/verify.sh full"
+      }
+    },
+    {
+      "id": "HAR-04",
+      "area": "harness",
+      "title": "Playwright end-to-end suite in the repo",
+      "acceptance": [
+        "e2e/ with @playwright/test runs against a disposable stack, never the shared test environment's data",
+        "First scenarios: offline timekeeper day (TK-03), registration (PUB-03), timekeeper viewport overflow (UI-01)",
+        "harness/verify.sh e2e runs it"
+      ],
+      "checks": [],
+      "e2e": [],
+      "status": "todo",
+      "verified": null
+    },
+    {
+      "id": "HAR-05",
+      "area": "harness",
+      "title": "CI pipeline",
+      "acceptance": [
+        "GitHub Actions run harness/verify.sh full on every pull request",
+        "Branch protection requires it before merge"
+      ],
+      "checks": [],
+      "e2e": [],
+      "status": "todo",
+      "verified": null
+    },
+    {
+      "id": "HAR-06",
+      "area": "harness",
+      "title": "Harness evals",
+      "acceptance": [
+        "A small suite of task prompts runs headless (claude -p) in a clean worktree",
+        "Each task is scored by its own checks (tests pass, guard rules respected, diff scope) with cost and duration recorded",
+        "Results are comparable across model and harness changes"
+      ],
+      "checks": [],
+      "e2e": [],
+      "status": "todo",
+      "verified": null
+    }
+  ]
+}

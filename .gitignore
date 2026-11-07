@@ -83,3 +83,12 @@ NOTES.md
 
 # Podklady redesignu (lokální, neposílat na GitHub)
 design_modra_stopa/
+
+# Playwright MCP screenshots/traces
+.playwright/output/
+.claude/settings.local.json
+
+# Agent harness: local state and machine-specific notes/rules (never commit)
+.harness/
+CLAUDE.local.md
+.claude/hooks/guard-rules.local.json
