@@ -20,7 +20,7 @@ Pozastavení: `touch /opt/jmlp-test/.sync-paused`, obnovení: `rm` téhož soubo
 
 ## Jednorázové nastavení (kroky se `sudo` dělá Michal)
 
-1. **DNS u Forpsi:** A `preprodtest` -> `178.105.133.222` (TTL 300).
+1. **DNS u Forpsi:** A `preprodtest` -> `<IP produkčního serveru>` (TTL 300).
 2. **Swap 2 GB** (chrání produkci před nedostatkem paměti):
    ```bash
    sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
