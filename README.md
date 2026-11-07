@@ -18,6 +18,7 @@ The repository is set up to be developed by coding agents. Start with [AGENTS.md
 | Reviewer agents | `.claude/agents/` — code, offline invariants, design system, real-browser verification |
 | Workflow | `/next` → work → `/checkpoint`, `/review` (`.claude/skills/`) |
 | Harness self-test | `harness/tests/run.sh` |
+| CI on every pull request | `.github/workflows/ci.yml` (same checks as `verify.sh full`) |
 
 ## Run the checks
 
