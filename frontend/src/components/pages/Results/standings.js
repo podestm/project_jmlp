@@ -31,5 +31,7 @@ export const standingsEyebrow = (standings) => {
     `Sezóna ${standings.season_label}`,
     standings.edition_label && `${standings.edition_label} ročník`,
     count > 0 && `${kind} po ${count} ${czechPlural(count, ['závodě', 'závodech', 'závodech'])}`,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 };

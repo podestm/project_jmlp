@@ -35,10 +35,38 @@ export const connectionChip = ({ syncState, offlineSince }) => {
  */
 export const queueChip = (stats) => {
   const base = { label: 'Fronta', valueMono: true };
-  if (stats.dead > 0) return { ...base, tone: 'danger', icon: 'ban', value: String(stats.dead), detail: [{ text: 'neodesláno' }] };
-  if (stats.conflict > 0) return { ...base, tone: 'danger', icon: 'merge', value: String(stats.conflict), detail: [{ text: 'konflikt' }] };
-  if (stats.failed > 0) return { ...base, tone: 'danger', icon: 'error', value: String(stats.failed), detail: [{ text: 'chyba odeslání' }] };
-  if (stats.total > 0) return { ...base, tone: 'dry', icon: 'sync', value: String(stats.total), detail: [{ text: 'neodeslané' }] };
+  if (stats.dead > 0)
+    return {
+      ...base,
+      tone: 'danger',
+      icon: 'ban',
+      value: String(stats.dead),
+      detail: [{ text: 'neodesláno' }],
+    };
+  if (stats.conflict > 0)
+    return {
+      ...base,
+      tone: 'danger',
+      icon: 'merge',
+      value: String(stats.conflict),
+      detail: [{ text: 'konflikt' }],
+    };
+  if (stats.failed > 0)
+    return {
+      ...base,
+      tone: 'danger',
+      icon: 'error',
+      value: String(stats.failed),
+      detail: [{ text: 'chyba odeslání' }],
+    };
+  if (stats.total > 0)
+    return {
+      ...base,
+      tone: 'dry',
+      icon: 'sync',
+      value: String(stats.total),
+      detail: [{ text: 'neodeslané' }],
+    };
   return { ...base, tone: 'calm', icon: 'check', value: '0', detail: [{ text: 'vše na serveru' }] };
 };
 
@@ -64,7 +92,13 @@ export const deviceChip = ({ supported, canUse, connected, heldByOtherTab, baud,
     };
   }
   if (heldByOtherTab) {
-    return { ...base, tone: 'amber', icon: 'plug', value: 'Jiná karta', detail: [{ text: 'čte jinde' }] };
+    return {
+      ...base,
+      tone: 'amber',
+      icon: 'plug',
+      value: 'Jiná karta',
+      detail: [{ text: 'čte jinde' }],
+    };
   }
   return { ...base, tone: 'calm', icon: 'plug-off', value: 'Odpojeno', detail: [] };
 };

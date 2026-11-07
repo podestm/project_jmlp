@@ -3,7 +3,9 @@ import { detectionCandidates, isCleanDeviceLine, runBaudDetection } from './baud
 
 describe('hledání rychlosti časomíry', () => {
   it('nastavená rychlost se zkouší první, pak ostatní v pořadí', () => {
-    expect(detectionCandidates('9600')).toEqual([9600, 19200, 38400, 115200, 4800, 2400, 57600, 1200]);
+    expect(detectionCandidates('9600')).toEqual([
+      9600, 19200, 38400, 115200, 4800, 2400, 57600, 1200,
+    ]);
     expect(detectionCandidates('19200')[0]).toBe(19200);
     expect(detectionCandidates('19200')).toHaveLength(8);
   });
@@ -23,7 +25,10 @@ describe('hledání rychlosti časomíry', () => {
     const opened = [];
     const found = await runBaudDetection({
       candidates: [9600, 19200, 38400],
-      open: async (baud) => { opened.push(baud); return true; },
+      open: async (baud) => {
+        opened.push(baud);
+        return true;
+      },
       listen: async () => (opened.at(-1) === 19200 ? 'clean' : 'timeout'),
       cancelled: () => false,
     });
@@ -51,8 +56,14 @@ describe('hledání rychlosti časomíry', () => {
     const opened = [];
     const found = await runBaudDetection({
       candidates: [9600, 19200, 38400],
-      open: async (baud) => { opened.push(baud); return true; },
-      listen: async () => { stop = true; return 'cancelled'; },
+      open: async (baud) => {
+        opened.push(baud);
+        return true;
+      },
+      listen: async () => {
+        stop = true;
+        return 'cancelled';
+      },
       cancelled: () => stop,
     });
 

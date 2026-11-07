@@ -8,11 +8,26 @@ const COLUMNS = '80px 120px repeat(2, minmax(0, 1fr)) 90px minmax(0, 1.4fr) auto
  * systémové číslo (s dresem, který z něj vyjde, a kontrolou obsazenosti),
  * jméno, ročník a oddíl.
  */
-export default function StartListEditRow({ entry, editForm, updateEditField, error, bibNumber, categoryPreview, onSave, onCancel, colSpan }) {
+export default function StartListEditRow({
+  entry,
+  editForm,
+  updateEditField,
+  error,
+  bibNumber,
+  categoryPreview,
+  onSave,
+  onCancel,
+  colSpan,
+}) {
   const id = (field) => `tk-sl-${entry.id}-${field}`;
   const text = (field, label, extra = {}) => (
     <Field label={label} id={id(field)}>
-      <Input size="sm" value={editForm[field]} onChange={(e) => updateEditField(field, e.target.value)} {...extra} />
+      <Input
+        size="sm"
+        value={editForm[field]}
+        onChange={(e) => updateEditField(field, e.target.value)}
+        {...extra}
+      />
     </Field>
   );
 
@@ -25,7 +40,12 @@ export default function StartListEditRow({ entry, editForm, updateEditField, err
       onCancel={onCancel}
     >
       {text('start_number', 'Pořadí', { type: 'number', mono: true })}
-      <Field label="Systém" id={id('race_number_display')} error={error || undefined} hint={`Číslo dresu: ${bibNumber ?? '—'}`}>
+      <Field
+        label="Systém"
+        id={id('race_number_display')}
+        error={error || undefined}
+        hint={`Číslo dresu: ${bibNumber ?? '—'}`}
+      >
         <Input
           size="sm"
           mono

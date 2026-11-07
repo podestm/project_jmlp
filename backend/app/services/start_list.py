@@ -4,6 +4,7 @@ Vytaženo z routers/timekeeper/start_list.py, kde soubor přerostl 900 řádků 
 pravidla se ztrácela mezi obsluhou požadavků. Tady není žádný FastAPI kód -
 jen práce s daty, takže se to dá volat i odjinud a testovat bez HTTP.
 """
+
 import json
 from typing import Any, Dict
 
@@ -52,7 +53,9 @@ def _get_effective_category_order(race: models.Race, db: Session) -> list[int]:
                         continue
                 if normalized:
                     default_order = _get_default_category_order(db)
-                    missing_defaults = [cat_id for cat_id in default_order if cat_id not in normalized]
+                    missing_defaults = [
+                        cat_id for cat_id in default_order if cat_id not in normalized
+                    ]
                     return normalized + missing_defaults
         except json.JSONDecodeError:
             pass
@@ -101,7 +104,9 @@ def _find_or_create_club(club_name: str, db: Session) -> models.Club:
     return club
 
 
-def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[models.Racer, dict[str, Any], bool]:
+def _get_or_create_manual_racer(
+    data: Dict[str, Any], db: Session
+) -> tuple[models.Racer, dict[str, Any], bool]:
     racer_id = data.get("racer_id")
     racer_slcr_id = _clean_string(data.get("racer_slcr_id"))
     racer_telefon = _clean_string(data.get("racer_telefon"))
@@ -127,7 +132,13 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
     racer_sex = data.get("racer_sex")
     club_name = _clean_string(data.get("club_name"))
 
-    if not racer_name or not racer_surname or year_value in ("", None) or racer_sex in ("", None) or not club_name:
+    if (
+        not racer_name
+        or not racer_surname
+        or year_value in ("", None)
+        or racer_sex in ("", None)
+        or not club_name
+    ):
         raise StandardExceptions.bad_request(
             "Pro nového závodníka vyplňte jméno, příjmení, rok narození, pohlaví a oddíl"
         )
@@ -135,12 +146,16 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
     racer_year = int(year_value)
     racer_sex = int(racer_sex)
 
-    existing_racer = db.query(models.Racer).filter(
-        models.Racer.name == racer_name,
-        models.Racer.surname == racer_surname,
-        models.Racer.year == racer_year,
-        models.Racer.sex == racer_sex,
-    ).first()
+    existing_racer = (
+        db.query(models.Racer)
+        .filter(
+            models.Racer.name == racer_name,
+            models.Racer.surname == racer_surname,
+            models.Racer.year == racer_year,
+            models.Racer.sex == racer_sex,
+        )
+        .first()
+    )
 
     if existing_racer:
         racer = existing_racer
@@ -175,12 +190,16 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
         # právě založil - unikátní klíč jméno+příjmení+ročník+pohlaví hlídá,
         # aby nevznikl dvakrát. Použijeme ten jeho.
         db.rollback()
-        existing_racer = db.query(models.Racer).filter(
-            models.Racer.name == racer_name,
-            models.Racer.surname == racer_surname,
-            models.Racer.year == racer_year,
-            models.Racer.sex == racer_sex,
-        ).first()
+        existing_racer = (
+            db.query(models.Racer)
+            .filter(
+                models.Racer.name == racer_name,
+                models.Racer.surname == racer_surname,
+                models.Racer.year == racer_year,
+                models.Racer.sex == racer_sex,
+            )
+            .first()
+        )
         if existing_racer is None:
             raise
         return existing_racer, _get_racer_source_snapshot(existing_racer.id, db), False
@@ -189,14 +208,18 @@ def _get_or_create_manual_racer(data: Dict[str, Any], db: Session) -> tuple[mode
     return racer, source_snapshot, True
 
 
-def _get_race_number_by_display(display_number: Any, db: Session, require_active: bool = True) -> models.RaceNumber:
+def _get_race_number_by_display(
+    display_number: Any, db: Session, require_active: bool = True
+) -> models.RaceNumber:
     try:
         display_number = normalize_code(display_number)
     except ValueError as exc:
         raise StandardExceptions.bad_request(str(exc)) from exc
-    race_number = db.query(models.RaceNumber).filter(
-        models.RaceNumber.display_number == display_number
-    ).first()
+    race_number = (
+        db.query(models.RaceNumber)
+        .filter(models.RaceNumber.display_number == display_number)
+        .first()
+    )
     if not race_number:
         raise StandardExceptions.bad_request(f"Systémové číslo {display_number} neexistuje")
     if require_active and not race_number.is_active:
@@ -204,18 +227,22 @@ def _get_race_number_by_display(display_number: Any, db: Session, require_active
     return race_number
 
 
-def _get_race_number_by_id(race_number_id: int, db: Session, require_active: bool = True) -> models.RaceNumber:
-    race_number = db.query(models.RaceNumber).filter(
-        models.RaceNumber.id == race_number_id
-    ).first()
+def _get_race_number_by_id(
+    race_number_id: int, db: Session, require_active: bool = True
+) -> models.RaceNumber:
+    race_number = db.query(models.RaceNumber).filter(models.RaceNumber.id == race_number_id).first()
     if not race_number:
         raise StandardExceptions.bad_request("Závodní číslo neexistuje")
     if require_active and not race_number.is_active:
-        raise StandardExceptions.bad_request(f"Systémové číslo {race_number.display_number} je deaktivované")
+        raise StandardExceptions.bad_request(
+            f"Systémové číslo {race_number.display_number} je deaktivované"
+        )
     return race_number
 
 
-def _resolve_race_number_for_assignment(data: Dict[str, Any], db: Session) -> tuple[bool, models.RaceNumber | None]:
+def _resolve_race_number_for_assignment(
+    data: Dict[str, Any], db: Session
+) -> tuple[bool, models.RaceNumber | None]:
     if "race_number_display" in data:
         display_number = data.get("race_number_display")
         if display_number in ("", None):
@@ -233,29 +260,44 @@ def _resolve_race_number_for_assignment(data: Dict[str, Any], db: Session) -> tu
 
 def _get_next_available_race_number_for_race(race_id: int, db: Session) -> models.RaceNumber | None:
     """Číslo hned za posledním přiděleným v závodě (pořadí sad a dresů: A1..A200, B1..)."""
-    last = db.query(models.RaceNumber).join(
-        models.StartListEntry, models.StartListEntry.race_number_id == models.RaceNumber.id
-    ).filter(
-        models.StartListEntry.race_id == race_id
-    ).order_by(models.RaceNumber.set_number.desc(), models.RaceNumber.actual_number.desc()).first()
+    last = (
+        db.query(models.RaceNumber)
+        .join(models.StartListEntry, models.StartListEntry.race_number_id == models.RaceNumber.id)
+        .filter(models.StartListEntry.race_id == race_id)
+        .order_by(models.RaceNumber.set_number.desc(), models.RaceNumber.actual_number.desc())
+        .first()
+    )
 
     query = db.query(models.RaceNumber).filter(models.RaceNumber.is_active.is_(True))
     if last is None:
         return query.order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number).first()
 
     # Jen bezprostředně následující číslo, stejně jako dřív "systémové + 1".
-    following = db.query(models.RaceNumber).filter(or_(
-        models.RaceNumber.set_number > last.set_number,
-        and_(models.RaceNumber.set_number == last.set_number, models.RaceNumber.actual_number > last.actual_number),
-    )).order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number).first()
+    following = (
+        db.query(models.RaceNumber)
+        .filter(
+            or_(
+                models.RaceNumber.set_number > last.set_number,
+                and_(
+                    models.RaceNumber.set_number == last.set_number,
+                    models.RaceNumber.actual_number > last.actual_number,
+                ),
+            )
+        )
+        .order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number)
+        .first()
+    )
     return following if following is not None and following.is_active else None
 
 
 def _get_next_available_start_number_for_race(race_id: int, db: Session) -> int:
-    max_start_number = db.query(func.max(models.StartListEntry.start_number)).filter(
-        models.StartListEntry.race_id == race_id,
-        models.StartListEntry.start_number.isnot(None)
-    ).scalar()
+    max_start_number = (
+        db.query(func.max(models.StartListEntry.start_number))
+        .filter(
+            models.StartListEntry.race_id == race_id, models.StartListEntry.start_number.isnot(None)
+        )
+        .scalar()
+    )
     return (int(max_start_number) + 1) if max_start_number is not None else 1
 
 
@@ -265,15 +307,15 @@ def _compact_start_numbers_for_race(race_id: int, db: Session) -> None:
         return
 
     category_rank_map = _get_category_rank_map(race, db)
-    entries = db.query(models.StartListEntry).filter(
-        models.StartListEntry.race_id == race_id
-    ).all()
+    entries = db.query(models.StartListEntry).filter(models.StartListEntry.race_id == race_id).all()
 
-    entries.sort(key=lambda item: (
-        category_rank_map.get(item.category_id, 10**9),
-        item.start_number if item.start_number is not None else 10**9,
-        item.id,
-    ))
+    entries.sort(
+        key=lambda item: (
+            category_rank_map.get(item.category_id, 10**9),
+            item.start_number if item.start_number is not None else 10**9,
+            item.id,
+        )
+    )
 
     for index, item in enumerate(entries, start=1):
         item.start_number = index
@@ -325,7 +367,9 @@ def _apply_category_snapshot(entry: models.StartListEntry, db: Session) -> None:
     entry.category_sex = category_sex
 
 
-def _apply_race_number_snapshot(entry: models.StartListEntry, race_number: models.RaceNumber | None) -> None:
+def _apply_race_number_snapshot(
+    entry: models.StartListEntry, race_number: models.RaceNumber | None
+) -> None:
     if race_number is None:
         entry.race_number_id = None
         entry.race_number_display = None
@@ -354,7 +398,9 @@ def _slcr_id(value: Any) -> str | None:
     return text_value if text_value and text_value != "-" else None
 
 
-def _serialize_start_list_row(row: Any, category_rank_map: dict[int, int] | None = None) -> Dict[str, Any]:
+def _serialize_start_list_row(
+    row: Any, category_rank_map: dict[int, int] | None = None
+) -> Dict[str, Any]:
     category_rank = None
     if category_rank_map is not None:
         category_rank = category_rank_map.get(row.category_id, len(category_rank_map))
@@ -454,4 +500,3 @@ def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
     race = db.query(models.Race).filter(models.Race.id == row.race_id).first()
     category_rank_map = _get_category_rank_map(race, db) if race else {}
     return _serialize_start_list_row(row, category_rank_map)
-

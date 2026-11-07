@@ -9,10 +9,23 @@ import styles from './FileTable.module.css';
 /** Název souboru, nebo pole pro nový název. */
 function FileName({ file, editing, draftName, setDraftName, onCommit, onCancel }) {
   if (editing) {
-    return <RenameInput value={draftName} onChange={setDraftName} onCommit={() => onCommit(file)} onCancel={onCancel} />;
+    return (
+      <RenameInput
+        value={draftName}
+        onChange={setDraftName}
+        onCommit={() => onCommit(file)}
+        onCancel={onCancel}
+      />
+    );
   }
   return (
-    <a href={file.download_url} target="_blank" rel="noopener noreferrer" className={styles.link} title={file.original_filename}>
+    <a
+      href={file.download_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.link}
+      title={file.original_filename}
+    >
       {file.original_filename}
     </a>
   );
@@ -24,8 +37,13 @@ function FileUsage({ usage }) {
   return (
     <span className={styles.usage}>
       {usage.map((item, index) => (
-        <span key={`${item.owner_type}-${item.owner_id}-${item.role}-${index}`} title={`${item.type}: ${item.title}`}>
-          <Badge size="sm" tone={item.published ? 'open' : 'neutral'}>{usageLabel(item)}</Badge>
+        <span
+          key={`${item.owner_type}-${item.owner_id}-${item.role}-${index}`}
+          title={`${item.type}: ${item.title}`}
+        >
+          <Badge size="sm" tone={item.published ? 'open' : 'neutral'}>
+            {usageLabel(item)}
+          </Badge>
         </span>
       ))}
     </span>
@@ -42,15 +60,41 @@ function FileRow({ file, rename, onPublish, onDelete }) {
           <FileName file={file} editing={rename.editingId === file.id} {...rename} />
         </span>
       </td>
-      <td data-align="end" data-numeric className={styles.size}>{formatFileSize(file.file_size)}</td>
+      <td data-align="end" data-numeric className={styles.size}>
+        {formatFileSize(file.file_size)}
+      </td>
       <td className={styles.date}>{formatDateShort(file.uploaded_at)}</td>
-      <td className={styles.usageCell}><FileUsage usage={file.usage_info} /></td>
+      <td className={styles.usageCell}>
+        <FileUsage usage={file.usage_info} />
+      </td>
       <td data-align="end" className={styles.actionsCell}>
         <span className={styles.actions}>
-          <IconButton icon="pencil" label={`Přejmenovat soubor ${name}`} onClick={() => rename.onStart(file)} />
-          <ButtonLink href={file.download_url} download size="sm" icon="download" className={styles.square} aria-label={`Stáhnout soubor ${name}`} />
-          <Button size="sm" onClick={() => onPublish(file)} aria-label={`Zveřejnit soubor ${name} na webu`}>Zveřejnit</Button>
-          <IconButton icon="trash" variant="danger" label={`Smazat soubor ${name}`} onClick={() => onDelete(file)} />
+          <IconButton
+            icon="pencil"
+            label={`Přejmenovat soubor ${name}`}
+            onClick={() => rename.onStart(file)}
+          />
+          <ButtonLink
+            href={file.download_url}
+            download
+            size="sm"
+            icon="download"
+            className={styles.square}
+            aria-label={`Stáhnout soubor ${name}`}
+          />
+          <Button
+            size="sm"
+            onClick={() => onPublish(file)}
+            aria-label={`Zveřejnit soubor ${name} na webu`}
+          >
+            Zveřejnit
+          </Button>
+          <IconButton
+            icon="trash"
+            variant="danger"
+            label={`Smazat soubor ${name}`}
+            onClick={() => onDelete(file)}
+          />
         </span>
       </td>
     </tr>
@@ -69,15 +113,25 @@ export default function FileTable({ files, rename, onPublish, onDelete }) {
         <thead>
           <tr>
             <th scope="col">Soubor</th>
-            <th scope="col" data-align="end">Velikost</th>
+            <th scope="col" data-align="end">
+              Velikost
+            </th>
             <th scope="col">Nahráno</th>
             <th scope="col">Použito</th>
-            <th scope="col" data-align="end">Akce</th>
+            <th scope="col" data-align="end">
+              Akce
+            </th>
           </tr>
         </thead>
         <tbody>
           {files.map((file) => (
-            <FileRow key={file.id} file={file} rename={rename} onPublish={onPublish} onDelete={onDelete} />
+            <FileRow
+              key={file.id}
+              file={file}
+              rename={rename}
+              onPublish={onPublish}
+              onDelete={onDelete}
+            />
           ))}
         </tbody>
       </Table>

@@ -17,7 +17,13 @@ export default function LiveLog({ log, onClear }) {
     <section className={styles.section} aria-labelledby="zivy-zaznam">
       <Paska
         id="zivy-zaznam"
-        aside={log.length > 0 && <Button size="sm" variant="quiet" onClick={onClear}>Vymazat záznam</Button>}
+        aside={
+          log.length > 0 && (
+            <Button size="sm" variant="quiet" onClick={onClear}>
+              Vymazat záznam
+            </Button>
+          )
+        }
       >
         Živý záznam z časomíry
       </Paska>
@@ -36,9 +42,16 @@ export default function LiveLog({ log, onClear }) {
           </ol>
         )}
         <ul className={styles.legend}>
-          <li><Icon name="check" size={14} /> {KIND.time.label} (např. <code>11 65 5.16</code>, <code>00:03:07 16 213 188.19</code>, <code>18 12 DNF</code>)</li>
-          <li><Icon name="info" size={14} /> {KIND.info.label}</li>
-          <li><Icon name="question" size={14} /> {KIND.unknown.label}</li>
+          <li>
+            <Icon name="check" size={14} /> {KIND.time.label} (např. <code>11 65 5.16</code>,{' '}
+            <code>00:03:07 16 213 188.19</code>, <code>18 12 DNF</code>)
+          </li>
+          <li>
+            <Icon name="info" size={14} /> {KIND.info.label}
+          </li>
+          <li>
+            <Icon name="question" size={14} /> {KIND.unknown.label}
+          </li>
         </ul>
       </div>
     </section>

@@ -17,14 +17,21 @@ const waitingText = (count) => {
  * Horní lišta administrace pod 1024 px (AdminMobilPrehled): identita
  * s názvem obrazovky a tlačítko menu s počtem čekajících žádostí o kluby.
  */
-export default function AdminMobileBar({ menuId, menuOpen, onOpenMenu, pendingClubRequests = 0, className }) {
+export default function AdminMobileBar({
+  menuId,
+  menuOpen,
+  onOpenMenu,
+  pendingClubRequests = 0,
+  className,
+}) {
   const { pathname } = useLocation();
   const { edition, season } = useSeasonInfo();
   const current = adminNav.find((item) => isNavActive(item, pathname));
   const subtitle = [current?.label, `${edition} ročník ${season}`].filter(Boolean).join(' · ');
-  const label = pendingClubRequests > 0
-    ? `Otevřít menu administrace, ${waitingText(pendingClubRequests)}`
-    : 'Otevřít menu administrace';
+  const label =
+    pendingClubRequests > 0
+      ? `Otevřít menu administrace, ${waitingText(pendingClubRequests)}`
+      : 'Otevřít menu administrace';
 
   return (
     <header className={cx(styles.bar, className)}>
@@ -39,7 +46,11 @@ export default function AdminMobileBar({ menuId, menuOpen, onOpenMenu, pendingCl
         aria-controls={menuId}
         onClick={onOpenMenu}
       >
-        {pendingClubRequests > 0 && <Badge tone="count" className={styles.count}>{pendingClubRequests}</Badge>}
+        {pendingClubRequests > 0 && (
+          <Badge tone="count" className={styles.count}>
+            {pendingClubRequests}
+          </Badge>
+        )}
         <Icon name="menu" size={24} />
       </button>
     </header>

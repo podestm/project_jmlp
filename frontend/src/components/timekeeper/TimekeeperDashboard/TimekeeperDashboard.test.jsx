@@ -16,19 +16,47 @@ const iso = (offsetDays) => {
 };
 
 const RACES = [
-  { id: 2, race_nr: 'JMLP2026-02', areal_name: 'Kraví hora', datum: iso(7), registration: false, is_live: false, reg_count: 0, start_list_count: 0 },
-  { id: 1, race_nr: 'JMLP2026-01', areal_name: 'Kohoutovice', datum: iso(0), registration: false, is_live: true, reg_count: 58, start_list_count: 57 },
-  { id: 9, race_nr: 'JMLP2025-05', areal_name: 'Fajťák', datum: iso(-200), registration: false, is_live: false, reg_count: 40, start_list_count: 40 },
+  {
+    id: 2,
+    race_nr: 'JMLP2026-02',
+    areal_name: 'Kraví hora',
+    datum: iso(7),
+    registration: false,
+    is_live: false,
+    reg_count: 0,
+    start_list_count: 0,
+  },
+  {
+    id: 1,
+    race_nr: 'JMLP2026-01',
+    areal_name: 'Kohoutovice',
+    datum: iso(0),
+    registration: false,
+    is_live: true,
+    reg_count: 58,
+    start_list_count: 57,
+  },
+  {
+    id: 9,
+    race_nr: 'JMLP2025-05',
+    areal_name: 'Fajťák',
+    datum: iso(-200),
+    registration: false,
+    is_live: false,
+    reg_count: 40,
+    start_list_count: 40,
+  },
 ];
 
-const renderScreen = () => render(
-  <MemoryRouter initialEntries={['/timekeeper']}>
-    <Routes>
-      <Route path="/timekeeper" element={<TimekeeperDashboard />} />
-      <Route path="/timekeeper/start-list" element={<p>startovka</p>} />
-    </Routes>
-  </MemoryRouter>,
-);
+const renderScreen = () =>
+  render(
+    <MemoryRouter initialEntries={['/timekeeper']}>
+      <Routes>
+        <Route path="/timekeeper" element={<TimekeeperDashboard />} />
+        <Route path="/timekeeper/start-list" element={<p>startovka</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
 
 beforeEach(() => {
   localStorage.clear();
@@ -39,8 +67,12 @@ beforeEach(() => {
 describe('výběr závodu', () => {
   it('nadcházející od nejbližšího a proběhlé zvlášť', async () => {
     renderScreen();
-    const upcoming = (await screen.findByRole('heading', { name: 'Nadcházející závody' })).closest('section');
-    const titles = within(upcoming).getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    const upcoming = (await screen.findByRole('heading', { name: 'Nadcházející závody' })).closest(
+      'section',
+    );
+    const titles = within(upcoming)
+      .getAllByRole('heading', { level: 3 })
+      .map((h) => h.textContent);
     expect(titles).toEqual(['Kohoutovice', 'Kraví hora']);
     expect(within(upcoming).getByText('Dnes se měří')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Proběhlé závody' })).toBeInTheDocument();
@@ -59,7 +91,9 @@ describe('výběr závodu', () => {
     renderScreen();
     const last = await screen.findByRole('region', { name: 'Naposledy vybraný závod' });
     expect(last).toHaveTextContent('Kohoutovice');
-    expect(within(screen.getByRole('article', { name: 'Kohoutovice' })).getByText('Vybráno')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('article', { name: 'Kohoutovice' })).getByText('Vybráno'),
+    ).toBeInTheDocument();
   });
 
   it('živý přenos jde přepnout', async () => {
@@ -80,7 +114,17 @@ describe('výběr závodu', () => {
   });
 
   it('závody starší než předchozí sezóna jsou až za tlačítkem', async () => {
-    api.get.mockResolvedValue([...RACES, { id: 7, race_nr: 'JMLP2019-02', areal_name: 'Sedmihorky', datum: '2020-01-20', registration: false, is_live: false }]);
+    api.get.mockResolvedValue([
+      ...RACES,
+      {
+        id: 7,
+        race_nr: 'JMLP2019-02',
+        areal_name: 'Sedmihorky',
+        datum: '2020-01-20',
+        registration: false,
+        is_live: false,
+      },
+    ]);
     renderScreen();
     await screen.findByRole('heading', { name: 'Proběhlé závody' });
     expect(screen.queryByText('Sedmihorky')).toBeNull();

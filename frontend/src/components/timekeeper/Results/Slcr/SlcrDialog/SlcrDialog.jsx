@@ -30,7 +30,9 @@ const planNote = (slcr) => {
     summary.toCodex && `kodex se doplní u ${summary.toCodex}`,
     summary.kept && `${summary.kept} už v akci je`,
     summary.skipped && `${summary.skipped} bez závodníků se nezaloží`,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 };
 
 /**
@@ -52,9 +54,15 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
       size="full"
       onClose={onClose}
       dismissible={!busy}
-      eyebrow={['Evidence SLČR', race?.race_nr, formatSlcrDate(race?.datum)].filter(Boolean).join(' · ')}
+      eyebrow={['Evidence SLČR', race?.race_nr, formatSlcrDate(race?.datum)]
+        .filter(Boolean)
+        .join(' · ')}
       title="Závody a výsledky v evidenci"
-      footer={<Button size="sm" data-cancel disabled={Boolean(busy)} onClick={() => onClose('button')}>Zavřít</Button>}
+      footer={
+        <Button size="sm" data-cancel disabled={Boolean(busy)} onClick={() => onClose('button')}>
+          Zavřít
+        </Button>
+      }
     >
       {slcr.dryRun && <Alert type="info" compact title={DRY_RUN_TEXT} />}
       {slcr.problems.length > 0 && (
@@ -69,11 +77,21 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
       )}
 
       <div className={styles.layout}>
-        <SlcrStep number={1} title="Akce v evidenci" state={stepState(Boolean(plan), step === 1)} className={styles.event}>
+        <SlcrStep
+          number={1}
+          title="Akce v evidenci"
+          state={stepState(Boolean(plan), step === 1)}
+          className={styles.event}
+        >
           <SlcrEventForm slcr={slcr} primary={step === 1} />
         </SlcrStep>
 
-        <SlcrStep number={2} title="Závody v akci" state={stepState(Boolean(plan) && !slcr.missingRaces, step === 2)} className={styles.plan}>
+        <SlcrStep
+          number={2}
+          title="Závody v akci"
+          state={stepState(Boolean(plan) && !slcr.missingRaces, step === 2)}
+          className={styles.plan}
+        >
           {plan ? (
             <>
               <p className={styles.note}>{planNote(slcr)}</p>
@@ -96,19 +114,22 @@ export default function SlcrDialog({ race, raceId, hasResults, onClose }) {
                     {summary.changes ? `Založit závody (${summary.changes})` : 'Založit závody'}
                   </Button>
                 </Tooltip>
-                {!summary.changes && <p className={styles.note}>Všechny kategorie už v akci mají svůj závod.</p>}
+                {!summary.changes && (
+                  <p className={styles.note}>Všechny kategorie už v akci mají svůj závod.</p>
+                )}
               </div>
             </>
           ) : (
-            <EmptyState
-              icon="list"
-              headingLevel={4}
-              title="Náhled zatím není"
-            />
+            <EmptyState icon="list" headingLevel={4} title="Náhled zatím není" />
           )}
         </SlcrStep>
 
-        <SlcrStep number={3} title="Výsledky" state={stepState(slcr.sent, step === 3)} className={styles.results}>
+        <SlcrStep
+          number={3}
+          title="Výsledky"
+          state={stepState(slcr.sent, step === 3)}
+          className={styles.results}
+        >
           {blocker && <p className={styles.note}>{blocker}</p>}
           <Tooltip text="V evidenci zůstanou nezveřejněné">
             <Button

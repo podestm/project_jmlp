@@ -14,6 +14,7 @@ kategorie):
 
 Komunikace s evidencí je v services/slcr_evidence.py.
 """
+
 from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
@@ -50,39 +51,50 @@ def _fail(exc: slcr_evidence.SlcrError) -> HTTPException:
 
 def _entry_counts(db: Session, race_id: int) -> Dict[int, int]:
     """Kolik závodníků je v každé kategorii na startovce (bez vyřazených)."""
-    rows = db.execute(text("""
+    rows = db.execute(
+        text("""
         SELECT category_id, COUNT(*) AS n FROM fuj_jmlp_race_start_list
         WHERE race_id = :race_id AND excluded = 0
         GROUP BY category_id
-    """), {"race_id": race_id}).fetchall()
+    """),
+        {"race_id": race_id},
+    ).fetchall()
     return {int(row.category_id): int(row.n) for row in rows if row.category_id is not None}
 
 
 def _categories(db: Session, race: models.Race) -> List[Dict[str, Any]]:
-    rows = db.execute(text(f"""
+    rows = db.execute(
+        text(f"""
         SELECT id, {category_display_sql('fuj_jmlp_category')} AS display_name,
                min_birth_year, max_birth_year, sex
         FROM fuj_jmlp_category
         WHERE active = 1
-    """)).fetchall()
+    """)
+    ).fetchall()
     rank = category_order_service.category_rank_map(race, db)
     counts = _entry_counts(db, race.id)
-    categories = [{
-        "id": int(row.id),
-        "name": fix_encoding(row.display_name) if row.display_name else f"Kategorie {row.id}",
-        "sex": row.sex,
-        "year_from": row.min_birth_year,
-        "year_to": row.max_birth_year,
-        "entries": counts.get(int(row.id), 0),
-    } for row in rows]
-    return sorted(categories, key=lambda item: rank.get(item["id"], 10 ** 6))
+    categories = [
+        {
+            "id": int(row.id),
+            "name": fix_encoding(row.display_name) if row.display_name else f"Kategorie {row.id}",
+            "sex": row.sex,
+            "year_from": row.min_birth_year,
+            "year_to": row.max_birth_year,
+            "entries": counts.get(int(row.id), 0),
+        }
+        for row in rows
+    ]
+    return sorted(categories, key=lambda item: rank.get(item["id"], 10**6))
 
 
 def _start_time(db: Session, race_id: int) -> Optional[str]:
-    row = db.execute(text("""
+    row = db.execute(
+        text("""
         SELECT start_time FROM fuj_jmlp_race_run
         WHERE race_id = :race_id AND run_number = 1
-    """), {"race_id": race_id}).first()
+    """),
+        {"race_id": race_id},
+    ).first()
     value = (row.start_time or "").strip() if row else ""
     parts = value.replace(".", ":").split(":")
     if len(parts) >= 2 and all(part.isdigit() for part in parts[:2]):
@@ -92,12 +104,17 @@ def _start_time(db: Session, race_id: int) -> Optional[str]:
     return None
 
 
-def _plan(db: Session, race: models.Race, event: Dict[str, Any], discipline: int) -> List[Dict[str, Any]]:
+def _plan(
+    db: Session, race: models.Race, event: Dict[str, Any], discipline: int
+) -> List[Dict[str, Any]]:
     if not race.datum:
         raise HTTPException(status_code=400, detail="Závod nemá datum")
     return slcr_evidence.plan_races(
-        _categories(db, race), event.get("races") or [], race.datum,
-        start_time=_start_time(db, race.id), discipline=discipline,
+        _categories(db, race),
+        event.get("races") or [],
+        race.datum,
+        start_time=_start_time(db, race.id),
+        discipline=discipline,
     )
 
 
@@ -118,7 +135,9 @@ def _check_discipline(discipline: int) -> None:
 
 
 @router.get("/slcr/status")
-def slcr_status(current_admin: models.AdminUser = Depends(auth.get_current_admin)) -> Dict[str, Any]:
+def slcr_status(
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
+) -> Dict[str, Any]:
     """Co je v .env nastavené (hodnoty se nikdy nevrací)."""
     config = slcr_evidence.settings()
     return {
@@ -142,7 +161,9 @@ def slcr_events(
         raise HTTPException(status_code=400, detail="Závod nemá datum")
     try:
         events = slcr_evidence.own_events(
-            slcr_evidence.list_events(race.datum - timedelta(days=3), race.datum + timedelta(days=3))
+            slcr_evidence.list_events(
+                race.datum - timedelta(days=3), race.datum + timedelta(days=3)
+            )
         )
     except slcr_evidence.SlcrError as exc:
         raise _fail(exc) from exc
@@ -183,7 +204,7 @@ def slcr_create_races(
             raise HTTPException(
                 status_code=409,
                 detail="Akce v evidenci používá kategorie z číselníku. Přepni ji v nastavení akce "
-                       "na vlastní kategorie a zkus to znovu.",
+                "na vlastní kategorie a zkus to znovu.",
             )
         existing = event.get("races") or []
         plan = _plan(db, race, event, payload.discipline)
@@ -231,13 +252,15 @@ def _readiness(db: Session, race: models.Race) -> List[Dict[str, Any]]:
             continue
         ranked = results_service.rank_category(group["rows"])
         missing = sum(1 for item in ranked if item.rank is None and item.status is None)
-        items.append({
-            "category_id": int(group["category_id"]),
-            "name": group["category_name"],
-            "total": len(ranked),
-            "missing": missing,
-            "ready": missing == 0,
-        })
+        items.append(
+            {
+                "category_id": int(group["category_id"]),
+                "name": group["category_name"],
+                "total": len(ranked),
+                "missing": missing,
+                "ready": missing == 0,
+            }
+        )
     return items
 
 
@@ -312,10 +335,12 @@ def slcr_publish_category(
             raise HTTPException(
                 status_code=409,
                 detail=f"Kategorie {item['name']} nemá v akci „{event.get('name')}“ svůj závod. "
-                       "Založte ho v Evidenci SLČR (krok 2 – Založit závody).",
+                "Založte ho v Evidenci SLČR (krok 2 – Založit závody).",
             )
         corrected = slcr_evidence.result_state(slcr_race) == "Published"
-        state = slcr_evidence.publish_race_results(payload.event_id, slcr_race["id"], content, layout)
+        state = slcr_evidence.publish_race_results(
+            payload.event_id, slcr_race["id"], content, layout
+        )
     except slcr_evidence.SlcrError as exc:
         raise _fail(exc) from exc
     published = {**slcr_race, "resultRace": {"id": slcr_race["id"], "state": state}}

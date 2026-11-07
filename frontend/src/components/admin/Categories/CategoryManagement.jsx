@@ -28,13 +28,22 @@ export default function CategoryManagement() {
     );
   }
   if (cm.authLoading || cm.loading) {
-    return <AdminPage title="Kategorie"><LoadingState label="Načítám kategorie…" /></AdminPage>;
+    return (
+      <AdminPage title="Kategorie">
+        <LoadingState label="Načítám kategorie…" />
+      </AdminPage>
+    );
   }
 
   const actions = (
     <>
       <Tooltip text="Ročníky od 1900 do dneška">
-        <Button size="sm" icon="coverage" busy={cm.checkingCoverage} onClick={cm.handleCheckCoverage}>
+        <Button
+          size="sm"
+          icon="coverage"
+          busy={cm.checkingCoverage}
+          onClick={cm.handleCheckCoverage}
+        >
           {cm.checkingCoverage ? 'Kontroluji…' : 'Kontrola pokrytí'}
         </Button>
       </Tooltip>
@@ -43,20 +52,28 @@ export default function CategoryManagement() {
           {cm.recalculating ? 'Přepočítávám…' : 'Přepočítat kategorie'}
         </Button>
       </Tooltip>
-      <Button variant="primary" size="sm" icon="plus" onClick={cm.openCreate}>Nová kategorie</Button>
+      <Button variant="primary" size="sm" icon="plus" onClick={cm.openCreate}>
+        Nová kategorie
+      </Button>
     </>
   );
 
   return (
-    <AdminPage
-      title="Kategorie"
-      meta={categoriesMeta(cm.categories)}
-      actions={actions}
-    >
-      {cm.recalculateResult && <RecalculateSummary result={cm.recalculateResult} onDismiss={cm.dismissRecalculate} />}
-      {cm.error && !cm.showForm && <Alert type="danger" compact title={cm.error} onDismiss={() => cm.setError(null)} />}
+    <AdminPage title="Kategorie" meta={categoriesMeta(cm.categories)} actions={actions}>
+      {cm.recalculateResult && (
+        <RecalculateSummary result={cm.recalculateResult} onDismiss={cm.dismissRecalculate} />
+      )}
+      {cm.error && !cm.showForm && (
+        <Alert type="danger" compact title={cm.error} onDismiss={() => cm.setError(null)} />
+      )}
       {cm.success && !cm.recalculateResult && (
-        <Alert key={cm.success} type="success" compact title={cm.success} onDismiss={() => cm.setSuccess('')} />
+        <Alert
+          key={cm.success}
+          type="success"
+          compact
+          title={cm.success}
+          onDismiss={() => cm.setSuccess('')}
+        />
       )}
       {cm.showCoverageReport && cm.coverageReport && (
         <CoverageReport

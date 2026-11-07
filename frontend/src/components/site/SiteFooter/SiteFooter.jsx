@@ -2,7 +2,12 @@ import { Link } from 'react-router-dom';
 import svazLogo from '../../../assets/images/svaz_logo_88.png';
 import { Container } from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
-import { publicFooterColumns, publicFooterLinks, publicLegalLink, publicNav } from '../../ms/navItems.js';
+import {
+  publicFooterColumns,
+  publicFooterLinks,
+  publicLegalLink,
+  publicNav,
+} from '../../ms/navItems.js';
 import { CUP_NAME, useSeasonInfo } from '../siteInfo.js';
 import styles from './SiteFooter.module.css';
 
@@ -25,13 +30,21 @@ export default function SiteFooter({ full = false }) {
               <span className={styles.aboutText}>
                 Seriál závodů pro děti a mládež na jižní Moravě. {edition} ročník, sezóna {season}.
               </span>
-              <img src={svazLogo} alt="Svaz lyžařů České republiky" width="44" height="44" className={styles.svaz} />
+              <img
+                src={svazLogo}
+                alt="Svaz lyžařů České republiky"
+                width="44"
+                height="44"
+                className={styles.svaz}
+              />
             </div>
             {publicFooterColumns.map((column) => (
               <nav key={column.title} aria-label={column.title} className={styles.column}>
                 <span className={styles.columnTitle}>{column.title}</span>
                 {column.links.map((link) => (
-                  <Link key={link.to} to={link.to} className={styles.columnLink}>{link.label}</Link>
+                  <Link key={link.to} to={link.to} className={styles.columnLink}>
+                    {link.label}
+                  </Link>
                 ))}
               </nav>
             ))}
@@ -39,7 +52,9 @@ export default function SiteFooter({ full = false }) {
           <div className={styles.bottomLine}>
             <Container className={styles.bottom}>
               <span className={styles.muted}>{copyright}</span>
-              <Link to={publicLegalLink.to} className={styles.legalLink}>{publicLegalLink.label}</Link>
+              <Link to={publicLegalLink.to} className={styles.legalLink}>
+                {publicLegalLink.label}
+              </Link>
               <span className={cx(styles.muted, styles.credit)}>Fotografie: archiv JMLP</span>
             </Container>
           </div>
@@ -49,7 +64,9 @@ export default function SiteFooter({ full = false }) {
           <span className={styles.muted}>{copyright}</span>
           <nav aria-label="Patička" className={styles.slimNav}>
             {[...publicFooterLinks, publicLegalLink].map((link) => (
-              <Link key={link.to} to={link.to} className={styles.slimLink}>{link.label}</Link>
+              <Link key={link.to} to={link.to} className={styles.slimLink}>
+                {link.label}
+              </Link>
             ))}
           </nav>
         </Container>
@@ -61,11 +78,17 @@ export default function SiteFooter({ full = false }) {
         </div>
         <nav aria-label="Patička" className={styles.mobileNav}>
           {publicNav.map((item) => (
-            <Link key={item.to} to={item.to} className={styles.mobileLink}>{item.label}</Link>
+            <Link key={item.to} to={item.to} className={styles.mobileLink}>
+              {item.label}
+            </Link>
           ))}
         </nav>
-        <Link to={publicLegalLink.to} className={styles.legalLink}>{publicLegalLink.label}</Link>
-        <span className={styles.mobileCopyright}>{copyright} · {edition} ročník</span>
+        <Link to={publicLegalLink.to} className={styles.legalLink}>
+          {publicLegalLink.label}
+        </Link>
+        <span className={styles.mobileCopyright}>
+          {copyright} · {edition} ročník
+        </span>
       </div>
     </footer>
   );

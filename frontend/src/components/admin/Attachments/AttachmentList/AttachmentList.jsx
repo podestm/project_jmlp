@@ -61,14 +61,16 @@ export default function AttachmentList({
                 <FileInfo
                   file={attachment}
                   link
-                  nameSlot={editing ? (
-                    <RenameInput
-                      value={draftName}
-                      onChange={setDraftName}
-                      onCommit={() => commitRename(attachment)}
-                      onCancel={() => setEditingId(null)}
-                    />
-                  ) : undefined}
+                  nameSlot={
+                    editing ? (
+                      <RenameInput
+                        value={draftName}
+                        onChange={setDraftName}
+                        onCommit={() => commitRename(attachment)}
+                        onCancel={() => setEditingId(null)}
+                      />
+                    ) : undefined
+                  }
                 />
                 <span className={styles.actions}>
                   <Switch
@@ -77,8 +79,19 @@ export default function AttachmentList({
                     disabled={busy}
                     onChange={(e) => onTogglePublished(attachment, e.target.checked)}
                   />
-                  <IconButton icon="pencil" label={`Přejmenovat soubor ${name}`} disabled={busy} onClick={() => startRename(attachment)} />
-                  <IconButton icon="close" variant="danger" label={`Odpojit dokument ${name}`} disabled={busy} onClick={() => onRemove(attachment)} />
+                  <IconButton
+                    icon="pencil"
+                    label={`Přejmenovat soubor ${name}`}
+                    disabled={busy}
+                    onClick={() => startRename(attachment)}
+                  />
+                  <IconButton
+                    icon="close"
+                    variant="danger"
+                    label={`Odpojit dokument ${name}`}
+                    disabled={busy}
+                    onClick={() => onRemove(attachment)}
+                  />
                 </span>
               </li>
             );
@@ -86,12 +99,22 @@ export default function AttachmentList({
         </ul>
       )}
 
-      <DropZone accept={accept} multiple busy={busy} uploading={uploading} onFiles={handleFiles} onPickFromLibrary={() => setPickerOpen(true)} />
+      <DropZone
+        accept={accept}
+        multiple
+        busy={busy}
+        uploading={uploading}
+        onFiles={handleFiles}
+        onPickFromLibrary={() => setPickerOpen(true)}
+      />
 
       {pickerOpen && (
         <LibraryPicker
           accept={accept}
-          onSelect={(file) => { setPickerOpen(false); onPickFromLibrary(file); }}
+          onSelect={(file) => {
+            setPickerOpen(false);
+            onPickFromLibrary(file);
+          }}
           onClose={() => setPickerOpen(false)}
         />
       )}

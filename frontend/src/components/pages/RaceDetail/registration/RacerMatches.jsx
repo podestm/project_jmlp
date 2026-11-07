@@ -14,14 +14,16 @@ const hasSlcr = (racer) => Boolean(racer.slcr_id) && racer.slcr_id !== '-';
 export default function RacerMatches({ racers, isSearching, hasQuery, onSelect, getSexLabel }) {
   let content;
   if (isSearching) {
-    content = <p className={styles.state}><Spinner size={18} /> Hledám závodníky…</p>;
+    content = (
+      <p className={styles.state}>
+        <Spinner size={18} /> Hledám závodníky…
+      </p>
+    );
   } else if (racers.length === 0) {
     content = (
       <p className={styles.state}>
         <Icon name={hasQuery ? 'search-x' : 'search'} size={18} />
-        {hasQuery
-          ? 'V databázi jsme nikoho takového nenašli.'
-          : 'Napište jméno nebo příjmení.'}
+        {hasQuery ? 'V databázi jsme nikoho takového nenašli.' : 'Napište jméno nebo příjmení.'}
       </p>
     );
   } else {
@@ -32,24 +34,39 @@ export default function RacerMatches({ racers, isSearching, hasQuery, onSelect, 
             <li key={racer.id}>
               <button type="button" className={styles.racer} onClick={() => onSelect(racer)}>
                 <span className={styles.text}>
-                  <span className={styles.name}>{racer.surname} {racer.name}</span>
+                  <span className={styles.name}>
+                    {racer.surname} {racer.name}
+                  </span>
                   <span className={styles.meta}>
-                    {[racer.year, getSexLabel(racer.sex), racer.club_name, hasSlcr(racer) && `SLČR ${racer.slcr_id}`].filter(Boolean).join(' · ')}
+                    {[
+                      racer.year,
+                      getSexLabel(racer.sex),
+                      racer.club_name,
+                      hasSlcr(racer) && `SLČR ${racer.slcr_id}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
-                <span className={styles.fill}>Vyplnit <Icon name="arrow-right" size={16} /></span>
+                <span className={styles.fill}>
+                  Vyplnit <Icon name="arrow-right" size={16} />
+                </span>
               </button>
             </li>
           ))}
         </ul>
-        {racers.length > SHOWN && <p className={styles.more}>… a dalších {racers.length - SHOWN} závodníků</p>}
+        {racers.length > SHOWN && (
+          <p className={styles.more}>… a dalších {racers.length - SHOWN} závodníků</p>
+        )}
       </>
     );
   }
 
   return (
     <section className={styles.matches} aria-labelledby="uz-jel" aria-live="polite">
-      <h3 id="uz-jel" className={styles.title}>Závodník už v JMLP jel?</h3>
+      <h3 id="uz-jel" className={styles.title}>
+        Závodník už v JMLP jel?
+      </h3>
       {content}
     </section>
   );

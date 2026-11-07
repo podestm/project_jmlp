@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Button, ButtonLink, Container, EmptyState, Icon, LoadingState, Panel, Paska, Screen } from '../../ms/index.js';
+import {
+  Alert,
+  Button,
+  ButtonLink,
+  Container,
+  EmptyState,
+  Icon,
+  LoadingState,
+  Panel,
+  Paska,
+  Screen,
+} from '../../ms/index.js';
 import { formatSeasonShort } from '../../../utils/season.js';
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { raceSeasonId, registrationState, startOfToday } from '../../../utils/races.js';
 import { raceTitle } from './raceDetail.js';
-import { useRaceDetail, useRaceDetailRevalidation, useRaceRegistrations, useUpcomingRaces } from './useRaceDetail.js';
+import {
+  useRaceDetail,
+  useRaceDetailRevalidation,
+  useRaceRegistrations,
+  useUpcomingRaces,
+} from './useRaceDetail.js';
 import { usePageMeta } from '../../../hooks/usePageMeta.js';
 import { useScrollToHash } from '../../../hooks/useScrollToHash.js';
 import { PAGE_META, publicTitle, raceMeta } from '../../../seo/pageMeta.js';
@@ -23,10 +39,16 @@ function PastSeasonBanner({ race, nextRace }) {
       <Container className={styles.bannerInner}>
         <Icon name="calendar" size={22} className={styles.bannerIcon} />
         <div className={styles.bannerText}>
-          <p className={styles.bannerTitle}>Tohle je závod sezóny {formatSeasonShort(raceSeasonId(race) ?? race.season_id)}</p>
+          <p className={styles.bannerTitle}>
+            Tohle je závod sezóny {formatSeasonShort(raceSeasonId(race) ?? race.season_id)}
+          </p>
           {nextRace && <p>Nejbližší závod je {raceTitle(nextRace)}.</p>}
         </div>
-        {nextRace && <ButtonLink to={`/zavod/${nextRace.id}`} iconEnd="arrow-right">Na závod {raceTitle(nextRace)}</ButtonLink>}
+        {nextRace && (
+          <ButtonLink to={`/zavod/${nextRace.id}`} iconEnd="arrow-right">
+            Na závod {raceTitle(nextRace)}
+          </ButtonLink>
+        )}
       </Container>
     </div>
   );
@@ -39,7 +61,9 @@ function RegistrationEnded() {
       <Paska id="prihlasky">Přihlášky</Paska>
       <Panel padding="lg">
         <div className={styles.notice}>
-          <span className={styles.noticeIcon}><Icon name="lock" size={22} /></span>
+          <span className={styles.noticeIcon}>
+            <Icon name="lock" size={22} />
+          </span>
           <div className={styles.noticeText}>
             <h3 className={styles.noticeTitle}>Přihlašování skončilo před závodem</h3>
             <p>Seznam přihlášených po závodě nezveřejňujeme.</p>
@@ -85,14 +109,23 @@ export default function RaceDetail() {
   const { seasonId: currentSeasonId } = useCurrentSeason();
   const [refreshToken, setRefreshToken] = useState(0);
   const state = race ? registrationState(race, startOfToday()) : null;
-  const registrations = useRaceRegistrations(raceId, { enabled: status === 'ready' && state !== 'past', refreshToken });
+  const registrations = useRaceRegistrations(raceId, {
+    enabled: status === 'ready' && state !== 'past',
+    refreshToken,
+  });
   const upcoming = useUpcomingRaces(status === 'ready' && state !== 'open');
   useRaceDetailRevalidation(reload, () => setRefreshToken((token) => token + 1));
   useScrollToHash(status === 'ready');
   usePageMeta(detailMeta(race, status));
 
   if (status === 'loading') {
-    return <Screen><Container className={styles.page}><LoadingState label="Načítám závod…" /></Container></Screen>;
+    return (
+      <Screen>
+        <Container className={styles.page}>
+          <LoadingState label="Načítám závod…" />
+        </Container>
+      </Screen>
+    );
   }
 
   if (status === 'notFound' || status === 'error') {
@@ -103,9 +136,17 @@ export default function RaceDetail() {
           <Alert
             type={notFound ? 'danger' : 'warning'}
             title={notFound ? 'Tenhle závod v kalendáři nenajdeme' : 'Závod se nepodařilo načíst'}
-            actions={notFound
-              ? <ButtonLink to="/zavody" variant="primary" icon="arrow-left">Zpět na kalendář závodů</ButtonLink>
-              : <Button variant="primary" icon="refresh" onClick={() => reload()}>Zkusit znovu</Button>}
+            actions={
+              notFound ? (
+                <ButtonLink to="/zavody" variant="primary" icon="arrow-left">
+                  Zpět na kalendář závodů
+                </ButtonLink>
+              ) : (
+                <Button variant="primary" icon="refresh" onClick={() => reload()}>
+                  Zkusit znovu
+                </Button>
+              )
+            }
           >
             {notFound
               ? 'Odkaz je nejspíš starý nebo neúplný. Závody od sezóny 2012/13 najdete v kalendáři.'
@@ -132,23 +173,38 @@ export default function RaceDetail() {
               <section className={styles.column} aria-labelledby="prihlaska">
                 <Paska id="prihlaska">Přihláška závodníka</Paska>
                 <Panel padding="lg">
-                  <RegistrationForm raceId={Number(raceId)} onSuccess={() => setRefreshToken((token) => token + 1)} />
+                  <RegistrationForm
+                    raceId={Number(raceId)}
+                    onSuccess={() => setRefreshToken((token) => token + 1)}
+                  />
                 </Panel>
               </section>
-              <RegisteredRacers registrations={registrations.registrations} status={registrations.status} onRetry={registrations.reload} />
+              <RegisteredRacers
+                registrations={registrations.registrations}
+                status={registrations.status}
+                onRetry={registrations.reload}
+              />
             </>
           )}
           {state === 'closed' && (
             <>
               <RegistrationClosed race={race} nextOpenRace={nextOpenRace} />
-              {registrations.status === 'ready' && registered === 0
-                ? <ListAfterOpening />
-                : <RegisteredRacers registrations={registrations.registrations} status={registrations.status} onRetry={registrations.reload} />}
+              {registrations.status === 'ready' && registered === 0 ? (
+                <ListAfterOpening />
+              ) : (
+                <RegisteredRacers
+                  registrations={registrations.registrations}
+                  status={registrations.status}
+                  onRetry={registrations.reload}
+                />
+              )}
             </>
           )}
           {state === 'past' && (
             <>
-              <div className={styles.columnStack}><RaceResults race={race} /></div>
+              <div className={styles.columnStack}>
+                <RaceResults race={race} />
+              </div>
               <RegistrationEnded />
             </>
           )}

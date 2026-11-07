@@ -162,8 +162,16 @@ def frozen_live_cache(monkeypatch):
 
 
 def test_endpoint_serves_the_same_payload_within_the_ttl(client, db, frozen_live_cache):
-    db.add(Race(race_nr="JMLP2026-09", is_live=True, registration=False, closed=False,
-                race_method_id=1, season_id=2026))
+    db.add(
+        Race(
+            race_nr="JMLP2026-09",
+            is_live=True,
+            registration=False,
+            closed=False,
+            race_method_id=1,
+            season_id=2026,
+        )
+    )
     db.commit()
 
     first = client.get("/races/live")
@@ -182,8 +190,17 @@ def test_endpoint_keeps_czech_characters_in_the_cached_json(client, db, frozen_l
     areal = Areal(name="Přelouč – Žďár")
     db.add(areal)
     db.commit()
-    db.add(Race(race_nr="JMLP2026-10", is_live=True, registration=False, closed=False,
-                race_method_id=1, season_id=2026, areal_id=areal.id))
+    db.add(
+        Race(
+            race_nr="JMLP2026-10",
+            is_live=True,
+            registration=False,
+            closed=False,
+            race_method_id=1,
+            season_id=2026,
+            areal_id=areal.id,
+        )
+    )
     db.commit()
 
     assert client.get("/races/live").json()["areal_name"] == "Přelouč – Žďár"

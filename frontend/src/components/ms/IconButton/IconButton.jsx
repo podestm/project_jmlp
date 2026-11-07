@@ -9,7 +9,16 @@ import styles from './IconButton.module.css';
  * - variant: outline | quiet | primary | danger | on-dark (na navy ploše)
  */
 const IconButton = forwardRef(function IconButton(
-  { icon, label, variant = 'outline', size = 'md', iconSize = 20, type = 'button', className, ...rest },
+  {
+    icon,
+    label,
+    variant = 'outline',
+    size = 'md',
+    iconSize = 20,
+    type = 'button',
+    className,
+    ...rest
+  },
   ref,
 ) {
   if (!label && import.meta.env.DEV) throw new Error(`IconButton „${icon}“ nemá label`);

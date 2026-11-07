@@ -17,7 +17,7 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 def get_posts(
     skip: int = Query(0, description="Počet příspěvků k přeskočení"),
     limit: int = Query(10, description="Maximální počet příspěvků"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Získat seznam publikovaných aktualit/příspěvků.
 
@@ -27,7 +27,7 @@ def get_posts(
     query = db.query(Post).filter(Post.published == True)
 
     posts = query.order_by(desc(Post.created_at)).offset(skip).limit(limit).all()
-    
+
     # Fix encoding issues in posts
     for post in posts:
         post.title = fix_encoding(post.title)
@@ -53,20 +53,22 @@ def download_post_document(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
-    
+
     file_record = attachment_service.post_document_file(db, post_id, AttachmentRole.document.value)
     if not file_record:
-        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný dokument")
+        raise HTTPException(
+            status_code=404, detail="K tomuto příspěvku není připojen žádný dokument"
+        )
 
     # Check if file exists on disk
     file_path = Path(file_record.file_path)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Soubor nenalezen na disku")
-    
+
     return FileResponse(
         path=str(file_path),
         filename=file_record.original_filename,
-        media_type=file_record.mime_type or 'application/octet-stream'
+        media_type=file_record.mime_type or "application/octet-stream",
     )
 
 
@@ -76,30 +78,33 @@ def get_post_image(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id, Post.published == True).first()
     if not post:
         raise HTTPException(status_code=404, detail="Příspěvek nenalezen")
-    
+
     file_record = attachment_service.post_document_file(db, post_id, AttachmentRole.image.value)
     if not file_record:
-        raise HTTPException(status_code=404, detail="K tomuto příspěvku není připojen žádný obrázek")
+        raise HTTPException(
+            status_code=404, detail="K tomuto příspěvku není připojen žádný obrázek"
+        )
 
     # Check if file exists on disk
     file_path = Path(file_record.file_path)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Soubor nenalezen na disku")
-    
+
     # Return file with cache control headers based on post's updated_at timestamp
     response = FileResponse(
         path=str(file_path),
         filename=file_record.original_filename,
-        media_type=file_record.mime_type or 'application/octet-stream'
+        media_type=file_record.mime_type or "application/octet-stream",
     )
-    
+
     # Add ETag based on post's updated_at timestamp and the actual file id
     # This ensures browser cache is invalidated when image changes
     etag = f'"{post.updated_at.timestamp()}-{file_record.id}"'
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour, but check ETag
-    
+
     return response
+
 
 # Zápisové operace nad příspěvky jsou pouze v chráněném adminu
 # (viz backend/app/routers/admin/posts.py).

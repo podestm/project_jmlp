@@ -3,6 +3,7 @@
 Pokrývá app/routers/racers.py, clubs.py, posts.py, documents.py
 a season_results.py - tedy všechno, co si nepřihlášený návštěvník smí přečíst.
 """
+
 from datetime import datetime, timedelta
 
 from pathlib import Path
@@ -22,6 +23,7 @@ AKTUALNI_SEZONA = get_current_season_id()
 # Pomocníci pro zakládání testovacích dat
 # --------------------------------------------------------------------------
 
+
 def _klub(db, name, valid=True):
     klub = models.Club(name=name, valid=valid)
     db.add(klub)
@@ -30,11 +32,18 @@ def _klub(db, name, valid=True):
     return klub
 
 
-def _zavodnik(db, name, surname, year=2000, sex=1, club_id=None,
-              telefon=None, email=None, slcr_id=None):
+def _zavodnik(
+    db, name, surname, year=2000, sex=1, club_id=None, telefon=None, email=None, slcr_id=None
+):
     zavodnik = models.Racer(
-        name=name, surname=surname, year=year, sex=sex, club_id=club_id,
-        telefon=telefon, email=email, slcr_id=slcr_id,
+        name=name,
+        surname=surname,
+        year=year,
+        sex=sex,
+        club_id=club_id,
+        telefon=telefon,
+        email=email,
+        slcr_id=slcr_id,
     )
     db.add(zavodnik)
     db.commit()
@@ -131,6 +140,7 @@ def _sezona_s_dokumentem(db, year_start, role, published=True, original_filename
 # ==========================================================================
 # /racers/search
 # ==========================================================================
+
 
 def test_vyhledani_zavodnika_podle_prijmeni_vrati_jen_shodu(client, db):
     _zavodnik(db, "Jan", "Novak")
@@ -229,7 +239,9 @@ def test_kombinace_filtru_zavodniku_musi_platit_zaroven(client, db):
     _zavodnik(db, "Petr", "Novak", year=1990)
     _zavodnik(db, "Jan", "Novak", year=1991)
 
-    data = client.get("/racers/search", params={"name": "Jan", "surname": "Novak", "year": 1990}).json()
+    data = client.get(
+        "/racers/search", params={"name": "Jan", "surname": "Novak", "year": 1990}
+    ).json()
 
     assert len(data) == 1
     assert (data[0]["name"], data[0]["surname"], data[0]["year"]) == ("Jan", "Novak", 1990)
@@ -253,6 +265,7 @@ def test_prazdny_filtr_zavodniku_se_ignoruje(client, db):
 # ==========================================================================
 # /racers/
 # ==========================================================================
+
 
 def test_verejny_seznam_zavodniku_neobsahuje_kontakty(client, db):
     _zavodnik(db, "Jan", "Novak", telefon="777123456", email="jan@example.com")
@@ -304,6 +317,7 @@ def test_verejny_seznam_zavodniku_klub_nedoplnuje(client, db):
 # /clubs/
 # ==========================================================================
 
+
 def test_seznam_klubu_vraci_jen_platne(client, db):
     _klub(db, "Platny klub", valid=True)
     _klub(db, "Zruseny klub", valid=False)
@@ -331,6 +345,7 @@ def test_seznam_klubu_bez_dat_je_prazdne_pole(client):
 # ==========================================================================
 # /posts/
 # ==========================================================================
+
 
 def test_seznam_aktualit_vraci_jen_publikovane(client, db):
     _aktualita(db, "Verejna zprava", published=True)
@@ -462,6 +477,7 @@ def test_seznam_aktualit_nezverejni_koncepty_ani_na_pozadani(client, db):
 # Stahování příloh aktualit
 # --------------------------------------------------------------------------
 
+
 def test_stazeni_dokumentu_aktuality_vrati_obsah_souboru(client, db, tmp_path):
     post = _aktualita(db, "S dokumentem")
     na_disku = tmp_path / "ulozeny.pdf"
@@ -571,6 +587,7 @@ def test_nezverejnena_priloha_aktuality_se_nevraci(client, db, tmp_path):
 # /documents
 # ==========================================================================
 
+
 def test_dokumenty_deli_aktualni_sezonu_a_archiv(client, db):
     _sezona_s_dokumentem(db, AKTUALNI_SEZONA, "document", original_filename="Soutezni rad.pdf")
     _sezona_s_dokumentem(db, AKTUALNI_SEZONA - 1, "document")
@@ -581,10 +598,10 @@ def test_dokumenty_deli_aktualni_sezonu_a_archiv(client, db):
     assert data["current"]["season_year_start"] == AKTUALNI_SEZONA
     assert data["current"]["is_current"] is True
     assert [g["season_year_start"] for g in data["archive"]] == [
-        AKTUALNI_SEZONA - 1, AKTUALNI_SEZONA - 2,
+        AKTUALNI_SEZONA - 1,
+        AKTUALNI_SEZONA - 2,
     ]
     assert all(g["is_current"] is False for g in data["archive"])
-
 
 
 def test_dokumenty_berou_aktualni_sezonu_oznacenou_ve_sprave(client, db):
@@ -598,6 +615,7 @@ def test_dokumenty_berou_aktualni_sezonu_oznacenou_ve_sprave(client, db):
     assert data["current"]["season_year_start"] == AKTUALNI_SEZONA - 1
     assert [g["season_year_start"] for g in data["archive"]] == [AKTUALNI_SEZONA]
 
+
 def test_dokumenty_sezony_nesou_nazev_a_odkaz_ke_stazeni(client, db):
     _sezona(db, AKTUALNI_SEZONA, edition=19, name="XIX. ročník JMLP")
     soubor = _soubor(db, "Soutezni rad.pdf", filename="sezona-rad.pdf", file_size=4096)
@@ -610,13 +628,15 @@ def test_dokumenty_sezony_nesou_nazev_a_odkaz_ke_stazeni(client, db):
     assert aktualni["name"] == "XIX. ročník JMLP"
     # Položka se identifikuje přílohou, ne souborem - jeden soubor může viset
     # u víc vlastníků a odkaz musí vést na konkrétní zařazení.
-    assert aktualni["documents"] == [{
-        "id": priloha.id,
-        "title": "Soutezni rad.pdf",
-        "original_filename": "Soutezni rad.pdf",
-        "file_size": 4096,
-        "url": "/uploads/documents/sezona-rad.pdf",
-    }]
+    assert aktualni["documents"] == [
+        {
+            "id": priloha.id,
+            "title": "Soutezni rad.pdf",
+            "original_filename": "Soutezni rad.pdf",
+            "file_size": 4096,
+            "url": "/uploads/documents/sezona-rad.pdf",
+        }
+    ]
 
 
 def test_dokumenty_bez_rocniku_nemaji_rimskou_cislici(client, db):
@@ -711,6 +731,7 @@ def test_dokumenty_prilohy_jinych_vlastniku_se_nepocitaji(client, db):
 # /season-results
 # ==========================================================================
 
+
 def test_seznam_vysledku_vraci_jen_sezony_s_dokumentem(client, db):
     _sezona_s_dokumentem(db, AKTUALNI_SEZONA, "vysledky")
     _sezona(db, AKTUALNI_SEZONA - 1)
@@ -727,7 +748,9 @@ def test_seznam_vysledku_je_serazeny_od_nejnovejsi(client, db):
     data = client.get("/season-results/").json()
 
     assert [s["season_year_start"] for s in data] == [
-        AKTUALNI_SEZONA, AKTUALNI_SEZONA - 1, AKTUALNI_SEZONA - 2,
+        AKTUALNI_SEZONA,
+        AKTUALNI_SEZONA - 1,
+        AKTUALNI_SEZONA - 2,
     ]
 
 
@@ -824,10 +847,13 @@ def test_obecny_dokument_sezony_se_nevydava_za_vysledky(client, db):
     assert client.get("/season-results/").json() == []
 
 
-@pytest.mark.parametrize("role, rad_je_prvni", [
-    ("vysledky", False),  # soutěžní řád přidaný až po výsledcích
-    ("prubezne", True),   # řád nahraný na začátku sezóny, pořadí přibylo později
-])
+@pytest.mark.parametrize(
+    "role, rad_je_prvni",
+    [
+        ("vysledky", False),  # soutěžní řád přidaný až po výsledcích
+        ("prubezne", True),  # řád nahraný na začátku sezóny, pořadí přibylo později
+    ],
+)
 def test_obecny_dokument_vysledky_nezastini(client, db, role, rad_je_prvni):
     """Na pořadí příloh nezáleží - soutěžní řád výsledky nezastíní, ani když je první."""
     _sezona(db, AKTUALNI_SEZONA)

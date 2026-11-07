@@ -2,7 +2,7 @@
 export const APP_CONFIG = {
   NAME: 'JMLP',
   FULL_NAME: 'Jihomoravský lyžařský pohár',
-  DESCRIPTION: 'Oficiální webové stránky Jihomoravského lyžařského poháru'
+  DESCRIPTION: 'Oficiální webové stránky Jihomoravského lyžařského poháru',
 };
 
 // Date and Time Configuration
@@ -14,22 +14,25 @@ export const DATE_CONFIG = {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     },
     // Same as LONG without the weekday - used across the timekeeper screens.
     LONG_NO_WEEKDAY: { day: 'numeric', month: 'long', year: 'numeric' },
-    MONTH_YEAR: { month: 'long', year: 'numeric' }
+    MONTH_YEAR: { month: 'long', year: 'numeric' },
   },
   DATE_TIME_FORMAT: {
     SHORT: {
-      day: 'numeric', month: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    }
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
   },
   TIME_FORMAT: {
     SHORT: { hour: '2-digit', minute: '2-digit' },
-    LONG: { hour: '2-digit', minute: '2-digit', second: '2-digit' }
-  }
+    LONG: { hour: '2-digit', minute: '2-digit', second: '2-digit' },
+  },
 };
 
 // Season Configuration
@@ -52,11 +55,21 @@ export const SEASON_CONFIG = {
 
   getSeasonPeriod: (seasonId) => ({
     start: `1.8.${seasonId}`,
-    end: `31.7.${seasonId + 1}`
-  })
+    end: `31.7.${seasonId + 1}`,
+  }),
 };
 
 export const MONTH_NAMES = [
-  'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
-  'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'
+  'Leden',
+  'Únor',
+  'Březen',
+  'Duben',
+  'Květen',
+  'Červen',
+  'Červenec',
+  'Srpen',
+  'Září',
+  'Říjen',
+  'Listopad',
+  'Prosinec',
 ];

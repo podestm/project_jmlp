@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Button, EmptyState, Grid, Icon, LoadingState, PageHeader, Panel, Paska } from '../../ms/index.js';
+import {
+  Alert,
+  Button,
+  EmptyState,
+  Grid,
+  Icon,
+  LoadingState,
+  PageHeader,
+  Panel,
+  Paska,
+} from '../../ms/index.js';
 import { czechPlural } from '../../../utils/races.js';
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { seasonInfo } from '../../site/siteInfo.js';
@@ -35,12 +45,16 @@ export default function TimekeeperDashboard() {
     <PageHeader
       variant="app"
       title="Na kterém závodě dnes měříte?"
-      actions={(
+      actions={
         <>
-          <span className={styles.season}>Sezóna {season} · {edition} ročník</span>
-          <Button icon="refresh" size="sm" onClick={loadRaces}>Obnovit</Button>
+          <span className={styles.season}>
+            Sezóna {season} · {edition} ročník
+          </span>
+          <Button icon="refresh" size="sm" onClick={loadRaces}>
+            Obnovit
+          </Button>
         </>
-      )}
+      }
     />
   );
 
@@ -74,7 +88,16 @@ export default function TimekeeperDashboard() {
       {header}
 
       {error && (
-        <Alert type="danger" compact onDismiss={clearError} actions={<Button size="sm" icon="refresh" onClick={loadRaces}>Obnovit</Button>}>
+        <Alert
+          type="danger"
+          compact
+          onDismiss={clearError}
+          actions={
+            <Button size="sm" icon="refresh" onClick={loadRaces}>
+              Obnovit
+            </Button>
+          }
+        >
           {error}
         </Alert>
       )}
@@ -88,13 +111,20 @@ export default function TimekeeperDashboard() {
               <span className={styles.lastName}>{lastRace.areal_name || 'Neznámé místo'}</span>
               {lastRace.datum && (
                 <>
-                  <span className={styles.lastWeekday}>{czechDateParts(lastRace.datum).weekdayShort}</span>
+                  <span className={styles.lastWeekday}>
+                    {czechDateParts(lastRace.datum).weekdayShort}
+                  </span>
                   <span className={styles.lastDate}>{formatDateShort(lastRace.datum)}</span>
                 </>
               )}
             </span>
           </div>
-          <Button variant="primary" size="lg" iconEnd="arrow-right" onClick={() => selectRace(lastRace.id)}>
+          <Button
+            variant="primary"
+            size="lg"
+            iconEnd="arrow-right"
+            onClick={() => selectRace(lastRace.id)}
+          >
             Pokračovat v měření
           </Button>
         </section>
@@ -104,7 +134,9 @@ export default function TimekeeperDashboard() {
         <section className={styles.section}>
           <Paska aside={count(upcoming.length)}>Nadcházející závody</Paska>
           <Grid min="480px" gap={4}>
-            {upcoming.map((race) => <RaceCard key={race.id} {...rowProps(race)} />)}
+            {upcoming.map((race) => (
+              <RaceCard key={race.id} {...rowProps(race)} />
+            ))}
           </Grid>
         </section>
       )}
@@ -114,7 +146,9 @@ export default function TimekeeperDashboard() {
           <Paska aside={count(shownPast.length)}>Proběhlé závody</Paska>
           {shownPast.length > 0 && (
             <Panel as="ul" padding="none">
-              {shownPast.map((race) => <PastRaceRow key={race.id} {...rowProps(race)} />)}
+              {shownPast.map((race) => (
+                <PastRaceRow key={race.id} {...rowProps(race)} />
+              ))}
             </Panel>
           )}
           {older.length > 0 && (

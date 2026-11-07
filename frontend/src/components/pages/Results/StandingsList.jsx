@@ -11,8 +11,12 @@ export default function StandingsList({ category, className }) {
         <li key={`${row.surname}-${row.name}-${row.year}`} className={styles.row}>
           <Rank place={row.rank} />
           <span className={styles.text}>
-            <span className={styles.name}>{row.surname} {row.name}</span>
-            <span className={styles.meta}>{[fixEncoding(row.club), rowSummary(row)].filter(Boolean).join(' · ')}</span>
+            <span className={styles.name}>
+              {row.surname} {row.name}
+            </span>
+            <span className={styles.meta}>
+              {[fixEncoding(row.club), rowSummary(row)].filter(Boolean).join(' · ')}
+            </span>
           </span>
           <span className={styles.points}>
             <span className={styles.total}>{row.total}</span>

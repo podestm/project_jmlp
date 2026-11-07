@@ -14,9 +14,7 @@ const registrationsText = (count) => {
  */
 export default function UpcomingRace({ race }) {
   if (!race) {
-    return (
-      <EmptyState icon="calendar" title="Žádný vypsaný závod" headingLevel={3} />
-    );
+    return <EmptyState icon="calendar" title="Žádný vypsaný závod" headingLevel={3} />;
   }
 
   return (
@@ -40,7 +38,9 @@ export default function UpcomingRace({ race }) {
         {race.days_until !== null && race.days_until !== undefined && (
           <div className={styles.row}>
             <dt>Do závodu</dt>
-            <dd className={styles.mono}>{race.days_until} {daysWord(race.days_until)}</dd>
+            <dd className={styles.mono}>
+              {race.days_until} {daysWord(race.days_until)}
+            </dd>
           </div>
         )}
       </dl>

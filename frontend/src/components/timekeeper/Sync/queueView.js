@@ -13,7 +13,8 @@ export const QUEUE_STATUS = {
   dropped: { tone: 'neutral', icon: 'close', text: 'Zahozeno ručně' },
 };
 
-export const queueStatus = (status) => QUEUE_STATUS[status] || { tone: 'neutral', icon: 'info', text: status || '—' };
+export const queueStatus = (status) =>
+  QUEUE_STATUS[status] || { tone: 'neutral', icon: 'info', text: status || '—' };
 
 // Záporné id = závodník přidaný offline, ještě bez serverového řádku.
 const TIME_ENDPOINT = /\/start-list\/(-?\d+)\/time$/;
@@ -28,7 +29,9 @@ export const describeTimes = (values = {}) => {
   const parts = [];
   if (present(values.time1)) parts.push(`kolo 1 ${values.time1}`);
   if (present(values.time2)) parts.push(`kolo 2 ${values.time2}`);
-  ['dnf', 'dns', 'dsq'].forEach((flag) => { if (values[flag]) parts.push(flag.toUpperCase()); });
+  ['dnf', 'dns', 'dsq'].forEach((flag) => {
+    if (values[flag]) parts.push(flag.toUpperCase());
+  });
   return parts.length ? parts.join(' · ') : 'bez času a příznaku';
 };
 
@@ -55,7 +58,8 @@ export const describeQueueItem = (item) => {
     return `Uložit vše – ${count} záznamů`;
   }
   match = EXCLUDED_ENDPOINT.exec(endpoint);
-  if (match) return `Záznam #${match[1]}: ${payload.excluded ? 'vyřazení ze startovky' : 'návrat na startovku'}`;
+  if (match)
+    return `Záznam #${match[1]}: ${payload.excluded ? 'vyřazení ze startovky' : 'návrat na startovku'}`;
   if (isCreateEntry(item)) return `Dohláška: ${createdRacerName(item)}`;
   return `${item?.method || ''} ${endpoint}`.trim();
 };
@@ -88,8 +92,10 @@ export const CONFLICT_FIELDS = [
 /** Zápis zaparkovaný na vypršelém tokenu (AUTH_EXPIRED_MESSAGE v offline/sync.js). */
 const AUTH_EXPIRED_PREFIX = 'Přihlášení vypršelo';
 
-export const isAuthExpired = (items) => items.some((item) => (
-  item.status === 'pending'
-  && typeof item.last_error === 'string'
-  && item.last_error.startsWith(AUTH_EXPIRED_PREFIX)
-));
+export const isAuthExpired = (items) =>
+  items.some(
+    (item) =>
+      item.status === 'pending' &&
+      typeof item.last_error === 'string' &&
+      item.last_error.startsWith(AUTH_EXPIRED_PREFIX),
+  );

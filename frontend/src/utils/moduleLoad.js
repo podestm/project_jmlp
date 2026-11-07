@@ -9,7 +9,8 @@
  * loading dynamically imported module", Safari: "Importing a module script
  * failed", Vite: "Unable to preload CSS".
  */
-const MODULE_LOAD_ERROR = /dynamically imported module|importing a module script failed|unable to preload/i;
+const MODULE_LOAD_ERROR =
+  /dynamically imported module|importing a module script failed|unable to preload/i;
 
 export const isModuleLoadError = (err) => MODULE_LOAD_ERROR.test(String(err?.message || err || ''));
 
@@ -36,24 +37,30 @@ const safely = (action) => {
  * @param {() => Promise<any>} load  dynamický import sekce
  * @param {object} [options]         pro testy: úložiště příznaku a obnovení
  */
-export function loadSection(load, {
-  storage = typeof sessionStorage === 'undefined' ? null : sessionStorage,
-  reload = () => window.location.reload()
-} = {}) {
-  return load().then((module) => {
-    safely(() => storage?.removeItem(RELOAD_FLAG));
-    return module;
-  }, (err) => {
-    const alreadyReloaded = safely(() => storage?.getItem(RELOAD_FLAG)) === '1';
-    if (!isModuleLoadError(err) || alreadyReloaded) {
+export function loadSection(
+  load,
+  {
+    storage = typeof sessionStorage === 'undefined' ? null : sessionStorage,
+    reload = () => window.location.reload(),
+  } = {},
+) {
+  return load().then(
+    (module) => {
       safely(() => storage?.removeItem(RELOAD_FLAG));
-      throw err;
-    }
-    // Bez uloženého příznaku by se stránka mohla obnovovat dokola.
-    safely(() => storage?.setItem(RELOAD_FLAG, '1'));
-    if (safely(() => storage?.getItem(RELOAD_FLAG)) !== '1') throw err;
-    reload();
-    // Stránka se obnovuje - Suspense do té doby ukazuje načítání.
-    return new Promise(() => {});
-  });
+      return module;
+    },
+    (err) => {
+      const alreadyReloaded = safely(() => storage?.getItem(RELOAD_FLAG)) === '1';
+      if (!isModuleLoadError(err) || alreadyReloaded) {
+        safely(() => storage?.removeItem(RELOAD_FLAG));
+        throw err;
+      }
+      // Bez uloženého příznaku by se stránka mohla obnovovat dokola.
+      safely(() => storage?.setItem(RELOAD_FLAG, '1'));
+      if (safely(() => storage?.getItem(RELOAD_FLAG)) !== '1') throw err;
+      reload();
+      // Stránka se obnovuje - Suspense do té doby ukazuje načítání.
+      return new Promise(() => {});
+    },
+  );
 }

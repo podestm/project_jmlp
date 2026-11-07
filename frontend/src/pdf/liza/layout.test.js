@@ -20,7 +20,9 @@ describe('textWidth', () => {
 
 describe('clipText', () => {
   it('dlouhý text ořízne do šířky bez trojtečky', () => {
-    const clipped = clipText('Lyžařský klub Svinec z.s. a velmi dlouhý dovětek', 60, { size: 8.04 });
+    const clipped = clipText('Lyžařský klub Svinec z.s. a velmi dlouhý dovětek', 60, {
+      size: 8.04,
+    });
     expect(textWidth(clipped, { size: 8.04 })).toBeLessThanOrEqual(60);
     expect(clipped.endsWith('…')).toBe(false);
   });
@@ -71,7 +73,12 @@ describe('PdfCanvas', () => {
 
   it('fitWidth dorovná pevný popisek na šířku z LiZy prostrkáním', () => {
     const canvas = new PdfCanvas();
-    canvas.text('STAVITEL TRATI', 158.34, 175.92, { size: 8.04, bold: true, align: 'right', fitWidth: 61.74 });
+    canvas.text('STAVITEL TRATI', 158.34, 175.92, {
+      size: 8.04,
+      bold: true,
+      align: 'right',
+      fitWidth: 61.74,
+    });
     const item = canvas.toDocDefinition().content.find((node) => node.text === 'STAVITEL TRATI');
     expect(item.characterSpacing).toBeLessThan(0);
     expect(item.absolutePosition.x).toBeCloseTo(158.34 - 61.74, 2);

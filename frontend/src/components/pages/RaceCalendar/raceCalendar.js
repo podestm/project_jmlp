@@ -15,7 +15,9 @@ export const matchesFilter = (race, filter) => filter === 'all' || raceMethod(ra
 /** Nadcházející od nejbližšího, odjeté od posledního. */
 export const splitByDate = (races, today) => {
   const withDate = races.map((race) => ({ race, date: raceDate(race) }));
-  const upcoming = withDate.filter(({ date }) => !date || date >= today).sort((a, b) => (a.date ?? 0) - (b.date ?? 0));
+  const upcoming = withDate
+    .filter(({ date }) => !date || date >= today)
+    .sort((a, b) => (a.date ?? 0) - (b.date ?? 0));
   const past = withDate.filter(({ date }) => date && date < today).sort((a, b) => b.date - a.date);
   return { upcoming: upcoming.map(({ race }) => race), past: past.map(({ race }) => race) };
 };
@@ -27,8 +29,12 @@ export const splitByDate = (races, today) => {
  */
 export const emptyFilterTitle = (filter, seasonId, currentSeasonId) => {
   if (seasonId >= currentSeasonId) {
-    return filter === 'snow' ? 'Závody na sněhu zatím nejsou vypsané' : 'Suché závody zatím nejsou vypsané';
+    return filter === 'snow'
+      ? 'Závody na sněhu zatím nejsou vypsané'
+      : 'Suché závody zatím nejsou vypsané';
   }
   const season = formatSeasonShort(seasonId);
-  return filter === 'snow' ? `V sezóně ${season} se na sněhu nezávodilo` : `V sezóně ${season} se suchý závod nekonal`;
+  return filter === 'snow'
+    ? `V sezóně ${season} se na sněhu nezávodilo`
+    : `V sezóně ${season} se suchý závod nekonal`;
 };

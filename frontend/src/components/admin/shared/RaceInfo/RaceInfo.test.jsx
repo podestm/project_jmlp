@@ -4,7 +4,13 @@ import RaceInfo from './RaceInfo.jsx';
 
 describe('karta závodu', () => {
   it('ukáže datum, místo, popis a obsah vpravo', () => {
-    render(<RaceInfo race={{ datum: '2026-10-03', areal_name: 'Brno', race_nr: 'JMLP2026-01' }} meta="popis" aside={<span>58</span>} />);
+    render(
+      <RaceInfo
+        race={{ datum: '2026-10-03', areal_name: 'Brno', race_nr: 'JMLP2026-01' }}
+        meta="popis"
+        aside={<span>58</span>}
+      />,
+    );
     expect(screen.getByText('Brno')).toBeInTheDocument();
     expect(screen.getByText('popis')).toBeInTheDocument();
     expect(screen.getByText('58')).toBeInTheDocument();

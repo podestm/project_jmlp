@@ -4,6 +4,7 @@ Nahrazuje pět dřívějších samostatných vazeb. Díky tomu je kontrola použ
 souboru úplná - dřív se na sezónní výsledky zapomínalo a soubor šlo smazat
 i když ho veřejný kalendář používal.
 """
+
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -157,7 +158,9 @@ def role_label(role: Optional[str]) -> str:
         return role or "Dokument"
 
 
-def attachment_dict(attachment: models.Attachment, file_obj: Optional[models.File]) -> Dict[str, Any]:
+def attachment_dict(
+    attachment: models.Attachment, file_obj: Optional[models.File]
+) -> Dict[str, Any]:
     """Příloha + denormalizovaná data souboru, jak je čeká frontend."""
     return {
         "id": attachment.id,
@@ -195,7 +198,8 @@ def list_for_owner(
         .filter(models.Attachment.owner_type == owner_type)
     )
     query = query.filter(
-        models.Attachment.owner_id.is_(None) if owner_id is None
+        models.Attachment.owner_id.is_(None)
+        if owner_id is None
         else models.Attachment.owner_id == owner_id
     )
     if roles:
@@ -240,10 +244,14 @@ def attach(
             models.Attachment.role.in_(group),
         ).delete(synchronize_session=False)
 
-    next_order = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == owner_type,
-        models.Attachment.owner_id == owner_id,
-    ).count()
+    next_order = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.owner_type == owner_type,
+            models.Attachment.owner_id == owner_id,
+        )
+        .count()
+    )
 
     attachment = models.Attachment(
         file_id=file_id,
@@ -307,10 +315,14 @@ def detach_owner(db: Session, owner_type: str, owner_id: int) -> int:
     Soubory zůstávají v knihovně - mazání souborů je vždy vědomá akce
     v knihovně dokumentů, ne vedlejší efekt smazání závodu nebo příspěvku.
     """
-    removed = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == owner_type,
-        models.Attachment.owner_id == owner_id,
-    ).delete(synchronize_session=False)
+    removed = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.owner_type == owner_type,
+            models.Attachment.owner_id == owner_id,
+        )
+        .delete(synchronize_session=False)
+    )
     db.commit()
     return removed
 
@@ -339,14 +351,18 @@ def usage_map(db: Session, file_ids: Optional[List[int]] = None) -> Dict[int, Li
     labels = _owner_labels(db, attachments)
     usage: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
     for attachment in attachments:
-        usage[attachment.file_id].append({
-            "type": role_label(attachment.role),
-            "title": labels.get((attachment.owner_type, attachment.owner_id), attachment.owner_type),
-            "owner_type": attachment.owner_type,
-            "owner_id": attachment.owner_id,
-            "role": attachment.role,
-            "published": bool(attachment.published),
-        })
+        usage[attachment.file_id].append(
+            {
+                "type": role_label(attachment.role),
+                "title": labels.get(
+                    (attachment.owner_type, attachment.owner_id), attachment.owner_type
+                ),
+                "owner_type": attachment.owner_type,
+                "owner_id": attachment.owner_id,
+                "role": attachment.role,
+                "published": bool(attachment.published),
+            }
+        )
     return usage
 
 
@@ -362,7 +378,9 @@ def _owner_labels(db: Session, attachments: List[models.Attachment]) -> Dict[tup
     race_ids = by_type.get(AttachmentOwner.race.value)
     if race_ids:
         for race in db.query(models.Race).filter(models.Race.id.in_(race_ids)).all():
-            labels[(AttachmentOwner.race.value, race.id)] = f"Závod {race.race_nr or race.id} - {race.datum}"
+            labels[(AttachmentOwner.race.value, race.id)] = (
+                f"Závod {race.race_nr or race.id} - {race.datum}"
+            )
 
     post_ids = by_type.get(AttachmentOwner.post.value)
     if post_ids:

@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Alert, Button, ButtonLink, Container, EmptyState, Icon, LoadingState, PageHeader, Paska, Screen } from '../../ms/index.js';
+import {
+  Alert,
+  Button,
+  ButtonLink,
+  Container,
+  EmptyState,
+  Icon,
+  LoadingState,
+  PageHeader,
+  Paska,
+  Screen,
+} from '../../ms/index.js';
 import { formatFileSize } from '../../../utils/files.js';
 import { documentName, fileType, shortSeasonLabel } from './documents.js';
 import { useDocuments } from './useDocuments.js';
@@ -13,17 +24,30 @@ const ARCHIVE_PREVIEW = 9;
 
 /** Dokument aktuálního ročníku: velká karta, první má plné tlačítko. */
 function CurrentDocument({ document, primary, edition }) {
-  const meta = [edition && `${edition} ročník`, fileType(document), document.file_size != null && formatFileSize(document.file_size)]
-    .filter(Boolean).join(' · ');
+  const meta = [
+    edition && `${edition} ročník`,
+    fileType(document),
+    document.file_size != null && formatFileSize(document.file_size),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <li className={styles.current}>
-      <span className={styles.type} aria-hidden="true">{fileType(document) ?? 'DOC'}</span>
+      <span className={styles.type} aria-hidden="true">
+        {fileType(document) ?? 'DOC'}
+      </span>
       <span className={styles.currentText}>
         <span className={styles.currentTitle}>{documentName(document)}</span>
         <span className={styles.meta}>{meta}</span>
       </span>
-      <ButtonLink href={document.url} target="_blank" rel="noopener noreferrer" variant={primary ? 'primary' : 'outline'} icon="download"
-        aria-label={`Stáhnout ${documentName(document)}`}>
+      <ButtonLink
+        href={document.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant={primary ? 'primary' : 'outline'}
+        icon="download"
+        aria-label={`Stáhnout ${documentName(document)}`}
+      >
         Stáhnout
       </ButtonLink>
     </li>
@@ -38,7 +62,9 @@ function ArchiveDocument({ season, document }) {
         <span className={styles.edition}>{season.edition_label}</span>
         <span className={styles.archivedText}>
           <span className={styles.archivedTitle}>{shortSeasonLabel(season)}</span>
-          <span className={styles.meta}>{[documentName(document), fileType(document)].filter(Boolean).join(' · ')}</span>
+          <span className={styles.meta}>
+            {[documentName(document), fileType(document)].filter(Boolean).join(' · ')}
+          </span>
         </span>
         <Icon name="download" size={20} className={styles.download} />
       </a>
@@ -57,15 +83,24 @@ export default function Documents() {
   if (status === 'loading') content = <LoadingState label="Načítám dokumenty…" />;
   else if (status === 'error') {
     content = (
-      <Alert type="danger" title="Dokumenty se nepodařilo načíst"
-        actions={<Button variant="primary" icon="refresh" onClick={() => reload()}>Zkusit znovu</Button>}>
+      <Alert
+        type="danger"
+        title="Dokumenty se nepodařilo načíst"
+        actions={
+          <Button variant="primary" icon="refresh" onClick={() => reload()}>
+            Zkusit znovu
+          </Button>
+        }
+      >
         Server neodpověděl. Zkuste to prosím za chvíli znovu.
       </Alert>
     );
   } else if (!current && archive.length === 0) {
     content = <EmptyState size="lg" icon="file-text" title="Zatím tu nejsou žádné dokumenty" />;
   } else {
-    const archived = archive.flatMap((season) => season.documents.map((document) => ({ season, document })));
+    const archived = archive.flatMap((season) =>
+      season.documents.map((document) => ({ season, document })),
+    );
     const shown = showAll ? archived : archived.slice(0, ARCHIVE_PREVIEW);
     const hidden = archived.slice(ARCHIVE_PREVIEW);
     content = (
@@ -75,7 +110,12 @@ export default function Documents() {
             <Paska id="aktualni">Aktuální ročník</Paska>
             <ul className={styles.currentList}>
               {current.documents.map((document, index) => (
-                <CurrentDocument key={document.id} document={document} primary={index === 0} edition={current.edition_label} />
+                <CurrentDocument
+                  key={document.id}
+                  document={document}
+                  primary={index === 0}
+                  edition={current.edition_label}
+                />
               ))}
             </ul>
           </section>
@@ -84,10 +124,16 @@ export default function Documents() {
           <section className={styles.section} aria-labelledby="archiv">
             <Paska id="archiv">Archiv</Paska>
             <ul className={styles.archiveList}>
-              {shown.map(({ season, document }) => <ArchiveDocument key={document.id} season={season} document={document} />)}
+              {shown.map(({ season, document }) => (
+                <ArchiveDocument key={document.id} season={season} document={document} />
+              ))}
             </ul>
             {hidden.length > 0 && (
-              <Button className={styles.more} aria-expanded={showAll} onClick={() => setShowAll((value) => !value)}>
+              <Button
+                className={styles.more}
+                aria-expanded={showAll}
+                onClick={() => setShowAll((value) => !value)}
+              >
                 {showAll
                   ? 'Skrýt starší ročníky'
                   : `Zobrazit starší ročníky (${hidden[0].season.edition_label}–${hidden[hidden.length - 1].season.edition_label})`}
@@ -97,7 +143,9 @@ export default function Documents() {
         )}
         <p className={styles.info}>
           <Icon name="info" size={20} />
-          <span>Propozice a výsledky závodů jsou v <Link to="/zavody">kalendáři</Link>.</span>
+          <span>
+            Propozice a výsledky závodů jsou v <Link to="/zavody">kalendáři</Link>.
+          </span>
         </p>
       </>
     );

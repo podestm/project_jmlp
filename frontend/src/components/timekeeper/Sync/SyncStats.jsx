@@ -8,11 +8,31 @@ import styles from './SyncStats.module.css';
  */
 export default function SyncStats({ stats, conflictCount, busy, onSyncNow }) {
   const cards = [
-    { key: 'pending', label: 'Ve frontě', value: stats.pending, tone: stats.pending > 0 ? 'amber' : 'navy' },
+    {
+      key: 'pending',
+      label: 'Ve frontě',
+      value: stats.pending,
+      tone: stats.pending > 0 ? 'amber' : 'navy',
+    },
     { key: 'processing', label: 'Odesílá se', value: stats.processing, tone: 'navy' },
-    { key: 'failed', label: 'Chyby', value: stats.failed, tone: stats.failed > 0 ? 'amber' : 'navy' },
-    { key: 'conflict', label: 'Konflikty', value: conflictCount, tone: conflictCount > 0 ? 'amber' : 'navy' },
-    { key: 'dead', label: 'Neodesláno', value: stats.dead || 0, tone: stats.dead > 0 ? 'danger' : 'navy' },
+    {
+      key: 'failed',
+      label: 'Chyby',
+      value: stats.failed,
+      tone: stats.failed > 0 ? 'amber' : 'navy',
+    },
+    {
+      key: 'conflict',
+      label: 'Konflikty',
+      value: conflictCount,
+      tone: conflictCount > 0 ? 'amber' : 'navy',
+    },
+    {
+      key: 'dead',
+      label: 'Neodesláno',
+      value: stats.dead || 0,
+      tone: stats.dead > 0 ? 'danger' : 'navy',
+    },
   ];
 
   return (
@@ -27,7 +47,9 @@ export default function SyncStats({ stats, conflictCount, busy, onSyncNow }) {
       </ul>
       <div className={styles.send}>
         <Tooltip text="Fronta se odesílá i sama">
-          <Button variant="primary" size="lg" icon="sync" block busy={busy} onClick={onSyncNow}>Odeslat teď</Button>
+          <Button variant="primary" size="lg" icon="sync" block busy={busy} onClick={onSyncNow}>
+            Odeslat teď
+          </Button>
         </Tooltip>
       </div>
     </div>

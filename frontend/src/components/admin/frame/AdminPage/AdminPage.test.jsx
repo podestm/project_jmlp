@@ -5,7 +5,11 @@ import AdminPage from './AdminPage.jsx';
 describe('AdminPage', () => {
   it('H1, meta, akce a obsah', () => {
     render(
-      <AdminPage title="Přehled" meta="sezóna 2026/27" actions={<button type="button">Nový závod</button>}>
+      <AdminPage
+        title="Přehled"
+        meta="sezóna 2026/27"
+        actions={<button type="button">Nový závod</button>}
+      >
         <p>obsah</p>
       </AdminPage>,
     );

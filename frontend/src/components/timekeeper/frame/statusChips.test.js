@@ -5,14 +5,23 @@ const EMPTY = { pending: 0, failed: 0, processing: 0, conflict: 0, dead: 0, tota
 
 describe('odznak Spojení', () => {
   it('offline ukáže, od kdy', () => {
-    const chip = connectionChip({ syncState: 'offline', offlineSince: new Date(2026, 9, 3, 10, 4) });
+    const chip = connectionChip({
+      syncState: 'offline',
+      offlineSince: new Date(2026, 9, 3, 10, 4),
+    });
     expect(chip).toMatchObject({ tone: 'amber', value: 'Offline' });
     expect(chip.detail.map((d) => d.text)).toEqual(['od', '10:04']);
   });
 
   it('při odesílání a online', () => {
-    expect(connectionChip({ syncState: 'syncing' })).toMatchObject({ tone: 'sending', value: 'Odesílám' });
-    expect(connectionChip({ syncState: 'queued' })).toMatchObject({ tone: 'open', value: 'Online' });
+    expect(connectionChip({ syncState: 'syncing' })).toMatchObject({
+      tone: 'sending',
+      value: 'Odesílám',
+    });
+    expect(connectionChip({ syncState: 'queued' })).toMatchObject({
+      tone: 'open',
+      value: 'Online',
+    });
   });
 });
 
@@ -22,15 +31,34 @@ describe('odznak Fronta', () => {
   });
 
   it('čekající změny jsou jantarové, chyby červené', () => {
-    expect(queueChip({ ...EMPTY, pending: 3, total: 3 })).toMatchObject({ tone: 'dry', value: '3' });
-    expect(queueChip({ ...EMPTY, failed: 1, total: 1 })).toMatchObject({ tone: 'danger', detail: [{ text: 'chyba odeslání' }] });
-    expect(queueChip({ ...EMPTY, conflict: 1, total: 1 })).toMatchObject({ tone: 'danger', detail: [{ text: 'konflikt' }] });
-    expect(queueChip({ ...EMPTY, dead: 2, conflict: 1, total: 3 })).toMatchObject({ tone: 'danger', value: '2' });
+    expect(queueChip({ ...EMPTY, pending: 3, total: 3 })).toMatchObject({
+      tone: 'dry',
+      value: '3',
+    });
+    expect(queueChip({ ...EMPTY, failed: 1, total: 1 })).toMatchObject({
+      tone: 'danger',
+      detail: [{ text: 'chyba odeslání' }],
+    });
+    expect(queueChip({ ...EMPTY, conflict: 1, total: 1 })).toMatchObject({
+      tone: 'danger',
+      detail: [{ text: 'konflikt' }],
+    });
+    expect(queueChip({ ...EMPTY, dead: 2, conflict: 1, total: 3 })).toMatchObject({
+      tone: 'danger',
+      value: '2',
+    });
   });
 });
 
 describe('odznak Zařízení', () => {
-  const serial = { supported: true, canUse: true, connected: false, heldByOtherTab: false, baud: '9600', lockedBaud: null };
+  const serial = {
+    supported: true,
+    canUse: true,
+    connected: false,
+    heldByOtherTab: false,
+    baud: '9600',
+    lockedBaud: null,
+  };
 
   it('bez Web Serial nejde', () => {
     expect(deviceChip({ ...serial, supported: false })).toMatchObject({ value: 'Nejde' });

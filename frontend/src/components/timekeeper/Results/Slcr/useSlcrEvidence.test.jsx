@@ -6,26 +6,43 @@ vi.mock('../../../../config/timekeeperApi.js', () => ({ TimekeeperAPI: api }));
 
 const { useSlcrEvidence } = await import('./useSlcrEvidence.js');
 
-const STATUS = { token: true, login: true, disciplines: [{ id: 26, name: 'Trénink' }, { id: 18, name: 'Slalom' }] };
+const STATUS = {
+  token: true,
+  login: true,
+  disciplines: [
+    { id: 26, name: 'Trénink' },
+    { id: 18, name: 'Slalom' },
+  ],
+};
 const EVENTS = [{ id: 501, name: 'JMLP Hlubočky', date: '2027-01-09' }];
 const EVENT = { id: 501, name: 'JMLP Hlubočky', category_mode: 'Manual' };
 const PLAN = {
   event: EVENT,
   items: [
-    { category_id: 1, name: 'Předžáci', action: 'create', input: { codex: '1', startTime: '09:30:00' } },
+    {
+      category_id: 1,
+      name: 'Předžáci',
+      action: 'create',
+      input: { codex: '1', startTime: '09:30:00' },
+    },
     { category_id: 2, name: 'Žáci', action: 'keep', slcr_race_id: 9 },
   ],
 };
 
-const routeGet = (overrides = {}) => (url) => {
-  if (url.endsWith('/slcr/status')) return Promise.resolve(overrides.status ?? STATUS);
-  if (url.endsWith('/slcr/events')) return overrides.events ?? Promise.resolve(EVENTS);
-  if (url.endsWith('/slcr/plan')) return Promise.resolve(overrides.plan ?? PLAN);
-  return Promise.reject(new Error(`neznámé ${url}`));
-};
+const routeGet =
+  (overrides = {}) =>
+  (url) => {
+    if (url.endsWith('/slcr/status')) return Promise.resolve(overrides.status ?? STATUS);
+    if (url.endsWith('/slcr/events')) return overrides.events ?? Promise.resolve(EVENTS);
+    if (url.endsWith('/slcr/plan')) return Promise.resolve(overrides.plan ?? PLAN);
+    return Promise.reject(new Error(`neznámé ${url}`));
+  };
 
 const confirmYes = vi.fn(async () => true);
-const setup = (props = {}) => renderHook(() => useSlcrEvidence({ raceId: '7', hasResults: true, confirm: confirmYes, ...props }));
+const setup = (props = {}) =>
+  renderHook(() =>
+    useSlcrEvidence({ raceId: '7', hasResults: true, confirm: confirmYes, ...props }),
+  );
 
 describe('useSlcrEvidence', () => {
   beforeEach(() => {
@@ -59,12 +76,18 @@ describe('useSlcrEvidence', () => {
     act(() => result.current.setEventId('#501'));
     expect(result.current.eventId).toBe('501');
     await act(() => result.current.loadPlan());
-    expect(api.getOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/plan', { event_id: '501', discipline: 26 });
+    expect(api.getOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/plan', {
+      event_id: '501',
+      discipline: 26,
+    });
     expect(result.current.step).toBe(2);
     expect(result.current.canCreate).toBe(true);
     // Chybí závody → výsledky ještě nejdou poslat.
     expect(result.current.canSend).toBe(false);
-    expect(JSON.parse(localStorage.getItem('slcr_event_7'))).toEqual({ eventId: 501, discipline: 26 });
+    expect(JSON.parse(localStorage.getItem('slcr_event_7'))).toEqual({
+      eventId: 501,
+      discipline: 26,
+    });
   });
 
   it('změna disciplíny zahodí náhled', async () => {
@@ -79,7 +102,9 @@ describe('useSlcrEvidence', () => {
 
   it('založí závody a pak pustí odeslání výsledků', async () => {
     api.postOnline.mockResolvedValueOnce({
-      event: EVENT, created: 1, codex_filled: 0,
+      event: EVENT,
+      created: 1,
+      codex_filled: 0,
       items: PLAN.items.map((item) => ({ ...item, action: 'keep' })),
     });
     const { result } = setup();
@@ -87,14 +112,20 @@ describe('useSlcrEvidence', () => {
     act(() => result.current.setEventId('501'));
     await act(() => result.current.loadPlan());
     await act(() => result.current.createRaces());
-    expect(api.postOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/races', { event_id: 501, discipline: 26 });
+    expect(api.postOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/races', {
+      event_id: 501,
+      discipline: 26,
+    });
     expect(result.current.message).toEqual({ type: 'success', text: 'Hotovo: založeno 1 závodů.' });
     expect(result.current.step).toBe(3);
     expect(result.current.canSend).toBe(true);
 
     api.postOnline.mockResolvedValueOnce({ unfinished: 0 });
     await act(() => result.current.sendResults());
-    expect(api.postOnline).toHaveBeenLastCalledWith('/api/timekeeper/races/7/slcr/results', { event_id: 501, discipline: 26 });
+    expect(api.postOnline).toHaveBeenLastCalledWith('/api/timekeeper/races/7/slcr/results', {
+      event_id: 501,
+      discipline: 26,
+    });
     expect(result.current.sent).toBe(true);
   });
 
@@ -115,9 +146,13 @@ describe('useSlcrEvidence', () => {
   });
 
   it('chybu z evidence ukáže textem z backendu a náhled zahodí', async () => {
-    api.getOnline.mockImplementation((url) => (url.endsWith('/slcr/plan')
-      ? Promise.reject(Object.assign(new Error('API Error: 502'), { detail: 'Evidence neodpovídá' }))
-      : routeGet()(url)));
+    api.getOnline.mockImplementation((url) =>
+      url.endsWith('/slcr/plan')
+        ? Promise.reject(
+            Object.assign(new Error('API Error: 502'), { detail: 'Evidence neodpovídá' }),
+          )
+        : routeGet()(url),
+    );
     const { result } = setup();
     await waitFor(() => expect(result.current.configured).toBe(true));
     act(() => result.current.setEventId('501'));
@@ -128,7 +163,11 @@ describe('useSlcrEvidence', () => {
   });
 
   it('chyba při načtení akcí zůstane u výběru akce', async () => {
-    api.getOnline.mockImplementation(routeGet({ events: Promise.reject(Object.assign(new Error('x'), { detail: 'Neplatný token' })) }));
+    api.getOnline.mockImplementation(
+      routeGet({
+        events: Promise.reject(Object.assign(new Error('x'), { detail: 'Neplatný token' })),
+      }),
+    );
     const { result } = setup();
     await waitFor(() => expect(result.current.eventsError).toBe('Neplatný token'));
   });

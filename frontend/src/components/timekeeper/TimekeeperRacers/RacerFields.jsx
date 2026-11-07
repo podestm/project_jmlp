@@ -11,10 +11,18 @@ export default function RacerFields({ formData, updateField, clubs, searchResult
   return (
     <div className={styles.grid}>
       <Field label="Příjmení" id="tk-racer-surname">
-        <Input size="sm" value={formData.surname} onChange={(e) => updateField('surname', e.target.value)} />
+        <Input
+          size="sm"
+          value={formData.surname}
+          onChange={(e) => updateField('surname', e.target.value)}
+        />
       </Field>
       <Field label="Jméno" id="tk-racer-name">
-        <Input size="sm" value={formData.name} onChange={(e) => updateField('name', e.target.value)} />
+        <Input
+          size="sm"
+          value={formData.name}
+          onChange={(e) => updateField('name', e.target.value)}
+        />
       </Field>
 
       {searchResults && <div className={styles.full}>{searchResults}</div>}
@@ -37,7 +45,9 @@ export default function RacerFields({ formData, updateField, clubs, searchResult
           value={formData.sex}
           onChange={(e) => updateField('sex', e.target.value === '' ? '' : Number(e.target.value))}
         >
-          <option value="" disabled>— vyberte —</option>
+          <option value="" disabled>
+            — vyberte —
+          </option>
           <option value={1}>Muž</option>
           <option value={2}>Žena</option>
         </Select>
@@ -53,7 +63,9 @@ export default function RacerFields({ formData, updateField, clubs, searchResult
         />
       </Field>
       <datalist id="clubs">
-        {clubs.map((club) => <option key={club.id} value={club.name} />)}
+        {clubs.map((club) => (
+          <option key={club.id} value={club.name} />
+        ))}
       </datalist>
       <Field label="SLČR ID" id="tk-racer-slcr">
         <Input

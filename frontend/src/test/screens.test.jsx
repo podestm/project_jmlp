@@ -27,20 +27,22 @@ import { resetTimekeeperDb } from './helpers.js';
  * Tyhle testy nekontrolují chování, jen že se obrazovka postaví a nespadne.
  * To je málo na správnost, ale přesně dost na tuhle třídu chyb.
  */
-const empty = () => Promise.resolve({
-  ok: true,
-  status: 200,
-  statusText: 'OK',
-  json: async () => [],
-});
+const empty = () =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => [],
+  });
 
-const renderScreen = (ui) => render(
-  <MemoryRouter>
-    <TimekeeperAuthProvider>
-      <SerialSessionProvider>{ui}</SerialSessionProvider>
-    </TimekeeperAuthProvider>
-  </MemoryRouter>
-);
+const renderScreen = (ui) =>
+  render(
+    <MemoryRouter>
+      <TimekeeperAuthProvider>
+        <SerialSessionProvider>{ui}</SerialSessionProvider>
+      </TimekeeperAuthProvider>
+    </MemoryRouter>,
+  );
 
 beforeEach(async () => {
   await resetTimekeeperDb();
@@ -71,7 +73,11 @@ describe('obrazovky časoměřiče se vykreslí', () => {
 
 describe('rozložení časoměřiče', () => {
   it('vykreslí menu se všemi odkazy', () => {
-    renderScreen(<TimekeeperLayout><div>obsah</div></TimekeeperLayout>);
+    renderScreen(
+      <TimekeeperLayout>
+        <div>obsah</div>
+      </TimekeeperLayout>,
+    );
 
     // Kdyby menu spadlo, uživatel se nedostane nikam - přesně tenhle příznak
     // hlásil provoz: "kliknu na závodníky a nic se neděje".

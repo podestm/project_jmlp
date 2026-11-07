@@ -14,7 +14,9 @@ export default function RecentPosts({ posts }) {
         {posts.map((post) => (
           <li key={post.id} className={styles.item}>
             <span className={styles.text}>
-              <Link to="/admin/posts" className={styles.title}>{post.title}</Link>
+              <Link to="/admin/posts" className={styles.title}>
+                {post.title}
+              </Link>
               <span className={styles.date}>{formatDate(post.created_at)}</span>
             </span>
             <Badge tone={post.published ? 'open' : 'neutral'} size="sm">

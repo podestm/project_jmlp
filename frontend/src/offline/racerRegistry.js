@@ -38,8 +38,12 @@ export const preloadOfflineRacerData = async () => {
   ]);
 };
 
-const fold = (value) => String(value ?? '')
-  .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const fold = (value) =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
 
 /**
  * Hledání jako na serveru (GET /api/timekeeper/racers/search): po slovech,
@@ -75,18 +79,36 @@ export const searchRacers = (registry, query, limit = 20) => {
  * @param {Array}  options.categories   aktivní kategorie (/api/timekeeper/categories)
  * @param {Array}  options.raceNumberOptions  dresová čísla (/api/timekeeper/race-number-options)
  */
-export const buildLocalEntry = ({ tempId, raceId, payload, startList = [], categories = [], raceNumberOptions = [] }) => {
+export const buildLocalEntry = ({
+  tempId,
+  raceId,
+  payload,
+  startList = [],
+  categories = [],
+  raceNumberOptions = [],
+}) => {
   const year = Number(payload.racer_year);
   const sex = Number(payload.racer_sex);
-  const category = categories.find((item) => (
-    item.min_birth_year <= year && item.max_birth_year >= year && (item.sex === 0 || item.sex === sex)
-  )) || null;
-  const sameCategory = category ? startList.find((entry) => Number(entry.category_id) === Number(category.id)) : null;
-  const display = payload.race_number_display != null && payload.race_number_display !== ''
-    ? normalizeRaceNumberCode(payload.race_number_display) : null;
-  const option = display != null
-    ? raceNumberOptions.find((item) => normalizeRaceNumberCode(item.display_number) === display) || null
+  const category =
+    categories.find(
+      (item) =>
+        item.min_birth_year <= year &&
+        item.max_birth_year >= year &&
+        (item.sex === 0 || item.sex === sex),
+    ) || null;
+  const sameCategory = category
+    ? startList.find((entry) => Number(entry.category_id) === Number(category.id))
     : null;
+  const display =
+    payload.race_number_display != null && payload.race_number_display !== ''
+      ? normalizeRaceNumberCode(payload.race_number_display)
+      : null;
+  const option =
+    display != null
+      ? raceNumberOptions.find(
+          (item) => normalizeRaceNumberCode(item.display_number) === display,
+        ) || null
+      : null;
   const startNumbers = startList.map((entry) => Number(entry.start_number)).filter(Number.isFinite);
 
   return {
@@ -118,6 +140,6 @@ export const buildLocalEntry = ({ tempId, raceId, payload, startList = [], categ
     dsq: false,
     excluded: false,
     updated_at: null,
-    pending_sync: true
+    pending_sync: true,
   };
 };

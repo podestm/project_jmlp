@@ -20,15 +20,29 @@ function StatTiles({ data }) {
   const race = data?.upcoming_race;
   return (
     <div className={styles.tiles}>
-      <StatTile label="Závodníků v databázi" value={counts && formatCount(counts.total_racers)} hint={counts && `${counts.total_clubs} aktivních klubů`} />
-      <StatTile label="Závodů v sezóně" value={counts && formatCount(counts.season_races)} hint={counts && `${counts.open_registrations} s otevřenou registrací`} />
       <StatTile
-        label={race?.areal_name ? `Přihlášek na ${race.areal_name}` : 'Přihlášek na nejbližší závod'}
+        label="Závodníků v databázi"
+        value={counts && formatCount(counts.total_racers)}
+        hint={counts && `${counts.total_clubs} aktivních klubů`}
+      />
+      <StatTile
+        label="Závodů v sezóně"
+        value={counts && formatCount(counts.season_races)}
+        hint={counts && `${counts.open_registrations} s otevřenou registrací`}
+      />
+      <StatTile
+        label={
+          race?.areal_name ? `Přihlášek na ${race.areal_name}` : 'Přihlášek na nejbližší závod'
+        }
         value={data && (race ? formatCount(race.registration_count) : '0')}
         hint={race ? race.race_nr : 'žádný vypsaný závod'}
         tone="open"
       />
-      <StatTile label="Souborů v knihovně" value={counts && formatCount(counts.file_count)} hint={counts && `celkem ${counts.storage_size}`} />
+      <StatTile
+        label="Souborů v knihovně"
+        value={counts && formatCount(counts.file_count)}
+        hint={counts && `celkem ${counts.storage_size}`}
+      />
     </div>
   );
 }
@@ -45,13 +59,17 @@ export default function AdminDashboard() {
     <AdminPage
       title="Přehled"
       meta={data ? `${todayLabel()} · sezóna ${data.season.label}` : todayLabel()}
-      actions={(
+      actions={
         <>
-          <ButtonLink to="/admin/races" variant="primary" size="sm" icon="plus">Nový závod</ButtonLink>
-          <ButtonLink href="/" target="_blank" rel="noreferrer" size="sm" icon="external-link">Veřejný web</ButtonLink>
+          <ButtonLink to="/admin/races" variant="primary" size="sm" icon="plus">
+            Nový závod
+          </ButtonLink>
+          <ButtonLink href="/" target="_blank" rel="noreferrer" size="sm" icon="external-link">
+            Veřejný web
+          </ButtonLink>
           <IconButton icon="refresh" label="Obnovit přehled" onClick={reload} />
         </>
-      )}
+      }
     >
       {children}
     </AdminPage>
@@ -70,11 +88,20 @@ export default function AdminDashboard() {
     );
   }
 
-  const { counts, visits, upcoming_race: upcomingRace, recent_registrations: registrations, top_pages: topPages, recent_posts: posts } = data;
+  const {
+    counts,
+    visits,
+    upcoming_race: upcomingRace,
+    recent_registrations: registrations,
+    top_pages: topPages,
+    recent_posts: posts,
+  } = data;
 
   return page(
     <>
-      {counts.pending_club_requests > 0 && <ClubRequestsBanner count={counts.pending_club_requests} />}
+      {counts.pending_club_requests > 0 && (
+        <ClubRequestsBanner count={counts.pending_club_requests} />
+      )}
 
       <StatTiles data={data} />
 
@@ -84,7 +111,14 @@ export default function AdminDashboard() {
           <UpcomingRace race={upcomingRace} />
         </section>
         <section className={styles.registrations} aria-labelledby="prehled-prihlasky">
-          <Paska id="prehled-prihlasky" aside={<Link to="/admin/races" className={styles.asideLink}>Všechny závody →</Link>}>
+          <Paska
+            id="prehled-prihlasky"
+            aside={
+              <Link to="/admin/races" className={styles.asideLink}>
+                Všechny závody →
+              </Link>
+            }
+          >
             Poslední přihlášky
           </Paska>
           <RecentRegistrations registrations={registrations} />
@@ -98,7 +132,10 @@ export default function AdminDashboard() {
 
       <div className={styles.columns}>
         <section className={styles.section} aria-labelledby="prehled-prispevky">
-          <Paska id="prehled-prispevky" aside={<span className={styles.asideText}>celkem {counts.total_posts}</span>}>
+          <Paska
+            id="prehled-prispevky"
+            aside={<span className={styles.asideText}>celkem {counts.total_posts}</span>}
+          >
             Poslední příspěvky
           </Paska>
           <RecentPosts posts={posts} />

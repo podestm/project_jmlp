@@ -20,14 +20,22 @@ export default function PublishDialog({ file, seasons, onPublish, onClose }) {
       open
       title={`Zveřejnit „${file.original_filename}“ na webu?`}
       onClose={onClose}
-      footer={(
+      footer={
         <>
-          <Button data-cancel onClick={onClose}>Zrušit</Button>
-          <Button variant="primary" icon="globe" disabled={!selected} onClick={() => onPublish(year)} data-autofocus>
+          <Button data-cancel onClick={onClose}>
+            Zrušit
+          </Button>
+          <Button
+            variant="primary"
+            icon="globe"
+            disabled={!selected}
+            onClick={() => onPublish(year)}
+            data-autofocus
+          >
             {selected ? `Zveřejnit u sezóny ${selected.seasonLabel}` : 'Zveřejnit'}
           </Button>
         </>
-      )}
+      }
     >
       <div className={styles.body}>
         <p className={styles.lead}>Soubor se objeví na stránce Dokumenty.</p>

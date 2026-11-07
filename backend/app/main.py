@@ -11,7 +11,17 @@ from sqlalchemy.orm import Session
 
 from . import models
 from .database import get_db
-from .routers import races, racers, clubs, registration, posts, analytics, season_results, documents, seo
+from .routers import (
+    races,
+    racers,
+    clubs,
+    registration,
+    posts,
+    analytics,
+    season_results,
+    documents,
+    seo,
+)
 from .routers.admin import router as admin_router
 from .routers.timekeeper import router as timekeeper_router
 
@@ -24,6 +34,7 @@ app = FastAPI(title="JMLP API", redirect_slashes=False)
 def startup_migrations():
     """Spustí databázové migrace při startu (viz app/migrations.py)."""
     from .migrations import run_migrations
+
     run_migrations()
 
 
@@ -36,6 +47,7 @@ def startup_check_uploads():
     souboru obecnou hláškou. Radši to zjistíme při startu a řekneme jak na to.
     """
     from .services.files import DOCUMENTS_DIR
+
     try:
         DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
         writable = os.access(DOCUMENTS_DIR, os.W_OK | os.X_OK)
@@ -48,6 +60,7 @@ def startup_check_uploads():
             "chown -R appuser:appuser /app/uploads/documents",
             DOCUMENTS_DIR.resolve(),
         )
+
 
 # Custom validation error handler for debugging
 def _validation_error(error: dict) -> dict:
@@ -64,9 +77,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         # ctx může nést výjimku (ValueError z validátoru), která do JSON nejde -
         # bez tohohle by se z chyby 422 stala "Interní chyba serveru".
-        content={"detail": [_validation_error(error) for error in exc.errors()],
-                 "body": jsonable_encoder(exc.body)},
+        content={
+            "detail": [_validation_error(error) for error in exc.errors()],
+            "body": jsonable_encoder(exc.body),
+        },
     )
+
 
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
@@ -88,11 +104,13 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Interní chyba serveru"},
     )
 
+
 # Health check endpoint pro Docker
 @app.get("/health", tags=["health"])
 async def health_check():
     """Health check endpoint for Docker health monitoring"""
     return {"status": "healthy", "service": "jmlp-backend"}
+
 
 app.include_router(races.router)
 app.include_router(racers.router)
@@ -105,6 +123,7 @@ app.include_router(documents.router)  # Public documents listing
 app.include_router(seo.router)  # robots.txt, sitemap.xml, náhledy odkazů pro boty
 app.include_router(admin_router)  # New modular admin router
 app.include_router(timekeeper_router)  # Timekeeper section
+
 
 # Serve uploaded documents
 @app.get("/uploads/documents/{filename}")
@@ -124,15 +143,9 @@ async def serve_document(filename: str, db: Session = Depends(get_db)):
         file_path = (base / filename).resolve()
         file_path.relative_to(base)
     except (ValueError, OSError):
-        return JSONResponse(
-            status_code=404,
-            content={"detail": "Soubor nebyl nalezen"}
-        )
+        return JSONResponse(status_code=404, content={"detail": "Soubor nebyl nalezen"})
     if not file_path.is_file():
-        return JSONResponse(
-            status_code=404,
-            content={"detail": "Soubor nebyl nalezen"}
-        )
+        return JSONResponse(status_code=404, content={"detail": "Soubor nebyl nalezen"})
 
     # Soubor bez záznamu v databázi je osiřelý zbytek na disku - vydá se pod
     # UUID, protože jiný název o něm nikdo neví.
@@ -147,6 +160,7 @@ async def serve_document(filename: str, db: Session = Depends(get_db)):
         # schválně nekešuje (viz frontend/public/sw.js).
         headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )
+
 
 @app.get("/")
 def root():

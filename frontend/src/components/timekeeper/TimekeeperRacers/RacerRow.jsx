@@ -20,13 +20,23 @@ const RacerRow = memo(function RacerRow({ entry, onEdit }) {
   return (
     <tr data-state={excluded ? 'muted' : undefined}>
       <td data-numeric>{entry.start_number || '—'}</td>
-      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} code={entry.race_number_display} /></td>
+      <td>
+        <BibNumber
+          number={entry.race_number_actual}
+          setColor={entry.set_color}
+          code={entry.race_number_display}
+        />
+      </td>
       <td>
         <span className={styles.racer}>
           <span className={styles.nameRow}>
             <span className={excluded ? styles.excludedName : styles.name}>{name}</span>
             <OfflineBadge entry={entry} />
-            {excluded && <Badge tone="navy" size="sm">vyřazen</Badge>}
+            {excluded && (
+              <Badge tone="navy" size="sm">
+                vyřazen
+              </Badge>
+            )}
           </span>
           <span className={styles.club}>{entry.club_name || 'Bez oddílu'}</span>
         </span>
@@ -34,13 +44,19 @@ const RacerRow = memo(function RacerRow({ entry, onEdit }) {
       <td data-numeric>{entry.racer_year}</td>
       <td>
         <span className={styles.sex}>
-          <span className={styles.sexLetter} aria-hidden="true">{getSexLetter(entry.racer_sex)}</span>
+          <span className={styles.sexLetter} aria-hidden="true">
+            {getSexLetter(entry.racer_sex)}
+          </span>
           {getSexLabel(entry.racer_sex)}
         </span>
       </td>
-      <td className={entry.category_name ? undefined : styles.noCategory}>{entry.category_name || 'Bez kategorie'}</td>
+      <td className={entry.category_name ? undefined : styles.noCategory}>
+        {entry.category_name || 'Bez kategorie'}
+      </td>
       <td data-align="end">
-        <Button size="sm" onClick={() => onEdit(entry)} aria-label={`Upravit ${name}`}>Upravit</Button>
+        <Button size="sm" onClick={() => onEdit(entry)} aria-label={`Upravit ${name}`}>
+          Upravit
+        </Button>
       </td>
     </tr>
   );

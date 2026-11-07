@@ -10,28 +10,33 @@ export function useRaceDetail(raceId) {
   const [race, setRace] = useState(null);
   const [status, setStatus] = useState('loading');
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setStatus('loading');
-    try {
-      const response = await fetch(`/races/${raceId}`);
-      if (response.status === 404) {
-        if (!silent) setStatus('notFound');
-        return;
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) setStatus('loading');
+      try {
+        const response = await fetch(`/races/${raceId}`);
+        if (response.status === 404) {
+          if (!silent) setStatus('notFound');
+          return;
+        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data) {
+          if (!silent) setStatus('notFound');
+          return;
+        }
+        setRace(data);
+        setStatus('ready');
+      } catch {
+        if (!silent) setStatus('error');
       }
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      if (!data) {
-        if (!silent) setStatus('notFound');
-        return;
-      }
-      setRace(data);
-      setStatus('ready');
-    } catch {
-      if (!silent) setStatus('error');
-    }
-  }, [raceId]);
+    },
+    [raceId],
+  );
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return { race, status, reload: load };
 }
@@ -49,9 +54,13 @@ export function useUpcomingRaces(enabled) {
     let cancelled = false;
     fetch('/races/?upcoming=true')
       .then((response) => (response.ok ? response.json() : []))
-      .then((data) => { if (!cancelled) setRaces(Array.isArray(data) ? data : []); })
+      .then((data) => {
+        if (!cancelled) setRaces(Array.isArray(data) ? data : []);
+      })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [enabled]);
 
   return races;
@@ -84,8 +93,12 @@ export function useRaceRegistrations(raceId, { enabled = true, refreshToken = 0 
         setRegistrations(data);
         setStatus('ready');
       })
-      .catch(() => { if (!cancelled) setStatus('error'); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [raceId, enabled, refreshToken, retry]);
 
   return { registrations, status, reload: () => setRetry((count) => count + 1) };

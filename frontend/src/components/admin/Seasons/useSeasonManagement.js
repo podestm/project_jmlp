@@ -32,7 +32,9 @@ export function useSeasonManagement({ confirm }) {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const openCreate = () => {
     setEditing(null);
@@ -70,7 +72,7 @@ export function useSeasonManagement({ confirm }) {
 
   const setCurrentSeason = async (season) => {
     const current = seasons.find((other) => other.is_current);
-    if (!await confirm(setCurrentSeasonConfirm(season, current))) return;
+    if (!(await confirm(setCurrentSeasonConfirm(season, current)))) return;
     try {
       await AdminAPI.post(`/api/admin/seasons/${season.id}/current`);
       setMessage({ type: 'success', text: `Aktuální sezóna je teď ${season.season_label}` });
@@ -83,7 +85,7 @@ export function useSeasonManagement({ confirm }) {
   };
 
   const deleteSeason = async (season) => {
-    if (!await confirm(deleteSeasonConfirm(season))) return;
+    if (!(await confirm(deleteSeasonConfirm(season)))) return;
     try {
       await AdminAPI.delete(`/api/admin/seasons/${season.id}`);
       setMessage({ type: 'success', text: 'Sezóna smazána' });
@@ -93,11 +95,27 @@ export function useSeasonManagement({ confirm }) {
     }
   };
 
-  const toggleDocuments = (season) => setExpandedSeason((id) => (id === season.id ? null : season.id));
+  const toggleDocuments = (season) =>
+    setExpandedSeason((id) => (id === season.id ? null : season.id));
 
   return {
-    seasons, loading, saving, message, setMessage,
-    showForm, editing, formData, setFormData, openCreate, openEdit, closeForm, handleSubmit,
-    setCurrentSeason, deleteSeason, expandedSeason, toggleDocuments, reload: load,
+    seasons,
+    loading,
+    saving,
+    message,
+    setMessage,
+    showForm,
+    editing,
+    formData,
+    setFormData,
+    openCreate,
+    openEdit,
+    closeForm,
+    handleSubmit,
+    setCurrentSeason,
+    deleteSeason,
+    expandedSeason,
+    toggleDocuments,
+    reload: load,
   };
 }

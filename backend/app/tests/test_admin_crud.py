@@ -8,6 +8,7 @@ commituje po částech, takže odpověď 200 sama o sobě neříká, že se data
 Právě tohle odhalilo, že úprava závodníka vracela nové jméno, ale zapisovala
 jen pohlaví.
 """
+
 from pathlib import Path
 
 import pytest
@@ -30,13 +31,15 @@ def klient_bez_vyjimek():
 
 # --- pomocníci pro testovací data ------------------------------------------
 
+
 def _pocet(db, sql: str, **params) -> int:
     return db.execute(text(sql), params).scalar()
 
 
 def _zavodnik(db, name="Jan", surname="Novák", year=2011, sex=1, club_id=None, category_id=None):
-    racer = models.Racer(name=name, surname=surname, year=year, sex=sex,
-                         club_id=club_id, category_id=category_id)
+    racer = models.Racer(
+        name=name, surname=surname, year=year, sex=sex, club_id=club_id, category_id=category_id
+    )
     db.add(racer)
     db.commit()
     db.refresh(racer)
@@ -52,19 +55,32 @@ def _klub(db, name="SK Test", valid=True):
 
 
 def _zavod(db, race_nr="JMLP2025-01", season_id=2025, datum=None, organizer_id=None):
-    race = models.Race(closed=False, registration=True, race_method_id=1,
-                       season_id=season_id, race_nr=race_nr, datum=datum,
-                       organizer_id=organizer_id)
+    race = models.Race(
+        closed=False,
+        registration=True,
+        race_method_id=1,
+        season_id=season_id,
+        race_nr=race_nr,
+        datum=datum,
+        organizer_id=organizer_id,
+    )
     db.add(race)
     db.commit()
     db.refresh(race)
     return race
 
 
-def _kategorie(db, name="Zaci", sex=1, min_year=2010, max_year=2012, active=True, display_name=None):
-    category = models.Category(name=name, sex=sex, min_birth_year=min_year,
-                               max_birth_year=max_year, active=active,
-                               display_name=display_name)
+def _kategorie(
+    db, name="Zaci", sex=1, min_year=2010, max_year=2012, active=True, display_name=None
+):
+    category = models.Category(
+        name=name,
+        sex=sex,
+        min_birth_year=min_year,
+        max_birth_year=max_year,
+        active=active,
+        display_name=display_name,
+    )
     db.add(category)
     db.commit()
     db.refresh(category)
@@ -91,9 +107,12 @@ def _soubor(db, filename="dokument.pdf"):
     _ZALOZENE_SOUBORY.append(cesta)
 
     file_record = models.File(
-        filename=filename, original_filename=filename,
-        file_path=str(cesta), file_size=1024,
-        mime_type="application/pdf", file_type=models.FileTypeEnum.neprirazene,
+        filename=filename,
+        original_filename=filename,
+        file_path=str(cesta),
+        file_size=1024,
+        mime_type="application/pdf",
+        file_type=models.FileTypeEnum.neprirazene,
     )
     db.add(file_record)
     db.commit()
@@ -102,8 +121,13 @@ def _soubor(db, filename="dokument.pdf"):
 
 
 def _sezona(db, year_start=2025, edition=19, name="Jihomoravský pohár", is_current=False):
-    season = models.Season(year_start=year_start, year_end=year_start + 1,
-                           edition=edition, name=name, is_current=is_current)
+    season = models.Season(
+        year_start=year_start,
+        year_end=year_start + 1,
+        edition=edition,
+        name=name,
+        is_current=is_current,
+    )
     db.add(season)
     db.commit()
     db.refresh(season)
@@ -148,8 +172,11 @@ def test_bez_tokenu_je_administrace_nedostupna(client, metoda, url):
 @pytest.mark.parametrize("metoda,url", CHRANENE_ENDPOINTY)
 def test_casomeric_nesmi_do_administrace(client, timekeeper_headers, metoda, url):
     volani = getattr(client, metoda)
-    response = (volani(url, headers=timekeeper_headers) if metoda in ("get", "delete")
-                else volani(url, headers=timekeeper_headers, json={}))
+    response = (
+        volani(url, headers=timekeeper_headers)
+        if metoda in ("get", "delete")
+        else volani(url, headers=timekeeper_headers, json={})
+    )
     assert response.status_code == 403
     assert response.json()["detail"] == "Nemáte oprávnění k této akci"
 
@@ -166,17 +193,24 @@ def test_casomeric_neulozi_sezonu_ani_nesmaze_prispevek(client, timekeeper_heade
     db.commit()
     db.refresh(post)
 
-    assert client.post("/api/admin/seasons", headers=timekeeper_headers,
-                       json={"year_start": 2025}).status_code == 403
-    assert client.delete(f"/api/admin/posts/{post.id}",
-                         headers=timekeeper_headers).status_code == 403
+    assert (
+        client.post(
+            "/api/admin/seasons", headers=timekeeper_headers, json={"year_start": 2025}
+        ).status_code
+        == 403
+    )
+    assert (
+        client.delete(f"/api/admin/posts/{post.id}", headers=timekeeper_headers).status_code == 403
+    )
 
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_season") == 0
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_posts") == 1
 
 
 def test_neaktivni_ucet_se_nedostane_dovnitr(client, admin_user, admin_headers, db):
-    db.execute(text("UPDATE fuj_jmlp_admin SET is_active = 0 WHERE id = :id"), {"id": admin_user.id})
+    db.execute(
+        text("UPDATE fuj_jmlp_admin SET is_active = 0 WHERE id = :id"), {"id": admin_user.id}
+    )
     db.commit()
 
     response = client.get("/api/admin/races", headers=admin_headers)
@@ -187,14 +221,19 @@ def test_neaktivni_ucet_se_nedostane_dovnitr(client, admin_user, admin_headers, 
 # Závody (races.py)
 # ===========================================================================
 
+
 def test_zavod_se_zalozi_i_s_novym_arealem_a_poradatelem(client, admin_headers, db):
-    response = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01",
-        "datum": "2025-12-13",
-        "season_id": 2025,
-        "areal_name": "  Olesnice  ",
-        "organizer_name": "SK Novy",
-    })
+    response = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "datum": "2025-12-13",
+            "season_id": 2025,
+            "areal_name": "  Olesnice  ",
+            "organizer_name": "SK Novy",
+        },
+    )
 
     assert response.status_code == 200
     zavod = response.json()
@@ -213,21 +252,39 @@ def test_zavod_se_zalozi_i_s_novym_arealem_a_poradatelem(client, admin_headers, 
 
 
 def test_druhy_zavod_znovu_pouzije_stejny_areal(client, admin_headers, db):
-    prvni = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "areal_name": "Olesnice",
-    }).json()
-    druhy = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-02", "season_id": 2025, "areal_name": "Olesnice",
-    }).json()
+    prvni = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "areal_name": "Olesnice",
+        },
+    ).json()
+    druhy = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-02",
+            "season_id": 2025,
+            "areal_name": "Olesnice",
+        },
+    ).json()
 
     assert prvni["areal_id"] == druhy["areal_id"]
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_areal") == 1
 
 
 def test_zavod_s_neplatnym_datem_se_neulozi(client, admin_headers, db):
-    response = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "datum": "13.12.2025", "season_id": 2025,
-    })
+    response = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "datum": "13.12.2025",
+            "season_id": 2025,
+        },
+    )
 
     assert response.status_code == 400
     assert "13.12.2025" in response.json()["detail"]
@@ -236,9 +293,14 @@ def test_zavod_s_neplatnym_datem_se_neulozi(client, admin_headers, db):
 
 def test_zavod_bez_sezony_skonci_interni_chybou(klient_bez_vyjimek, admin_headers, db):
     """CHYBA: schéma slibuje dopočet sezóny, router ho nedělá - viz found_bugs."""
-    response = klient_bez_vyjimek.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "datum": "2025-12-13",
-    })
+    response = klient_bez_vyjimek.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "datum": "2025-12-13",
+        },
+    )
 
     assert response.status_code == 500
     assert response.json()["detail"] == "Interní chyba serveru"
@@ -247,9 +309,15 @@ def test_zavod_bez_sezony_skonci_interni_chybou(klient_bez_vyjimek, admin_header
 
 def test_zavod_s_neexistujicim_souborem_vrati_404_ale_presto_vznikne(client, admin_headers, db):
     """CHYBA: závod se commitne dřív, než se ověří příloha - viz found_bugs."""
-    response = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "proposition_file_id": 4242,
-    })
+    response = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "proposition_file_id": 4242,
+        },
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Soubor nebyl nalezen"
@@ -259,17 +327,24 @@ def test_zavod_s_neexistujicim_souborem_vrati_404_ale_presto_vznikne(client, adm
 def test_pripojeni_propozic_prekategorizuje_soubor_v_knihovne(client, admin_headers, db):
     soubor = _soubor(db, "propozice.pdf")
 
-    response = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "proposition_file_id": soubor.id,
-    })
+    response = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "proposition_file_id": soubor.id,
+        },
+    )
 
     assert response.status_code == 200
     assert response.json()["proposition_file_id"] == soubor.id
     assert response.json()["proposition_file_path"] == "uploads/documents/propozice.pdf"
     assert db.execute(text("SELECT file_type FROM fuj_jmlp_files")).scalar() == "propozice"
-    assert db.execute(text(
-        "SELECT owner_type, role FROM fuj_jmlp_attachment"
-    )).first() == ("race", "propozice")
+    assert db.execute(text("SELECT owner_type, role FROM fuj_jmlp_attachment")).first() == (
+        "race",
+        "propozice",
+    )
 
 
 def test_seznam_zavodu_radi_od_nejnovejsiho_a_pocita_registrace(client, admin_headers, db):
@@ -296,20 +371,25 @@ def test_detail_neexistujiciho_zavodu_konci_404(client, admin_headers):
 def test_uprava_zavodu_zmeni_jen_zaslana_pole(client, admin_headers, db):
     zavod = _zavod(db, race_nr="JMLP2025-01", datum="2025-12-13")
 
-    response = client.put(f"/api/admin/races/{zavod.id}", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01b", "closed": True,
-    })
+    response = client.put(
+        f"/api/admin/races/{zavod.id}",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01b",
+            "closed": True,
+        },
+    )
 
     assert response.status_code == 200
     telo = response.json()
     assert telo["race_nr"] == "JMLP2025-01b"
     assert telo["closed"] is True
-    assert telo["datum"] == "2025-12-13"        # nezaslané pole zůstává
+    assert telo["datum"] == "2025-12-13"  # nezaslané pole zůstává
     assert telo["registration"] is True
 
-    ulozeno = db.execute(text(
-        "SELECT race_nr, closed+0 FROM fuj_jmlp_race WHERE id = :id"
-    ), {"id": zavod.id}).first()
+    ulozeno = db.execute(
+        text("SELECT race_nr, closed+0 FROM fuj_jmlp_race WHERE id = :id"), {"id": zavod.id}
+    ).first()
     assert ulozeno == ("JMLP2025-01b", 1)
 
 
@@ -321,12 +401,19 @@ def test_uprava_neexistujiciho_zavodu_konci_404(client, admin_headers):
 
 def test_prazdny_nazev_arealu_areal_neodpoji(client, admin_headers, db):
     """Prázdný název je "nic neměň", ne "odpoj areál" - odpojuje se přes areal_id."""
-    zavod = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "areal_name": "Olesnice",
-    }).json()
+    zavod = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "areal_name": "Olesnice",
+        },
+    ).json()
 
-    response = client.put(f"/api/admin/races/{zavod['id']}", headers=admin_headers,
-                          json={"areal_name": ""})
+    response = client.put(
+        f"/api/admin/races/{zavod['id']}", headers=admin_headers, json={"areal_name": ""}
+    )
 
     assert response.status_code == 200
     assert response.json()["areal_id"] == zavod["areal_id"]
@@ -335,12 +422,19 @@ def test_prazdny_nazev_arealu_areal_neodpoji(client, admin_headers, db):
 
 def test_odpojeni_propozic_ponecha_soubor_v_knihovne(client, admin_headers, db):
     soubor = _soubor(db, "propozice.pdf")
-    zavod = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "proposition_file_id": soubor.id,
-    }).json()
+    zavod = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "proposition_file_id": soubor.id,
+        },
+    ).json()
 
-    response = client.put(f"/api/admin/races/{zavod['id']}", headers=admin_headers,
-                          json={"proposition_file_id": None})
+    response = client.put(
+        f"/api/admin/races/{zavod['id']}", headers=admin_headers, json={"proposition_file_id": None}
+    )
 
     assert response.status_code == 200
     assert response.json()["proposition_file_id"] is None
@@ -394,11 +488,19 @@ def test_smazani_zavodu_bez_potomku_nehlasi_zadne_pocty(client, admin_headers, d
 
 def test_smazani_zavodu_ponecha_soubory_v_knihovne(client, admin_headers, db):
     soubor = _soubor(db, "vysledky.pdf")
-    zavod = client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "results_file_id": soubor.id,
-    }).json()
+    zavod = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "results_file_id": soubor.id,
+        },
+    ).json()
 
-    assert client.delete(f"/api/admin/races/{zavod['id']}", headers=admin_headers).status_code == 200
+    assert (
+        client.delete(f"/api/admin/races/{zavod['id']}", headers=admin_headers).status_code == 200
+    )
 
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_attachment") == 0
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_files") == 1
@@ -411,14 +513,22 @@ def test_smazani_neexistujiciho_zavodu_konci_404(client, admin_headers):
 
 
 def test_naseptavac_arealu_ignoruje_prilis_kratky_dotaz(client, admin_headers, db):
-    client.post("/api/admin/races", headers=admin_headers, json={
-        "race_nr": "JMLP2025-01", "season_id": 2025, "areal_name": "Olesnice",
-    })
+    client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "race_nr": "JMLP2025-01",
+            "season_id": 2025,
+            "areal_name": "Olesnice",
+        },
+    )
 
-    assert client.get("/api/admin/races/autocomplete/areals?q=O",
-                      headers=admin_headers).json() == []
-    nalezene = client.get("/api/admin/races/autocomplete/areals?q=Ole",
-                          headers=admin_headers).json()
+    assert (
+        client.get("/api/admin/races/autocomplete/areals?q=O", headers=admin_headers).json() == []
+    )
+    nalezene = client.get(
+        "/api/admin/races/autocomplete/areals?q=Ole", headers=admin_headers
+    ).json()
     assert [a["name"] for a in nalezene] == ["Olesnice"]
 
 
@@ -426,8 +536,9 @@ def test_naseptavac_poradatelu_hleda_v_klubech(client, admin_headers, db):
     _klub(db, name="SK Vysocina")
     _klub(db, name="TJ Jinde")
 
-    nalezene = client.get("/api/admin/races/autocomplete/organizers?q=Vys",
-                          headers=admin_headers).json()
+    nalezene = client.get(
+        "/api/admin/races/autocomplete/organizers?q=Vys", headers=admin_headers
+    ).json()
     assert [c["name"] for c in nalezene] == ["SK Vysocina"]
 
 
@@ -435,27 +546,40 @@ def test_naseptavac_poradatelu_hleda_v_klubech(client, admin_headers, db):
 # Závodníci (racers.py)
 # ===========================================================================
 
+
 def test_zalozeni_zavodnika_ulozi_pole_z_formulare(client, admin_headers, db):
     """Schéma používá jiné názvy než model, router je musí přeložit.
 
     Dřív to nedělal a zakládání závodníka končilo chybou 500.
     """
-    response = client.post("/api/admin/racers", headers=admin_headers, json={
-        "firstName": "Jan", "lastName": "Novák", "sex": 1, "birthYear": 2011,
-    })
+    response = client.post(
+        "/api/admin/racers",
+        headers=admin_headers,
+        json={
+            "firstName": "Jan",
+            "lastName": "Novák",
+            "sex": 1,
+            "birthYear": 2011,
+        },
+    )
 
     assert response.status_code in (200, 201), response.text
-    ulozeno = db.execute(text(
-        "SELECT name, surname, year, sex FROM fuj_jmlp_racer"
-    ), {}).first()
+    ulozeno = db.execute(text("SELECT name, surname, year, sex FROM fuj_jmlp_racer"), {}).first()
     assert ulozeno == ("Jan", "Novák", 2011, 1)
 
 
 def test_zavodnik_s_hodnotou_vzorce_konci_422(klient_bez_vyjimek, admin_headers):
     """Dřív 500 - validační chyba Pydantiku se nedala serializovat."""
-    response = klient_bez_vyjimek.post("/api/admin/racers", headers=admin_headers, json={
-        "firstName": "=SUM(A1)", "lastName": "Novák", "sex": 1, "birthYear": 2011,
-    })
+    response = klient_bez_vyjimek.post(
+        "/api/admin/racers",
+        headers=admin_headers,
+        json={
+            "firstName": "=SUM(A1)",
+            "lastName": "Novák",
+            "sex": 1,
+            "birthYear": 2011,
+        },
+    )
 
     assert response.status_code == 422
 
@@ -464,47 +588,81 @@ def test_uprava_zavodnika_ulozi_vsechna_pole(client, admin_headers, db):
     """Dřív se zapsalo jen pohlaví, ale odpověď tvrdila, že se uložilo všechno."""
     zavodnik = _zavodnik(db, name="Jan", surname="Novák", year=2011, sex=1)
 
-    response = client.put(f"/api/admin/racers/{zavodnik.id}", headers=admin_headers, json={
-        "firstName": "Petr", "lastName": "Svoboda", "sex": 2, "birthYear": 2012, "idSlcr": "ABC",
-    })
+    response = client.put(
+        f"/api/admin/racers/{zavodnik.id}",
+        headers=admin_headers,
+        json={
+            "firstName": "Petr",
+            "lastName": "Svoboda",
+            "sex": 2,
+            "birthYear": 2012,
+            "idSlcr": "ABC",
+        },
+    )
 
     assert response.status_code == 200
-    ulozeno = db.execute(text(
-        "SELECT name, surname, year, sex, slcr_id FROM fuj_jmlp_racer WHERE id = :id"
-    ), {"id": zavodnik.id}).first()
+    ulozeno = db.execute(
+        text("SELECT name, surname, year, sex, slcr_id FROM fuj_jmlp_racer WHERE id = :id"),
+        {"id": zavodnik.id},
+    ).first()
     assert ulozeno == ("Petr", "Svoboda", 2012, 2, "ABC")
 
 
 def test_uprava_zavodnika_s_neexistujicim_klubem_je_odmitnuta(client, admin_headers, db):
     zavodnik = _zavodnik(db)
 
-    response = client.put(f"/api/admin/racers/{zavodnik.id}", headers=admin_headers, json={
-        "firstName": "Jan", "lastName": "Novák", "sex": 1, "birthYear": 2011, "club_id": 777,
-    })
+    response = client.put(
+        f"/api/admin/racers/{zavodnik.id}",
+        headers=admin_headers,
+        json={
+            "firstName": "Jan",
+            "lastName": "Novák",
+            "sex": 1,
+            "birthYear": 2011,
+            "club_id": 777,
+        },
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Klub neexistuje"
-    assert _pocet(db, "SELECT club_id IS NULL FROM fuj_jmlp_racer WHERE id = :id",
-                  id=zavodnik.id) == 1
+    assert (
+        _pocet(db, "SELECT club_id IS NULL FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == 1
+    )
 
 
 def test_uprava_zavodnika_priradi_existujici_klub(client, admin_headers, db):
     klub = _klub(db, name="SK Test")
     zavodnik = _zavodnik(db)
 
-    response = client.put(f"/api/admin/racers/{zavodnik.id}", headers=admin_headers, json={
-        "firstName": "Jan", "lastName": "Novák", "sex": 1, "birthYear": 2011, "club_id": klub.id,
-    })
+    response = client.put(
+        f"/api/admin/racers/{zavodnik.id}",
+        headers=admin_headers,
+        json={
+            "firstName": "Jan",
+            "lastName": "Novák",
+            "sex": 1,
+            "birthYear": 2011,
+            "club_id": klub.id,
+        },
+    )
 
     assert response.status_code == 200
-    assert _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id",
-                  id=zavodnik.id) == klub.id
+    assert (
+        _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == klub.id
+    )
 
 
 def test_uprava_neexistujiciho_zavodnika_konci_404(client, admin_headers):
-    response = client.put("/api/admin/racers/98765", headers=admin_headers, json={
-        "firstName": "Jan", "lastName": "Novák", "sex": 1, "birthYear": 2011,
-    })
+    response = client.put(
+        "/api/admin/racers/98765",
+        headers=admin_headers,
+        json={
+            "firstName": "Jan",
+            "lastName": "Novák",
+            "sex": 1,
+            "birthYear": 2011,
+        },
+    )
     assert response.status_code == 404
     assert response.json()["detail"] == "Závodník nenalezen"
 
@@ -539,10 +697,15 @@ def test_smazani_zavodnika_nechava_osirely_radek_startovni_listiny(client, admin
     db.add(models.StartListEntry(race_id=zavod.id, racer_id=zavodnik.id))
     db.commit()
 
-    assert client.delete(f"/api/admin/racers/{zavodnik.id}",
-                         headers=admin_headers).status_code == 200
-    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_race_start_list WHERE racer_id = :id",
-                  id=zavodnik.id) == 1
+    assert (
+        client.delete(f"/api/admin/racers/{zavodnik.id}", headers=admin_headers).status_code == 200
+    )
+    assert (
+        _pocet(
+            db, "SELECT COUNT(*) FROM fuj_jmlp_race_start_list WHERE racer_id = :id", id=zavodnik.id
+        )
+        == 1
+    )
 
 
 def test_smazani_neexistujiciho_zavodnika_konci_404(client, admin_headers):
@@ -571,6 +734,7 @@ def test_seznam_zavodniku_doplni_klub_a_kategorii(client, admin_headers, db):
 # ===========================================================================
 # Kluby (clubs.py)
 # ===========================================================================
+
 
 def test_seznam_klubu_nabizi_jen_platne(client, admin_headers, db):
     _klub(db, name="SK Platny", valid=True)
@@ -637,8 +801,9 @@ def test_smazani_klubu_prevede_zavodniky_i_porady(client, admin_headers, db):
     cizi = _zavodnik(db, name="Petr", surname="Cizi", club_id=cilovy.id)
     zavod = _zavod(db, race_nr="JMLP2025-07", organizer_id=ruseny.id)
 
-    response = client.delete(f"/api/admin/clubs/{ruseny.id}",
-                             params={"reassign_to": cilovy.id}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/clubs/{ruseny.id}", params={"reassign_to": cilovy.id}, headers=admin_headers
+    )
 
     assert response.status_code == 200
     telo = response.json()
@@ -666,8 +831,15 @@ def test_smazani_klubu_odpoji_logo_ale_soubor_nechava(client, admin_headers, db)
 
     assert response.status_code == 200
     assert response.json()["detached_logo"] is True
-    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_attachment WHERE owner_type = 'club'"
-                      " AND owner_id = :id", id=klub.id) == 0
+    assert (
+        _pocet(
+            db,
+            "SELECT COUNT(*) FROM fuj_jmlp_attachment WHERE owner_type = 'club'"
+            " AND owner_id = :id",
+            id=klub.id,
+        )
+        == 0
+    )
     # Soubor je pořád v knihovně - mazání souborů je vědomá akce jinde.
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_files WHERE id = :id", id=logo.id) == 1
 
@@ -676,8 +848,9 @@ def test_klub_nelze_prevest_sam_na_sebe(client, admin_headers, db):
     klub = _klub(db, name="SK Sam")
     _zavodnik(db, club_id=klub.id)
 
-    response = client.delete(f"/api/admin/clubs/{klub.id}",
-                             params={"reassign_to": klub.id}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/clubs/{klub.id}", params={"reassign_to": klub.id}, headers=admin_headers
+    )
 
     assert response.status_code == 400
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 1
@@ -687,8 +860,9 @@ def test_prevod_na_neexistujici_klub_nic_nezmeni(client, admin_headers, db):
     klub = _klub(db, name="SK Zdrojovy")
     zavodnik = _zavodnik(db, club_id=klub.id)
 
-    response = client.delete(f"/api/admin/clubs/{klub.id}",
-                             params={"reassign_to": 999999}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/clubs/{klub.id}", params={"reassign_to": 999999}, headers=admin_headers
+    )
 
     assert response.status_code == 404
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club WHERE id = :id", id=klub.id) == 1
@@ -703,8 +877,9 @@ def test_smazani_neexistujiciho_klubu_vraci_404(client, admin_headers):
 def _zadost_o_klub(db, poznamka="Jsem z SK Novy"):
     zavod = _zavod(db, race_nr="JMLP2025-01")
     zavodnik = _zavodnik(db, name="Jan", surname="Novak")
-    registrace = models.Registration(race_id=zavod.id, racer_id=zavodnik.id,
-                                     club_request_note=poznamka)
+    registrace = models.Registration(
+        race_id=zavod.id, racer_id=zavodnik.id, club_request_note=poznamka
+    )
     db.add(registrace)
     db.commit()
     db.refresh(registrace)
@@ -714,8 +889,9 @@ def _zadost_o_klub(db, poznamka="Jsem z SK Novy"):
 def test_nevyrizena_zadost_o_klub_je_videt_i_v_pocitadle(client, admin_headers, db):
     registrace, _ = _zadost_o_klub(db)
 
-    assert client.get("/api/admin/clubs/requests/count",
-                      headers=admin_headers).json() == {"count": 1}
+    assert client.get("/api/admin/clubs/requests/count", headers=admin_headers).json() == {
+        "count": 1
+    }
     radky = client.get("/api/admin/clubs/requests", headers=admin_headers).json()
     assert len(radky) == 1
     assert radky[0]["registration_id"] == registrace.id
@@ -728,56 +904,82 @@ def test_nevyrizena_zadost_o_klub_je_videt_i_v_pocitadle(client, admin_headers, 
 def test_vyrizeni_zadosti_zalozi_novy_klub_a_priradi_ho(client, admin_headers, db):
     registrace, zavodnik = _zadost_o_klub(db)
 
-    response = client.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                           headers=admin_headers, json={"new_club_name": "  SK Novy  "})
+    response = client.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve",
+        headers=admin_headers,
+        json={"new_club_name": "  SK Novy  "},
+    )
 
     assert response.status_code == 200
     assert response.json()["ok"] is True
-    assert response.json()["club_name"] == "SK Novy"   # název se ořeže
+    assert response.json()["club_name"] == "SK Novy"  # název se ořeže
 
     klub = db.execute(text("SELECT id, name, valid+0 FROM fuj_jmlp_club")).first()
     assert klub[1:] == ("SK Novy", 1)
-    assert _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == klub[0]
+    assert (
+        _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == klub[0]
+    )
     # Vyřízená žádost zmizí z pracovní fronty.
-    assert client.get("/api/admin/clubs/requests/count",
-                      headers=admin_headers).json() == {"count": 0}
+    assert client.get("/api/admin/clubs/requests/count", headers=admin_headers).json() == {
+        "count": 0
+    }
 
 
 def test_vyrizeni_zadosti_existujicim_klubem_nezaklada_dalsi(client, admin_headers, db):
     klub = _klub(db, name="SK Stavajici")
     registrace, zavodnik = _zadost_o_klub(db)
 
-    response = client.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                           headers=admin_headers, json={"club_id": klub.id})
+    response = client.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve",
+        headers=admin_headers,
+        json={"club_id": klub.id},
+    )
 
     assert response.status_code == 200
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_club") == 1
-    assert _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id",
-                  id=zavodnik.id) == klub.id
+    assert (
+        _pocet(db, "SELECT club_id FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == klub.id
+    )
 
 
 def test_zadost_nelze_vyridit_neplatnym_klubem(client, admin_headers, db):
     klub = _klub(db, name="SK Zruseny", valid=False)
     registrace, zavodnik = _zadost_o_klub(db)
 
-    response = client.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                           headers=admin_headers, json={"club_id": klub.id})
+    response = client.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve",
+        headers=admin_headers,
+        json={"club_id": klub.id},
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Klub nenalezen"
-    assert _pocet(db, "SELECT club_id IS NULL FROM fuj_jmlp_racer WHERE id = :id",
-                  id=zavodnik.id) == 1
-    assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_race_registration "
-                      "WHERE club_request_note IS NOT NULL") == 1
+    assert (
+        _pocet(db, "SELECT club_id IS NULL FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id) == 1
+    )
+    assert (
+        _pocet(
+            db,
+            "SELECT COUNT(*) FROM fuj_jmlp_race_registration "
+            "WHERE club_request_note IS NOT NULL",
+        )
+        == 1
+    )
 
 
 def test_jiz_vyrizenou_zadost_nelze_vyridit_znovu(client, admin_headers, db):
     registrace, _ = _zadost_o_klub(db)
-    client.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                headers=admin_headers, json={"new_club_name": "SK Novy"})
+    client.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve",
+        headers=admin_headers,
+        json={"new_club_name": "SK Novy"},
+    )
 
-    response = client.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                           headers=admin_headers, json={"new_club_name": "SK Jiny"})
+    response = client.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve",
+        headers=admin_headers,
+        json={"new_club_name": "SK Jiny"},
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Žádost nenalezena nebo již vyřízena"
@@ -788,8 +990,9 @@ def test_vyrizeni_zadosti_bez_klubu_konci_422(klient_bez_vyjimek, admin_headers,
     """Dřív 500 - chybová odpověď validace se nedala serializovat."""
     registrace, _ = _zadost_o_klub(db)
 
-    response = klient_bez_vyjimek.post(f"/api/admin/clubs/requests/{registrace.id}/resolve",
-                                       headers=admin_headers, json={})
+    response = klient_bez_vyjimek.post(
+        f"/api/admin/clubs/requests/{registrace.id}/resolve", headers=admin_headers, json={}
+    )
 
     assert response.status_code == 422
 
@@ -798,11 +1001,19 @@ def test_vyrizeni_zadosti_bez_klubu_konci_422(klient_bez_vyjimek, admin_headers,
 # Kategorie (categories.py)
 # ===========================================================================
 
+
 def test_kategorie_se_zalozi_a_je_v_seznamu(client, admin_headers, db):
-    response = client.post("/api/admin/categories", headers=admin_headers, json={
-        "name": "Mysaci", "display_name": "Myšáci dívky",
-        "min_birth_year": 2015, "max_birth_year": 2017, "sex": 2,
-    })
+    response = client.post(
+        "/api/admin/categories",
+        headers=admin_headers,
+        json={
+            "name": "Mysaci",
+            "display_name": "Myšáci dívky",
+            "min_birth_year": 2015,
+            "max_birth_year": 2017,
+            "sex": 2,
+        },
+    )
 
     assert response.status_code == 200
     kategorie = response.json()
@@ -830,20 +1041,33 @@ def test_kategorie_se_stejnym_nazvem_a_pohlavim_se_neulozi(client, admin_headers
 
 
 def test_stejny_nazev_pro_jine_pohlavi_projde(client, admin_headers, db):
-    client.post("/api/admin/categories", headers=admin_headers, json={
-        "name": "Mysaci", "min_birth_year": 2015, "max_birth_year": 2017, "sex": 2})
+    client.post(
+        "/api/admin/categories",
+        headers=admin_headers,
+        json={"name": "Mysaci", "min_birth_year": 2015, "max_birth_year": 2017, "sex": 2},
+    )
 
-    response = client.post("/api/admin/categories", headers=admin_headers, json={
-        "name": "Mysaci", "min_birth_year": 2015, "max_birth_year": 2017, "sex": 1})
+    response = client.post(
+        "/api/admin/categories",
+        headers=admin_headers,
+        json={"name": "Mysaci", "min_birth_year": 2015, "max_birth_year": 2017, "sex": 1},
+    )
 
     assert response.status_code == 200
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_category") == 2
 
 
 def test_kategorie_s_obracenym_rozsahem_rocniku_se_neulozi(client, admin_headers, db):
-    response = client.post("/api/admin/categories", headers=admin_headers, json={
-        "name": "Obraceni", "min_birth_year": 2018, "max_birth_year": 2010, "sex": 0,
-    })
+    response = client.post(
+        "/api/admin/categories",
+        headers=admin_headers,
+        json={
+            "name": "Obraceni",
+            "min_birth_year": 2018,
+            "max_birth_year": 2010,
+            "sex": 0,
+        },
+    )
 
     assert response.status_code == 400
     assert "menší nebo roven" in response.json()["detail"]
@@ -852,9 +1076,16 @@ def test_kategorie_s_obracenym_rozsahem_rocniku_se_neulozi(client, admin_headers
 
 @pytest.mark.parametrize("pohlavi", [3, -1])
 def test_kategorie_s_neznamym_pohlavim_se_neulozi(client, admin_headers, db, pohlavi):
-    response = client.post("/api/admin/categories", headers=admin_headers, json={
-        "name": "Divne", "min_birth_year": 2010, "max_birth_year": 2018, "sex": pohlavi,
-    })
+    response = client.post(
+        "/api/admin/categories",
+        headers=admin_headers,
+        json={
+            "name": "Divne",
+            "min_birth_year": 2010,
+            "max_birth_year": 2018,
+            "sex": pohlavi,
+        },
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Pohlaví musí být 0 (mix), 1 (muži) nebo 2 (ženy)"
@@ -864,35 +1095,43 @@ def test_kategorie_s_neznamym_pohlavim_se_neulozi(client, admin_headers, db, poh
 def test_uprava_kategorie_ulozi_zaslana_pole(client, admin_headers, db):
     kategorie = _kategorie(db, name="Zaci", sex=1, min_year=2010, max_year=2012)
 
-    response = client.put(f"/api/admin/categories/{kategorie.id}", headers=admin_headers,
-                          json={"max_birth_year": 2013, "active": False})
+    response = client.put(
+        f"/api/admin/categories/{kategorie.id}",
+        headers=admin_headers,
+        json={"max_birth_year": 2013, "active": False},
+    )
 
     assert response.status_code == 200
     assert response.json()["max_birth_year"] == 2013
     assert response.json()["active"] is False
     assert response.json()["min_birth_year"] == 2010
-    assert _pocet(db, "SELECT active+0 FROM fuj_jmlp_category WHERE id = :id",
-                  id=kategorie.id) == 0
+    assert _pocet(db, "SELECT active+0 FROM fuj_jmlp_category WHERE id = :id", id=kategorie.id) == 0
 
 
 def test_uprava_kategorie_porovna_rozsah_i_s_ulozenou_hodnotou(client, admin_headers, db):
     kategorie = _kategorie(db, min_year=2010, max_year=2012)
 
-    response = client.put(f"/api/admin/categories/{kategorie.id}", headers=admin_headers,
-                          json={"min_birth_year": 2020})
+    response = client.put(
+        f"/api/admin/categories/{kategorie.id}",
+        headers=admin_headers,
+        json={"min_birth_year": 2020},
+    )
 
     assert response.status_code == 400
     assert "menší nebo roven" in response.json()["detail"]
-    assert _pocet(db, "SELECT min_birth_year FROM fuj_jmlp_category WHERE id = :id",
-                  id=kategorie.id) == 2010
+    assert (
+        _pocet(db, "SELECT min_birth_year FROM fuj_jmlp_category WHERE id = :id", id=kategorie.id)
+        == 2010
+    )
 
 
 def test_uprava_kategorie_na_uz_obsazenou_kombinaci_je_odmitnuta(client, admin_headers, db):
     _kategorie(db, name="Zaci", sex=1)
     druha = _kategorie(db, name="Dorost", sex=1, min_year=2005, max_year=2009)
 
-    response = client.put(f"/api/admin/categories/{druha.id}", headers=admin_headers,
-                          json={"name": "Zaci"})
+    response = client.put(
+        f"/api/admin/categories/{druha.id}", headers=admin_headers, json={"name": "Zaci"}
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Kategorie s tímto názvem a pohlavím již existuje"
@@ -900,8 +1139,7 @@ def test_uprava_kategorie_na_uz_obsazenou_kombinaci_je_odmitnuta(client, admin_h
 
 
 def test_uprava_neexistujici_kategorie_konci_404(client, admin_headers):
-    response = client.put("/api/admin/categories/98765", headers=admin_headers,
-                          json={"name": "X"})
+    response = client.put("/api/admin/categories/98765", headers=admin_headers, json={"name": "X"})
     assert response.status_code == 404
     assert response.json()["detail"] == "Kategorie nenalezena"
 
@@ -919,8 +1157,10 @@ def test_kategorie_se_smaze(client, admin_headers, db):
     assert response.status_code == 200
     assert response.json()["message"] == "Kategorie úspěšně smazána"
     assert _pocet(db, "SELECT COUNT(*) FROM fuj_jmlp_category") == 0
-    assert client.delete(f"/api/admin/categories/{kategorie.id}",
-                         headers=admin_headers).status_code == 404
+    assert (
+        client.delete(f"/api/admin/categories/{kategorie.id}", headers=admin_headers).status_code
+        == 404
+    )
 
 
 def test_smazani_kategorie_nechava_zavodnikum_neplatne_id(client, admin_headers, db):
@@ -928,10 +1168,14 @@ def test_smazani_kategorie_nechava_zavodnikum_neplatne_id(client, admin_headers,
     kategorie = _kategorie(db)
     zavodnik = _zavodnik(db, category_id=kategorie.id)
 
-    assert client.delete(f"/api/admin/categories/{kategorie.id}",
-                         headers=admin_headers).status_code == 200
-    assert _pocet(db, "SELECT category_id FROM fuj_jmlp_racer WHERE id = :id",
-                  id=zavodnik.id) == kategorie.id
+    assert (
+        client.delete(f"/api/admin/categories/{kategorie.id}", headers=admin_headers).status_code
+        == 200
+    )
+    assert (
+        _pocet(db, "SELECT category_id FROM fuj_jmlp_racer WHERE id = :id", id=zavodnik.id)
+        == kategorie.id
+    )
 
 
 def test_prepocet_kategorii_priradi_zavodnikum_kategorii_dle_rocniku(client, admin_headers, db):
@@ -991,12 +1235,19 @@ def test_kontrola_pokryti_najde_mezeru_i_prekryv(client, admin_headers, db):
 def test_kontrola_pokryti_pojmenovava_kategorie_nazvem_z_adminu(client, admin_headers, db):
     """Kód ("U12 Předžactvo") je jen doplňková informace - v hláškách i v seznamu
     neaktivních kategorií patří oficiální název nastavený v adminu."""
-    _kategorie(db, name="U12 Predzactvo", sex=2, min_year=2014, max_year=2015,
-               display_name="Předžačky")
-    _kategorie(db, name="OPEN", sex=0, min_year=2014, max_year=2015,
-               display_name="OPEN")
-    _kategorie(db, name="U8 Mysaci", sex=2, min_year=2018, max_year=2019,
-               display_name="Myšáci dívky", active=False)
+    _kategorie(
+        db, name="U12 Predzactvo", sex=2, min_year=2014, max_year=2015, display_name="Předžačky"
+    )
+    _kategorie(db, name="OPEN", sex=0, min_year=2014, max_year=2015, display_name="OPEN")
+    _kategorie(
+        db,
+        name="U8 Mysaci",
+        sex=2,
+        min_year=2018,
+        max_year=2019,
+        display_name="Myšáci dívky",
+        active=False,
+    )
 
     vysledek = client.get("/api/admin/categories/check/coverage", headers=admin_headers).json()
 
@@ -1016,13 +1267,21 @@ def test_kontrola_pokryti_pojmenovava_kategorie_nazvem_z_adminu(client, admin_he
 # Příspěvky (posts.py)
 # ===========================================================================
 
+
 def test_prispevek_se_zalozi_i_s_obrazkem(client, admin_headers, db):
     obrazek = _soubor(db, "foto.jpg")
 
-    response = client.post("/api/admin/posts", headers=admin_headers, json={
-        "title": "Pozvánka", "content": "Přijďte", "image_file_id": obrazek.id,
-        "image_position": "left", "published": False,
-    })
+    response = client.post(
+        "/api/admin/posts",
+        headers=admin_headers,
+        json={
+            "title": "Pozvánka",
+            "content": "Přijďte",
+            "image_file_id": obrazek.id,
+            "image_position": "left",
+            "published": False,
+        },
+    )
 
     assert response.status_code == 200
     prispevek = response.json()
@@ -1030,9 +1289,9 @@ def test_prispevek_se_zalozi_i_s_obrazkem(client, admin_headers, db):
     assert prispevek["image_file_id"] == obrazek.id
     assert prispevek["image_position"] == "left"
     assert prispevek["published"] is False
-    assert db.execute(text(
-        "SELECT owner_type, owner_id, role FROM fuj_jmlp_attachment"
-    )).first() == ("post", prispevek["id"], "image")
+    assert db.execute(
+        text("SELECT owner_type, owner_id, role FROM fuj_jmlp_attachment")
+    ).first() == ("post", prispevek["id"], "image")
 
 
 def test_prispevek_bez_nazvu_se_neulozi(client, admin_headers, db):
@@ -1045,9 +1304,15 @@ def test_prispevek_bez_nazvu_se_neulozi(client, admin_headers, db):
 
 def test_prispevek_s_neexistujicim_souborem_vrati_404_ale_presto_vznikne(client, admin_headers, db):
     """CHYBA: příspěvek se commitne dřív, než se ověří příloha - viz found_bugs."""
-    response = client.post("/api/admin/posts", headers=admin_headers, json={
-        "title": "Pozvánka", "content": "Přijďte", "image_file_id": 4242,
-    })
+    response = client.post(
+        "/api/admin/posts",
+        headers=admin_headers,
+        json={
+            "title": "Pozvánka",
+            "content": "Přijďte",
+            "image_file_id": 4242,
+        },
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Soubor nebyl nalezen"
@@ -1056,12 +1321,21 @@ def test_prispevek_s_neexistujicim_souborem_vrati_404_ale_presto_vznikne(client,
 
 
 def test_uprava_prispevku_zmeni_jen_zaslana_pole(client, admin_headers, db):
-    prispevek = client.post("/api/admin/posts", headers=admin_headers, json={
-        "title": "Původní", "content": "Obsah", "published": False,
-    }).json()
+    prispevek = client.post(
+        "/api/admin/posts",
+        headers=admin_headers,
+        json={
+            "title": "Původní",
+            "content": "Obsah",
+            "published": False,
+        },
+    ).json()
 
-    response = client.put(f"/api/admin/posts/{prispevek['id']}", headers=admin_headers,
-                          json={"title": "Nový", "published": True})
+    response = client.put(
+        f"/api/admin/posts/{prispevek['id']}",
+        headers=admin_headers,
+        json={"title": "Nový", "published": True},
+    )
 
     assert response.status_code == 200
     assert response.json()["title"] == "Nový"
@@ -1072,12 +1346,19 @@ def test_uprava_prispevku_zmeni_jen_zaslana_pole(client, admin_headers, db):
 
 def test_uprava_prispevku_odpoji_obrazek_prazdnou_hodnotou(client, admin_headers, db):
     obrazek = _soubor(db, "foto.jpg")
-    prispevek = client.post("/api/admin/posts", headers=admin_headers, json={
-        "title": "Pozvánka", "content": "Přijďte", "image_file_id": obrazek.id,
-    }).json()
+    prispevek = client.post(
+        "/api/admin/posts",
+        headers=admin_headers,
+        json={
+            "title": "Pozvánka",
+            "content": "Přijďte",
+            "image_file_id": obrazek.id,
+        },
+    ).json()
 
-    response = client.put(f"/api/admin/posts/{prispevek['id']}", headers=admin_headers,
-                          json={"image_file_id": None})
+    response = client.put(
+        f"/api/admin/posts/{prispevek['id']}", headers=admin_headers, json={"image_file_id": None}
+    )
 
     assert response.status_code == 200
     assert response.json()["image_file_id"] is None
@@ -1093,9 +1374,15 @@ def test_uprava_neexistujiciho_prispevku_konci_404(client, admin_headers):
 
 def test_smazani_prispevku_odpoji_prilohu_ale_soubor_zustane(client, admin_headers, db):
     obrazek = _soubor(db, "foto.jpg")
-    prispevek = client.post("/api/admin/posts", headers=admin_headers, json={
-        "title": "Pozvánka", "content": "Přijďte", "image_file_id": obrazek.id,
-    }).json()
+    prispevek = client.post(
+        "/api/admin/posts",
+        headers=admin_headers,
+        json={
+            "title": "Pozvánka",
+            "content": "Přijďte",
+            "image_file_id": obrazek.id,
+        },
+    ).json()
 
     response = client.delete(f"/api/admin/posts/{prispevek['id']}", headers=admin_headers)
 
@@ -1113,6 +1400,7 @@ def test_smazani_neexistujiciho_prispevku_konci_404(client, admin_headers):
 
 def test_seznam_prispevku_radi_od_nejnovejsiho(client, admin_headers, db):
     from datetime import datetime
+
     starsi = models.Post(title="Starší", content="A", created_at=datetime(2025, 1, 1))
     novejsi = models.Post(title="Novější", content="B", created_at=datetime(2025, 6, 1))
     db.add_all([starsi, novejsi])
@@ -1127,17 +1415,19 @@ def test_seznam_prispevku_radi_od_nejnovejsiho(client, admin_headers, db):
 # Sezóny (seasons.py)
 # ===========================================================================
 
+
 def test_sezona_se_zalozi_s_dopoctenym_koncem_a_rimskym_rocnikem(client, admin_headers, db):
-    response = client.post("/api/admin/seasons", headers=admin_headers,
-                           json={"year_start": 2025, "edition": 19})
+    response = client.post(
+        "/api/admin/seasons", headers=admin_headers, json={"year_start": 2025, "edition": 19}
+    )
 
     assert response.status_code == 200
     sezona = response.json()
-    assert sezona["year_end"] == 2026            # dopočte se
+    assert sezona["year_end"] == 2026  # dopočte se
     assert sezona["season_label"] == "2025/2026"
     assert sezona["edition_label"] == "XIX."
-    assert sezona["name"] == "Jihomoravský lyžařský pohár"   # výchozí název
-    assert sezona["is_current"] is False      # aktuální se nastavuje zvlášť
+    assert sezona["name"] == "Jihomoravský lyžařský pohár"  # výchozí název
+    assert sezona["is_current"] is False  # aktuální se nastavuje zvlášť
     assert sezona["races_count"] == 0
     assert _pocet(db, "SELECT year_end FROM fuj_jmlp_season") == 2026
 
@@ -1166,13 +1456,14 @@ def test_seznam_sezon_pocita_zavody_i_dokumenty(client, admin_headers, db):
     _zavod(db, race_nr="JMLP2025-01", season_id=2025)
     _zavod(db, race_nr="JMLP2025-02", season_id=2025)
     soubor = _soubor(db, "celkove.pdf")
-    db.add(models.Attachment(file_id=soubor.id, owner_type="season", owner_id=2025,
-                             role="vysledky"))
+    db.add(
+        models.Attachment(file_id=soubor.id, owner_type="season", owner_id=2025, role="vysledky")
+    )
     db.commit()
 
     radky = client.get("/api/admin/seasons", headers=admin_headers).json()
 
-    assert [s["year_start"] for s in radky] == [2025, 2024]   # od nejnovější
+    assert [s["year_start"] for s in radky] == [2025, 2024]  # od nejnovější
     assert radky[0]["races_count"] == 2
     assert radky[0]["documents_count"] == 1
     assert radky[1]["races_count"] == 0
@@ -1183,8 +1474,11 @@ def test_uprava_sezony_ignoruje_zmenu_pocatecniho_roku(client, admin_headers, db
     """year_start je klíč, na který se váží závody i přílohy - měnit se nesmí."""
     sezona = _sezona(db, year_start=2025, edition=19)
 
-    response = client.put(f"/api/admin/seasons/{sezona.id}", headers=admin_headers,
-                          json={"year_start": 2030, "name": "Nový název", "edition": 20})
+    response = client.put(
+        f"/api/admin/seasons/{sezona.id}",
+        headers=admin_headers,
+        json={"year_start": 2030, "name": "Nový název", "edition": 20},
+    )
 
     assert response.status_code == 200
     assert response.json()["year_start"] == 2025
@@ -1226,8 +1520,9 @@ def test_sezonu_lze_smazat_kdyz_ma_zavody_jina_sezona(client, admin_headers, db)
 def test_smazani_sezony_odpoji_dokumenty_ale_soubory_zustanou(client, admin_headers, db):
     sezona = _sezona(db, year_start=2025)
     soubor = _soubor(db, "celkove.pdf")
-    db.add(models.Attachment(file_id=soubor.id, owner_type="season", owner_id=2025,
-                             role="vysledky"))
+    db.add(
+        models.Attachment(file_id=soubor.id, owner_type="season", owner_id=2025, role="vysledky")
+    )
     db.commit()
 
     response = client.delete(f"/api/admin/seasons/{sezona.id}", headers=admin_headers)

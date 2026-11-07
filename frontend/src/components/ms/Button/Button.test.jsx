@@ -17,7 +17,11 @@ describe('Button', () => {
 
   it('busy: aria-busy, nejde kliknout, text zůstává', async () => {
     const onClick = vi.fn();
-    render(<Button busy onClick={onClick}>Ukládám</Button>);
+    render(
+      <Button busy onClick={onClick}>
+        Ukládám
+      </Button>,
+    );
     const button = screen.getByRole('button', { name: 'Ukládám' });
     expect(button).toHaveAttribute('aria-busy', 'true');
     expect(button).toBeDisabled();
@@ -27,7 +31,11 @@ describe('Button', () => {
 
   it('předá ref a další atributy', () => {
     const ref = { current: null };
-    render(<Button ref={ref} type="submit" data-autofocus>Uložit</Button>);
+    render(
+      <Button ref={ref} type="submit" data-autofocus>
+        Uložit
+      </Button>,
+    );
     expect(ref.current).toBe(screen.getByRole('button'));
     expect(ref.current).toHaveAttribute('type', 'submit');
     expect(ref.current).toHaveAttribute('data-autofocus');

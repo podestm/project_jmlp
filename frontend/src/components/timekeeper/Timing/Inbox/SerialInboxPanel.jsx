@@ -73,16 +73,31 @@ export default function SerialInboxPanel({
   return (
     <section className={cx(styles.panel, className)} aria-labelledby="schranka-impulzu">
       <header className={styles.header}>
-        <h2 id="schranka-impulzu" className={styles.title}>Schránka impulzů</h2>
+        <h2 id="schranka-impulzu" className={styles.title}>
+          Schránka impulzů
+        </h2>
         <span className={styles.round}>Kolo {targetRound}</span>
-        {summary.toDecide > 0 && <span className={styles.decideCount}>K rozhodnutí {summary.toDecide}</span>}
+        {summary.toDecide > 0 && (
+          <span className={styles.decideCount}>K rozhodnutí {summary.toDecide}</span>
+        )}
       </header>
 
       <p className={styles.summary}>
-        <span>Automatický zápis <strong className={autoWrite ? styles.on : styles.off}>{autoWrite ? 'zapnut' : 'vypnut'}</strong></span>
-        <span><strong className={styles.num}>{summary.autoWritten}</strong> zapsáno automaticky</span>
-        <span><strong className={styles.num}>{summary.toDecide}</strong> k rozhodnutí</span>
-        <span><strong className={styles.num}>{summary.rejected}</strong> zamítnuto</span>
+        <span>
+          Automatický zápis{' '}
+          <strong className={autoWrite ? styles.on : styles.off}>
+            {autoWrite ? 'zapnut' : 'vypnut'}
+          </strong>
+        </span>
+        <span>
+          <strong className={styles.num}>{summary.autoWritten}</strong> zapsáno automaticky
+        </span>
+        <span>
+          <strong className={styles.num}>{summary.toDecide}</strong> k rozhodnutí
+        </span>
+        <span>
+          <strong className={styles.num}>{summary.rejected}</strong> zamítnuto
+        </span>
       </p>
 
       {hiddenCount > 0 && (
@@ -90,13 +105,17 @@ export default function SerialInboxPanel({
           <span>
             Zobrazeno {visibleEvents.length} z {events.length} uložených událostí.
           </span>
-          <Button size="sm" onClick={() => onShowAllChange(true)}>Zobrazit všech {events.length}</Button>
+          <Button size="sm" onClick={() => onShowAllChange(true)}>
+            Zobrazit všech {events.length}
+          </Button>
         </div>
       )}
       {showAll && events.length > INBOX_RENDER_LIMIT && (
         <div className={styles.limit}>
           <span>Zobrazeny všechny uložené události ({events.length}).</span>
-          <Button size="sm" onClick={() => onShowAllChange(false)}>Jen posledních {INBOX_RENDER_LIMIT}</Button>
+          <Button size="sm" onClick={() => onShowAllChange(false)}>
+            Jen posledních {INBOX_RENDER_LIMIT}
+          </Button>
         </div>
       )}
 
@@ -111,7 +130,9 @@ export default function SerialInboxPanel({
           <>
             {decide.length > 0 && (
               <>
-                <h3 className={styles.group}>K rozhodnutí <span className={styles.groupCount}>{decide.length}</span></h3>
+                <h3 className={styles.group}>
+                  K rozhodnutí <span className={styles.groupCount}>{decide.length}</span>
+                </h3>
                 <ul className={styles.rows}>{decide.map(renderRow)}</ul>
               </>
             )}
@@ -128,14 +149,23 @@ export default function SerialInboxPanel({
       <footer className={styles.footer}>
         {unparsedCount > 0 && (
           <Tooltip text="Označí je jako zamítnuté" placement="top">
-            <Button size="sm" onClick={onDismissUnparsed}>Odbavit nerozpoznané ({unparsedCount})</Button>
+            <Button size="sm" onClick={onDismissUnparsed}>
+              Odbavit nerozpoznané ({unparsedCount})
+            </Button>
           </Tooltip>
         )}
         <Tooltip text="Potvrzené a zamítnuté řádky" placement="top">
-          <Button size="sm" onClick={onClearResolved} disabled={resolvedCount === 0}>Smazat vyřízené</Button>
+          <Button size="sm" onClick={onClearResolved} disabled={resolvedCount === 0}>
+            Smazat vyřízené
+          </Button>
         </Tooltip>
         <Tooltip text="Včetně nepotvrzených" placement="top">
-          <IconButton icon="trash" label="Smazat vše" onClick={onClearAll} disabled={events.length === 0} />
+          <IconButton
+            icon="trash"
+            label="Smazat vše"
+            onClick={onClearAll}
+            disabled={events.length === 0}
+          />
         </Tooltip>
       </footer>
     </section>

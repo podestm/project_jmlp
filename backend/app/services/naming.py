@@ -4,6 +4,7 @@ Název se skládá jen tady a volá se z jediného místa - z endpointu pro
 nahrání přílohy. Je to výchozí hodnota, ne zámek: v knihovně jde soubor
 kdykoli přejmenovat a pak se už sám nepřepíše.
 """
+
 import re
 import unicodedata
 from pathlib import Path
@@ -142,7 +143,5 @@ def systematic_filename(
         return None
 
     extension = Path(original_filename or "").suffix.lower()
-    taken = {
-        row[0] for row in db.query(models.File.original_filename).all() if row[0]
-    }
+    taken = {row[0] for row in db.query(models.File.original_filename).all() if row[0]}
     return unique_name(f"{stem}_{role_suffix(role)}", extension, taken)

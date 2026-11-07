@@ -34,7 +34,7 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
   it('z více voleb dostane fokus první bezpečná', () => {
     renderDialog([
       { value: 'purge', label: 'Smazat i soubory', danger: true },
-      { value: 'keep', label: 'Soubory ponechat' }
+      { value: 'keep', label: 'Soubory ponechat' },
     ]);
 
     expect(screen.getByRole('button', { name: 'Soubory ponechat' })).toHaveFocus();
@@ -56,12 +56,18 @@ describe('fokus a Enter v potvrzovacím dialogu', () => {
   it('pořadí podle artboardu: další nebezpečná vlevo, Zrušit, hlavní bezpečná vpravo', () => {
     renderDialog([
       { value: 'server', label: 'Ponechat hodnotu ze serveru' },
-      { value: 'overwrite', label: 'Přepsat mojí hodnotou', danger: true }
+      { value: 'overwrite', label: 'Přepsat mojí hodnotou', danger: true },
     ]);
 
-    const names = within(screen.getByRole('dialog')).getAllByRole('button')
+    const names = within(screen.getByRole('dialog'))
+      .getAllByRole('button')
       .map((button) => button.getAttribute('aria-label') || button.textContent);
-    expect(names).toEqual(['Zavřít dialog', 'Přepsat mojí hodnotou', 'Zrušit', 'Ponechat hodnotu ze serveru']);
+    expect(names).toEqual([
+      'Zavřít dialog',
+      'Přepsat mojí hodnotou',
+      'Zrušit',
+      'Ponechat hodnotu ze serveru',
+    ]);
   });
 
   it('Escape i křížek znamenají zrušit', async () => {

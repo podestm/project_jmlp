@@ -16,9 +16,8 @@ const SET_COLOR_OPTIONS = [
 
 const DEFAULT_THEME = SET_COLOR_OPTIONS[0];
 
-export const getSetColorTheme = (setColor) => (
-  SET_COLOR_OPTIONS.find((option) => option.value === setColor) || DEFAULT_THEME
-);
+export const getSetColorTheme = (setColor) =>
+  SET_COLOR_OPTIONS.find((option) => option.value === setColor) || DEFAULT_THEME;
 
 /** Barva sady jako hodnota CSS (var(--ms-bib-…)); neznámá sada = výchozí. */
 export const setColorVar = (setColor) => getSetColorTheme(setColor).solid;
@@ -27,9 +26,8 @@ export const setColorVar = (setColor) => getSetColorTheme(setColor).solid;
  * Systémové označení čísla: písmeno sady + číslo dresu ("B12" = dres 12
  * ze sady 2). Ukládá ho server (display_number / race_number_display).
  */
-export const formatSystemRaceNumber = (displayNumber) => (
-  displayNumber != null && displayNumber !== '' ? String(displayNumber) : ''
-);
+export const formatSystemRaceNumber = (displayNumber) =>
+  displayNumber != null && displayNumber !== '' ? String(displayNumber) : '';
 
 const RACE_NUMBER_CODE = /^([A-Z])(\d{1,4})$/;
 
@@ -41,7 +39,9 @@ export const setLetter = (setNumber) => {
 
 /** "b 12" -> "B12"; prázdné -> ''; jiný tvar vrátí, jak je (validace ho odmítne). */
 export const normalizeRaceNumberCode = (value) => {
-  const text = String(value ?? '').replace(/\s+/g, '').toUpperCase();
+  const text = String(value ?? '')
+    .replace(/\s+/g, '')
+    .toUpperCase();
   const match = RACE_NUMBER_CODE.exec(text);
   return match ? `${match[1]}${Number(match[2])}` : text;
 };

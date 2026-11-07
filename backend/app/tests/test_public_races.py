@@ -5,6 +5,7 @@ nedostane, to pro veřejnost neexistuje. Testy proto hlídají hlavně to, co se
 z výpisu vypadne (závod bez čísla, bez data, nepublikovaná příloha) a jak se
 určuje "aktuální sezóna", podle které se kalendář filtruje.
 """
+
 from datetime import date, timedelta
 
 import pytest
@@ -323,7 +324,9 @@ def test_aktualni_sezona_se_posune_na_budouci_rocnik_v_datech(client, db):
 
 def test_sezona_se_lame_prvniho_srpna(client):
     prvni_srpen = client.get("/races/season/calculate", params={"race_date": "2026-08-01"}).json()
-    posledni_cervenec = client.get("/races/season/calculate", params={"race_date": "2026-07-31"}).json()
+    posledni_cervenec = client.get(
+        "/races/season/calculate", params={"race_date": "2026-07-31"}
+    ).json()
 
     assert prvni_srpen["season_id"] == 2026
     assert posledni_cervenec["season_id"] == 2025
@@ -594,8 +597,7 @@ def test_seznam_prihlasenych_nepridava_pohlavi_k_nazvu_kategorie(client, db):
     klub = _klub(db, "SK Pardubice")
     zavod = _zavod(db)
     zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2, club_id=klub.id)
-    db.add(models.Registration(
-        race_id=zavod.id, racer_id=zavodnice.id, category_id=kategorie.id))
+    db.add(models.Registration(race_id=zavod.id, racer_id=zavodnice.id, category_id=kategorie.id))
     db.commit()
 
     odpoved = client.get(f"/races/{zavod.id}/registrations")
@@ -610,13 +612,17 @@ def test_kategorie_pro_filtr_prihlasenych_jsou_v_poradi_zavodu(client, db):
     """Filtr na webu: nejmladší první, ženy před muži - ne podle abecedy."""
     zavod = _zavod(db)
     poradi = [
-        ("Přípravka dívky", 2017, 2018, 2), ("Přípravka chlapci", 2017, 2018, 1),
-        ("OPEN ženy", 1900, 2005, 2), ("OPEN muži", 1900, 2005, 1),
+        ("Přípravka dívky", 2017, 2018, 2),
+        ("Přípravka chlapci", 2017, 2018, 1),
+        ("OPEN ženy", 1900, 2005, 2),
+        ("OPEN muži", 1900, 2005, 1),
     ]
     for nazev, od, do, sex in reversed(poradi):
         kategorie = _kategorie(db, f"K{od}", od, do, sex, display_name=nazev)
         zavodnik = _zavodnik(db, "X", nazev, od, sex)
-        db.add(models.Registration(race_id=zavod.id, racer_id=zavodnik.id, category_id=kategorie.id))
+        db.add(
+            models.Registration(race_id=zavod.id, racer_id=zavodnik.id, category_id=kategorie.id)
+        )
     db.commit()
 
     odpoved = client.get(f"/races/{zavod.id}/registrations")
@@ -629,17 +635,19 @@ def test_live_prenos_ukazuje_prejmenovanou_kategorii(client, db):
     kategorie = _kategorie(db, "U10", 2016, 2018, 2, display_name="U10 dívky")
     zavod = _zavod(db, is_live=True)
     zavodnice = _zavodnik(db, "Anna", "Holcicka", 2017, 2)
-    db.add(models.StartListEntry(
-        race_id=zavod.id,
-        racer_id=zavodnice.id,
-        category_id=kategorie.id,
-        start_number=1,
-        racer_name="Anna",
-        racer_surname="Holcicka",
-        racer_year=2017,
-        racer_sex=2,
-        category_name="U10 - Ženy",
-    ))
+    db.add(
+        models.StartListEntry(
+            race_id=zavod.id,
+            racer_id=zavodnice.id,
+            category_id=kategorie.id,
+            start_number=1,
+            racer_name="Anna",
+            racer_surname="Holcicka",
+            racer_year=2017,
+            racer_sex=2,
+            category_name="U10 - Ženy",
+        )
+    )
     db.commit()
 
     kategorie.display_name = "Myšáci dívky"

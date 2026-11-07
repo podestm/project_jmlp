@@ -36,7 +36,11 @@ export default function TabBar({ user, onLogout }) {
             >
               <Icon name={item.icon} size={20} className={styles.icon} />
               <span className={cx(styles.label, item.short && styles.hasShort)}>{item.label}</span>
-              {item.short && <span className={styles.short} aria-hidden="true">{item.short}</span>}
+              {item.short && (
+                <span className={styles.short} aria-hidden="true">
+                  {item.short}
+                </span>
+              )}
             </Link>
           </Fragment>
         ))}

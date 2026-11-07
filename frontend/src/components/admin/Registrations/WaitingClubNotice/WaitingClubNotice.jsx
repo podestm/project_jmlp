@@ -11,7 +11,11 @@ export default function WaitingClubNotice({ count }) {
     <Link to="/admin/club-requests" className={styles.notice}>
       <Icon name="warning" size={20} className={styles.icon} />
       <span className={styles.text}>
-        <strong>{count} {czechPlural(count, ['závodník', 'závodníci', 'závodníků'])} {verb} na přiřazení klubu</strong> – vyřídit
+        <strong>
+          {count} {czechPlural(count, ['závodník', 'závodníci', 'závodníků'])} {verb} na přiřazení
+          klubu
+        </strong>{' '}
+        – vyřídit
       </span>
       <Icon name="chevron-right" size={20} />
     </Link>

@@ -39,14 +39,17 @@ export default [
        * proti pádu je test, který obrazovky vykreslí (src/test/screens.test.jsx).
        */
       'no-use-before-define': ['warn', { functions: false, classes: true, variables: true }],
-      'no-unused-vars': ['error', {
-        // Nepoužitý argument před používaným se vynechat nedá, proto výjimka.
-        args: 'after-used',
-        argsIgnorePattern: '^_',
-        // Zbytek destrukturalizace je běžný způsob, jak klíč odebrat:
-        // `const { base_revision, ...rest } = payload`
-        ignoreRestSiblings: true,
-      }],
+      'no-unused-vars': [
+        'error',
+        {
+          // Nepoužitý argument před používaným se vynechat nedá, proto výjimka.
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          // Zbytek destrukturalizace je běžný způsob, jak klíč odebrat:
+          // `const { base_revision, ...rest } = payload`
+          ignoreRestSiblings: true,
+        },
+      ],
       'react/jsx-uses-vars': 'error',
       'react/jsx-uses-react': 'off',
       'react-hooks/rules-of-hooks': 'error',

@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Alert, Badge, Button, EmptyState, Field, Input, LoadingState, Modal } from '../../../ms/index.js';
+import {
+  Alert,
+  Badge,
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  LoadingState,
+  Modal,
+} from '../../../ms/index.js';
 import { AttachmentsAPI } from '../../../../config/attachmentsApi.js';
 import FileInfo from '../../shared/FileInfo/FileInfo.jsx';
 import { acceptText, filterLibrary } from '../attachments.js';
@@ -19,10 +28,18 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
   useEffect(() => {
     let active = true;
     AttachmentsAPI.library()
-      .then((data) => { if (active) setFiles(data); })
-      .catch((err) => { if (active) setError(err.message); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+      .then((data) => {
+        if (active) setFiles(data);
+      })
+      .catch((err) => {
+        if (active) setError(err.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const visibleFiles = filterLibrary(files, accept, query);
@@ -33,11 +50,21 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
       size="lg"
       title="Vybrat z knihovny"
       onClose={() => onClose()}
-      footer={<Button data-cancel onClick={onClose}>Zavřít</Button>}
+      footer={
+        <Button data-cancel onClick={onClose}>
+          Zavřít
+        </Button>
+      }
     >
       <div className={styles.body}>
         <Field label="Hledat podle názvu" hint={acceptText(accept)}>
-          <Input type="search" size="sm" value={query} onChange={(e) => setQuery(e.target.value)} data-autofocus />
+          <Input
+            type="search"
+            size="sm"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            data-autofocus
+          />
         </Field>
 
         {error && <Alert type="danger" compact title={error} />}
@@ -47,7 +74,13 @@ export default function LibraryPicker({ accept, onSelect, onClose }) {
           <EmptyState
             icon="folder"
             title="Žádný odpovídající soubor"
-            action={query && <Button size="sm" onClick={() => setQuery('')}>Vymazat hledání</Button>}
+            action={
+              query && (
+                <Button size="sm" onClick={() => setQuery('')}>
+                  Vymazat hledání
+                </Button>
+              )
+            }
           />
         )}
 

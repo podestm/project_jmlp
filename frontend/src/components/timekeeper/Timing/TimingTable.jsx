@@ -39,7 +39,11 @@ export default function TimingTable({
       <EmptyState
         icon="list"
         title="Startovní listina je prázdná"
-        action={<ButtonLink to="/timekeeper/start-list" size="sm" icon="list-numbered">Přejít na startovní listinu</ButtonLink>}
+        action={
+          <ButtonLink to="/timekeeper/start-list" size="sm" icon="list-numbered">
+            Přejít na startovní listinu
+          </ButtonLink>
+        }
       />
     ) : (
       <EmptyState icon="filter" title="Ve vybraném filtru nikdo není" />
@@ -53,13 +57,19 @@ export default function TimingTable({
       <Table density="compact" stickyHeader className={styles.table}>
         <thead>
           <tr>
-            <th scope="col" className={styles.narrow}>St.</th>
-            <th scope="col" className={styles.narrow}>Dres</th>
+            <th scope="col" className={styles.narrow}>
+              St.
+            </th>
+            <th scope="col" className={styles.narrow}>
+              Dres
+            </th>
             <th scope="col">Závodník</th>
             <RoundHeader round={1} locked={activeRound === '2'} />
             <RoundHeader round={2} locked={activeRound === '1'} />
             <th scope="col">Příznak</th>
-            <th scope="col" data-align="end">Součet</th>
+            <th scope="col" data-align="end">
+              Součet
+            </th>
           </tr>
         </thead>
         <tbody>

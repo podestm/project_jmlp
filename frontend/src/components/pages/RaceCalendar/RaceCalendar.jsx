@@ -1,12 +1,29 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert, Button, ButtonLink, Container, EmptyState, Field, Icon, LoadingState, PageHeader, Screen, SegmentedControl,
-  Select, Stack,
+  Alert,
+  Button,
+  ButtonLink,
+  Container,
+  EmptyState,
+  Field,
+  Icon,
+  LoadingState,
+  PageHeader,
+  Screen,
+  SegmentedControl,
+  Select,
+  Stack,
 } from '../../ms/index.js';
 import { formatSeasonShort, seasonEdition, toRoman } from '../../../utils/season.js';
 import { formatDate } from '../../../utils/date.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { defaultSeasonId, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
+import {
+  defaultSeasonId,
+  raceSeasonId,
+  seasonLabel,
+  seasonsOf,
+  startOfToday,
+} from '../../../utils/races.js';
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
 import { METHOD_FILTERS, emptyFilterTitle, matchesFilter, splitByDate } from './raceCalendar.js';
@@ -26,13 +43,23 @@ function SeasonResultsButton({ seasonId, currentSeasonId, result }) {
   if (result) {
     const label = result.final_results === 1 ? 'Celkové výsledky' : 'Průběžné výsledky';
     return (
-      <ButtonLink href={`${API_BASE}/${result.document_file_path}`} target="_blank" rel="noopener noreferrer" size="sm" icon="trophy">
+      <ButtonLink
+        href={`${API_BASE}/${result.document_file_path}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        size="sm"
+        icon="trophy"
+      >
         {label}
       </ButtonLink>
     );
   }
   const label = seasonId < currentSeasonId ? 'Celkové výsledky' : 'Průběžné výsledky';
-  return <Button size="sm" icon="trophy" disabled title={`${label} zatím nejsou k dispozici`}>{label}</Button>;
+  return (
+    <Button size="sm" icon="trophy" disabled title={`${label} zatím nejsou k dispozici`}>
+      {label}
+    </Button>
+  );
 }
 
 /** Nadpis skupiny „Nadcházející“ / „Odjeté závody“ s linkou do konce řádku. */
@@ -56,10 +83,19 @@ export default function RaceCalendar() {
 
   const seasons = useMemo(() => seasonsOf(races), [races]);
   const seasonId = chosenSeason ?? defaultSeasonId(seasons, currentSeasonId);
-  const seasonRaces = useMemo(() => races.filter((race) => raceSeasonId(race) === seasonId), [races, seasonId]);
+  const seasonRaces = useMemo(
+    () => races.filter((race) => raceSeasonId(race) === seasonId),
+    [races, seasonId],
+  );
 
   if (status === 'loading') {
-    return <Screen><Container className={styles.page}><LoadingState label="Načítám kalendář závodů…" /></Container></Screen>;
+    return (
+      <Screen>
+        <Container className={styles.page}>
+          <LoadingState label="Načítám kalendář závodů…" />
+        </Container>
+      </Screen>
+    );
   }
 
   if (status === 'error') {
@@ -70,7 +106,11 @@ export default function RaceCalendar() {
           <Alert
             type="danger"
             title="Kalendář se nepodařilo načíst"
-            actions={<Button variant="primary" icon="refresh" onClick={() => reload()}>Zkusit znovu</Button>}
+            actions={
+              <Button variant="primary" icon="refresh" onClick={() => reload()}>
+                Zkusit znovu
+              </Button>
+            }
           >
             Nejspíš vypadlo připojení. Zkuste to prosím za chvíli znovu.
           </Alert>
@@ -83,7 +123,11 @@ export default function RaceCalendar() {
   const { upcoming, past } = splitByDate(filtered, today);
   const filterOptions = METHOD_FILTERS.map((option) => {
     const count = ` (${seasonRaces.filter((race) => matchesFilter(race, option.value)).length})`;
-    return { ...option, label: option.label + count, shortLabel: option.shortLabel && option.shortLabel + count };
+    return {
+      ...option,
+      label: option.label + count,
+      shortLabel: option.shortLabel && option.shortLabel + count,
+    };
   });
   const firstUpcoming = upcoming[0];
 
@@ -91,27 +135,46 @@ export default function RaceCalendar() {
     <Screen>
       <Container className={styles.page}>
         <div className={styles.head}>
-          <PageHeader eyebrow={`${toRoman(seasonEdition(seasonId))}. ročník · sezóna ${formatSeasonShort(seasonId)}`} title="Kalendář závodů" />
+          <PageHeader
+            eyebrow={`${toRoman(seasonEdition(seasonId))}. ročník · sezóna ${formatSeasonShort(seasonId)}`}
+            title="Kalendář závodů"
+          />
           {seasons.length > 0 && (
             <Field label="Sezóna" className={styles.season}>
-              <Select value={seasonId} onChange={(event) => { setChosenSeason(Number(event.target.value)); setFilter('all'); }}>
-                {seasons.map((id) => <option key={id} value={id}>{seasonLabel(id)}</option>)}
+              <Select
+                value={seasonId}
+                onChange={(event) => {
+                  setChosenSeason(Number(event.target.value));
+                  setFilter('all');
+                }}
+              >
+                {seasons.map((id) => (
+                  <option key={id} value={id}>
+                    {seasonLabel(id)}
+                  </option>
+                ))}
               </Select>
             </Field>
           )}
         </div>
 
         {seasonRaces.length === 0 ? (
-          <EmptyState
-            size="lg"
-            icon="inbox"
-            title="V sezóně zatím nejsou vypsané žádné závody"
-          />
+          <EmptyState size="lg" icon="inbox" title="V sezóně zatím nejsou vypsané žádné závody" />
         ) : (
           <Stack gap={7}>
             <div className={styles.toolbar}>
-              <SegmentedControl label="Typ závodu" fill options={filterOptions} value={filter} onChange={setFilter} />
-              <SeasonResultsButton seasonId={seasonId} currentSeasonId={currentSeasonId} result={seasonResults[seasonId]} />
+              <SegmentedControl
+                label="Typ závodu"
+                fill
+                options={filterOptions}
+                value={filter}
+                onChange={setFilter}
+              />
+              <SeasonResultsButton
+                seasonId={seasonId}
+                currentSeasonId={currentSeasonId}
+                result={seasonResults[seasonId]}
+              />
             </div>
 
             {filtered.length === 0 ? (
@@ -125,9 +188,13 @@ export default function RaceCalendar() {
               <>
                 {upcoming.length > 0 && (
                   <section className={styles.group} aria-labelledby="nadchazejici">
-                    <GroupTitle id="nadchazejici" tone="navy">Nadcházející</GroupTitle>
+                    <GroupTitle id="nadchazejici" tone="navy">
+                      Nadcházející
+                    </GroupTitle>
                     <ul className={styles.list}>
-                      {upcoming.map((race) => <RaceRow key={race.id} race={race} today={today} />)}
+                      {upcoming.map((race) => (
+                        <RaceRow key={race.id} race={race} today={today} />
+                      ))}
                     </ul>
                   </section>
                 )}
@@ -136,11 +203,18 @@ export default function RaceCalendar() {
                   <GroupTitle id="odjete">Odjeté závody</GroupTitle>
                   {past.length > 0 ? (
                     <ul className={styles.list}>
-                      {past.map((race) => <RaceRow key={race.id} race={race} today={today} />)}
+                      {past.map((race) => (
+                        <RaceRow key={race.id} race={race} today={today} />
+                      ))}
                     </ul>
                   ) : (
                     <div className={styles.noPast}>
-                      <Icon name="calendar" size={30} strokeWidth={1.6} className={styles.noPastIcon} />
+                      <Icon
+                        name="calendar"
+                        size={30}
+                        strokeWidth={1.6}
+                        className={styles.noPastIcon}
+                      />
                       <div className={styles.noPastText}>
                         <p className={styles.noPastTitle}>V této sezóně se zatím nezávodilo</p>
                         {firstUpcoming && (

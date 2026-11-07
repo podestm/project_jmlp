@@ -51,44 +51,53 @@ export function filterRacers(racers, filter, searchText) {
     if (filter.category && racer.category_id !== parseInt(filter.category, 10)) return false;
     if (filter.sex && racer.sex !== parseInt(filter.sex, 10)) return false;
     if (search) {
-      const matches = [racer.firstName, racer.lastName, racer.idSlcr]
-        .some((value) => (value || '').toLowerCase().includes(search));
+      const matches = [racer.firstName, racer.lastName, racer.idSlcr].some((value) =>
+        (value || '').toLowerCase().includes(search),
+      );
       if (!matches) return false;
     }
     return true;
   });
 }
 
-export const clubOptions = (clubs) => clubs.map((club) => ({ value: String(club.id), label: club.name }));
+export const clubOptions = (clubs) =>
+  clubs.map((club) => ({ value: String(club.id), label: club.name }));
 
 // Stejné pravidlo jako category_display_sql na serveru: bez toho ukazuje
 // filtr interní název, zatímco sloupec v tabulce zobrazovaný, a zrcadlové
 // kategorie splynou ve dvě nerozlišitelné položky.
-export const categoryLabel = (category) => category.display_name
-  || `${category.name}${category.sex === 1 ? ' - Muži' : category.sex === 2 ? ' - Ženy' : ''}`;
+export const categoryLabel = (category) =>
+  category.display_name ||
+  `${category.name}${category.sex === 1 ? ' - Muži' : category.sex === 2 ? ' - Ženy' : ''}`;
 
-export const categoryOptions = (categories) => categories.map((category) => ({
-  value: String(category.id),
-  label: categoryLabel(category),
-}));
+export const categoryOptions = (categories) =>
+  categories.map((category) => ({
+    value: String(category.id),
+    label: categoryLabel(category),
+  }));
 
 /** „Novák Matyáš“ – příjmení napřed jako v ostatních seznamech administrace. */
-export const racerName = (racer) => [racer.lastName, racer.firstName].filter(Boolean).join(' ') || `#${racer.id}`;
+export const racerName = (racer) =>
+  [racer.lastName, racer.firstName].filter(Boolean).join(' ') || `#${racer.id}`;
 
 export const sexLabel = (sex) => (sex === SEX.male ? 'Muž' : sex === SEX.female ? 'Žena' : null);
 
 /** Iniciály do kolečka (Novák Matyáš → NM). */
-export const racerInitials = (racer) => [racer.lastName, racer.firstName]
-  .map((part) => (part || '').trim().charAt(0).toUpperCase())
-  .join('');
+export const racerInitials = (racer) =>
+  [racer.lastName, racer.firstName]
+    .map((part) => (part || '').trim().charAt(0).toUpperCase())
+    .join('');
 
 /** Řádek údajů pod jménem: ročník · pohlaví · klub · kategorie · SLČR. */
-export const racerDetails = (racer) => [
-  racer.birthYear,
-  sexLabel(racer.sex),
-  racer.club_name || 'Bez klubu',
-  racer.category_name,
-  racer.idSlcr ? `SLČR ${racer.idSlcr}` : 'bez SLČR',
-].filter(Boolean).join(' · ');
+export const racerDetails = (racer) =>
+  [
+    racer.birthYear,
+    sexLabel(racer.sex),
+    racer.club_name || 'Bez klubu',
+    racer.category_name,
+    racer.idSlcr ? `SLČR ${racer.idSlcr}` : 'bez SLČR',
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
 export const formatCount = (count) => count.toLocaleString('cs-CZ');

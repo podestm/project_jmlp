@@ -16,7 +16,12 @@ export const toForm = (detail) => ({
   race_director: detail.race_director ?? '',
   technical_delegate: detail.technical_delegate ?? '',
   chief_timekeeper: detail.chief_timekeeper ?? '',
-  runs: RUN_NUMBERS.map((runNumber) => toFormRun(runNumber, detail.runs.find((run) => run.run_number === runNumber))),
+  runs: RUN_NUMBERS.map((runNumber) =>
+    toFormRun(
+      runNumber,
+      detail.runs.find((run) => run.run_number === runNumber),
+    ),
+  ),
 });
 
 const textOrNull = (value) => String(value).trim() || null;

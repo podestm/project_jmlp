@@ -11,7 +11,9 @@ export default function SiteLayout({ footer, children }) {
   return (
     <div className={styles.site}>
       <SiteHeader />
-      <main id="obsah" className={styles.main}>{children}</main>
+      <main id="obsah" className={styles.main}>
+        {children}
+      </main>
       <SiteFooter full={footer === 'full'} />
     </div>
   );

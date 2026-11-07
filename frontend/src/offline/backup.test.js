@@ -19,7 +19,7 @@ const queueRow = (overrides = {}) => ({
   method: 'PUT',
   endpoint: '/api/timekeeper/start-list/1/time',
   payload: { time1: 10 },
-  ...overrides
+  ...overrides,
 });
 
 const inboxRow = (overrides = {}) => ({
@@ -28,7 +28,7 @@ const inboxRow = (overrides = {}) => ({
   created_at: '2026-01-01T10:00:00.000Z',
   op_key: 'impulz-1',
   bib: 11,
-  ...overrides
+  ...overrides,
 });
 
 const payloadOf = (snapshot) => JSON.stringify(snapshot);
@@ -73,10 +73,14 @@ describe('importBackupPayload', () => {
    * neodešly.
    */
   it('nepřepíše lokální frontu řádkem z cizí zálohy se stejným id', async () => {
-    const localId = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'muj-zapis', payload: { time1: 99 } }));
+    const localId = await timekeeperDb.syncQueue.add(
+      queueRow({ op_id: 'muj-zapis', payload: { time1: 99 } }),
+    );
 
     const snapshot = await createBackupSnapshot();
-    snapshot.data.syncQueue = [queueRow({ id: localId, op_id: 'cizi-zapis', payload: { time1: 11 } })];
+    snapshot.data.syncQueue = [
+      queueRow({ id: localId, op_id: 'cizi-zapis', payload: { time1: 11 } }),
+    ];
 
     await importBackupPayload(payloadOf(snapshot));
 
@@ -102,7 +106,7 @@ describe('importBackupPayload', () => {
     const snapshot = await createBackupSnapshot();
     snapshot.data.bridgeInbox = [
       inboxRow({ id: 1, op_key: 'impulz-A' }),
-      inboxRow({ id: 2, op_key: 'impulz-A' })
+      inboxRow({ id: 2, op_key: 'impulz-A' }),
     ];
 
     await importBackupPayload(payloadOf(snapshot));
@@ -134,7 +138,9 @@ describe('importBackupPayload', () => {
     await importBackupPayload(payloadOf(snapshot));
 
     const queue = await timekeeperDb.syncQueue.toArray();
-    const posledni = (await timekeeperDb.bridgeInbox.toArray()).find((r) => r.op_key === 'impulz-D');
+    const posledni = (await timekeeperDb.bridgeInbox.toArray()).find(
+      (r) => r.op_key === 'impulz-D',
+    );
     expect(queue).toHaveLength(1);
     expect(posledni.sync_queue_id).toBe(queue[0].id);
   });

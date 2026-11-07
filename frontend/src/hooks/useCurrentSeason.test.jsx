@@ -4,11 +4,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mockGet = vi.fn();
 vi.mock('../config/api.js', () => ({ API: { get: (...a) => mockGet(...a) } }));
 
-const { loadCurrentSeason, resetCurrentSeason, useCurrentSeason } = await import('./useCurrentSeason.js');
+const { loadCurrentSeason, resetCurrentSeason, useCurrentSeason } = await import(
+  './useCurrentSeason.js'
+);
 
 function Probe() {
   const { seasonId, edition } = useCurrentSeason();
-  return <p>{seasonId} · {edition}</p>;
+  return (
+    <p>
+      {seasonId} · {edition}
+    </p>
+  );
 }
 
 const Other = () => <span data-testid="druhy">{useCurrentSeason().seasonId}</span>;
@@ -27,7 +33,11 @@ describe('useCurrentSeason', () => {
 
   it('do odpovědi platí sezóna podle data, pak ta ze serveru', async () => {
     let answer;
-    mockGet.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+    mockGet.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
     render(<Probe />);
     expect(screen.getByText('2026 · 20')).toBeInTheDocument();
 
@@ -38,7 +48,12 @@ describe('useCurrentSeason', () => {
 
   it('server se ptá jen jednou pro všechny komponenty', async () => {
     mockGet.mockResolvedValue({ current_season_id: 2025, edition: 19 });
-    render(<><Probe /><Other /></>);
+    render(
+      <>
+        <Probe />
+        <Other />
+      </>,
+    );
     expect(await screen.findByText('2025 · 19')).toBeInTheDocument();
     expect(screen.getByTestId('druhy')).toHaveTextContent('2025');
     expect(mockGet).toHaveBeenCalledTimes(1);

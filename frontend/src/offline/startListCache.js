@@ -9,10 +9,14 @@ const toStableJson = (value) => {
   if (value == null) return '';
   if (typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return JSON.stringify(value);
-  return JSON.stringify(Object.keys(value).sort().reduce((acc, key) => {
-    acc[key] = value[key];
-    return acc;
-  }, {}));
+  return JSON.stringify(
+    Object.keys(value)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = value[key];
+        return acc;
+      }, {}),
+  );
 };
 
 export const buildCacheKey = (endpoint, params = null) => {
@@ -29,10 +33,12 @@ export const readCachedResponse = async (endpoint, params = null) => {
 const persistRaceSnapshot = async (data) => {
   if (!Array.isArray(data)) return;
   const timestamp = nowIso();
-  await timekeeperDb.races.bulkPut(data.map((race) => ({
-    ...race,
-    updated_at: timestamp
-  })));
+  await timekeeperDb.races.bulkPut(
+    data.map((race) => ({
+      ...race,
+      updated_at: timestamp,
+    })),
+  );
 };
 
 const parseRaceIdFromStartListEndpoint = (endpoint) => {
@@ -43,13 +49,15 @@ const parseRaceIdFromStartListEndpoint = (endpoint) => {
 const persistStartListSnapshot = async (raceId, data) => {
   if (!Array.isArray(data)) return;
   const timestamp = nowIso();
-  await timekeeperDb.startList.bulkPut(data.map((entry) => ({
-    ...entry,
-    race_id: entry.race_id ?? raceId,
-    // `updated_at` je SERVEROVÁ revize a musí zůstat nedotčená - posílá se
-    // zpátky jako base_revision. Kdy jsme řádek uložili, říká jiné pole.
-    cached_at: timestamp
-  })));
+  await timekeeperDb.startList.bulkPut(
+    data.map((entry) => ({
+      ...entry,
+      race_id: entry.race_id ?? raceId,
+      // `updated_at` je SERVEROVÁ revize a musí zůstat nedotčená - posílá se
+      // zpátky jako base_revision. Kdy jsme řádek uložili, říká jiné pole.
+      cached_at: timestamp,
+    })),
+  );
 };
 
 /**
@@ -94,7 +102,7 @@ const overlayUnsyncedEdits = async (rows) => {
         dns: Boolean(local.dns),
         dsq: Boolean(local.dsq),
         updated_local_at: local.updated_local_at ?? null,
-        updated_local_only: true
+        updated_local_only: true,
       };
       entry.time_sum = computeTimeSum(entry);
     }
@@ -156,16 +164,17 @@ export const dropRaceSnapshot = async (raceId) => {
 export const cacheGetResponse = async (endpoint, params = null, data = null) => {
   const key = buildCacheKey(endpoint, params);
   const raceId = parseRaceIdFromStartListEndpoint(endpoint);
-  const stored = raceId != null && Array.isArray(data)
-    ? await withLocalTempEntries(raceId, await overlayUnsyncedEdits(data))
-    : data;
+  const stored =
+    raceId != null && Array.isArray(data)
+      ? await withLocalTempEntries(raceId, await overlayUnsyncedEdits(data))
+      : data;
 
   await timekeeperDb.cache.put({
     key,
     endpoint,
     params,
     data: stored,
-    updated_at: nowIso()
+    updated_at: nowIso(),
   });
 
   if (endpoint === '/api/timekeeper/races') {

@@ -24,7 +24,6 @@
   gap: var(--ms-space-5);
 }
 
-
 .categories {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

@@ -29,38 +29,73 @@ export default function ResultsTable({ entries, showPoints = false }) {
             <th scope="col">Dres</th>
             <th scope="col">Závodník</th>
             <th scope="col">Klub</th>
-            <th scope="col" data-align="end">Kolo 1</th>
-            <th scope="col" data-align="end">Kolo 2</th>
-            <th scope="col" data-align="end">Celkový čas</th>
-            <th scope="col" data-align="end">Ztráta</th>
-            {showPoints && <th scope="col" data-align="end">Body</th>}
+            <th scope="col" data-align="end">
+              Kolo 1
+            </th>
+            <th scope="col" data-align="end">
+              Kolo 2
+            </th>
+            <th scope="col" data-align="end">
+              Celkový čas
+            </th>
+            <th scope="col" data-align="end">
+              Ztráta
+            </th>
+            {showPoints && (
+              <th scope="col" data-align="end">
+                Body
+              </th>
+            )}
             <th scope="col">Stav</th>
           </tr>
         </thead>
         <tbody>
           {ranked.map((entry) => (
             <tr key={entry.id} data-state={entry.status ? 'muted' : undefined}>
-              <td><Position rank={entry.display_rank} /></td>
-              <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} size="sm" /></td>
               <td>
-                <span className={entry.status ? styles.nameMuted : styles.name}>{entry.racer_surname} {entry.racer_name}</span>
+                <Position rank={entry.display_rank} />
+              </td>
+              <td>
+                <BibNumber number={entry.race_number_actual} setColor={entry.set_color} size="sm" />
+              </td>
+              <td>
+                <span className={entry.status ? styles.nameMuted : styles.name}>
+                  {entry.racer_surname} {entry.racer_name}
+                </span>
                 {entry.racer_year && <span className={styles.year}> ({entry.racer_year})</span>}
               </td>
               <td className={styles.club}>{entry.club_name}</td>
-              <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time1)}</td>
-              <td data-numeric data-align="end">{entry.status ? '—' : formatResultTime(entry.time2)}</td>
-              <td data-numeric data-align="end" className={styles.total}>
-                {entry.status ? <span className={styles.statusText}>{entry.status}</span> : formatResultTime(entry.time_sum)}
+              <td data-numeric data-align="end">
+                {entry.status ? '—' : formatResultTime(entry.time1)}
               </td>
-              <td data-numeric data-align="end" className={styles.loss}>{formatLoss(entry)}</td>
+              <td data-numeric data-align="end">
+                {entry.status ? '—' : formatResultTime(entry.time2)}
+              </td>
+              <td data-numeric data-align="end" className={styles.total}>
+                {entry.status ? (
+                  <span className={styles.statusText}>{entry.status}</span>
+                ) : (
+                  formatResultTime(entry.time_sum)
+                )}
+              </td>
+              <td data-numeric data-align="end" className={styles.loss}>
+                {formatLoss(entry)}
+              </td>
               {showPoints && (
-                <td data-numeric data-align="end" className={styles.points}>{entry.points > 0 ? entry.points : 0}</td>
+                <td data-numeric data-align="end" className={styles.points}>
+                  {entry.points > 0 ? entry.points : 0}
+                </td>
               )}
               <td>
-                {entry.status ? <RaceFlag flag={entry.status.toLowerCase()} />
-                  : shared.has(entry.display_rank) ? <span className={styles.note}>Dělené {entry.display_rank}. místo</span>
-                    : entry.time_sum != null ? <span className={styles.note}>Dokončil</span>
-                      : <span className={styles.note}>Čeká na čas</span>}
+                {entry.status ? (
+                  <RaceFlag flag={entry.status.toLowerCase()} />
+                ) : shared.has(entry.display_rank) ? (
+                  <span className={styles.note}>Dělené {entry.display_rank}. místo</span>
+                ) : entry.time_sum != null ? (
+                  <span className={styles.note}>Dokončil</span>
+                ) : (
+                  <span className={styles.note}>Čeká na čas</span>
+                )}
               </td>
             </tr>
           ))}

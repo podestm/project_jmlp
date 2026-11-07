@@ -17,7 +17,9 @@ export default function TopBar({ race }) {
       <Link to="/timekeeper" className={styles.brand} aria-label="Časomíra – přehled">
         <span className={styles.brandText}>
           <span className={styles.name}>Časomíra</span>
-          <span className={styles.season}>JMLP · {edition} ročník {season}</span>
+          <span className={styles.season}>
+            JMLP · {edition} ročník {season}
+          </span>
         </span>
       </Link>
 

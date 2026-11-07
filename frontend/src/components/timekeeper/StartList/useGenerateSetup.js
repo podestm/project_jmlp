@@ -28,7 +28,7 @@ export const useGenerateSetup = (selectedRaceId, { setMessage, onGenerated }) =>
       setOpen(true);
       const cats = await TimekeeperAPI.get('/api/timekeeper/categories');
       setCategories(cats);
-      setCategoryOrder(cats.map(c => c.id));
+      setCategoryOrder(cats.map((c) => c.id));
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst nastavení' });
       setOpen(false);
@@ -44,21 +44,29 @@ export const useGenerateSetup = (selectedRaceId, { setMessage, onGenerated }) =>
       const body = {};
       if (categoryOrder.length > 0) body.category_order = categoryOrder;
       const result = await TimekeeperAPI.post(
-        `/api/timekeeper/races/${selectedRaceId}/start-list/generate`, body
+        `/api/timekeeper/races/${selectedRaceId}/start-list/generate`,
+        body,
       );
       setMessage({ type: 'success', text: result.message });
       setOpen(false);
       onGenerated();
     } catch (err) {
-      setMessage({ type: 'danger', text: err.message || 'Nepodařilo se vygenerovat startovní listinu' });
+      setMessage({
+        type: 'danger',
+        text: err.message || 'Nepodařilo se vygenerovat startovní listinu',
+      });
     } finally {
       setGenerating(false);
     }
   };
 
   // --- Drag & drop ---
-  const handleDragStart = (index) => { dragItem.current = index; };
-  const handleDragEnter = (index) => { dragOverItem.current = index; };
+  const handleDragStart = (index) => {
+    dragItem.current = index;
+  };
+  const handleDragEnter = (index) => {
+    dragOverItem.current = index;
+  };
   const handleDragEnd = () => {
     if (dragItem.current === null || dragOverItem.current === null) return;
     const newOrder = [...categoryOrder];
@@ -86,9 +94,8 @@ export const useGenerateSetup = (selectedRaceId, { setMessage, onGenerated }) =>
     .map((id) => categories.find((category) => category.id === id))
     .filter(Boolean);
 
-  const categoryPreview = (year, sex) => (
-    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT, 'Bez kategorie')
-  );
+  const categoryPreview = (year, sex) =>
+    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT, 'Bez kategorie');
 
   return {
     open,

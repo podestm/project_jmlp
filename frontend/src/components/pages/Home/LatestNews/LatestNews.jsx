@@ -13,8 +13,16 @@ export default function LatestNews({ posts, className }) {
   if (posts.status === 'loading') content = <LoadingState label="Načítám aktuality…" />;
   else if (posts.status === 'error') {
     content = (
-      <Alert type="danger" compact title="Aktuality se nepodařilo načíst"
-        actions={<Button size="sm" icon="refresh" onClick={() => posts.load()}>Zkusit znovu</Button>}>
+      <Alert
+        type="danger"
+        compact
+        title="Aktuality se nepodařilo načíst"
+        actions={
+          <Button size="sm" icon="refresh" onClick={() => posts.load()}>
+            Zkusit znovu
+          </Button>
+        }
+      >
         Zkuste to prosím za chvíli znovu.
       </Alert>
     );
@@ -23,13 +31,24 @@ export default function LatestNews({ posts, className }) {
   } else {
     content = (
       <div className={styles.list}>
-        {posts.data.map((post) => <PostCard key={post.id} post={post} variant="side" headingLevel={3} />)}
+        {posts.data.map((post) => (
+          <PostCard key={post.id} post={post} variant="side" headingLevel={3} />
+        ))}
       </div>
     );
   }
   return (
     <section className={cx(styles.section, className)} aria-labelledby="aktuality">
-      <Paska id="aktuality" aside={<Link to="/aktuality" className={styles.more}>Starší zprávy →</Link>}>Aktuality</Paska>
+      <Paska
+        id="aktuality"
+        aside={
+          <Link to="/aktuality" className={styles.more}>
+            Starší zprávy →
+          </Link>
+        }
+      >
+        Aktuality
+      </Paska>
       {content}
     </section>
   );

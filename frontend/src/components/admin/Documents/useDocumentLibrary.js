@@ -54,18 +54,30 @@ export function useDocumentLibrary({ confirm }) {
         // nabídka postupně scvrkla na jedinou položku.
         if (!hasFilters(applied)) setExtensions(collectExtensions(data.files || []));
       })
-      .catch((err) => { if (active) setMessage({ type: 'danger', text: err.message }); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+      .catch((err) => {
+        if (active) setMessage({ type: 'danger', text: err.message });
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [applied, reloadToken]);
 
   // Sezóny se nemění během práce s knihovnou, stačí je načíst jednou.
   useEffect(() => {
     let active = true;
     LibraryAPI.seasons()
-      .then((data) => { if (active) setSeasons(data || []); })
-      .catch((err) => { if (active) setMessage({ type: 'danger', text: err.message }); });
-    return () => { active = false; };
+      .then((data) => {
+        if (active) setSeasons(data || []);
+      })
+      .catch((err) => {
+        if (active) setMessage({ type: 'danger', text: err.message });
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const reload = () => setReloadToken((token) => token + 1);
@@ -147,7 +159,7 @@ export function useDocumentLibrary({ confirm }) {
 
   const deleteFile = async (file) => {
     const used = (file.usage_info || []).length > 0;
-    if (!await confirm(deleteFileConfirm(file))) return;
+    if (!(await confirm(deleteFileConfirm(file)))) return;
 
     try {
       await LibraryAPI.remove(file.id, { force: used });
@@ -159,12 +171,29 @@ export function useDocumentLibrary({ confirm }) {
   };
 
   return {
-    filters, setFilter, clearFilters, filtersActive,
-    files, total, extensions, seasons, loading,
-    exporting, exportZip,
-    message, setMessage,
-    editingId, draftName, setDraftName, startRename, cancelRename, commitRename,
-    publishing, requestPublish, publish, cancelPublish: () => setPublishing(null),
+    filters,
+    setFilter,
+    clearFilters,
+    filtersActive,
+    files,
+    total,
+    extensions,
+    seasons,
+    loading,
+    exporting,
+    exportZip,
+    message,
+    setMessage,
+    editingId,
+    draftName,
+    setDraftName,
+    startRename,
+    cancelRename,
+    commitRename,
+    publishing,
+    requestPublish,
+    publish,
+    cancelPublish: () => setPublishing(null),
     deleteFile,
   };
 }

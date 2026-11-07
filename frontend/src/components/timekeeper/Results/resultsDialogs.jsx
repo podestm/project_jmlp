@@ -23,8 +23,16 @@ export const publishConfirm = ({ target, fileName, race }) => {
       title: `Zveřejnit ${what} výsledky poháru?`,
       message: (
         <>
-          <p>Pořadí se zveřejní u sezóny {target.seasonLabel || ''} a nahradí dosavadní výsledky poháru.</p>
-          {fileName && <FileCard fileName={fileName} detail={`${target.final ? 'Celkové' : 'Průběžné'} výsledky poháru`} />}
+          <p>
+            Pořadí se zveřejní u sezóny {target.seasonLabel || ''} a nahradí dosavadní výsledky
+            poháru.
+          </p>
+          {fileName && (
+            <FileCard
+              fileName={fileName}
+              detail={`${target.final ? 'Celkové' : 'Průběžné'} výsledky poháru`}
+            />
+          )}
         </>
       ),
       confirmLabel: 'Zveřejnit',
@@ -36,8 +44,8 @@ export const publishConfirm = ({ target, fileName, race }) => {
     message: (
       <>
         <p>
-          Listina se připojí k závodu{race?.race_nr ? ` ${race.race_nr}` : ''}, hned je vidět na webu
-          a nahradí dosud publikovanou.
+          Listina se připojí k závodu{race?.race_nr ? ` ${race.race_nr}` : ''}, hned je vidět na
+          webu a nahradí dosud publikovanou.
         </p>
         {fileName && <FileCard fileName={fileName} detail="Celková výsledková listina" />}
       </>
@@ -57,8 +65,7 @@ export const clearResultsConfirm = ({ race, total }) => ({
     <>
       <p>
         Smažou se časy obou kol, příznaky DNF/DNS/DSQ i body
-        {total ? ` u všech ${total} závodníků` : ' u všech závodníků'}.
-        Startovní listina zůstane.
+        {total ? ` u všech ${total} závodníků` : ' u všech závodníků'}. Startovní listina zůstane.
       </p>
       <Alert type="warning" compact title="Akce je nevratná" />
     </>

@@ -3,6 +3,7 @@
 Nginx (frontend/nginx.conf) sem posílá /robots.txt, /sitemap.xml a požadavky
 botů na veřejné stránky (map $jmlp_preview). Logika je v services/seo.py.
 """
+
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from sqlalchemy.orm import Session
@@ -19,7 +20,9 @@ _CACHE = {"Cache-Control": "public, max-age=3600"}
 
 @router.get("/robots.txt", response_class=PlainTextResponse)
 def robots(request: Request):
-    return PlainTextResponse(seo.robots_txt(seo.site_origin(request.headers.get("host"))), headers=_CACHE)
+    return PlainTextResponse(
+        seo.robots_txt(seo.site_origin(request.headers.get("host"))), headers=_CACHE
+    )
 
 
 @router.get("/sitemap.xml")

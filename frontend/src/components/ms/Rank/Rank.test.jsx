@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import Rank from './Rank.jsx';
 
 describe('Rank', () => {
-  it.each([[1, '1'], [2, '2'], [3, '3'], [4, undefined]])('místo %s má pódium %s', (place, podium) => {
+  it.each([
+    [1, '1'],
+    [2, '2'],
+    [3, '3'],
+    [4, undefined],
+  ])('místo %s má pódium %s', (place, podium) => {
     const { container } = render(<Rank place={place} />);
     const box = container.firstChild;
     expect(box).toHaveTextContent(String(place));

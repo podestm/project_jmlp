@@ -8,7 +8,12 @@ vi.mock('../../../config/timekeeperAuth.jsx', () => ({ useTimekeeperAuth: () => 
 
 const { default: TimekeeperLogin } = await import('./TimekeeperLogin.jsx');
 
-const renderLogin = () => render(<MemoryRouter><TimekeeperLogin /></MemoryRouter>);
+const renderLogin = () =>
+  render(
+    <MemoryRouter>
+      <TimekeeperLogin />
+    </MemoryRouter>,
+  );
 
 const fill = async () => {
   await userEvent.type(screen.getByLabelText('E-mail'), 'casomira@jmlp.cz');

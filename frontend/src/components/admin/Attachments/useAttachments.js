@@ -21,7 +21,10 @@ export function useAttachments({ ownerType, ownerId, onChange, confirm }) {
   onChangeRef.current = onChange;
 
   const load = useCallback(async () => {
-    if (!ownerId) { setAttachments([]); return; }
+    if (!ownerId) {
+      setAttachments([]);
+      return;
+    }
     try {
       setLoading(true);
       const data = await AttachmentsAPI.list(ownerType, ownerId);
@@ -34,7 +37,9 @@ export function useAttachments({ ownerType, ownerId, onChange, confirm }) {
     }
   }, [ownerType, ownerId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const run = async (key, action, successText) => {
     try {
@@ -49,37 +54,38 @@ export function useAttachments({ ownerType, ownerId, onChange, confirm }) {
     }
   };
 
-  const upload = (key, role, file) => run(
-    key,
-    () => AttachmentsAPI.upload(file, { ownerType, ownerId, role }),
-    `${ROLE_LABELS[role]}: soubor nahrán`,
-  );
+  const upload = (key, role, file) =>
+    run(
+      key,
+      () => AttachmentsAPI.upload(file, { ownerType, ownerId, role }),
+      `${ROLE_LABELS[role]}: soubor nahrán`,
+    );
 
-  const link = (key, role, file) => run(
-    key,
-    () => AttachmentsAPI.link(file.id, { ownerType, ownerId, role }),
-    `${ROLE_LABELS[role]}: dokument připojen`,
-  );
+  const link = (key, role, file) =>
+    run(
+      key,
+      () => AttachmentsAPI.link(file.id, { ownerType, ownerId, role }),
+      `${ROLE_LABELS[role]}: dokument připojen`,
+    );
 
-  const togglePublished = (key, attachment, published) => run(
-    key,
-    () => AttachmentsAPI.update(attachment.id, { published }),
-    published ? 'Dokument zveřejněn' : 'Dokument skryt',
-  );
+  const togglePublished = (key, attachment, published) =>
+    run(
+      key,
+      () => AttachmentsAPI.update(attachment.id, { published }),
+      published ? 'Dokument zveřejněn' : 'Dokument skryt',
+    );
 
-  const changeRole = (key, attachment, role) => run(
-    key,
-    () => AttachmentsAPI.update(attachment.id, { role }),
-    `Změněno na: ${ROLE_LABELS[role]}`,
-  );
+  const changeRole = (key, attachment, role) =>
+    run(
+      key,
+      () => AttachmentsAPI.update(attachment.id, { role }),
+      `Změněno na: ${ROLE_LABELS[role]}`,
+    );
 
   // Přejmenovává se soubor, ne příloha: soubor má jediný název a všechna
   // místa, kde je připojený, ho musí vidět stejně.
-  const rename = (key, attachment, name) => run(
-    key,
-    () => LibraryAPI.rename(attachment.file_id, name),
-    'Soubor přejmenován',
-  );
+  const rename = (key, attachment, name) =>
+    run(key, () => LibraryAPI.rename(attachment.file_id, name), 'Soubor přejmenován');
 
   const remove = async (key, attachment) => {
     const choice = await confirm(detachConfirm(attachment));
@@ -92,7 +98,16 @@ export function useAttachments({ ownerType, ownerId, onChange, confirm }) {
   };
 
   return {
-    attachments, loading, busyKey, message, setMessage,
-    upload, link, togglePublished, changeRole, rename, remove,
+    attachments,
+    loading,
+    busyKey,
+    message,
+    setMessage,
+    upload,
+    link,
+    togglePublished,
+    changeRole,
+    rename,
+    remove,
   };
 }

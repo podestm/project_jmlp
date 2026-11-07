@@ -30,7 +30,9 @@ export default function ConflictDialogMessage({ racerLabel, mine, fresh }) {
             {CONFLICT_FIELDS.map(([field, label]) => (
               <tr key={field}>
                 <td>{label}</td>
-                <td data-numeric><strong>{formatConflictValue(mine[field])}</strong></td>
+                <td data-numeric>
+                  <strong>{formatConflictValue(mine[field])}</strong>
+                </td>
                 <td data-numeric>{formatConflictValue(fresh[field])}</td>
               </tr>
             ))}

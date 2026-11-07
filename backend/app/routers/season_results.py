@@ -11,6 +11,7 @@ Vedle něj může mít sezóna obecné dokumenty (soutěžní řád, pokyny). Ty
 nepatří - dřív se bral první zveřejněný dokument jakékoli role a kalendář pak
 nabízel soutěžní řád pod tlačítkem "Průběžné výsledky".
 """
+
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,8 +32,11 @@ RESULT_ROLES = (AttachmentRole.vysledky.value, AttachmentRole.prubezne.value)
 
 def _season_payload(season: models.Season, db: Session) -> Optional[Dict[str, Any]]:
     documents = attachment_service.list_for_owner(
-        db, AttachmentOwner.season.value, season.year_start,
-        roles=RESULT_ROLES, published_only=True,
+        db,
+        AttachmentOwner.season.value,
+        season.year_start,
+        roles=RESULT_ROLES,
+        published_only=True,
     )
     if not documents:
         return None
@@ -84,7 +88,12 @@ def _public_cell(cell: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         return None
     rank, _, points = cell["text"].partition("/")
     if points:
-        return {"rank": int(rank), "points": int(points), "status": None, "counted": cell["counted"]}
+        return {
+            "rank": int(rank),
+            "points": int(points),
+            "status": None,
+            "counted": cell["counted"],
+        }
     return {"rank": None, "points": 0, "status": cell["text"] or None, "counted": cell["counted"]}
 
 
@@ -113,7 +122,9 @@ def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> Dict[
         "document": {
             "url": f"/{document['document_file_path']}",
             "final": final,
-        } if document else None,
+        }
+        if document
+        else None,
         "races": [
             {key: race[key] for key in ("id", "kind", "datum", "race_nr", "areal_name")}
             for race in data["races"]

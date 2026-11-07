@@ -4,6 +4,7 @@ Archiv se stahuje jednou za čas kvůli záloze, takže složky kopírují to, c
 člověk hledá: závody, sezóny, kluby, články. Soubor, který nikam nepatří,
 končí v „nezarazene".
 """
+
 import re
 from collections import defaultdict
 from pathlib import PurePosixPath

@@ -4,6 +4,7 @@ Klíčový endpoint je POST /api/admin/attachments: nahraje soubor A rovnou ho
 připojí k závodu / článku / sezóně / klubu. Není potřeba soubor nejdřív nahrát
 do knihovny a teprve pak přiřazovat.
 """
+
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -206,9 +207,9 @@ def reorder_attachments(
         raise HTTPException(status_code=400, detail="attachment_ids musí být seznam")
 
     for position, attachment_id in enumerate(attachment_ids):
-        db.query(models.Attachment).filter(
-            models.Attachment.id == attachment_id
-        ).update({"sort_order": position}, synchronize_session=False)
+        db.query(models.Attachment).filter(models.Attachment.id == attachment_id).update(
+            {"sort_order": position}, synchronize_session=False
+        )
     db.commit()
     return {"message": "Pořadí uloženo", "updated": len(attachment_ids)}
 
@@ -241,10 +242,14 @@ def delete_attachment(
             )
         return {"message": "Příloha odpojena"}
 
-    other_uses = db.query(models.Attachment).filter(
-        models.Attachment.file_id == file_id,
-        models.Attachment.owner_type != AttachmentOwner.library.value,
-    ).count()
+    other_uses = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.file_id == file_id,
+            models.Attachment.owner_type != AttachmentOwner.library.value,
+        )
+        .count()
+    )
     if other_uses:
         raise HTTPException(
             status_code=409,

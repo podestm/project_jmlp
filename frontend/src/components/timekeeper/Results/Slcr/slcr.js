@@ -21,7 +21,8 @@ export const DRY_RUN_TEXT = 'Zkušební režim – do evidence SLČR se nic nepo
 const SEX_LABELS = { Male: 'Muži', Female: 'Ženy', Both: 'Společná' };
 
 /** Text chyby od backendu (detail), ne obecné „API Error: 502“. */
-export const slcrErrorText = (err) => (typeof err?.detail === 'string' && err.detail) || err?.message || 'Neznámá chyba';
+export const slcrErrorText = (err) =>
+  (typeof err?.detail === 'string' && err.detail) || err?.message || 'Neznámá chyba';
 
 /** „2026-01-17“ → „17. 1. 2026“ (bez převodu časových pásem). */
 export const formatSlcrDate = (value) => {
@@ -90,8 +91,12 @@ export const createConfirm = (plan, summary) => ({
   title: 'Založit závody v evidenci SLČR?',
   message: [
     `V akci „${plan?.event?.name || 'vybraná akce'}“ se `,
-    [summary.toCreate && `založí ${summary.toCreate} závodů`, summary.toCodex && `u ${summary.toCodex} se doplní kodex`]
-      .filter(Boolean).join(' a '),
+    [
+      summary.toCreate && `založí ${summary.toCreate} závodů`,
+      summary.toCodex && `u ${summary.toCodex} se doplní kodex`,
+    ]
+      .filter(Boolean)
+      .join(' a '),
     '. Zápis jde rovnou do evidence SLČR.',
     dryRunNote(summary.dryRun),
   ].join(''),
@@ -107,7 +112,9 @@ export const sendConfirm = (eventName, dryRun) => ({
 });
 
 export const sentMessage = (data) => {
-  const note = data?.unfinished ? ` ${data.unfinished} startujících bez času a bez příznaku se neposlalo.` : '';
+  const note = data?.unfinished
+    ? ` ${data.unfinished} startujících bez času a bez příznaku se neposlalo.`
+    : '';
   return `Výsledky jsou v evidenci (zatím nezveřejněné – zveřejňuje se v evidenci).${note}`;
 };
 
@@ -142,9 +149,8 @@ export const categoryState = (item) => {
 };
 
 /** Startující bez času i bez DNF/DNS/DSQ – takovou kategorii nejde poslat. */
-export const missingCount = (entries = []) => entries.filter(
-  (entry) => entry.time_sum == null && !entry.status,
-).length;
+export const missingCount = (entries = []) =>
+  entries.filter((entry) => entry.time_sum == null && !entry.status).length;
 
 /** „1 závodník“, „3 závodníci“, „5 závodníků“. */
 export const racersText = (count) => {
@@ -155,7 +161,8 @@ export const racersText = (count) => {
 
 /** Značka u čipu kategorie: zveřejněné a rozpracované v evidenci. */
 export const chipMark = (item) => {
-  if (item?.slcr_state === 'Published') return { icon: 'check', label: 'zveřejněno v SLČR', tone: 'done' };
+  if (item?.slcr_state === 'Published')
+    return { icon: 'check', label: 'zveřejněno v SLČR', tone: 'done' };
   if (item?.slcr_state === 'Draft' || item?.slcr_state === 'Checked') {
     return { icon: 'clock', label: 'v SLČR nezveřejněno', tone: 'pending' };
   }
@@ -163,12 +170,16 @@ export const chipMark = (item) => {
 };
 
 export const publishConfirm = ({ categoryName, eventName, correction, dryRun }) => ({
-  title: correction ? `Opravit výsledky kategorie ${categoryName} v SLČR?` : `Zveřejnit kategorii ${categoryName} v SLČR?`,
+  title: correction
+    ? `Opravit výsledky kategorie ${categoryName} v SLČR?`
+    : `Zveřejnit kategorii ${categoryName} v SLČR?`,
   message: [
     `Výsledky kategorie „${categoryName}“ se pošlou do akce „${eventName || 'vybraná akce'}“ a hned se zveřejní.`,
     correction && ' Dosud zveřejněné výsledky kategorie se nahradí novými.',
     dryRunNote(dryRun),
-  ].filter(Boolean).join(''),
+  ]
+    .filter(Boolean)
+    .join(''),
   confirmLabel: correction ? 'Opravit v SLČR' : 'Odeslat a zveřejnit',
 });
 
@@ -193,10 +204,13 @@ export const readSlcrChoice = (raceId) => {
 
 export const storeSlcrChoice = (raceId, { eventId, discipline }) => {
   try {
-    localStorage.setItem(storageKey(raceId), JSON.stringify({
-      eventId: Number(eventId) || null,
-      discipline: Number(discipline),
-    }));
+    localStorage.setItem(
+      storageKey(raceId),
+      JSON.stringify({
+        eventId: Number(eventId) || null,
+        discipline: Number(discipline),
+      }),
+    );
   } catch {
     // Bez úložiště se jen nic nepamatuje.
   }

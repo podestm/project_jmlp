@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from ...auth import require_role
 from .auth import router as auth_router
-from .posts import router as posts_router  
+from .posts import router as posts_router
 from .racers import router as racers_router
 from .races import router as races_router
 from .documents import router as documents_router

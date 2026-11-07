@@ -17,11 +17,25 @@ import styles from './DataRow.module.css';
  * - raised: stín ms-shadow-raised – jen karta „Nejbližší závod“ (design systém)
  */
 export default function DataRow({
-  as: Tag = 'div', variant = 'list', tone = 'neutral', statusLabel, eyebrow, raised = false, lead, title, meta, value, aside,
-  className, children,
+  as: Tag = 'div',
+  variant = 'list',
+  tone = 'neutral',
+  statusLabel,
+  eyebrow,
+  raised = false,
+  lead,
+  title,
+  meta,
+  value,
+  aside,
+  className,
+  children,
 }) {
   return (
-    <Tag className={cx(styles.row, styles[variant], raised && styles.raised, className)} data-tone={tone}>
+    <Tag
+      className={cx(styles.row, styles[variant], raised && styles.raised, className)}
+      data-tone={tone}
+    >
       <span className={styles.bar} aria-hidden="true" />
       {lead && <span className={styles.lead}>{lead}</span>}
       <span className={styles.text}>

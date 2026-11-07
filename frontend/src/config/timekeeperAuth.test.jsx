@@ -5,7 +5,10 @@ import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
 
 const flushQueue = vi.fn(async () => {});
 const releaseAuthParked = vi.fn(async () => 2);
-vi.mock('./timekeeperApi.js', () => ({ startTimekeeperSync: () => () => {}, TimekeeperAPI: { flushQueue } }));
+vi.mock('./timekeeperApi.js', () => ({
+  startTimekeeperSync: () => () => {},
+  TimekeeperAPI: { flushQueue },
+}));
 vi.mock('../offline/syncQueue.js', () => ({ releaseAuthParked }));
 vi.mock('../offline/sync.js', () => ({ AUTH_EXPIRED_MESSAGE: 'auth-expired' }));
 vi.mock('./tokenRefresh.js', () => ({ startTokenRefresh: () => ({ stop: () => {} }) }));
@@ -14,11 +17,15 @@ const { TimekeeperAuthProvider, useTimekeeperAuth } = await import('./timekeeper
 
 const PROFILE = { email: 'cas@jmlp.cz', role: 'timekeeper' };
 const respond = (body, status = 200) => ({
-  ok: status < 400, status, statusText: status < 400 ? 'OK' : 'Error',
+  ok: status < 400,
+  status,
+  statusText: status < 400 ? 'OK' : 'Error',
   headers: new Headers({ 'content-type': 'application/json' }),
-  json: async () => body, text: async () => JSON.stringify(body)
+  json: async () => body,
+  text: async () => JSON.stringify(body),
 });
-const setOnline = (value) => Object.defineProperty(navigator, 'onLine', { value, configurable: true });
+const setOnline = (value) =>
+  Object.defineProperty(navigator, 'onLine', { value, configurable: true });
 
 const renderAuth = () => renderHook(() => useTimekeeperAuth(), { wrapper: TimekeeperAuthProvider });
 
@@ -30,7 +37,8 @@ describe('časomíra nikoho sama neodhlásí', () => {
     setOnline(true);
     global.fetch = vi.fn(async (url) => {
       const path = String(url);
-      if (path.endsWith('/auth/login')) return respond({ access_token: 'novy', token_type: 'bearer', expires_in: 43200 });
+      if (path.endsWith('/auth/login'))
+        return respond({ access_token: 'novy', token_type: 'bearer', expires_in: 43200 });
       if (path.endsWith('/auth/me')) return respond(PROFILE);
       return respond({});
     });
@@ -44,7 +52,11 @@ describe('časomíra nikoho sama neodhlásí', () => {
     localStorage.setItem(SESSION_USER_KEY, JSON.stringify(PROFILE));
 
     act(() => {
-      window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT, { detail: { section: '/timekeeper', tokenCleared: true } }));
+      window.dispatchEvent(
+        new CustomEvent(AUTH_EXPIRED_EVENT, {
+          detail: { section: '/timekeeper', tokenCleared: true },
+        }),
+      );
     });
 
     expect(result.current.reauthRequired).toBe(true);
@@ -84,7 +96,9 @@ describe('časomíra nikoho sama neodhlásí', () => {
     const { result } = renderAuth();
     await waitFor(() => expect(result.current.reauthRequired).toBe(true));
 
-    await act(async () => { await result.current.login('cas@jmlp.cz', 'heslo'); });
+    await act(async () => {
+      await result.current.login('cas@jmlp.cz', 'heslo');
+    });
 
     expect(result.current.reauthRequired).toBe(false);
     expect(localStorage.getItem(SESSION_TOKEN_KEY)).toBe('novy');

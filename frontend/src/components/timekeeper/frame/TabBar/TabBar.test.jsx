@@ -5,7 +5,11 @@ import { describe, expect, it, vi } from 'vitest';
 import TabBar from './TabBar.jsx';
 
 const renderBar = (user, onLogout = vi.fn(), path = '/timekeeper/start-list') => {
-  render(<MemoryRouter initialEntries={[path]}><TabBar user={user} onLogout={onLogout} /></MemoryRouter>);
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <TabBar user={user} onLogout={onLogout} />
+    </MemoryRouter>,
+  );
   return onLogout;
 };
 
@@ -15,12 +19,22 @@ describe('TabBar', () => {
     const nav = screen.getByRole('navigation', { name: 'Časomíra' });
     const links = within(nav).getAllByRole('link');
     const names = [
-      'Přehled', 'Detail závodu', 'Závodníci', 'Startovní listina', 'Zadávání časů', 'Výsledky',
-      'Čísla', 'Synchronizace', 'Zařízení',
+      'Přehled',
+      'Detail závodu',
+      'Závodníci',
+      'Startovní listina',
+      'Zadávání časů',
+      'Výsledky',
+      'Čísla',
+      'Synchronizace',
+      'Zařízení',
     ];
     expect(links).toHaveLength(names.length);
     links.forEach((link, index) => expect(link).toHaveAccessibleName(names[index]));
-    expect(within(nav).getByRole('link', { name: 'Startovní listina' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('link', { name: 'Startovní listina' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('na tabletu krátký popisek, celý název pro čtečku', () => {
@@ -48,9 +62,10 @@ describe('TabBar', () => {
   });
 
   it('když se taby nevejdou, lišta se posune na aktivní tab', () => {
-    const size = (prop, value) => vi.spyOn(HTMLElement.prototype, prop, 'get').mockImplementation(function get() {
-      return this.tagName === 'NAV' ? value.nav : value.tab;
-    });
+    const size = (prop, value) =>
+      vi.spyOn(HTMLElement.prototype, prop, 'get').mockImplementation(function get() {
+        return this.tagName === 'NAV' ? value.nav : value.tab;
+      });
     size('scrollWidth', { nav: 600, tab: 60 });
     size('clientWidth', { nav: 400, tab: 60 });
     size('offsetWidth', { nav: 400, tab: 60 });

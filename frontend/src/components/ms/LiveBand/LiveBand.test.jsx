@@ -5,7 +5,11 @@ import LiveBand from './LiveBand.jsx';
 
 describe('LiveBand', () => {
   it('celý pruh je odkaz na živé výsledky', () => {
-    render(<MemoryRouter><LiveBand title="Právě se závodí – Kohoutovice" detail="Sledujte živě." /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <LiveBand title="Právě se závodí – Kohoutovice" detail="Sledujte živě." />
+      </MemoryRouter>,
+    );
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', '/zive');
     expect(link).toHaveTextContent('Právě se závodí – Kohoutovice');

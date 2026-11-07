@@ -2,7 +2,8 @@
 import { czechPlural, raceOrder, seasonLabel } from '../../../utils/races.js';
 import { formatSeasonShort } from '../../../utils/season.js';
 
-export const registrationsWord = (count) => czechPlural(count, ['přihláška', 'přihlášky', 'přihlášek']);
+export const registrationsWord = (count) =>
+  czechPlural(count, ['přihláška', 'přihlášky', 'přihlášek']);
 
 /** „2 závody · 1 s otevřenou registrací“ */
 export const listSummary = (races) => {
@@ -14,9 +15,8 @@ export const listSummary = (races) => {
 export const seasonOptionLabel = (seasonId) => `Sezóna ${seasonLabel(seasonId)}`;
 
 /** Text vedle H1: vybraná sezóna, nebo „všechny sezóny“. */
-export const seasonMeta = (seasonFilter) => (
-  seasonFilter ? `sezóna ${formatSeasonShort(Number(seasonFilter))}` : 'všechny sezóny'
-);
+export const seasonMeta = (seasonFilter) =>
+  seasonFilter ? `sezóna ${formatSeasonShort(Number(seasonFilter))}` : 'všechny sezóny';
 
 /** „JMLP2026-01“ → „1. závod sezóny“ (null bez čísla). */
 export const orderLabel = (raceNr) => {

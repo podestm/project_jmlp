@@ -19,8 +19,7 @@ export default function AutoFilledPanel({ detail }) {
     <aside className={styles.aside}>
       <section className={styles.panel} aria-labelledby="z-databaze">
         <h2 id="z-databaze" className={styles.head}>
-          <Icon name="database" size={20} />
-          Z databáze se doplní automaticky
+          <Icon name="database" size={20} />Z databáze se doplní automaticky
         </h2>
         <dl className={styles.list}>
           {rows.map(([label, value]) => (

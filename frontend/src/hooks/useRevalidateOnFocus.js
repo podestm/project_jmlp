@@ -19,7 +19,10 @@ const DEFAULT_MIN_IDLE_MS = 30000;
  * Do časoměřiče schválně nevede - ten má vlastní offline data v IndexedDB
  * a vlastní synchronizaci (src/offline/).
  */
-export function useRevalidateOnFocus(onRevalidate, { enabled = true, minIdleMs = DEFAULT_MIN_IDLE_MS } = {}) {
+export function useRevalidateOnFocus(
+  onRevalidate,
+  { enabled = true, minIdleMs = DEFAULT_MIN_IDLE_MS } = {},
+) {
   // Callback se mění s každým renderem; posluchače se kvůli tomu přepojovat
   // nemusí, stačí sáhnout pro poslední verzi.
   const callbackRef = useRef(onRevalidate);

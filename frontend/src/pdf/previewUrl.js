@@ -27,20 +27,21 @@ const blobUrl = (blob) => {
   return { url, revoke: () => URL.revokeObjectURL(url) };
 };
 
-const canUseWorker = () => (
-  typeof navigator !== 'undefined'
-  && Boolean(navigator.serviceWorker?.controller)
-  && typeof caches !== 'undefined'
-);
+const canUseWorker = () =>
+  typeof navigator !== 'undefined' &&
+  Boolean(navigator.serviceWorker?.controller) &&
+  typeof caches !== 'undefined';
 
 /** Smaže náhledy z dřívějška (zavřená okna, pád prohlížeče). */
 async function purgeOld(cache, now) {
   const requests = await cache.keys();
-  await Promise.all(requests.map((request) => {
-    const token = new URL(request.url).pathname.slice(PREVIEW_PATH.length).split('/')[0];
-    const created = Number(token.split('-')[0]);
-    return Number.isFinite(created) && now - created > MAX_AGE_MS ? cache.delete(request) : null;
-  }));
+  await Promise.all(
+    requests.map((request) => {
+      const token = new URL(request.url).pathname.slice(PREVIEW_PATH.length).split('/')[0];
+      const created = Number(token.split('-')[0]);
+      return Number.isFinite(created) && now - created > MAX_AGE_MS ? cache.delete(request) : null;
+    }),
+  );
 }
 
 /**
@@ -54,12 +55,15 @@ export async function createPreviewUrl(blob, fileName, now = Date.now()) {
     const cache = await caches.open(PREVIEW_CACHE);
     await purgeOld(cache, now);
     const url = `${PREVIEW_PATH}${now}-${randomPart()}/${encodeURIComponent(fileName)}`;
-    await cache.put(url, new Response(blob, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`
-      }
-    }));
+    await cache.put(
+      url,
+      new Response(blob, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+        },
+      }),
+    );
     // Starší verze workeru (těsně po nasazení, než se vymění) adresu nezná
     // a vrátila by obálku aplikace - náhled by v okně ukázal web místo PDF.
     const probe = await fetch(url, { cache: 'no-store' });
@@ -70,7 +74,9 @@ export async function createPreviewUrl(blob, fileName, now = Date.now()) {
     }
     return {
       url,
-      revoke: () => { cache.delete(url).catch(() => {}); }
+      revoke: () => {
+        cache.delete(url).catch(() => {});
+      },
     };
   } catch {
     return blobUrl(blob);

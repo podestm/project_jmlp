@@ -1,7 +1,12 @@
 /* Main.dc.html (1240 px) a MobilUvod.dc.html (pod 768 px). */
 .hero {
   background:
-    linear-gradient(100deg, var(--ms-navy-deep) 0%, color-mix(in srgb, var(--ms-navy-deep) 88%, transparent) 45%, color-mix(in srgb, var(--ms-navy) 45%, transparent) 100%),
+    linear-gradient(
+      100deg,
+      var(--ms-navy-deep) 0%,
+      color-mix(in srgb, var(--ms-navy-deep) 88%, transparent) 45%,
+      color-mix(in srgb, var(--ms-navy) 45%, transparent) 100%
+    ),
     url('../../../assets/images/trat.jpg') center 60% / cover no-repeat;
   color: var(--ms-on-dark);
   --ms-focus-color: var(--ms-ice);

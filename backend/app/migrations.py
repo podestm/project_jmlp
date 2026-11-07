@@ -8,6 +8,7 @@ Pravidla (viz CLAUDE.md):
 - MyISAM, žádné FOREIGN KEY constraints
 - nové textové sloupce explicitně utf8mb4 (a čtou se BEZ fix_encoding)
 """
+
 import logging
 from pathlib import Path
 
@@ -19,25 +20,43 @@ logger = logging.getLogger(__name__)
 
 
 def _column_exists(conn, table: str, column: str) -> bool:
-    return conn.execute(text(
-        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
-        "WHERE TABLE_SCHEMA = DATABASE() "
-        "AND TABLE_NAME = :t AND COLUMN_NAME = :c"
-    ), {"t": table, "c": column}).scalar() > 0
+    return (
+        conn.execute(
+            text(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = :t AND COLUMN_NAME = :c"
+            ),
+            {"t": table, "c": column},
+        ).scalar()
+        > 0
+    )
 
 
 def _index_exists(conn, table: str, index: str) -> bool:
-    return conn.execute(text(
-        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS "
-        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND INDEX_NAME = :i"
-    ), {"t": table, "i": index}).scalar() > 0
+    return (
+        conn.execute(
+            text(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND INDEX_NAME = :i"
+            ),
+            {"t": table, "i": index},
+        ).scalar()
+        > 0
+    )
 
 
 def _table_exists(conn, table: str) -> bool:
-    return conn.execute(text(
-        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
-        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t"
-    ), {"t": table}).scalar() > 0
+    return (
+        conn.execute(
+            text(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t"
+            ),
+            {"t": table},
+        ).scalar()
+        > 0
+    )
 
 
 # --------------------------------------------------------------------------
@@ -65,15 +84,20 @@ _STARTOVKA_SLOUPCE = (
     ("category_sex", "smallint DEFAULT NULL"),
     ("race_number_display", "varchar(8) DEFAULT NULL"),
     ("name_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
-    ("surname_override", "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"),
+    (
+        "surname_override",
+        "varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL",
+    ),
     ("year_override", "int DEFAULT NULL"),
 )
 
 
 def _m_legacy_schema(conn):
     # 1) tabulky bez prefixu
-    for stary, novy in (("posts", "fuj_jmlp_posts"),
-                        ("race_registration", "fuj_jmlp_race_registration")):
+    for stary, novy in (
+        ("posts", "fuj_jmlp_posts"),
+        ("race_registration", "fuj_jmlp_race_registration"),
+    ):
         if _table_exists(conn, stary) and not _table_exists(conn, novy):
             conn.execute(text(f"RENAME TABLE {stary} TO {novy}"))
             logger.info("Migrace: %s -> %s", stary, novy)
@@ -83,7 +107,9 @@ def _m_legacy_schema(conn):
         ("raceNr", "race_nr", "varchar(255) DEFAULT NULL"),
         ("raceMethod_id", "race_method_id", "bigint NOT NULL"),
     ):
-        if _column_exists(conn, "fuj_jmlp_race", stary) and not _column_exists(conn, "fuj_jmlp_race", novy):
+        if _column_exists(conn, "fuj_jmlp_race", stary) and not _column_exists(
+            conn, "fuj_jmlp_race", novy
+        ):
             conn.execute(text(f"ALTER TABLE fuj_jmlp_race CHANGE `{stary}` `{novy}` {definice}"))
             logger.info("Migrace: fuj_jmlp_race.%s -> %s", stary, novy)
 
@@ -91,12 +117,16 @@ def _m_legacy_schema(conn):
     chybejici = [
         ("fuj_jmlp_race", "is_live", "tinyint(1) NOT NULL DEFAULT '0'"),
         ("fuj_jmlp_race", "timekeeper_category_order", "varchar(1000) DEFAULT NULL"),
-        ("fuj_jmlp_race_numbers", "set_color",
-         "varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'rose'"),
+        (
+            "fuj_jmlp_race_numbers",
+            "set_color",
+            "varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'rose'",
+        ),
         ("fuj_jmlp_race_numbers", "is_active", "tinyint(1) NOT NULL DEFAULT '1'"),
     ]
-    chybejici += [("fuj_jmlp_race_start_list", jmeno, definice)
-                  for jmeno, definice in _STARTOVKA_SLOUPCE]
+    chybejici += [
+        ("fuj_jmlp_race_start_list", jmeno, definice) for jmeno, definice in _STARTOVKA_SLOUPCE
+    ]
 
     for tabulka, sloupec, definice in chybejici:
         if _table_exists(conn, tabulka) and not _column_exists(conn, tabulka, sloupec):
@@ -112,9 +142,11 @@ def _m_legacy_schema(conn):
     # 5) posts.image_path nový model nezná. Zahodí se jen když je prázdný -
     #    jinak by to byla ztráta a raději ať upgrade skončí s plným sloupcem.
     if _column_exists(conn, "fuj_jmlp_posts", "image_path"):
-        pouzity = conn.execute(text(
-            "SELECT COUNT(*) FROM fuj_jmlp_posts WHERE image_path IS NOT NULL AND image_path <> ''"
-        )).scalar()
+        pouzity = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM fuj_jmlp_posts WHERE image_path IS NOT NULL AND image_path <> ''"
+            )
+        ).scalar()
         if pouzity:
             logger.warning(
                 "Migrace: fuj_jmlp_posts.image_path nese %s hodnot, nechávám ho být", pouzity
@@ -130,10 +162,12 @@ def _m_legacy_schema(conn):
 def _m_registration_club_request_note(conn):
     if _column_exists(conn, "fuj_jmlp_race_registration", "club_request_note"):
         return
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_race_registration "
-        "ADD COLUMN club_request_note VARCHAR(500) NULL DEFAULT NULL"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE fuj_jmlp_race_registration "
+            "ADD COLUMN club_request_note VARCHAR(500) NULL DEFAULT NULL"
+        )
+    )
     logger.info("Migrace: fuj_jmlp_race_registration.club_request_note")
 
 
@@ -151,7 +185,8 @@ def _m_attachments(conn):
     if _table_exists(conn, "fuj_jmlp_attachment"):
         return
 
-    conn.execute(text("""
+    conn.execute(
+        text("""
         CREATE TABLE fuj_jmlp_attachment (
           id          BIGINT       NOT NULL AUTO_INCREMENT,
           file_id     BIGINT       NOT NULL,
@@ -169,41 +204,51 @@ def _m_attachments(conn):
           KEY idx_attachment_file (file_id),
           KEY idx_attachment_role (role)
         ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    """))
+    """)
+    )
 
     # Backfill závodů - propozice a výsledky
     for column, role in (("proposition_file_id", "propozice"), ("results_file_id", "vysledky")):
-        conn.execute(text(f"""
+        conn.execute(
+            text(f"""
             INSERT INTO fuj_jmlp_attachment (file_id, owner_type, owner_id, role, sort_order, published)
             SELECT r.{column}, 'race', r.id, :role, 0, 1
             FROM fuj_jmlp_race r
             JOIN fuj_jmlp_files f ON f.id = r.{column}
             WHERE r.{column} IS NOT NULL
-        """), {"role": role})
+        """),
+            {"role": role},
+        )
 
     # Backfill článků - obrázek a dokument
     for column, role in (("image_file_id", "image"), ("document_file_id", "document")):
-        conn.execute(text(f"""
+        conn.execute(
+            text(f"""
             INSERT INTO fuj_jmlp_attachment (file_id, owner_type, owner_id, role, sort_order, published)
             SELECT p.{column}, 'post', p.id, :role, 0, 1
             FROM fuj_jmlp_posts p
             JOIN fuj_jmlp_files f ON f.id = p.{column}
             WHERE p.{column} IS NOT NULL
-        """), {"role": role})
+        """),
+            {"role": role},
+        )
 
     # Backfill sezónních výsledků - owner_id je rok začátku sezóny
     if _table_exists(conn, "fuj_jmlp_season_results"):
-        conn.execute(text("""
+        conn.execute(
+            text("""
             INSERT INTO fuj_jmlp_attachment (file_id, owner_type, owner_id, role, sort_order, published)
             SELECT sr.document_id, 'season', sr.season_year_start,
                    CASE WHEN sr.final_results = 1 THEN 'vysledky' ELSE 'prubezne' END,
                    0, 1
             FROM fuj_jmlp_season_results sr
             JOIN fuj_jmlp_files f ON f.id = sr.document_id
-        """))
+        """)
+        )
 
     # Zbylé soubory bez vazby zůstávají v knihovně - nic se neztratí
-    conn.execute(text("""
+    conn.execute(
+        text("""
         INSERT INTO fuj_jmlp_attachment (file_id, owner_type, owner_id, role, sort_order, published)
         SELECT f.id, 'library', NULL,
                CASE WHEN f.file_type = 'image' THEN 'image' ELSE 'document' END,
@@ -211,7 +256,8 @@ def _m_attachments(conn):
         FROM fuj_jmlp_files f
         LEFT JOIN fuj_jmlp_attachment a ON a.file_id = f.id
         WHERE a.id IS NULL
-    """))
+    """)
+    )
 
     total = conn.execute(text("SELECT COUNT(*) FROM fuj_jmlp_attachment")).scalar()
     logger.info("Migrace: fuj_jmlp_attachment vytvořena, backfill %s příloh", total)
@@ -227,7 +273,8 @@ def _m_seasons(conn):
     if _table_exists(conn, "fuj_jmlp_season"):
         return
 
-    conn.execute(text("""
+    conn.execute(
+        text("""
         CREATE TABLE fuj_jmlp_season (
           id         BIGINT       NOT NULL AUTO_INCREMENT,
           year_start INT          NOT NULL,
@@ -240,25 +287,32 @@ def _m_seasons(conn):
           PRIMARY KEY (id),
           UNIQUE KEY uq_season_year (year_start)
         ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    """))
+    """)
+    )
 
     # Backfill ze závodů i ze starých sezónních výsledků
-    conn.execute(text("""
+    conn.execute(
+        text("""
         INSERT INTO fuj_jmlp_season (year_start, year_end, edition, name)
         SELECT y.year_start, y.year_start + 1, y.year_start - :base,
                'Jihomoravský lyžařský pohár'
         FROM (
             SELECT DISTINCT season_id AS year_start FROM fuj_jmlp_race WHERE season_id IS NOT NULL
         ) y
-    """), {"base": EDITION_BASE_YEAR})
+    """),
+        {"base": EDITION_BASE_YEAR},
+    )
 
     if _table_exists(conn, "fuj_jmlp_season_results"):
-        conn.execute(text("""
+        conn.execute(
+            text("""
             INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name)
             SELECT sr.season_year_start, sr.season_year_end,
                    sr.season_year_start - :base, 'Jihomoravský lyžařský pohár'
             FROM fuj_jmlp_season_results sr
-        """), {"base": EDITION_BASE_YEAR})
+        """),
+            {"base": EDITION_BASE_YEAR},
+        )
 
     total = conn.execute(text("SELECT COUNT(*) FROM fuj_jmlp_season")).scalar()
     logger.info("Migrace: fuj_jmlp_season vytvořena, backfill %s sezón", total)
@@ -294,27 +348,34 @@ def _m_category_display_name(conn):
     if _column_exists(conn, "fuj_jmlp_category", "display_name"):
         return
 
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_category "
-        "ADD COLUMN display_name VARCHAR(120) CHARACTER SET utf8mb4 "
-        "COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE fuj_jmlp_category "
+            "ADD COLUMN display_name VARCHAR(120) CHARACTER SET utf8mb4 "
+            "COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL"
+        )
+    )
 
     # Překlep v datech: "Mladší žastvo" -> "Mladší žactvo"
-    conn.execute(text(
-        "UPDATE fuj_jmlp_category SET name = REPLACE(name, 'žastvo', 'žactvo') "
-        "WHERE name LIKE '%žastvo%'"
-    ))
+    conn.execute(
+        text(
+            "UPDATE fuj_jmlp_category SET name = REPLACE(name, 'žastvo', 'žactvo') "
+            "WHERE name LIKE '%žastvo%'"
+        )
+    )
 
     for (name, sex), display_name in CATEGORY_DISPLAY_NAMES.items():
-        conn.execute(text(
-            "UPDATE fuj_jmlp_category SET display_name = :display_name "
-            "WHERE name = :name AND sex = :sex"
-        ), {"display_name": display_name, "name": name, "sex": sex})
+        conn.execute(
+            text(
+                "UPDATE fuj_jmlp_category SET display_name = :display_name "
+                "WHERE name = :name AND sex = :sex"
+            ),
+            {"display_name": display_name, "name": name, "sex": sex},
+        )
 
-    filled = conn.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_category WHERE display_name IS NOT NULL"
-    )).scalar()
+    filled = conn.execute(
+        text("SELECT COUNT(*) FROM fuj_jmlp_category WHERE display_name IS NOT NULL")
+    ).scalar()
     logger.info("Migrace: fuj_jmlp_category.display_name vyplněn u %s kategorií", filled)
 
 
@@ -332,7 +393,8 @@ def _m_race_header(conn):
     if _column_exists(conn, "fuj_jmlp_race", "race_director"):
         return
 
-    conn.execute(text("""
+    conn.execute(
+        text("""
         ALTER TABLE fuj_jmlp_race
           ADD COLUMN race_director      VARCHAR(120) CHARACTER SET utf8mb4
                                         COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
@@ -341,7 +403,8 @@ def _m_race_header(conn):
           ADD COLUMN chief_timekeeper   VARCHAR(120) CHARACTER SET utf8mb4
                                         COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
           ADD COLUMN run_count          TINYINT NOT NULL DEFAULT 1
-    """))
+    """)
+    )
 
     # Jednorázový backfill z naměřených dat.
     #
@@ -350,18 +413,18 @@ def _m_race_header(conn):
     # jedno. Listina se řídí naměřenými daty každé kategorie zvlášť
     # (frontend/src/pdf/resultsPdf.js). Zůstává jen proto, že je NOT NULL
     # a mazat sloupec v ostré databázi kvůli tomu nemá cenu.
-    conn.execute(text("""
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_race r
         SET r.run_count = 2
         WHERE EXISTS (
             SELECT 1 FROM fuj_jmlp_race_start_list sl
             WHERE sl.race_id = r.id AND sl.time2 IS NOT NULL
         )
-    """))
+    """)
+    )
 
-    two_run = conn.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_race WHERE run_count = 2"
-    )).scalar()
+    two_run = conn.execute(text("SELECT COUNT(*) FROM fuj_jmlp_race WHERE run_count = 2")).scalar()
     logger.info("Migrace: hlavičkové sloupce závodu, %s závodů na dvě kola", two_run)
 
 
@@ -369,7 +432,8 @@ def _m_race_run(conn):
     if _table_exists(conn, "fuj_jmlp_race_run"):
         return
 
-    conn.execute(text("""
+    conn.execute(
+        text("""
         CREATE TABLE fuj_jmlp_race_run (
           id              BIGINT       NOT NULL AUTO_INCREMENT,
           race_id         BIGINT       NOT NULL,
@@ -384,7 +448,8 @@ def _m_race_run(conn):
           PRIMARY KEY (id),
           UNIQUE KEY uq_race_run (race_id, run_number)
         ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    """))
+    """)
+    )
     logger.info("Migrace: fuj_jmlp_race_run vytvořena")
 
 
@@ -410,8 +475,7 @@ _LEGACY_LINK_CHECKS = (
     ),
     (
         "fuj_jmlp_race.results_file_id",
-        "SELECT COUNT(*) FROM fuj_jmlp_race r "
-        "JOIN fuj_jmlp_files f ON f.id = r.results_file_id",
+        "SELECT COUNT(*) FROM fuj_jmlp_race r " "JOIN fuj_jmlp_files f ON f.id = r.results_file_id",
         "SELECT COUNT(*) FROM fuj_jmlp_race r "
         "JOIN fuj_jmlp_files f ON f.id = r.results_file_id "
         "JOIN fuj_jmlp_attachment a ON a.owner_type = 'race' AND a.owner_id = r.id "
@@ -419,8 +483,7 @@ _LEGACY_LINK_CHECKS = (
     ),
     (
         "fuj_jmlp_posts.image_file_id",
-        "SELECT COUNT(*) FROM fuj_jmlp_posts p "
-        "JOIN fuj_jmlp_files f ON f.id = p.image_file_id",
+        "SELECT COUNT(*) FROM fuj_jmlp_posts p " "JOIN fuj_jmlp_files f ON f.id = p.image_file_id",
         "SELECT COUNT(*) FROM fuj_jmlp_posts p "
         "JOIN fuj_jmlp_files f ON f.id = p.image_file_id "
         "JOIN fuj_jmlp_attachment a ON a.owner_type = 'post' AND a.owner_id = p.id "
@@ -467,7 +530,9 @@ def _legacy_links_are_migrated(conn) -> bool:
         if in_column != in_attachments:
             logger.error(
                 "Úklid přeskočen: %s má %s vazeb, v přílohách jich je jen %s",
-                label, in_column, in_attachments,
+                label,
+                in_column,
+                in_attachments,
             )
             ok = False
     return ok
@@ -545,20 +610,24 @@ def _m_library_tree(conn):
     if _column_exists(conn, "fuj_jmlp_files", "season_year"):
         return
 
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_files "
-        "ADD COLUMN season_year INT NULL DEFAULT NULL, "
-        "ADD COLUMN folder_id BIGINT NULL DEFAULT NULL, "
-        "ADD KEY idx_files_season (season_year), "
-        "ADD KEY idx_files_folder (folder_id)"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE fuj_jmlp_files "
+            "ADD COLUMN season_year INT NULL DEFAULT NULL, "
+            "ADD COLUMN folder_id BIGINT NULL DEFAULT NULL, "
+            "ADD KEY idx_files_season (season_year), "
+            "ADD KEY idx_files_folder (folder_id)"
+        )
+    )
 
     if not _column_exists(conn, "fuj_jmlp_folders", "season_year"):
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_folders "
-            "ADD COLUMN season_year INT NULL DEFAULT NULL, "
-            "ADD KEY idx_folders_season (season_year)"
-        ))
+        conn.execute(
+            text(
+                "ALTER TABLE fuj_jmlp_folders "
+                "ADD COLUMN season_year INT NULL DEFAULT NULL, "
+                "ADD KEY idx_folders_season (season_year)"
+            )
+        )
 
     # Název podsložky je unikátní až v rámci sezóny - "Propozice" existují
     # v každé sezóně. Staré UNIQUE(name) musí padnout ještě před přejmenováním.
@@ -566,7 +635,8 @@ def _m_library_tree(conn):
         conn.execute(text("ALTER TABLE fuj_jmlp_folders DROP INDEX name"))
 
     # 1) Staré složky rozpadnout na (sezóna, název podsložky)
-    conn.execute(text("""
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_folders SET
             season_year = CASE
                 WHEN name REGEXP '^[0-9]{4}[_-]' THEN CAST(LEFT(name, 4) AS UNSIGNED)
@@ -580,10 +650,12 @@ def _m_library_tree(conn):
                     CONCAT(UPPER(LEFT(SUBSTRING(name, 7), 1)), SUBSTRING(name, 8))
                 ELSE name
             END
-    """))
+    """)
+    )
 
     # 2) Soubory napojit na podsložku a zdědit její sezónu
-    conn.execute(text(f"""
+    conn.execute(
+        text(f"""
         UPDATE fuj_jmlp_files f
         JOIN fuj_jmlp_folders d ON d.season_year = {_FOLDER_SEASON_SQL}
                               AND f.folder IS NOT NULL
@@ -594,87 +666,110 @@ def _m_library_tree(conn):
                                       ELSE f.folder
                                   END)
         SET f.folder_id = d.id, f.season_year = d.season_year
-    """))
+    """)
+    )
 
     # 3) Soubory bez složky - sezónu vzít od toho, k čemu jsou připojené
-    conn.execute(text("""
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_files f
         JOIN fuj_jmlp_attachment a ON a.file_id = f.id AND a.owner_type = 'race'
         JOIN fuj_jmlp_race r ON r.id = a.owner_id
         SET f.season_year = r.season_id
         WHERE f.season_year IS NULL
-    """))
-    conn.execute(text("""
+    """)
+    )
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_files f
         JOIN fuj_jmlp_attachment a ON a.file_id = f.id AND a.owner_type = 'season'
         SET f.season_year = a.owner_id
         WHERE f.season_year IS NULL
-    """))
-    conn.execute(text("""
+    """)
+    )
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_files f
         JOIN fuj_jmlp_attachment a ON a.file_id = f.id AND a.owner_type = 'post'
         JOIN fuj_jmlp_posts p ON p.id = a.owner_id
         SET f.season_year = YEAR(p.created_at) - IF(MONTH(p.created_at) >= 8, 0, 1)
         WHERE f.season_year IS NULL
-    """))
+    """)
+    )
 
     # 4) Zbytek podle data nahrání
-    conn.execute(text(f"""
+    conn.execute(
+        text(f"""
         UPDATE fuj_jmlp_files f
         SET f.season_year = {_UPLOAD_SEASON_SQL}
         WHERE f.season_year IS NULL
-    """))
+    """)
+    )
 
     # 5) Loga klubů z knihovny ven
-    conn.execute(text("""
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_files f
         JOIN fuj_jmlp_attachment a ON a.file_id = f.id AND a.role = 'logo'
         SET f.season_year = NULL, f.folder_id = NULL
-    """))
+    """)
+    )
 
     # 5b) Známé názvy do české podoby (staré složky byly bez diakritiky)
     for old, new in (("Vysledky", "Výsledky"), ("Prubezne", "Průběžné")):
-        conn.execute(text(
-            "UPDATE fuj_jmlp_folders SET name = :new WHERE name = :old"
-        ), {"old": old, "new": new})
+        conn.execute(
+            text("UPDATE fuj_jmlp_folders SET name = :new WHERE name = :old"),
+            {"old": old, "new": new},
+        )
 
     # 6) Teprve teď, když jsou názvy rozpadlé, jde omezení nasadit správně.
     # MyISAM neumí rollback, takže případný konflikt nesmí shodit celou migraci -
     # data už jsou v pořádku, chybělo by jen omezení.
     if not _index_exists(conn, "fuj_jmlp_folders", "uq_folder_season_name"):
-        duplicates = conn.execute(text(
-            "SELECT COUNT(*) FROM (SELECT season_year, name FROM fuj_jmlp_folders "
-            "GROUP BY season_year, name HAVING COUNT(*) > 1) d"
-        )).scalar()
+        duplicates = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM (SELECT season_year, name FROM fuj_jmlp_folders "
+                "GROUP BY season_year, name HAVING COUNT(*) > 1) d"
+            )
+        ).scalar()
         if duplicates:
             logger.warning(
                 "Omezení uq_folder_season_name nenasazeno: %s duplicitních názvů složek v sezóně",
                 duplicates,
             )
         else:
-            conn.execute(text(
-                "ALTER TABLE fuj_jmlp_folders "
-                "ADD UNIQUE KEY uq_folder_season_name (season_year, name)"
-            ))
+            conn.execute(
+                text(
+                    "ALTER TABLE fuj_jmlp_folders "
+                    "ADD UNIQUE KEY uq_folder_season_name (season_year, name)"
+                )
+            )
 
     # 7) Sezóny, na které knihovna odkazuje, musí existovat
-    conn.execute(text("""
+    conn.execute(
+        text("""
         INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name)
         SELECT DISTINCT f.season_year, f.season_year + 1, f.season_year - :base,
                'Jihomoravský lyžařský pohár'
         FROM fuj_jmlp_files f
         WHERE f.season_year IS NOT NULL
-    """), {"base": EDITION_BASE_YEAR})
+    """),
+        {"base": EDITION_BASE_YEAR},
+    )
 
-    stats = conn.execute(text("""
+    stats = conn.execute(
+        text("""
         SELECT COUNT(*) AS celkem,
                SUM(season_year IS NULL) AS mimo_knihovnu,
                SUM(folder_id IS NULL AND season_year IS NOT NULL) AS primo_v_sezone
         FROM fuj_jmlp_files
-    """)).first()
+    """)
+    ).first()
     logger.info(
         "Migrace: knihovna jako strom - %s souborů, %s mimo knihovnu, %s přímo v sezóně",
-        stats.celkem, stats.mimo_knihovnu, stats.primo_v_sezone,
+        stats.celkem,
+        stats.mimo_knihovnu,
+        stats.primo_v_sezone,
     )
 
 
@@ -716,7 +811,8 @@ def _m_flat_library(conn):
 
     logger.info(
         "Migrace: plochá knihovna - %s souborů přejmenováno, %s odlišeno kvůli shodě názvů",
-        renamed, disambiguated,
+        renamed,
+        disambiguated,
     )
 
 
@@ -730,7 +826,8 @@ def _titles_into_filenames(conn) -> None:
     if not _column_exists(conn, "fuj_jmlp_attachment", "title"):
         return
 
-    conn.execute(text("""
+    conn.execute(
+        text("""
         UPDATE fuj_jmlp_files f
         JOIN (
             SELECT file_id, MIN(id) AS first_id FROM fuj_jmlp_attachment
@@ -743,7 +840,8 @@ def _titles_into_filenames(conn) -> None:
                  THEN '' ELSE CONCAT('.', SUBSTRING_INDEX(f.filename, '.', -1)) END
         )
         WHERE a.title <> f.original_filename
-    """))
+    """)
+    )
 
 
 def _rename_attached_files(conn) -> int:
@@ -758,7 +856,8 @@ def _rename_attached_files(conn) -> int:
     """
     from .services.naming import owner_stem, role_suffix, unique_name
 
-    rows = conn.execute(text("""
+    rows = conn.execute(
+        text("""
         SELECT a.owner_type, a.owner_id, a.role,
                f.id AS file_id, f.filename, f.original_filename
         FROM fuj_jmlp_attachment a
@@ -770,7 +869,8 @@ def _rename_attached_files(conn) -> int:
             GROUP BY file_id
         ) prvni ON prvni.first_id = a.id
         ORDER BY a.id
-    """)).fetchall()
+    """)
+    ).fetchall()
 
     taken = _taken_filenames(conn)
 
@@ -807,9 +907,9 @@ def _deduplicate_filenames(conn) -> int:
     """
     from .services.naming import unique_name
 
-    rows = conn.execute(text(
-        "SELECT id, original_filename FROM fuj_jmlp_files ORDER BY id"
-    )).fetchall()
+    rows = conn.execute(
+        text("SELECT id, original_filename FROM fuj_jmlp_files ORDER BY id")
+    ).fetchall()
 
     taken = set()
     renamed = 0
@@ -874,10 +974,12 @@ def _m_start_list_excluded(conn):
         return
     if _column_exists(conn, "fuj_jmlp_race_start_list", "excluded"):
         return
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_race_start_list "
-        "ADD COLUMN excluded TINYINT(1) NOT NULL DEFAULT 0"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE fuj_jmlp_race_start_list "
+            "ADD COLUMN excluded TINYINT(1) NOT NULL DEFAULT 0"
+        )
+    )
     logger.info("Migrace: fuj_jmlp_race_start_list.excluded")
 
 
@@ -893,10 +995,9 @@ def _m_race_is_final(conn):
         return
     if _column_exists(conn, "fuj_jmlp_race", "is_final"):
         return
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_race "
-        "ADD COLUMN is_final TINYINT(1) NOT NULL DEFAULT 0"
-    ))
+    conn.execute(
+        text("ALTER TABLE fuj_jmlp_race " "ADD COLUMN is_final TINYINT(1) NOT NULL DEFAULT 0")
+    )
     logger.info("Migrace: fuj_jmlp_race.is_final")
 
 
@@ -914,7 +1015,8 @@ def _m_slcr_pairing(conn):
     if _table_exists(conn, "fuj_jmlp_slcr_member"):
         return
     if not _table_exists(conn, "fuj_jmlp_racer_slcr"):
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE fuj_jmlp_racer_slcr (
                 racer_id BIGINT NOT NULL PRIMARY KEY,
                 status VARCHAR(12) NOT NULL,
@@ -935,10 +1037,12 @@ def _m_slcr_pairing(conn):
                 KEY ix_racer_slcr_member (member_id),
                 KEY ix_racer_slcr_status (status)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """))
+        """)
+        )
         logger.info("Migrace: fuj_jmlp_racer_slcr")
     if not _table_exists(conn, "fuj_jmlp_slcr_sync"):
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE fuj_jmlp_slcr_sync (
                 id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 scope VARCHAR(10) NOT NULL,
@@ -949,7 +1053,8 @@ def _m_slcr_pairing(conn):
                 error VARCHAR(500) DEFAULT NULL,
                 started_by BIGINT DEFAULT NULL
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """))
+        """)
+        )
         logger.info("Migrace: fuj_jmlp_slcr_sync")
 
 
@@ -966,7 +1071,9 @@ def _m_slcr_applied(conn):
     if not _column_exists(conn, "fuj_jmlp_racer_slcr", "previous"):
         conn.execute(text("ALTER TABLE fuj_jmlp_racer_slcr ADD COLUMN previous TEXT"))
     if not _column_exists(conn, "fuj_jmlp_racer_slcr", "applied_at"):
-        conn.execute(text("ALTER TABLE fuj_jmlp_racer_slcr ADD COLUMN applied_at DATETIME DEFAULT NULL"))
+        conn.execute(
+            text("ALTER TABLE fuj_jmlp_racer_slcr ADD COLUMN applied_at DATETIME DEFAULT NULL")
+        )
     logger.info("Migrace: fuj_jmlp_racer_slcr.previous, applied_at")
 
 
@@ -981,7 +1088,8 @@ def _m_slcr_applied(conn):
 # --------------------------------------------------------------------------
 def _m_slcr_member_links(conn):
     if not _table_exists(conn, "fuj_jmlp_slcr_member"):
-        conn.execute(text("""
+        conn.execute(
+            text("""
             CREATE TABLE fuj_jmlp_slcr_member (
                 member_id INT NOT NULL PRIMARY KEY,
                 slug VARCHAR(160) DEFAULT NULL,
@@ -991,18 +1099,21 @@ def _m_slcr_member_links(conn):
                 year INT DEFAULT NULL,
                 KEY ix_slcr_member_code (race_code)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
-        """))
+        """)
+        )
         logger.info("Migrace: fuj_jmlp_slcr_member")
     if _table_exists(conn, "fuj_jmlp_racer_slcr"):
         # Ročník: z evidence, jinak náš ročník spárovaného závodníka (párování
         # ho ověřilo proti věku z evidence).
-        conn.execute(text("""
+        conn.execute(
+            text("""
             INSERT IGNORE INTO fuj_jmlp_slcr_member (member_id, slug, race_code, surname, name, year)
             SELECT p.member_id, p.member_slug, p.race_code, p.slcr_surname, p.slcr_name, COALESCE(p.slcr_year, r.year)
             FROM fuj_jmlp_racer_slcr p
             JOIN fuj_jmlp_racer r ON r.id = p.racer_id
             WHERE p.member_id IS NOT NULL AND p.status IN ('confirmed', 'filled')
-        """))
+        """)
+        )
         conn.execute(text("DROP TABLE fuj_jmlp_racer_slcr"))
         logger.info("Migrace: fuj_jmlp_racer_slcr -> fuj_jmlp_slcr_member, párování zrušeno")
     if _table_exists(conn, "fuj_jmlp_slcr_sync"):
@@ -1030,14 +1141,16 @@ def _m_season_current(conn):
         return
 
     if _column_exists(conn, "fuj_jmlp_season", "active"):
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_season "
-            "CHANGE COLUMN active is_current TINYINT(1) NOT NULL DEFAULT 0"
-        ))
+        conn.execute(
+            text(
+                "ALTER TABLE fuj_jmlp_season "
+                "CHANGE COLUMN active is_current TINYINT(1) NOT NULL DEFAULT 0"
+            )
+        )
     else:
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_season ADD COLUMN is_current TINYINT(1) NOT NULL DEFAULT 0"
-        ))
+        conn.execute(
+            text("ALTER TABLE fuj_jmlp_season ADD COLUMN is_current TINYINT(1) NOT NULL DEFAULT 0")
+        )
     conn.execute(text("UPDATE fuj_jmlp_season SET is_current = 0"))
     flagged = conn.execute(
         text("UPDATE fuj_jmlp_season SET is_current = 1 WHERE year_start = :year"),
@@ -1056,17 +1169,21 @@ def _m_season_current(conn):
 def _m_course_length_text(conn):
     if not _column_exists(conn, "fuj_jmlp_race_run", "course_length_m"):
         return
-    column_type = conn.execute(text("""
+    column_type = conn.execute(
+        text("""
         SELECT DATA_TYPE FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'fuj_jmlp_race_run'
           AND COLUMN_NAME = 'course_length_m'
-    """)).scalar()
+    """)
+    ).scalar()
     if column_type == "varchar":
         return
-    conn.execute(text(
-        "ALTER TABLE fuj_jmlp_race_run MODIFY course_length_m VARCHAR(60) "
-        "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE fuj_jmlp_race_run MODIFY course_length_m VARCHAR(60) "
+            "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL"
+        )
+    )
     logger.info("Migrace: fuj_jmlp_race_run.course_length_m jako text")
 
 
@@ -1079,10 +1196,13 @@ def _m_course_length_text(conn):
 # snapshot se přepočítá podle ní, u řádků bez vazby podle starého čísla.
 # --------------------------------------------------------------------------
 def _column_data_type(conn, table: str, column: str):
-    return conn.execute(text("""
+    return conn.execute(
+        text("""
         SELECT DATA_TYPE FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME = :column
-    """), {"table": table, "column": column}).scalar()
+    """),
+        {"table": table, "column": column},
+    ).scalar()
 
 
 def _m_race_number_codes(conn):
@@ -1093,27 +1213,37 @@ def _m_race_number_codes(conn):
     code = "CONCAT(CHAR(64 + rn.set_number USING ascii), rn.actual_number)"
     has_start_list = _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_display")
     if has_start_list:
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_race_start_list MODIFY race_number_display VARCHAR(8) NULL DEFAULT NULL"
-        ))
+        conn.execute(
+            text(
+                "ALTER TABLE fuj_jmlp_race_start_list MODIFY race_number_display VARCHAR(8) NULL DEFAULT NULL"
+            )
+        )
         # Podle vazby na číselník.
-        conn.execute(text(f"""
+        conn.execute(
+            text(f"""
             UPDATE fuj_jmlp_race_start_list sl
             JOIN fuj_jmlp_race_numbers rn ON rn.id = sl.race_number_id
             SET sl.race_number_display = {code}
-        """))
+        """)
+        )
         # Bez vazby (číslo mezitím smazané): podle starého systémového čísla.
-        conn.execute(text(f"""
+        conn.execute(
+            text(f"""
             UPDATE fuj_jmlp_race_start_list sl
             JOIN fuj_jmlp_race_numbers rn ON rn.display_number = CAST(sl.race_number_display AS UNSIGNED)
             SET sl.race_number_display = {code}
             WHERE sl.race_number_id IS NULL AND sl.race_number_display REGEXP '^[0-9]+$'
-        """))
-        conn.execute(text(
-            "UPDATE fuj_jmlp_race_start_list SET race_number_display = NULL "
-            "WHERE race_number_display REGEXP '^[0-9]+$'"
-        ))
-    conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers MODIFY display_number VARCHAR(8) NOT NULL"))
+        """)
+        )
+        conn.execute(
+            text(
+                "UPDATE fuj_jmlp_race_start_list SET race_number_display = NULL "
+                "WHERE race_number_display REGEXP '^[0-9]+$'"
+            )
+        )
+    conn.execute(
+        text("ALTER TABLE fuj_jmlp_race_numbers MODIFY display_number VARCHAR(8) NOT NULL")
+    )
     conn.execute(text(f"UPDATE fuj_jmlp_race_numbers rn SET rn.display_number = {code}"))
     logger.info("Migrace: systémová čísla jako písmeno sady + dres (B12)")
 
@@ -1129,35 +1259,46 @@ def _m_race_number_codes(conn):
 # --------------------------------------------------------------------------
 def _m_drop_actual_numbers(conn):
     if _column_exists(conn, "fuj_jmlp_race_numbers", "actual_number"):
-        mismatch = conn.execute(text("""
+        mismatch = conn.execute(
+            text("""
             SELECT COUNT(*) FROM fuj_jmlp_race_numbers
             WHERE display_number NOT REGEXP '^[A-Z][0-9]+$'
                OR CAST(SUBSTRING(display_number, 2) AS UNSIGNED) <> actual_number
-        """)).scalar()
+        """)
+        ).scalar()
         if mismatch:
             logger.warning("Migrace 017 přeskočena: %s čísel nesouhlasí s označením", mismatch)
             return
         # Indexy nad dresem (v produkci "unique_set_actual", v novějších
         # instalacích "uq_race_numbers_set_actual") - jinak by po zrušení
         # sloupce zbyl unikátní index jen nad set_number a ALTER by spadl.
-        indexes = [row[0] for row in conn.execute(text("""
+        indexes = [
+            row[0]
+            for row in conn.execute(
+                text("""
             SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'fuj_jmlp_race_numbers'
               AND COLUMN_NAME = 'actual_number'
-        """))]
+        """)
+            )
+        ]
         for index in indexes:
             conn.execute(text(f"ALTER TABLE fuj_jmlp_race_numbers DROP INDEX `{index}`"))
         conn.execute(text("ALTER TABLE fuj_jmlp_race_numbers DROP COLUMN actual_number"))
         logger.info("Migrace: fuj_jmlp_race_numbers.actual_number zrušen")
     if _column_exists(conn, "fuj_jmlp_race_start_list", "race_number_actual"):
-        mismatch = conn.execute(text("""
+        mismatch = conn.execute(
+            text("""
             SELECT COUNT(*) FROM fuj_jmlp_race_start_list
             WHERE race_number_actual IS NOT NULL AND (
                 race_number_display IS NULL
                 OR CAST(SUBSTRING(race_number_display, 2) AS UNSIGNED) <> race_number_actual)
-        """)).scalar()
+        """)
+        ).scalar()
         if mismatch:
-            logger.warning("Migrace 017: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch)
+            logger.warning(
+                "Migrace 017: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch
+            )
             return
         conn.execute(text("ALTER TABLE fuj_jmlp_race_start_list DROP COLUMN race_number_actual"))
         logger.info("Migrace: fuj_jmlp_race_start_list.race_number_actual zrušen")

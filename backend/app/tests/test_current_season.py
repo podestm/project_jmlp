@@ -3,6 +3,7 @@
 Aktuální je nejvýš jedna sezóna a nastavuje ji správce. Dokud žádná
 označená není, platí sezóna podle data (hranice 1. 8.).
 """
+
 from datetime import date
 
 from sqlalchemy import text
@@ -18,9 +19,11 @@ PODLE_DATA = get_current_season_id()
 
 def _sezona(db, year_start, is_current=False, edition=None):
     season = models.Season(
-        year_start=year_start, year_end=year_start + 1,
+        year_start=year_start,
+        year_end=year_start + 1,
         edition=edition if edition is not None else year_start - 2006,
-        name="Jihomoravský lyžařský pohár", is_current=is_current,
+        name="Jihomoravský lyžařský pohár",
+        is_current=is_current,
     )
     db.add(season)
     db.commit()
@@ -29,14 +32,21 @@ def _sezona(db, year_start, is_current=False, edition=None):
 
 
 def _aktualni(db):
-    return [row.year_start for row in db.execute(text(
-        "SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1"
-    ))]
+    return [
+        row.year_start
+        for row in db.execute(text("SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1"))
+    ]
 
 
 def _zavod(db, race_nr, season_id):
-    race = models.Race(race_nr=race_nr, datum=date(season_id, 12, 20), season_id=season_id,
-                       closed=False, registration=True, race_method_id=1)
+    race = models.Race(
+        race_nr=race_nr,
+        datum=date(season_id, 12, 20),
+        season_id=season_id,
+        closed=False,
+        registration=True,
+        race_method_id=1,
+    )
     db.add(race)
     db.commit()
     return race
@@ -47,32 +57,45 @@ def _zavod(db, race_nr, season_id):
 # --------------------------------------------------------------------------
 def test_migrace_prejmenuje_aktivni_a_oznaci_sezonu_podle_data(db):
     with engine.begin() as conn:
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_season "
-            "CHANGE COLUMN is_current active TINYINT(1) NOT NULL DEFAULT 1"
-        ))
+        conn.execute(
+            text(
+                "ALTER TABLE fuj_jmlp_season "
+                "CHANGE COLUMN is_current active TINYINT(1) NOT NULL DEFAULT 1"
+            )
+        )
         for year in (PODLE_DATA - 1, PODLE_DATA, PODLE_DATA + 1):
-            conn.execute(text(
-                "INSERT INTO fuj_jmlp_season (year_start, year_end, name, active) "
-                "VALUES (:y, :y + 1, 'JMLP', 1)"
-            ), {"y": year})
+            conn.execute(
+                text(
+                    "INSERT INTO fuj_jmlp_season (year_start, year_end, name, active) "
+                    "VALUES (:y, :y + 1, 'JMLP', 1)"
+                ),
+                {"y": year},
+            )
     try:
         with engine.begin() as conn:
             _m_season_current(conn)
 
             assert _column_exists(conn, "fuj_jmlp_season", "is_current")
             assert not _column_exists(conn, "fuj_jmlp_season", "active")
-            assert [r.year_start for r in conn.execute(text(
-                "SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1"
-            ))] == [PODLE_DATA]
+            assert [
+                r.year_start
+                for r in conn.execute(
+                    text("SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1")
+                )
+            ] == [PODLE_DATA]
 
             # Druhý běh nic nemění (ani ruční volbu správce).
-            conn.execute(text("UPDATE fuj_jmlp_season SET is_current = (year_start = :y)"),
-                         {"y": PODLE_DATA - 1})
+            conn.execute(
+                text("UPDATE fuj_jmlp_season SET is_current = (year_start = :y)"),
+                {"y": PODLE_DATA - 1},
+            )
             _m_season_current(conn)
-            assert [r.year_start for r in conn.execute(text(
-                "SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1"
-            ))] == [PODLE_DATA - 1]
+            assert [
+                r.year_start
+                for r in conn.execute(
+                    text("SELECT year_start FROM fuj_jmlp_season WHERE is_current = 1")
+                )
+            ] == [PODLE_DATA - 1]
     finally:
         with engine.begin() as conn:
             if not _column_exists(conn, "fuj_jmlp_season", "is_current"):
@@ -81,14 +104,19 @@ def test_migrace_prejmenuje_aktivni_a_oznaci_sezonu_podle_data(db):
 
 def test_migrace_bez_sezony_podle_data_neoznaci_zadnou(db):
     with engine.begin() as conn:
-        conn.execute(text(
-            "ALTER TABLE fuj_jmlp_season "
-            "CHANGE COLUMN is_current active TINYINT(1) NOT NULL DEFAULT 1"
-        ))
-        conn.execute(text(
-            "INSERT INTO fuj_jmlp_season (year_start, year_end, name, active) "
-            "VALUES (:y, :y + 1, 'JMLP', 1)"
-        ), {"y": PODLE_DATA - 5})
+        conn.execute(
+            text(
+                "ALTER TABLE fuj_jmlp_season "
+                "CHANGE COLUMN is_current active TINYINT(1) NOT NULL DEFAULT 1"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO fuj_jmlp_season (year_start, year_end, name, active) "
+                "VALUES (:y, :y + 1, 'JMLP', 1)"
+            ),
+            {"y": PODLE_DATA - 5},
+        )
         _m_season_current(conn)
 
     assert _aktualni(db) == []
@@ -137,7 +165,8 @@ def test_endpoint_nastavi_aktualni_sezonu(client, admin_headers, db):
     assert _aktualni(db) == [PODLE_DATA - 1]
     seznam = client.get("/api/admin/seasons", headers=admin_headers).json()
     assert [(s["year_start"], s["is_current"]) for s in seznam] == [
-        (PODLE_DATA, False), (PODLE_DATA - 1, True),
+        (PODLE_DATA, False),
+        (PODLE_DATA - 1, True),
     ]
 
 
@@ -181,7 +210,9 @@ def test_verejna_aktualni_sezona_bere_oznacenou(client, db):
     assert data["edition"] == 42
     assert data["edition_label"] == "XLII."
     assert data["is_set"] is True
-    assert [r["race_nr"] for r in client.get("/races/", params={"current_season": True}).json()] == ["LONI"]
+    assert [
+        r["race_nr"] for r in client.get("/races/", params={"current_season": True}).json()
+    ] == ["LONI"]
 
 
 def test_verejna_aktualni_sezona_bez_oznaceni_podle_data(client, db):
@@ -192,4 +223,3 @@ def test_verejna_aktualni_sezona_bez_oznaceni_podle_data(client, db):
     assert data["current_season_id"] == PODLE_DATA
     assert data["edition"] == PODLE_DATA - 2006
     assert data["is_set"] is False
-

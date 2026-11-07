@@ -6,24 +6,31 @@ const memoryStorage = () => {
   return {
     getItem: (key) => (data.has(key) ? data.get(key) : null),
     setItem: (key, value) => data.set(key, String(value)),
-    removeItem: (key) => data.delete(key)
+    removeItem: (key) => data.delete(key),
   };
 };
 
-const missingFile = () => new TypeError(
-  'Failed to fetch dynamically imported module: https://jmlp.cz/assets/TimekeeperRoutes-DKwXdJMF.js'
-);
+const missingFile = () =>
+  new TypeError(
+    'Failed to fetch dynamically imported module: https://jmlp.cz/assets/TimekeeperRoutes-DKwXdJMF.js',
+  );
 
 /** Vyřeší se, nebo zůstane viset - visící slib znamená "stránka se obnovuje". */
-const settledWithin = (promise) => Promise.race([
-  promise.then((value) => ({ value }), (error) => ({ error })),
-  new Promise((resolve) => setTimeout(() => resolve('pending'), 20))
-]);
+const settledWithin = (promise) =>
+  Promise.race([
+    promise.then(
+      (value) => ({ value }),
+      (error) => ({ error }),
+    ),
+    new Promise((resolve) => setTimeout(() => resolve('pending'), 20)),
+  ]);
 
 describe('soubor aplikace chybí na serveru', () => {
   it('pozná hlášky Chrome, Firefoxu, Safari i Vite', () => {
     expect(isModuleLoadError(missingFile())).toBe(true);
-    expect(isModuleLoadError(new TypeError('error loading dynamically imported module'))).toBe(true);
+    expect(isModuleLoadError(new TypeError('error loading dynamically imported module'))).toBe(
+      true,
+    );
     expect(isModuleLoadError(new TypeError('Importing a module script failed.'))).toBe(true);
     expect(isModuleLoadError(new Error('Unable to preload CSS for /assets/x.css'))).toBe(true);
     expect(isModuleLoadError(new Error('x is not a function'))).toBe(false);
@@ -36,7 +43,9 @@ describe('načtení sekce aplikace', () => {
     const reload = vi.fn();
     const module = { default: 'Sekce' };
 
-    await expect(loadSection(async () => module, { storage: memoryStorage(), reload })).resolves.toBe(module);
+    await expect(
+      loadSection(async () => module, { storage: memoryStorage(), reload }),
+    ).resolves.toBe(module);
     expect(reload).not.toHaveBeenCalled();
   });
 
@@ -44,7 +53,9 @@ describe('načtení sekce aplikace', () => {
     const storage = memoryStorage();
     const reload = vi.fn();
 
-    const result = await settledWithin(loadSection(() => Promise.reject(missingFile()), { storage, reload }));
+    const result = await settledWithin(
+      loadSection(() => Promise.reject(missingFile()), { storage, reload }),
+    );
 
     expect(result).toBe('pending');
     expect(reload).toHaveBeenCalledTimes(1);
@@ -78,19 +89,29 @@ describe('načtení sekce aplikace', () => {
     const reload = vi.fn();
     const bug = new Error('x is not a function');
 
-    await expect(loadSection(() => Promise.reject(bug), { storage: memoryStorage(), reload })).rejects.toBe(bug);
+    await expect(
+      loadSection(() => Promise.reject(bug), { storage: memoryStorage(), reload }),
+    ).rejects.toBe(bug);
     expect(reload).not.toHaveBeenCalled();
   });
 
   it('bez úložiště pro příznak raději neobnovuje', async () => {
     const reload = vi.fn();
     const blocked = {
-      getItem: () => { throw new Error('blocked'); },
-      setItem: () => { throw new Error('blocked'); },
-      removeItem: () => { throw new Error('blocked'); }
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+      removeItem: () => {
+        throw new Error('blocked');
+      },
     };
 
-    const result = await settledWithin(loadSection(() => Promise.reject(missingFile()), { storage: blocked, reload }));
+    const result = await settledWithin(
+      loadSection(() => Promise.reject(missingFile()), { storage: blocked, reload }),
+    );
 
     expect(isModuleLoadError(result.error)).toBe(true);
     expect(reload).not.toHaveBeenCalled();

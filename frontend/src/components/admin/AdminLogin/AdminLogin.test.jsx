@@ -8,7 +8,12 @@ vi.mock('../../../config/auth.jsx', () => ({ useAuth: () => mockAuth }));
 
 const { default: AdminLogin } = await import('./AdminLogin.jsx');
 
-const renderLogin = () => render(<MemoryRouter><AdminLogin /></MemoryRouter>);
+const renderLogin = () =>
+  render(
+    <MemoryRouter>
+      <AdminLogin />
+    </MemoryRouter>,
+  );
 
 describe('přihlášení do administrace', () => {
   beforeEach(() => {
@@ -42,7 +47,9 @@ describe('přihlášení do administrace', () => {
 
   it('poznámka o společném přihlášení a odkaz zpět na veřejný web', () => {
     renderLogin();
-    expect(screen.getByRole('button', { name: 'Přihlásit se' })).toHaveAccessibleDescription('Platí i pro časomíru');
+    expect(screen.getByRole('button', { name: 'Přihlásit se' })).toHaveAccessibleDescription(
+      'Platí i pro časomíru',
+    );
     expect(screen.getByRole('link', { name: 'Zpět na veřejný web' })).toHaveAttribute('href', '/');
   });
 });

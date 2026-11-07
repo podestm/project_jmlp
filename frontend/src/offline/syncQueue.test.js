@@ -10,7 +10,7 @@ import {
   resolveConflict,
   reviveNetworkFailures,
   saveConflict,
-  supersedeParkedOpsFor
+  supersedeParkedOpsFor,
 } from './syncQueue.js';
 import { resetTimekeeperDb } from '../test/helpers.js';
 
@@ -27,7 +27,7 @@ const queueRow = (overrides = {}) => ({
   method: 'PUT',
   endpoint: '/api/timekeeper/start-list/1/time',
   payload: { time1: 10 },
-  ...overrides
+  ...overrides,
 });
 
 describe('enqueueMutation', () => {
@@ -41,13 +41,24 @@ describe('enqueueMutation', () => {
   });
 
   it('respektuje předané op_id, aby přehrávka nesla stejný klíč idempotence', async () => {
-    const item = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', {}, 'pevne-op-id');
+    const item = await enqueueMutation(
+      'PUT',
+      '/api/timekeeper/start-list/1/time',
+      {},
+      'pevne-op-id',
+    );
     expect(item.op_id).toBe('pevne-op-id');
   });
 
   it('druhému zápisu do téhož řádku sebere base_revision', async () => {
-    await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10, base_revision: 'r1' });
-    const second = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 11, base_revision: 'r1' });
+    await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', {
+      time1: 10,
+      base_revision: 'r1',
+    });
+    const second = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', {
+      time1: 11,
+      base_revision: 'r1',
+    });
 
     expect(second.payload).toEqual({ time1: 11 });
   });
@@ -58,12 +69,14 @@ describe('hasUnsyncedMutationFor', () => {
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10 });
 
     expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(true);
-    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/2/time', {})).toBe(false);
+    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/2/time', {})).toBe(
+      false,
+    );
   });
 
   it('zachytí i překryv přes hromadný zápis', async () => {
     await enqueueMutation('POST', '/api/timekeeper/races/10/times', {
-      entries: [{ entry_id: 5 }, { entry_id: 6 }]
+      entries: [{ entry_id: 5 }, { entry_id: 6 }],
     });
 
     expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/6/time', {})).toBe(true);
@@ -71,15 +84,26 @@ describe('hasUnsyncedMutationFor', () => {
 
   it('pro endpoint bez řádků startovky vrací false', async () => {
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', {});
-    expect(await hasUnsyncedMutationFor('POST', '/api/timekeeper/races/10/results/calculate-points', {}))
-      .toBe(false);
+    expect(
+      await hasUnsyncedMutationFor('POST', '/api/timekeeper/races/10/results/calculate-points', {}),
+    ).toBe(false);
   });
 });
 
 describe('supersedeParkedOpsFor', () => {
   it('označí zaparkovaný konflikt téhož řádku za překonaný a uzavře jeho konflikt', async () => {
     const id = await timekeeperDb.syncQueue.add(queueRow({ status: 'conflict' }));
-    await saveConflict({ id, op_id: 'op', endpoint: '/api/timekeeper/start-list/1/time', method: 'PUT', payload: {} }, new Error('409'), 409);
+    await saveConflict(
+      {
+        id,
+        op_id: 'op',
+        endpoint: '/api/timekeeper/start-list/1/time',
+        method: 'PUT',
+        payload: {},
+      },
+      new Error('409'),
+      409,
+    );
 
     const count = await supersedeParkedOpsFor('PUT', '/api/timekeeper/start-list/1/time', {});
 
@@ -89,21 +113,30 @@ describe('supersedeParkedOpsFor', () => {
   });
 
   it('nesahá na zápisy jiných řádků', async () => {
-    const id = await timekeeperDb.syncQueue.add(queueRow({
-      status: 'dead',
-      endpoint: '/api/timekeeper/start-list/2/time'
-    }));
+    const id = await timekeeperDb.syncQueue.add(
+      queueRow({
+        status: 'dead',
+        endpoint: '/api/timekeeper/start-list/2/time',
+      }),
+    );
 
     expect(await supersedeParkedOpsFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(0);
     expect((await timekeeperDb.syncQueue.get(id)).status).toBe('dead');
   });
 
   it('s hranicí času nechá být položky, které vznikly až po odeslaném zápisu', async () => {
-    await timekeeperDb.syncQueue.add(queueRow({ status: 'conflict', created_at: '2026-01-01T09:00:00.000Z' }));
-    const newer = await timekeeperDb.syncQueue.add(queueRow({ status: 'conflict', created_at: '2026-01-01T11:00:00.000Z' }));
+    await timekeeperDb.syncQueue.add(
+      queueRow({ status: 'conflict', created_at: '2026-01-01T09:00:00.000Z' }),
+    );
+    const newer = await timekeeperDb.syncQueue.add(
+      queueRow({ status: 'conflict', created_at: '2026-01-01T11:00:00.000Z' }),
+    );
 
     const count = await supersedeParkedOpsFor(
-      'PUT', '/api/timekeeper/start-list/1/time', {}, '2026-01-01T10:00:00.000Z'
+      'PUT',
+      '/api/timekeeper/start-list/1/time',
+      {},
+      '2026-01-01T10:00:00.000Z',
     );
 
     expect(count).toBe(1);
@@ -118,9 +151,15 @@ describe('supersedeParkedOpsFor', () => {
 
 describe('getQueueCandidates', () => {
   it('vrací pending i failed v pořadí vzniku', async () => {
-    await timekeeperDb.syncQueue.add(queueRow({ created_at: '2026-01-01T12:00:00.000Z', payload: { n: 2 } }));
-    await timekeeperDb.syncQueue.add(queueRow({ created_at: '2026-01-01T11:00:00.000Z', payload: { n: 1 } }));
-    await timekeeperDb.syncQueue.add(queueRow({ status: 'done', created_at: '2026-01-01T10:00:00.000Z' }));
+    await timekeeperDb.syncQueue.add(
+      queueRow({ created_at: '2026-01-01T12:00:00.000Z', payload: { n: 2 } }),
+    );
+    await timekeeperDb.syncQueue.add(
+      queueRow({ created_at: '2026-01-01T11:00:00.000Z', payload: { n: 1 } }),
+    );
+    await timekeeperDb.syncQueue.add(
+      queueRow({ status: 'done', created_at: '2026-01-01T10:00:00.000Z' }),
+    );
 
     const candidates = await getQueueCandidates();
     expect(candidates.map((c) => c.row.payload.n)).toEqual([1, 2]);
@@ -149,7 +188,7 @@ describe('statistiky a výpisy fronty', () => {
       queueRow({ status: 'failed' }),
       queueRow({ status: 'conflict' }),
       queueRow({ status: 'dead' }),
-      queueRow({ status: 'done' })
+      queueRow({ status: 'done' }),
     ]);
 
     const stats = await getSyncQueueStats();
@@ -157,8 +196,12 @@ describe('statistiky a výpisy fronty', () => {
   });
 
   it('vrací poslední položky od nejnovější', async () => {
-    await timekeeperDb.syncQueue.add(queueRow({ created_at: '2026-01-01T10:00:00.000Z', payload: { n: 1 } }));
-    await timekeeperDb.syncQueue.add(queueRow({ created_at: '2026-01-01T12:00:00.000Z', payload: { n: 2 } }));
+    await timekeeperDb.syncQueue.add(
+      queueRow({ created_at: '2026-01-01T10:00:00.000Z', payload: { n: 1 } }),
+    );
+    await timekeeperDb.syncQueue.add(
+      queueRow({ created_at: '2026-01-01T12:00:00.000Z', payload: { n: 2 } }),
+    );
 
     const rows = await getRecentQueueItems(10);
     expect(rows[0].payload.n).toBe(2);
@@ -178,7 +221,7 @@ describe('resolveConflict', () => {
       error_message: 'conflict',
       conflict_detail: detail,
       created_at: '2026-01-01T10:00:00.000Z',
-      resolved: 0
+      resolved: 0,
     });
     return { queueItemId, conflictId };
   };
@@ -235,12 +278,16 @@ describe('vyřazení ze startky ve frontě', () => {
 
     // "Vrátit" poslané rovnou by dorazilo první a starší "Vyřadit" by ho přepsalo.
     expect(await hasUnsyncedMutationFor('PUT', EXCLUDE, { excluded: false })).toBe(true);
-    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/2/excluded', {})).toBe(false);
+    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/2/excluded', {})).toBe(
+      false,
+    );
   });
 
   it('vyřazení a zápis času na sebe nečekají', async () => {
     await enqueueMutation('PUT', EXCLUDE, { excluded: true });
-    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(false);
+    expect(await hasUnsyncedMutationFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(
+      false,
+    );
 
     await resetTimekeeperDb();
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10 });
@@ -249,16 +296,23 @@ describe('vyřazení ze startky ve frontě', () => {
 
   it('čekající vyřazení nesebere base_revision zápisu času', async () => {
     await enqueueMutation('PUT', EXCLUDE, { excluded: true });
-    const time = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 10, base_revision: 'r1' });
+    const time = await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', {
+      time1: 10,
+      base_revision: 'r1',
+    });
 
     expect(time.payload).toEqual({ time1: 10, base_revision: 'r1' });
   });
 
   it('úspěšné vyřazení překoná jen zaparkované vyřazení, ne čas', async () => {
     const parkedTime = await timekeeperDb.syncQueue.add(queueRow({ status: 'conflict' }));
-    const parkedExclusion = await timekeeperDb.syncQueue.add(queueRow({
-      status: 'dead', endpoint: EXCLUDE, payload: { excluded: true }
-    }));
+    const parkedExclusion = await timekeeperDb.syncQueue.add(
+      queueRow({
+        status: 'dead',
+        endpoint: EXCLUDE,
+        payload: { excluded: true },
+      }),
+    );
 
     const count = await supersedeParkedOpsFor('PUT', EXCLUDE, { excluded: false });
 
@@ -269,9 +323,13 @@ describe('vyřazení ze startky ve frontě', () => {
   });
 
   it('úspěšný zápis času nepřekoná zaparkované vyřazení', async () => {
-    const parkedExclusion = await timekeeperDb.syncQueue.add(queueRow({
-      status: 'dead', endpoint: EXCLUDE, payload: { excluded: true }
-    }));
+    const parkedExclusion = await timekeeperDb.syncQueue.add(
+      queueRow({
+        status: 'dead',
+        endpoint: EXCLUDE,
+        payload: { excluded: true },
+      }),
+    );
 
     expect(await supersedeParkedOpsFor('PUT', '/api/timekeeper/start-list/1/time', {})).toBe(0);
     expect((await timekeeperDb.syncQueue.get(parkedExclusion)).status).toBe('dead');
@@ -281,25 +339,69 @@ describe('vyřazení ze startky ve frontě', () => {
 describe('reviveNetworkFailures', () => {
   it('vrátí do fronty jen řádky zaseklé kvůli výpadku spojení, nic jiného nemění', async () => {
     const payload = { time1: 12.34, base_revision: 'r5' };
-    const failed = await timekeeperDb.syncQueue.add(queueRow({
-      op_id: 'a', status: 'failed', retry_count: 3, last_error: 'Failed to fetch',
-      next_retry_at: '2099-01-01T00:00:00.000Z', payload
-    }));
-    const dead = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'b', status: 'dead', retry_count: 8, last_error: 'NetworkError when attempting to fetch resource.' }));
-    const timeout = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'c', status: 'dead', retry_count: 8, last_error: 'Server neodpověděl včas (výpadek spojení).' }));
-    const server = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'd', status: 'dead', retry_count: 8, last_error: 'API Error: 504 Gateway Timeout' }));
-    const conflict = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'e', status: 'conflict', last_error: 'Failed to fetch' }));
-    const unknown = await timekeeperDb.syncQueue.add(queueRow({ op_id: 'f', status: 'failed', retry_count: 1, last_error: 'Sync failed' }));
+    const failed = await timekeeperDb.syncQueue.add(
+      queueRow({
+        op_id: 'a',
+        status: 'failed',
+        retry_count: 3,
+        last_error: 'Failed to fetch',
+        next_retry_at: '2099-01-01T00:00:00.000Z',
+        payload,
+      }),
+    );
+    const dead = await timekeeperDb.syncQueue.add(
+      queueRow({
+        op_id: 'b',
+        status: 'dead',
+        retry_count: 8,
+        last_error: 'NetworkError when attempting to fetch resource.',
+      }),
+    );
+    const timeout = await timekeeperDb.syncQueue.add(
+      queueRow({
+        op_id: 'c',
+        status: 'dead',
+        retry_count: 8,
+        last_error: 'Server neodpověděl včas (výpadek spojení).',
+      }),
+    );
+    const server = await timekeeperDb.syncQueue.add(
+      queueRow({
+        op_id: 'd',
+        status: 'dead',
+        retry_count: 8,
+        last_error: 'API Error: 504 Gateway Timeout',
+      }),
+    );
+    const conflict = await timekeeperDb.syncQueue.add(
+      queueRow({ op_id: 'e', status: 'conflict', last_error: 'Failed to fetch' }),
+    );
+    const unknown = await timekeeperDb.syncQueue.add(
+      queueRow({ op_id: 'f', status: 'failed', retry_count: 1, last_error: 'Sync failed' }),
+    );
 
     expect(await reviveNetworkFailures()).toBe(3);
 
     const revived = await timekeeperDb.syncQueue.get(failed);
-    expect(revived).toMatchObject({ status: 'pending', retry_count: 0, next_retry_at: null, last_error: null, op_id: 'a', payload });
+    expect(revived).toMatchObject({
+      status: 'pending',
+      retry_count: 0,
+      next_retry_at: null,
+      last_error: null,
+      op_id: 'a',
+      payload,
+    });
     expect((await timekeeperDb.syncQueue.get(dead)).status).toBe('pending');
     expect((await timekeeperDb.syncQueue.get(timeout)).status).toBe('pending');
-    expect(await timekeeperDb.syncQueue.get(server)).toMatchObject({ status: 'dead', retry_count: 8 });
+    expect(await timekeeperDb.syncQueue.get(server)).toMatchObject({
+      status: 'dead',
+      retry_count: 8,
+    });
     expect((await timekeeperDb.syncQueue.get(conflict)).status).toBe('conflict');
-    expect(await timekeeperDb.syncQueue.get(unknown)).toMatchObject({ status: 'failed', retry_count: 1 });
+    expect(await timekeeperDb.syncQueue.get(unknown)).toMatchObject({
+      status: 'failed',
+      retry_count: 1,
+    });
     expect(await timekeeperDb.syncQueue.count()).toBe(6);
   });
 });

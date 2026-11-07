@@ -14,13 +14,19 @@ const MODES = [
  */
 export default function RequestCard({ request, clubOptions, state, onChange, onResolve }) {
   const id = request.registration_id;
-  const setMode = (mode) => onChange(id, mode === 'new' ? { mode, newName: state.newName || request.club_request_note } : { mode });
+  const setMode = (mode) =>
+    onChange(
+      id,
+      mode === 'new' ? { mode, newName: state.newName || request.club_request_note } : { mode },
+    );
 
   return (
     <article className={styles.card} aria-label={`Žádost ${request.racer_name}`}>
       <div className={styles.who}>
         <h2 className={styles.name}>{request.racer_name}</h2>
-        <span className={styles.meta}>{request.race_name} · {formatRequestDate(request.registered_at)}</span>
+        <span className={styles.meta}>
+          {request.race_name} · {formatRequestDate(request.registered_at)}
+        </span>
         {request.current_club_name && (
           <span className={styles.meta}>Aktuální klub: {request.current_club_name}</span>
         )}
@@ -30,7 +36,13 @@ export default function RequestCard({ request, clubOptions, state, onChange, onR
         <span className={styles.noteValue}>„{request.club_request_note}“</span>
       </div>
       <div className={styles.decision}>
-        <SegmentedControl label="Způsob vyřízení" size="sm" options={MODES} value={state.mode} onChange={setMode} />
+        <SegmentedControl
+          label="Způsob vyřízení"
+          size="sm"
+          options={MODES}
+          value={state.mode}
+          onChange={setMode}
+        />
         <div className={styles.row}>
           {state.mode === 'existing' ? (
             <Field label="Přiřadit ke klubu" className={styles.field}>
@@ -45,10 +57,22 @@ export default function RequestCard({ request, clubOptions, state, onChange, onR
             </Field>
           ) : (
             <Field label="Název nového klubu" className={styles.field}>
-              <Input size="sm" value={state.newName} onChange={(e) => onChange(id, { newName: e.target.value })} placeholder="Název klubu…" />
+              <Input
+                size="sm"
+                value={state.newName}
+                onChange={(e) => onChange(id, { newName: e.target.value })}
+                placeholder="Název klubu…"
+              />
             </Field>
           )}
-          <Button variant="open" size="sm" icon="check" disabled={!canResolve(state)} onClick={() => onResolve(id)} className={styles.confirm}>
+          <Button
+            variant="open"
+            size="sm"
+            icon="check"
+            disabled={!canResolve(state)}
+            onClick={() => onResolve(id)}
+            className={styles.confirm}
+          >
             Potvrdit a přiřadit
           </Button>
         </div>

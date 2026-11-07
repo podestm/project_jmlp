@@ -4,6 +4,7 @@ Složky ani sezóny se tu už nespravují: kam soubor patří, určuje příloha
 (fuj_jmlp_attachment) a systematický název. Zbývá filtrovat, přejmenovat,
 smazat a stáhnout všechno jako ZIP.
 """
+
 import logging
 import tempfile
 import zipfile
@@ -91,14 +92,18 @@ def rename_file(
         raise HTTPException(status_code=400, detail=str(exc))
 
     # Kolace je case-insensitive, takže tohle chytne i "Propozice.pdf".
-    clash = db.query(models.File.id).filter(
-        models.File.original_filename == new_name,
-        models.File.id != file_id,
-    ).first()
+    clash = (
+        db.query(models.File.id)
+        .filter(
+            models.File.original_filename == new_name,
+            models.File.id != file_id,
+        )
+        .first()
+    )
     if clash:
         raise HTTPException(
             status_code=409,
-            detail=f"Soubor s názvem „{new_name}\" už v knihovně je",
+            detail=f'Soubor s názvem „{new_name}" už v knihovně je',
         )
 
     file_record.original_filename = new_name
@@ -162,7 +167,8 @@ def export_library(
                 if not source.is_file():
                     logger.warning(
                         "Soubor %s (%s) chybí na disku, do archivu nepůjde",
-                        file_info["id"], file_info["filename"],
+                        file_info["id"],
+                        file_info["filename"],
                     )
                     continue
                 bundle.write(source, entry_names[file_info["id"]])

@@ -2,7 +2,14 @@ import { Field, Input, Select } from '../../ms/index.js';
 import styles from './RacerFilters.module.css';
 
 /** Filtry tabulky závodníků (TkZavodnici): text, oddíl, kategorie, pohlaví a počet. */
-export default function RacerFilters({ filters, setFilter, clubOptions, categoryOptions, shown, total }) {
+export default function RacerFilters({
+  filters,
+  setFilter,
+  clubOptions,
+  categoryOptions,
+  shown,
+  total,
+}) {
   return (
     <div className={styles.bar} role="search" aria-label="Filtr závodníků">
       <Field label="Hledat" id="tk-filter-text" className={styles.text}>
@@ -17,13 +24,25 @@ export default function RacerFilters({ filters, setFilter, clubOptions, category
       <Field label="Oddíl" id="tk-filter-club">
         <Select size="sm" value={filters.club} onChange={(e) => setFilter('club', e.target.value)}>
           <option value="all">Všechny oddíly</option>
-          {clubOptions.map((club) => <option key={club} value={club}>{club}</option>)}
+          {clubOptions.map((club) => (
+            <option key={club} value={club}>
+              {club}
+            </option>
+          ))}
         </Select>
       </Field>
       <Field label="Kategorie" id="tk-filter-category">
-        <Select size="sm" value={filters.category} onChange={(e) => setFilter('category', e.target.value)}>
+        <Select
+          size="sm"
+          value={filters.category}
+          onChange={(e) => setFilter('category', e.target.value)}
+        >
           <option value="all">Všechny kategorie</option>
-          {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+          {categoryOptions.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
         </Select>
       </Field>
       <Field label="Pohlaví" id="tk-filter-sex">
@@ -34,7 +53,8 @@ export default function RacerFilters({ filters, setFilter, clubOptions, category
         </Select>
       </Field>
       <p className={styles.count} aria-live="polite">
-        <span className={styles.number}>{shown}</span> z <span className={styles.number}>{total}</span>
+        <span className={styles.number}>{shown}</span> z{' '}
+        <span className={styles.number}>{total}</span>
       </p>
     </div>
   );

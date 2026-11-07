@@ -5,6 +5,7 @@ z adresáře), ale prohlížeči se musí nabídnout původní název. Endpoint
 /uploads/documents/{filename} to nedělal a stahoval se hash - a protože tudy
 vede stahování z celé aplikace, projevilo se to všude.
 """
+
 from pathlib import Path
 
 import pytest
@@ -24,7 +25,9 @@ DOCUMENTS_DIR = Path("uploads/documents")
 _ZALOZENE_SOUBORY = []
 
 
-def _soubor(db, original="Soutěžní řád 2026-2027.pdf", mime="application/pdf", obsah=b"%PDF-1.4 test"):
+def _soubor(
+    db, original="Soutěžní řád 2026-2027.pdf", mime="application/pdf", obsah=b"%PDF-1.4 test"
+):
     """Založí soubor na disku i v databázi, jako by prošel nahráním."""
     import uuid
 
@@ -52,6 +55,7 @@ def _nazev_z_hlavicky(response) -> str:
     disposition = response.headers["content-disposition"]
     if "filename*=utf-8''" in disposition:
         from urllib.parse import unquote
+
         return unquote(disposition.split("filename*=utf-8''")[1].split(";")[0].strip('"'))
     return disposition.split('filename="')[1].split('"')[0]
 
@@ -128,10 +132,13 @@ def test_chybejici_soubor_si_prohlizec_neuklada(client):
     assert "immutable" not in odpoved.headers.get("cache-control", "")
 
 
-@pytest.mark.parametrize("cesta", [
-    "/uploads/documents/..%2F..%2Fetc%2Fpasswd",
-    "/uploads/documents/....//....//etc/passwd",
-])
+@pytest.mark.parametrize(
+    "cesta",
+    [
+        "/uploads/documents/..%2F..%2Fetc%2Fpasswd",
+        "/uploads/documents/....//....//etc/passwd",
+    ],
+)
 def test_pokus_o_utek_z_adresare_je_404(client, cesta):
     assert client.get(cesta).status_code == 404
 
@@ -140,9 +147,16 @@ def test_pokus_o_utek_z_adresare_je_404(client, cesta):
 # Ostatní stahovací cesty - musí se chovat stejně
 # ---------------------------------------------------------------------------
 
+
 def _zavod(db):
-    zavod = models.Race(race_nr="JMLP2026-11", datum="2026-03-01", season_id=2025,
-                        closed=False, registration=True, race_method_id=1)
+    zavod = models.Race(
+        race_nr="JMLP2026-11",
+        datum="2026-03-01",
+        season_id=2025,
+        closed=False,
+        registration=True,
+        race_method_id=1,
+    )
     db.add(zavod)
     db.commit()
     db.refresh(zavod)
@@ -153,8 +167,11 @@ def test_propozice_zavodu_se_stahuji_pod_svym_nazvem(client, db):
     zavod = _zavod(db)
     soubor = _soubor(db, original="JMLP2026-11_propozice.pdf")
     attachment_service.attach(
-        db, file_id=soubor.id, owner_type=AttachmentOwner.race.value,
-        owner_id=zavod.id, role=AttachmentRole.propozice.value,
+        db,
+        file_id=soubor.id,
+        owner_type=AttachmentOwner.race.value,
+        owner_id=zavod.id,
+        role=AttachmentRole.propozice.value,
     )
 
     odpoved = client.get(f"/races/{zavod.id}/proposition")

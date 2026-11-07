@@ -7,7 +7,11 @@ import MobileMenu from './MobileMenu.jsx';
 vi.mock('../../../contexts/LiveStatusContext.jsx', () => ({ useLiveStatus: () => null }));
 
 const renderMenu = (onClose = vi.fn()) => {
-  render(<MemoryRouter initialEntries={['/vysledky']}><MobileMenu id="m" open onClose={onClose} /></MemoryRouter>);
+  render(
+    <MemoryRouter initialEntries={['/vysledky']}>
+      <MobileMenu id="m" open onClose={onClose} />
+    </MemoryRouter>,
+  );
   return onClose;
 };
 
@@ -15,8 +19,14 @@ describe('MobileMenu', () => {
   it('v klidu řekne, že se nezávodí, a položky mají podtitulky z navItems', () => {
     renderMenu();
     const menu = screen.getByRole('dialog', { name: 'Menu' });
-    expect(within(menu).getByRole('link', { name: /Živě · právě se nezávodí/ })).toHaveAttribute('href', '/zive');
-    expect(within(menu).getByRole('link', { name: /Výsledky/ })).toHaveAttribute('aria-current', 'page');
+    expect(within(menu).getByRole('link', { name: /Živě · právě se nezávodí/ })).toHaveAttribute(
+      'href',
+      '/zive',
+    );
+    expect(within(menu).getByRole('link', { name: /Výsledky/ })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(within(menu).getByRole('link', { name: /Závody/ })).toHaveTextContent('Kalendář sezóny');
   });
 

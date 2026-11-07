@@ -32,25 +32,32 @@ export function useResults({ confirm }) {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/races');
       setRaces(data);
-    } catch (err) { console.error('Failed to load races:', err); }
+    } catch (err) {
+      console.error('Failed to load races:', err);
+    }
   };
 
   const loadResults = async () => {
     if (!selectedRaceId) return;
     try {
       setLoading(true);
-      const data = await TimekeeperAPI.get(
-        `/api/timekeeper/races/${selectedRaceId}/results`,
-        { group_by_category: true }
-      );
+      const data = await TimekeeperAPI.get(`/api/timekeeper/races/${selectedRaceId}/results`, {
+        group_by_category: true,
+      });
       setResults(data);
     } catch {
       setMessage({ type: 'danger', text: 'Nepodařilo se načíst výsledky' });
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { loadRaces(); }, []);
-  useEffect(() => { if (selectedRaceId) loadResults(); }, [selectedRaceId]);
+  useEffect(() => {
+    loadRaces();
+  }, []);
+  useEffect(() => {
+    if (selectedRaceId) loadResults();
+  }, [selectedRaceId]);
 
   // Vybraná kategorie musí ve výsledcích existovat; jinak první.
   useEffect(() => {
@@ -66,9 +73,8 @@ export function useResults({ confirm }) {
 
   const selectedRace = races.find((race) => String(race.id) === String(selectedRaceId)) || null;
   const categoryList = results?.categories || [];
-  const selectedCategory = categoryList.find(
-    (cat) => String(cat.category_id) === String(selectedCategoryId)
-  ) || null;
+  const selectedCategory =
+    categoryList.find((cat) => String(cat.category_id) === String(selectedCategoryId)) || null;
 
   const reportPdfError = (err) => {
     console.error('PDF se nepodařilo vytvořit:', err);
@@ -80,22 +86,31 @@ export function useResults({ confirm }) {
     if (!selectedCategory) return;
     try {
       await pdf.generate({
-        categories: [selectedCategory], interim: true, runMode, categoryName: selectedCategory.category_name
+        categories: [selectedCategory],
+        interim: true,
+        runMode,
+        categoryName: selectedCategory.category_name,
       });
-    } catch (err) { reportPdfError(err); }
+    } catch (err) {
+      reportPdfError(err);
+    }
   };
 
   /** Listina kola všech kategorií. */
   const printAllInterim = async (runMode) => {
     try {
       await pdf.generate({ categories: categoryList, interim: true, runMode });
-    } catch (err) { reportPdfError(err); }
+    } catch (err) {
+      reportPdfError(err);
+    }
   };
 
   const printFinal = async (publishable) => {
     try {
       await pdf.generate({ categories: categoryList, interim: false, publishable });
-    } catch (err) { reportPdfError(err); }
+    } catch (err) {
+      reportPdfError(err);
+    }
   };
 
   /**
@@ -112,25 +127,27 @@ export function useResults({ confirm }) {
     if (!isOnline) {
       setMessage({
         type: 'warning',
-        text: 'Mazání výsledků vyžaduje připojení k internetu - offline by se smazání přehrálo až později a vzalo s sebou i mezitím naměřené časy.'
+        text: 'Mazání výsledků vyžaduje připojení k internetu - offline by se smazání přehrálo až později a vzalo s sebou i mezitím naměřené časy.',
       });
       return;
     }
     if (queueStats.total > 0) {
       setMessage({
         type: 'warning',
-        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nejdřív je nechte odeslat (Synchronizace), jinak by se po smazání přehrály zpátky.`
+        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nejdřív je nechte odeslat (Synchronizace), jinak by se po smazání přehrály zpátky.`,
       });
       return;
     }
 
-    const choice = await confirm(clearResultsConfirm({ race: selectedRace, total: results?.total_entries }));
+    const choice = await confirm(
+      clearResultsConfirm({ race: selectedRace, total: results?.total_entries }),
+    );
     if (!choice) return;
 
     try {
       setClearing(true);
       const result = await TimekeeperAPI.deleteOnline(
-        `/api/timekeeper/races/${selectedRaceId}/results?published=${choice === 'all'}`
+        `/api/timekeeper/races/${selectedRaceId}/results?published=${choice === 'all'}`,
       );
       // Lokální stopy po naměřených časech musí zmizet taky: nakešovaná
       // startovka i rozepsané drafty by je jinak vrátily do hry.
@@ -162,14 +179,18 @@ export function useResults({ confirm }) {
           type: 'warning',
           text: `V pořadí chybí závody bez výsledků v aplikaci: ${missing
             .map((race) => `${race.race_nr} (${formatDateLong(race.datum)})`)
-            .join(', ')}.`
+            .join(', ')}.`,
         });
       }
-    } catch (err) { reportPdfError(err); }
+    } catch (err) {
+      reportPdfError(err);
+    }
   };
 
   const publishResults = async () => {
-    const confirmed = await confirm(publishConfirm({ target: pdf.publishTarget, fileName: pdf.fileName, race: selectedRace }));
+    const confirmed = await confirm(
+      publishConfirm({ target: pdf.publishTarget, fileName: pdf.fileName, race: selectedRace }),
+    );
     if (!confirmed) return;
 
     try {

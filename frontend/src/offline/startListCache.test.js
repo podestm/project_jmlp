@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { timekeeperDb } from './db.js';
-import { buildCacheKey, cacheGetResponse, dropRaceSnapshot, readCachedResponse } from './startListCache.js';
+import {
+  buildCacheKey,
+  cacheGetResponse,
+  dropRaceSnapshot,
+  readCachedResponse,
+} from './startListCache.js';
 import { enqueueMutation } from './syncQueue.js';
 import { resetTimekeeperDb, startListEntry } from '../test/helpers.js';
 
@@ -44,7 +49,9 @@ describe('cacheGetResponse', () => {
    * Bez překrytí by ho odpověď na GET smazala z obrazovky.
    */
   it('nepřepíše čas, jehož zápis ještě čeká ve frontě', async () => {
-    await timekeeperDb.startList.put(startListEntry({ time1: 25.5, updated_local_at: '2026-01-01T11:00:00.000Z' }));
+    await timekeeperDb.startList.put(
+      startListEntry({ time1: 25.5, updated_local_at: '2026-01-01T11:00:00.000Z' }),
+    );
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 25.5 });
 
     const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ time1: null })]);
@@ -66,7 +73,9 @@ describe('cacheGetResponse', () => {
     await timekeeperDb.startList.put(startListEntry({ time1: 10, dnf: true }));
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { dnf: true });
 
-    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ time1: 10, dnf: false })]);
+    const stored = await cacheGetResponse(START_LIST, null, [
+      startListEntry({ time1: 10, dnf: false }),
+    ]);
 
     expect(stored[0].dnf).toBe(true);
     expect(stored[0].time_sum).toBeNull();
@@ -85,7 +94,9 @@ describe('cacheGetResponse - vyřazení ze startky', () => {
     await timekeeperDb.startList.put(startListEntry({ excluded: true }));
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/excluded', { excluded: true });
 
-    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ excluded: false, time1: 31 })]);
+    const stored = await cacheGetResponse(START_LIST, null, [
+      startListEntry({ excluded: false, time1: 31 }),
+    ]);
 
     expect(stored[0].excluded).toBe(true);
     // Časy čekající vyřazení nepřebíjí - ty platí ze serveru.
@@ -99,7 +110,9 @@ describe('cacheGetResponse - vyřazení ze startky', () => {
     await timekeeperDb.startList.put(startListEntry({ time1: 25.5, excluded: false }));
     await enqueueMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 25.5 });
 
-    const stored = await cacheGetResponse(START_LIST, null, [startListEntry({ time1: null, excluded: true })]);
+    const stored = await cacheGetResponse(START_LIST, null, [
+      startListEntry({ time1: null, excluded: true }),
+    ]);
 
     expect(stored[0].excluded).toBe(true);
     expect(stored[0].time1).toBe(25.5);

@@ -10,14 +10,28 @@ import styles from './SeasonCard.module.css';
  * smazat nejde – tlačítko je zamčené a říká proč.
  * - compact: řádek archivu (menší, bez lišty)
  */
-export default function SeasonCard({ season, currentSeasonId, expanded, compact = false, onToggle, onEdit, onSetCurrent, onDelete, children }) {
+export default function SeasonCard({
+  season,
+  currentSeasonId,
+  expanded,
+  compact = false,
+  onToggle,
+  onEdit,
+  onSetCurrent,
+  onDelete,
+  children,
+}) {
   const state = seasonState(season, currentSeasonId);
   const isCurrent = state === 'Aktuální sezóna';
-  const lockReason = (season.races_count > 0 && 'má závody') || (isCurrent && 'je aktuální') || null;
+  const lockReason =
+    (season.races_count > 0 && 'má závody') || (isCurrent && 'je aktuální') || null;
   const documentsId = `sezona-${season.id}-dokumenty`;
 
   return (
-    <article className={cx(styles.card, compact && styles.compact, isCurrent && styles.current)} aria-label={`Sezóna ${season.season_label}`}>
+    <article
+      className={cx(styles.card, compact && styles.compact, isCurrent && styles.current)}
+      aria-label={`Sezóna ${season.season_label}`}
+    >
       <div className={styles.row}>
         <span className={styles.edition}>
           {!compact && <span className={styles.editionLabel}>Ročník</span>}
@@ -28,9 +42,15 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
             <span className={styles.years}>{season.season_label}</span>
             {!compact && <span className={styles.name}>{season.name}</span>}
           </span>
-          <span className={styles.meta}>{seasonRange(season.year_start)} · {seasonCounts(season)}</span>
+          <span className={styles.meta}>
+            {seasonRange(season.year_start)} · {seasonCounts(season)}
+          </span>
           <span className={styles.badges}>
-            {state !== 'Archiv' && <Badge size="sm" tone={isCurrent ? 'open' : 'neutral'}>{state}</Badge>}
+            {state !== 'Archiv' && (
+              <Badge size="sm" tone={isCurrent ? 'open' : 'neutral'}>
+                {state}
+              </Badge>
+            )}
           </span>
         </span>
         <span className={styles.actions}>
@@ -44,18 +64,33 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
             {expanded ? 'Sbalit' : 'Dokumenty'}
           </Button>
           {!isCurrent && (
-            <Button size="sm" icon="check" onClick={() => onSetCurrent(season)} aria-label={`Nastavit sezónu ${season.season_label} jako aktuální`}>
+            <Button
+              size="sm"
+              icon="check"
+              onClick={() => onSetCurrent(season)}
+              aria-label={`Nastavit sezónu ${season.season_label} jako aktuální`}
+            >
               Nastavit jako aktuální
             </Button>
           )}
-          <Button size="sm" onClick={() => onEdit(season)} aria-label={`Upravit sezónu ${season.season_label}`}>Upravit</Button>
+          <Button
+            size="sm"
+            onClick={() => onEdit(season)}
+            aria-label={`Upravit sezónu ${season.season_label}`}
+          >
+            Upravit
+          </Button>
           <Tooltip text={lockReason ? `Sezóna ${lockReason}` : ''}>
             <Button
               size="sm"
               variant="danger"
               icon="trash"
               disabled={Boolean(lockReason)}
-              aria-label={lockReason ? `Sezóna ${season.season_label} ${lockReason} a nelze ji smazat` : `Smazat sezónu ${season.season_label}`}
+              aria-label={
+                lockReason
+                  ? `Sezóna ${season.season_label} ${lockReason} a nelze ji smazat`
+                  : `Smazat sezónu ${season.season_label}`
+              }
               onClick={() => onDelete(season)}
             >
               Smazat
@@ -63,7 +98,11 @@ export default function SeasonCard({ season, currentSeasonId, expanded, compact 
           </Tooltip>
         </span>
       </div>
-      {expanded && <div id={documentsId} className={styles.documents}>{children}</div>}
+      {expanded && (
+        <div id={documentsId} className={styles.documents}>
+          {children}
+        </div>
+      )}
     </article>
   );
 }

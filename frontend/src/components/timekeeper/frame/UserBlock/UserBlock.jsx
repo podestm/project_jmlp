@@ -12,12 +12,20 @@ export default function UserBlock({ user, onLogout, compact = false, className }
   const name = user?.full_name || user?.email || '';
   return (
     <div className={cx(styles.user, compact && styles.compact, className)}>
-      <span className={styles.avatar} aria-hidden="true">{initialsOf(name)}</span>
+      <span className={styles.avatar} aria-hidden="true">
+        {initialsOf(name)}
+      </span>
       <span className={styles.text}>
         <span className={styles.name}>{name}</span>
         <span className={styles.role}>{roleLabel(user?.role)}</span>
       </span>
-      <IconButton icon="logout" label="Odhlásit se" variant="on-dark" iconSize={18} onClick={onLogout} />
+      <IconButton
+        icon="logout"
+        label="Odhlásit se"
+        variant="on-dark"
+        iconSize={18}
+        onClick={onLogout}
+      />
     </div>
   );
 }

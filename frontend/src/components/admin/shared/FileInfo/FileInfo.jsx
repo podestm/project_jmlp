@@ -10,17 +10,30 @@ import styles from './FileInfo.module.css';
  */
 export default function FileInfo({ file, link = false, nameSlot, children }) {
   const name = file.original_filename;
-  const details = [formatFileSize(file.file_size), file.uploaded_at && `nahráno ${formatDateShort(file.uploaded_at)}`]
-    .filter(Boolean).join(' · ');
+  const details = [
+    formatFileSize(file.file_size),
+    file.uploaded_at && `nahráno ${formatDateShort(file.uploaded_at)}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <span className={styles.file}>
       <FileBadge filename={name} />
       <span className={styles.text}>
-        {nameSlot ?? (link ? (
-          <a href={file.download_url} target="_blank" rel="noopener noreferrer" className={styles.link} title={name}>{name}</a>
-        ) : (
-          <span className={styles.name}>{name}</span>
-        ))}
+        {nameSlot ??
+          (link ? (
+            <a
+              href={file.download_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+              title={name}
+            >
+              {name}
+            </a>
+          ) : (
+            <span className={styles.name}>{name}</span>
+          ))}
         <span className={styles.details}>
           <span>{details}</span>
           {children}

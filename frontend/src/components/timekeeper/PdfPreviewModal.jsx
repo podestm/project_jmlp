@@ -19,7 +19,7 @@ export default function PdfPreviewModal({
   publishLabel = 'Publikovat k závodu',
   publishing = false,
   onPublish,
-  onClose
+  onClose,
 }) {
   return (
     <Modal
@@ -31,11 +31,13 @@ export default function PdfPreviewModal({
       closeLabel="Zavřít náhled"
       dismissible={!publishing}
       onClose={() => onClose()}
-      footer={canPublish && (
-        <Button variant="primary" icon="upload" busy={publishing} onClick={onPublish}>
-          {publishLabel}
-        </Button>
-      )}
+      footer={
+        canPublish && (
+          <Button variant="primary" icon="upload" busy={publishing} onClick={onPublish}>
+            {publishLabel}
+          </Button>
+        )
+      }
     >
       <iframe src={objectUrl} title={title} className={styles.frame} />
     </Modal>

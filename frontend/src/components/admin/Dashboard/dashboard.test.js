@@ -14,7 +14,10 @@ describe('přehled administrace – pomocné funkce', () => {
 
   it('kdy: dnes, včera, jinak datum', () => {
     const now = new Date(2026, 8, 23, 20, 0);
-    expect(whenParts(new Date(2026, 8, 23, 18, 47).toISOString(), now)).toEqual({ day: 'dnes', time: '18:47' });
+    expect(whenParts(new Date(2026, 8, 23, 18, 47).toISOString(), now)).toEqual({
+      day: 'dnes',
+      time: '18:47',
+    });
     expect(whenParts(new Date(2026, 8, 22, 9, 5).toISOString(), now).day).toBe('včera');
     expect(whenParts(new Date(2026, 8, 20, 9, 5).toISOString(), now).day).toBe('20. 9.');
     expect(whenParts(null, now)).toEqual({ day: '—', time: '' });

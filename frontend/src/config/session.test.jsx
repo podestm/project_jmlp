@@ -68,15 +68,17 @@ const respond = (body, status = 200) => ({
   statusText: status < 400 ? 'OK' : 'Error',
   headers: new Headers({ 'content-type': 'application/json' }),
   json: async () => body,
-  text: async () => JSON.stringify(body)
+  text: async () => JSON.stringify(body),
 });
 
-const mockServer = (profile) => vi.fn(async (url) => {
-  const path = String(url);
-  if (path.endsWith('/auth/login')) return respond({ access_token: 'shared-token', token_type: 'bearer', expires_in: 43200 });
-  if (path.endsWith('/auth/me')) return respond(profile);
-  return respond([]);
-});
+const mockServer = (profile) =>
+  vi.fn(async (url) => {
+    const path = String(url);
+    if (path.endsWith('/auth/login'))
+      return respond({ access_token: 'shared-token', token_type: 'bearer', expires_in: 43200 });
+    if (path.endsWith('/auth/me')) return respond(profile);
+    return respond([]);
+  });
 
 describe('jedno přihlášení pro administraci i časomíru', () => {
   beforeEach(() => localStorage.clear());
@@ -87,7 +89,9 @@ describe('jedno přihlášení pro administraci i časomíru', () => {
     const timekeeper = renderHook(() => useTimekeeperAuth(), { wrapper: TimekeeperAuthProvider });
     await waitFor(() => expect(timekeeper.result.current.loading).toBe(false));
 
-    await act(async () => { await timekeeper.result.current.login('ivo@x.cz', 'heslo'); });
+    await act(async () => {
+      await timekeeper.result.current.login('ivo@x.cz', 'heslo');
+    });
     expect(localStorage.getItem(SESSION_TOKEN_KEY)).toBe('shared-token');
 
     const admin = renderHook(() => useAuth(), { wrapper: AuthProvider });
@@ -114,7 +118,13 @@ describe('jedno přihlášení pro administraci i časomíru', () => {
     localStorage.setItem(SESSION_TOKEN_KEY, 'shared-token');
     vi.stubGlobal('fetch', mockServer({ id: 5, email: 'renata@x.cz', role: 'timekeeper' }));
 
-    render(<MemoryRouter><AuthProvider><AdminLogin /></AuthProvider></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <AdminLogin />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
 
     expect(await screen.findByText(/smí jen do časomíry/)).toHaveTextContent('renata@x.cz');
   });
@@ -134,7 +144,12 @@ describe('jedno přihlášení pro administraci i časomíru', () => {
 
   it('výpadek sítě v administraci společné přihlášení nesmaže', async () => {
     localStorage.setItem(SESSION_TOKEN_KEY, 'shared-token');
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch');
+      }),
+    );
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const admin = renderHook(() => useAuth(), { wrapper: AuthProvider });

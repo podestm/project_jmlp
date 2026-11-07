@@ -23,6 +23,7 @@ def test_role_suffix_is_ascii_and_known():
 
 def test_every_known_role_has_suffix():
     from app.models import AttachmentRole
+
     for role in AttachmentRole:
         assert role in ROLE_SUFFIX
 
@@ -89,7 +90,9 @@ def test_unique_name_skips_multiple_collisions():
         "sezona-2025-2026_dokument-2.pdf",
         "sezona-2025-2026_dokument-3.pdf",
     }
-    assert unique_name("sezona-2025-2026_dokument", ".pdf", taken) == "sezona-2025-2026_dokument-4.pdf"
+    assert (
+        unique_name("sezona-2025-2026_dokument", ".pdf", taken) == "sezona-2025-2026_dokument-4.pdf"
+    )
 
 
 def test_unique_name_is_case_insensitive():
@@ -102,7 +105,9 @@ from app.services.naming import sanitize_manual_name
 
 
 def test_sanitize_keeps_diacritics():
-    assert sanitize_manual_name("Soutěžní řád XIX. ročník", ".pdf") == "Soutěžní řád XIX. ročník.pdf"
+    assert (
+        sanitize_manual_name("Soutěžní řád XIX. ročník", ".pdf") == "Soutěžní řád XIX. ročník.pdf"
+    )
 
 
 def test_sanitize_keeps_numbered_czech_names():

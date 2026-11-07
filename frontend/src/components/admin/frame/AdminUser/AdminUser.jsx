@@ -9,10 +9,14 @@ export default function AdminUser({ admin, onLogout, className }) {
   return (
     <div className={cx(styles.user, className)}>
       <div className={styles.who}>
-        <span className={styles.avatar} aria-hidden="true">{initialsOf(name)}</span>
+        <span className={styles.avatar} aria-hidden="true">
+          {initialsOf(name)}
+        </span>
         <span className={styles.name}>{name}</span>
       </div>
-      <Button variant="on-dark" size="sm" icon="logout" block onClick={onLogout}>Odhlásit se</Button>
+      <Button variant="on-dark" size="sm" icon="logout" block onClick={onLogout}>
+        Odhlásit se
+      </Button>
     </div>
   );
 }

@@ -3,7 +3,13 @@ import { BibDate, ButtonLink, Container, DataRow, LiveBand, Screen } from '../..
 import { useSeasonInfo } from '../../site/siteInfo.js';
 import { useLiveStatus } from '../../../contexts/LiveStatusContext.jsx';
 import { fixEncoding } from '../../../utils/text.js';
-import { REGISTRATION_STATE, raceDate, raceMethod, registrationState, startOfToday } from '../../../utils/races.js';
+import {
+  REGISTRATION_STATE,
+  raceDate,
+  raceMethod,
+  registrationState,
+  startOfToday,
+} from '../../../utils/races.js';
 import LatestNews from './LatestNews/LatestNews.jsx';
 import SeasonRaces from './SeasonRaces/SeasonRaces.jsx';
 import { useHome } from './useHome.js';
@@ -19,14 +25,22 @@ function Hero({ openRace }) {
   return (
     <div className={styles.hero}>
       <Container className={styles.heroInner}>
-        <p className={styles.eyebrow}>{edition} ročník · sezóna {season}</p>
+        <p className={styles.eyebrow}>
+          {edition} ročník · sezóna {season}
+        </p>
         <h1 className={styles.heroTitle}>Jihomoravský Lyžařský Pohár</h1>
         <p className={styles.lead}>Seriál závodů pro všechny kategorie.</p>
         <div className={styles.heroActions}>
-          <ButtonLink to={registerPath(openRace)} variant="accent" size="lg" iconEnd="arrow-right">Přihlásit na závod</ButtonLink>
-          <ButtonLink to="/zavody" variant="on-dark" size="lg">Kalendář sezóny</ButtonLink>
+          <ButtonLink to={registerPath(openRace)} variant="accent" size="lg" iconEnd="arrow-right">
+            Přihlásit na závod
+          </ButtonLink>
+          <ButtonLink to="/zavody" variant="on-dark" size="lg">
+            Kalendář sezóny
+          </ButtonLink>
         </div>
-        <p className={styles.since}><span className={styles.sinceYear}>2006</span>jezdíme od roku</p>
+        <p className={styles.since}>
+          <span className={styles.sinceYear}>2006</span>jezdíme od roku
+        </p>
       </Container>
     </div>
   );
@@ -35,7 +49,9 @@ function Hero({ openRace }) {
 /** Nejbližší závod jako karta s hlavní akcí. */
 function NextRace({ race }) {
   const state = registrationState(race);
-  const meta = [fixEncoding(race.organizer_name), raceMethod(race).label.toLowerCase()].filter(Boolean).join(' · ');
+  const meta = [fixEncoding(race.organizer_name), raceMethod(race).label.toLowerCase()]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <DataRow
       variant="card"
@@ -43,11 +59,23 @@ function NextRace({ race }) {
       raised
       eyebrow="Nejbližší závod"
       lead={<BibDate date={race.datum} variant="list" />}
-      title={<Link to={`/zavod/${race.id}`} className={styles.raceLink}>{fixEncoding(race.areal_name)}</Link>}
+      title={
+        <Link to={`/zavod/${race.id}`} className={styles.raceLink}>
+          {fixEncoding(race.areal_name)}
+        </Link>
+      }
       meta={meta}
-      aside={state === 'open'
-        ? <ButtonLink to={registerPath(race)} variant="primary" iconEnd="arrow-right">Přihlásit závodníka</ButtonLink>
-        : <ButtonLink to={`/zavod/${race.id}`} iconEnd="arrow-right">Detail závodu</ButtonLink>}
+      aside={
+        state === 'open' ? (
+          <ButtonLink to={registerPath(race)} variant="primary" iconEnd="arrow-right">
+            Přihlásit závodníka
+          </ButtonLink>
+        ) : (
+          <ButtonLink to={`/zavod/${race.id}`} iconEnd="arrow-right">
+            Detail závodu
+          </ButtonLink>
+        )
+      }
     />
   );
 }
@@ -65,20 +93,28 @@ export default function Home() {
   const upcoming = seasonRaces.filter((race) => !raceDate(race) || raceDate(race) >= today);
   const nextRace = upcoming[0];
   // Přednost má nadcházející závod; jinak i odjetý, kterému admin registraci znovu otevřel.
-  const openRace = upcoming.find((race) => race.registration) ?? seasonRaces.find((race) => race.registration);
+  const openRace =
+    upcoming.find((race) => race.registration) ?? seasonRaces.find((race) => race.registration);
 
   return (
     <Screen>
       <Hero openRace={openRace} />
       {liveRace && (
-        <LiveBand title={`Právě se závodí – ${fixEncoding(liveRace.areal_name)}`} detail="Průběžné neoficiální výsledky sledujte živě." />
+        <LiveBand
+          title={`Právě se závodí – ${fixEncoding(liveRace.areal_name)}`}
+          detail="Průběžné neoficiální výsledky sledujte živě."
+        />
       )}
       <Container className={styles.page}>
         {nextRace && <NextRace race={nextRace} />}
         {/* Závody jsou v DOM první: pod 1024 px stojí hned pod nejbližším
             závodem (přihlášky jsou nejdůležitější), na šířku vpravo. */}
         <div className={styles.columns}>
-          <SeasonRaces races={{ ...races, list: seasonRaces }} today={today} className={styles.races} />
+          <SeasonRaces
+            races={{ ...races, list: seasonRaces }}
+            today={today}
+            className={styles.races}
+          />
           <LatestNews posts={posts} className={styles.news} />
         </div>
       </Container>

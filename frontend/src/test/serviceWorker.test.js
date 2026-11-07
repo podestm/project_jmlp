@@ -27,14 +27,15 @@ const response = (body, { status = 200, type = 'text/html' } = {}) => {
     status,
     headers: { get: (name) => (name.toLowerCase() === 'content-type' ? type : null) },
     clone: make,
-    text: async () => body
+    text: async () => body,
   });
   return make();
 };
 
 const createCaches = () => {
   const stores = new Map();
-  const keyOf = (request) => new URL(typeof request === 'string' ? request : request.url, ORIGIN).href;
+  const keyOf = (request) =>
+    new URL(typeof request === 'string' ? request : request.url, ORIGIN).href;
   const storeFor = (name) => {
     if (!stores.has(name)) stores.set(name, new Map());
     return stores.get(name);
@@ -46,10 +47,11 @@ const createCaches = () => {
       const store = storeFor(name);
       return {
         put: async (request, res) => {
-          if (res.status === 206) throw new TypeError('Partial response (status code 206) is unsupported');
+          if (res.status === 206)
+            throw new TypeError('Partial response (status code 206) is unsupported');
           store.set(keyOf(request), res);
         },
-        match: async (request) => store.get(keyOf(request))?.clone()
+        match: async (request) => store.get(keyOf(request))?.clone(),
       };
     },
     keys: async () => [...stores.keys()],
@@ -68,7 +70,7 @@ const createCaches = () => {
         if (hit) return hit;
       }
       return undefined;
-    }
+    },
   };
 };
 
@@ -87,9 +89,11 @@ const loadWorker = () => {
   const listeners = {};
   const self = {
     location: new URL('/sw.js', ORIGIN),
-    addEventListener: (type, handler) => { listeners[type] = handler; },
+    addEventListener: (type, handler) => {
+      listeners[type] = handler;
+    },
     skipWaiting: vi.fn(),
-    clients: { claim: vi.fn(async () => {}) }
+    clients: { claim: vi.fn(async () => {}) },
   };
   const caches = createCaches();
   const fetch = vi.fn(async () => response('', { status: 404 }));
@@ -103,7 +107,9 @@ const dispatchFetch = (url, init = {}) => {
   let responded = null;
   worker.listeners.fetch({
     request: new FakeRequest(url, init),
-    respondWith: (promise) => { responded = Promise.resolve(promise); }
+    respondWith: (promise) => {
+      responded = Promise.resolve(promise);
+    },
   });
   return responded;
 };
@@ -152,7 +158,7 @@ const DATA_PATHS = [
   '/api/timekeeper/races',
   '/api/timekeeper/races/132/start-list',
   '/manifest.json',
-  '/sw.js'
+  '/sw.js',
 ];
 
 describe('data jdou mimo service worker', () => {
@@ -181,13 +187,16 @@ describe('neměnné soubory', () => {
     expect(worker.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['/favicon.ico', '/favicon-32x32.png', '/apple-touch-icon.png'])('ikona %s se kešuje', async (path) => {
-    worker.fetch.mockResolvedValue(response('png', { type: 'image/png' }));
+  it.each(['/favicon.ico', '/favicon-32x32.png', '/apple-touch-icon.png'])(
+    'ikona %s se kešuje',
+    async (path) => {
+      worker.fetch.mockResolvedValue(response('png', { type: 'image/png' }));
 
-    await dispatchFetch(path);
+      await dispatchFetch(path);
 
-    expect(worker.caches.peek(path)).toBeDefined();
-  });
+      expect(worker.caches.peek(path)).toBeDefined();
+    },
+  );
 
   it('chybová odpověď se do keše neuloží', async () => {
     worker.fetch.mockResolvedValue(response('nenalezeno', { status: 404 }));
@@ -261,10 +270,15 @@ describe('obálka aplikace', () => {
 describe('náhled PDF pod názvem souboru', () => {
   it('náhled z keše náhledů - prohlížeč PDF ho uloží pod názvem z adresy', async () => {
     const nahledy = await worker.caches.open('jmlp-pdf-preview');
-    await nahledy.put('/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf', response('%PDF', { type: 'application/pdf' }));
+    await nahledy.put(
+      '/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf',
+      response('%PDF', { type: 'application/pdf' }),
+    );
 
     // Iframe náhledu je navigace - nesmí dostat obálku aplikace.
-    const odpoved = await dispatchFetch('/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf', { mode: 'navigate' });
+    const odpoved = await dispatchFetch('/pdf-preview/1-a/2026-10-03_JMLP2026-01_vysledky.pdf', {
+      mode: 'navigate',
+    });
 
     expect(odpoved.headers.get('content-type')).toBe('application/pdf');
     expect(worker.fetch).not.toHaveBeenCalled();
@@ -331,7 +345,10 @@ describe('instalace a aktivace', () => {
 
   it('aktivace nechá keš náhledů PDF - patří otevřenému náhledu, ne verzi workeru', async () => {
     const nahledy = await worker.caches.open('jmlp-pdf-preview');
-    await nahledy.put('/pdf-preview/1-a/vysledky.pdf', response('%PDF', { type: 'application/pdf' }));
+    await nahledy.put(
+      '/pdf-preview/1-a/vysledky.pdf',
+      response('%PDF', { type: 'application/pdf' }),
+    );
     serveShell();
     await lifecycle('install');
 
@@ -360,11 +377,12 @@ describe('instalace a aktivace', () => {
  */
 describe('časoměřič na keši workeru nestojí', () => {
   const SRC = join(FRONTEND, 'src');
-  const sourceFiles = (dir) => readdirSync(dir).flatMap((name) => {
-    const full = join(dir, name);
-    if (statSync(full).isDirectory()) return sourceFiles(full);
-    return /\.jsx?$/.test(name) && !/\.test\.jsx?$/.test(name) ? [full] : [];
-  });
+  const sourceFiles = (dir) =>
+    readdirSync(dir).flatMap((name) => {
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) return sourceFiles(full);
+      return /\.jsx?$/.test(name) && !/\.test\.jsx?$/.test(name) ? [full] : [];
+    });
 
   it('aplikace se Cache Storage nedotýká', () => {
     // Jediná výjimka: náhled PDF (pdf/previewUrl.js) tam na chvíli odkládá
@@ -383,8 +401,11 @@ describe('časoměřič na keši workeru nestojí', () => {
     // Veřejný klient (config/api.js) offline cache nemá - offline fungoval jen
     // díky keši workeru. Časoměřič musí číst přes TimekeeperAPI (IndexedDB).
     const offenders = sourceFiles(join(SRC, 'components', 'timekeeper'))
-      .filter((file) => /import\s+(API\b|\{[^}]*\bAPI\b[^}]*\})[^;]*from\s+'[./]+config\/api\.js'/
-        .test(readFileSync(file, 'utf8')))
+      .filter((file) =>
+        /import\s+(API\b|\{[^}]*\bAPI\b[^}]*\})[^;]*from\s+'[./]+config\/api\.js'/.test(
+          readFileSync(file, 'utf8'),
+        ),
+      )
       .map((file) => relative(SRC, file));
 
     expect(offenders).toEqual([]);

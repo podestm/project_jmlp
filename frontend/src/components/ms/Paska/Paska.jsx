@@ -10,7 +10,9 @@ export default function Paska({ as: Heading = 'h2', id, aside, className, childr
   return (
     <div className={cx(styles.paska, className)}>
       <div className={styles.row}>
-        <Heading id={id} className={styles.title}>{children}</Heading>
+        <Heading id={id} className={styles.title}>
+          {children}
+        </Heading>
         {aside && <div className={styles.aside}>{aside}</div>}
       </div>
       <div className={styles.line} aria-hidden="true" />

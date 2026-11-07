@@ -9,7 +9,9 @@ export default function DeleteSeasonMessage({ season }) {
         <span className={styles.edition}>{season.edition_label || '—'}</span>
         <span className={styles.text}>
           <span className={styles.label}>{season.season_label}</span>
-          <span className={styles.meta}>{seasonRange(season.year_start)} · {seasonCounts(season)}</span>
+          <span className={styles.meta}>
+            {seasonRange(season.year_start)} · {seasonCounts(season)}
+          </span>
         </span>
       </div>
       <p className={styles.note}>Dokumenty se odpojí, soubory zůstanou v knihovně.</p>

@@ -14,40 +14,73 @@ import ClubManagement from './ClubManagement.jsx';
  * kolo se opakovalo pořád dokola.
  */
 const KLUBY = [
-  { id: 1, name: 'SK Olešnice', valid: true, racers_count: 12, organized_races_count: 3, has_logo: false },
-  { id: 2, name: 'Ski Klub Brno', valid: true, racers_count: 8, organized_races_count: 0, has_logo: true },
-  { id: 3, name: 'Bez klubové příslušnosti', valid: false, racers_count: 4, organized_races_count: 0, has_logo: true },
-  { id: 4, name: 'SK Zaniklý', valid: false, racers_count: 0, organized_races_count: 0, has_logo: true },
+  {
+    id: 1,
+    name: 'SK Olešnice',
+    valid: true,
+    racers_count: 12,
+    organized_races_count: 3,
+    has_logo: false,
+  },
+  {
+    id: 2,
+    name: 'Ski Klub Brno',
+    valid: true,
+    racers_count: 8,
+    organized_races_count: 0,
+    has_logo: true,
+  },
+  {
+    id: 3,
+    name: 'Bez klubové příslušnosti',
+    valid: false,
+    racers_count: 4,
+    organized_races_count: 0,
+    has_logo: true,
+  },
+  {
+    id: 4,
+    name: 'SK Zaniklý',
+    valid: false,
+    racers_count: 0,
+    organized_races_count: 0,
+    has_logo: true,
+  },
 ];
 
 let volani;
 
-const jsonResponse = (body) => Promise.resolve({
-  ok: true,
-  status: 200,
-  statusText: 'OK',
-  json: async () => body,
-});
+const jsonResponse = (body) =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => body,
+  });
 
 beforeEach(() => {
   volani = [];
   localStorage.setItem('auth_token', 'token-pro-test');
-  vi.stubGlobal('fetch', vi.fn((url, options) => {
-    const cesta = String(url);
-    volani.push({ cesta, metoda: options?.method || 'GET' });
-    if (options?.method === 'DELETE') {
-      return jsonResponse({
-        deleted_id: 3, name: 'Bez klubové příslušnosti',
-        moved_racers: cesta.includes('reassign_to') ? 4 : 0,
-        moved_races: 0,
-        reassigned_to: cesta.includes('reassign_to') ? 1 : null,
-        reassigned_to_name: cesta.includes('reassign_to') ? 'SK Olešnice' : null,
-      });
-    }
-    if (cesta.includes('/api/admin/clubs/overview')) return jsonResponse(KLUBY);
-    if (cesta.includes('/api/admin/attachments')) return jsonResponse([]);
-    return jsonResponse([]);
-  }));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url, options) => {
+      const cesta = String(url);
+      volani.push({ cesta, metoda: options?.method || 'GET' });
+      if (options?.method === 'DELETE') {
+        return jsonResponse({
+          deleted_id: 3,
+          name: 'Bez klubové příslušnosti',
+          moved_racers: cesta.includes('reassign_to') ? 4 : 0,
+          moved_races: 0,
+          reassigned_to: cesta.includes('reassign_to') ? 1 : null,
+          reassigned_to_name: cesta.includes('reassign_to') ? 'SK Olešnice' : null,
+        });
+      }
+      if (cesta.includes('/api/admin/clubs/overview')) return jsonResponse(KLUBY);
+      if (cesta.includes('/api/admin/attachments')) return jsonResponse([]);
+      return jsonResponse([]);
+    }),
+  );
 });
 
 const pocet = (fragment) => volani.filter((v) => v.cesta.includes(fragment)).length;
@@ -55,13 +88,21 @@ const smazani = () => volani.filter((v) => v.metoda === 'DELETE');
 
 describe('ClubManagement', () => {
   it('vypíše kluby', async () => {
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText('SK Olešnice')).toBeInTheDocument();
   });
 
   it('rozbalení klubu nespustí nekonečné načítání', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Olešnice');
 
     const prvniNacteni = pocet('/api/admin/clubs/overview');
@@ -78,7 +119,11 @@ describe('ClubManagement', () => {
 
   it('filtruje podle cedulky neplatný', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Olešnice');
 
     await user.selectOptions(screen.getByLabelText('Platnost klubu'), 'neplatne');
@@ -92,7 +137,11 @@ describe('ClubManagement', () => {
 
   it('filtr platnosti se kombinuje s hledáním', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Olešnice');
 
     await user.selectOptions(screen.getByLabelText('Platnost klubu'), 'neplatne');
@@ -104,7 +153,11 @@ describe('ClubManagement', () => {
 
   it('prázdný klub smaže rovnou, bez výběru cíle', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Zaniklý');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub SK Zaniklý' }));
@@ -119,7 +172,11 @@ describe('ClubManagement', () => {
 
   it('klub se závodníky jde smazat až po výběru cílového klubu', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('Bez klubové příslušnosti');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub Bez klubové příslušnosti' }));
@@ -142,7 +199,11 @@ describe('ClubManagement', () => {
 
   it('mazaný klub si sám sebe jako cíl nenabídne', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('Bez klubové příslušnosti');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub Bez klubové příslušnosti' }));
@@ -155,7 +216,11 @@ describe('ClubManagement', () => {
 
   it('zrušení dialogu klub nesmaže', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Zaniklý');
 
     await user.click(screen.getByRole('button', { name: 'Smazat klub SK Zaniklý' }));
@@ -167,7 +232,11 @@ describe('ClubManagement', () => {
 
   it('tabulka při obnovení na pozadí nezmizí', async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ClubManagement /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <ClubManagement />
+      </MemoryRouter>,
+    );
     await screen.findByText('SK Olešnice');
 
     await user.click(screen.getByRole('button', { name: /Nahrát logo/ }));

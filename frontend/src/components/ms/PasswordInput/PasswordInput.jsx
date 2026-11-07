@@ -13,7 +13,13 @@ const PasswordInput = forwardRef(function PasswordInput({ size = 'lg', className
   const [visible, setVisible] = useState(false);
   return (
     <span className={cx(styles.wrap, className)}>
-      <Input ref={ref} size={size} type={visible ? 'text' : 'password'} className={styles.input} {...rest} />
+      <Input
+        ref={ref}
+        size={size}
+        type={visible ? 'text' : 'password'}
+        className={styles.input}
+        {...rest}
+      />
       <IconButton
         icon="eye"
         label="Zobrazit heslo"

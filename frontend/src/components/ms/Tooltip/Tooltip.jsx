@@ -20,7 +20,9 @@ export default function Tooltip({ text, placement = 'bottom', children, classNam
 
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (event) => { if (event.key === 'Escape') setOpen(false); };
+    const onKey = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);

@@ -6,8 +6,14 @@ import { czechDateParts } from './czechDate.js';
 describe('czechDateParts', () => {
   it('rozloží datum na české části (místní den, ne UTC)', () => {
     expect(czechDateParts('2026-10-03')).toMatchObject({
-      iso: '2026-10-03', day: '03', weekday: 'sobota', weekdayShort: 'so',
-      month: 'říjen', monthShort: 'říj', yearShort: '26', spoken: 'sobota 3. října 2026',
+      iso: '2026-10-03',
+      day: '03',
+      weekday: 'sobota',
+      weekdayShort: 'so',
+      month: 'říjen',
+      monthShort: 'říj',
+      yearShort: '26',
+      spoken: 'sobota 3. října 2026',
     });
   });
 

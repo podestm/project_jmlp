@@ -5,6 +5,7 @@ k sezóně. Sezóna je teď plnohodnotná entita s ročníkem (XIX.) a názvem, 
 se propisují do hlavičky výsledkové listiny, a s libovolným počtem dokumentů
 přes fuj_jmlp_attachment - tedy i průběžné a celkové výsledky zároveň.
 """
+
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -22,10 +23,14 @@ router = APIRouter(prefix="/seasons", tags=["admin-seasons"])
 
 def _season_dict(season: models.Season, db: Session) -> Dict[str, Any]:
     races_count = db.query(models.Race).filter(models.Race.season_id == season.year_start).count()
-    documents_count = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == AttachmentOwner.season.value,
-        models.Attachment.owner_id == season.year_start,
-    ).count()
+    documents_count = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.owner_type == AttachmentOwner.season.value,
+            models.Attachment.owner_id == season.year_start,
+        )
+        .count()
+    )
     return {
         "id": season.id,
         "year_start": season.year_start,
@@ -62,7 +67,9 @@ def create_season(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
 ):
-    existing = db.query(models.Season).filter(models.Season.year_start == payload.year_start).first()
+    existing = (
+        db.query(models.Season).filter(models.Season.year_start == payload.year_start).first()
+    )
     if existing:
         raise HTTPException(
             status_code=400,

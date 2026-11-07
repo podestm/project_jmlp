@@ -24,13 +24,15 @@ export const clubCounts = (clubs) => ({
 
 /** Hláška po smazání: kdo přešel kam. */
 export const deletedMessage = (result) => {
-  const moved = result.moved_racers || result.moved_races
-    ? ` Závodníci (${result.moved_racers}) i pořádané závody (${result.moved_races})`
-      + ` přešli na klub ${result.reassigned_to_name}.`
-    : '';
+  const moved =
+    result.moved_racers || result.moved_races
+      ? ` Závodníci (${result.moved_racers}) i pořádané závody (${result.moved_races})` +
+        ` přešli na klub ${result.reassigned_to_name}.`
+      : '';
   return `Klub ${result.name} byl smazán.${moved}`;
 };
 
 export const racersWord = (count) => czechPlural(count, ['závodník', 'závodníci', 'závodníků']);
-export const racesWord = (count) => czechPlural(count, ['pořádaný závod', 'pořádané závody', 'pořádaných závodů']);
+export const racesWord = (count) =>
+  czechPlural(count, ['pořádaný závod', 'pořádané závody', 'pořádaných závodů']);
 export const clubsWord = (count) => czechPlural(count, ['klub', 'kluby', 'klubů']);

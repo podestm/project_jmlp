@@ -16,16 +16,18 @@ import svazLogo from '../assets/images/czech_ski_snowboard-logo.png';
 
 const cache = new Map();
 
-const measure = (dataUrl) => new Promise((resolve) => {
-  if (typeof Image === 'undefined') {
-    resolve({ dataUrl, width: null, height: null });
-    return;
-  }
-  const image = new Image();
-  image.onload = () => resolve({ dataUrl, width: image.naturalWidth, height: image.naturalHeight });
-  image.onerror = () => resolve({ dataUrl, width: null, height: null });
-  image.src = dataUrl;
-});
+const measure = (dataUrl) =>
+  new Promise((resolve) => {
+    if (typeof Image === 'undefined') {
+      resolve({ dataUrl, width: null, height: null });
+      return;
+    }
+    const image = new Image();
+    image.onload = () =>
+      resolve({ dataUrl, width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => resolve({ dataUrl, width: null, height: null });
+    image.src = dataUrl;
+  });
 
 /** Obrázek z URL jako { dataUrl, width, height }; null když se načíst nepovede. */
 export const loadImage = async (url) => {
@@ -37,14 +39,17 @@ export const loadImage = async (url) => {
       if (!response.ok) throw new Error(`Obrázek se nepodařilo načíst: ${url}`);
       return response.blob();
     })
-    .then((blob) => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    }))
+    .then(
+      (blob) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }),
+    )
     .then(measure)
-    .catch(() => null);   // bez obrázku se listina vytiskne taky
+    .catch(() => null); // bez obrázku se listina vytiskne taky
 
   cache.set(url, promise);
   return promise;
@@ -62,12 +67,12 @@ export async function loadHeaderLogos(organizerLogoUrl, sponsorsUrl = null) {
   const [organizer, svaz, sponsors] = await Promise.all([
     loadImage(organizerLogoUrl),
     loadImage(svazLogo),
-    loadImage(sponsorsUrl)
+    loadImage(sponsorsUrl),
   ]);
 
   return {
     leftLogo: organizer,
     rightLogo: svaz,
-    sponsors
+    sponsors,
   };
 }

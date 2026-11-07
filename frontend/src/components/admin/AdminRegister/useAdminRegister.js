@@ -44,7 +44,12 @@ export function useAdminRegister() {
   };
 
   return {
-    formData, errors, loading, success, setField, handleSubmit,
+    formData,
+    errors,
+    loading,
+    success,
+    setField,
+    handleSubmit,
     dismissSubmitError: () => setErrors((prev) => ({ ...prev, submit: '' })),
     goBack: () => navigate('/admin'),
   };

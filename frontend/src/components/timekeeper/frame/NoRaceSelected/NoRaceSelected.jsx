@@ -9,7 +9,11 @@ export default function NoRaceSelected() {
     <EmptyState
       icon="tag"
       title="Vyberte závod"
-      action={<ButtonLink to="/timekeeper" size="sm">Přehled závodů</ButtonLink>}
+      action={
+        <ButtonLink to="/timekeeper" size="sm">
+          Přehled závodů
+        </ButtonLink>
+      }
     />
   );
 }

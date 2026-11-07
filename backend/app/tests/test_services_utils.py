@@ -3,6 +3,7 @@
 Drží se tu pravidla, na kterých stojí zbytek aplikace: hranice sezóny,
 bodování, pořadí v kategorii a přihlašování.
 """
+
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
@@ -17,13 +18,17 @@ from app.services import results as results_service
 # Sezóna
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("den,ocekavana_sezona", [
-    (date(2026, 8, 1), 2026),    # první den nové sezóny
-    (date(2026, 7, 31), 2025),   # poslední den té staré
-    (date(2026, 1, 17), 2025),
-    (date(2026, 12, 31), 2026),
-    (date(2025, 8, 1), 2025),
-])
+
+@pytest.mark.parametrize(
+    "den,ocekavana_sezona",
+    [
+        (date(2026, 8, 1), 2026),  # první den nové sezóny
+        (date(2026, 7, 31), 2025),  # poslední den té staré
+        (date(2026, 1, 17), 2025),
+        (date(2026, 12, 31), 2026),
+        (date(2025, 8, 1), 2025),
+    ],
+)
 def test_hranice_sezony_je_1_srpna(den, ocekavana_sezona):
     assert utils.get_current_season_id(den) == ocekavana_sezona
 
@@ -42,10 +47,21 @@ def test_neplatne_datum_ohlasi_chybu():
 # Formátování
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("cislo,ocekavane", [
-    (1, "I"), (4, "IV"), (6, "VI"), (9, "IX"), (14, "XIV"),
-    (19, "XIX"), (20, "XX"), (40, "XL"), (2026, "MMXXVI"),
-])
+
+@pytest.mark.parametrize(
+    "cislo,ocekavane",
+    [
+        (1, "I"),
+        (4, "IV"),
+        (6, "VI"),
+        (9, "IX"),
+        (14, "XIV"),
+        (19, "XIX"),
+        (20, "XX"),
+        (40, "XL"),
+        (2026, "MMXXVI"),
+    ],
+)
 def test_rimske_cislice(cislo, ocekavane):
     assert utils.to_roman(cislo) == ocekavane
 
@@ -82,6 +98,7 @@ def test_csv_safe_zneskodni_vzorec():
 # Výsledky
 # ---------------------------------------------------------------------------
 
+
 class _Radek:
     """Nejmenší podoba řádku startovky, jakou služba potřebuje."""
 
@@ -98,15 +115,17 @@ def test_soucet_casu_scita_obe_jizdy():
     ) == Decimal("60.0")
 
 
-@pytest.mark.parametrize("dnf,dns,dsq", [(True, False, False), (False, True, False), (False, False, True)])
+@pytest.mark.parametrize(
+    "dnf,dns,dsq", [(True, False, False), (False, True, False), (False, False, True)]
+)
 def test_priznak_rusi_soucet(dnf, dns, dsq):
-    assert results_service.compute_time_sum(
-        Decimal("30"), Decimal("30"), dnf, dns, dsq
-    ) is None
+    assert results_service.compute_time_sum(Decimal("30"), Decimal("30"), dnf, dns, dsq) is None
 
 
 def test_soucet_jedine_jizdy():
-    assert results_service.compute_time_sum(Decimal("30.5"), None, False, False, False) == Decimal("30.5")
+    assert results_service.compute_time_sum(Decimal("30.5"), None, False, False, False) == Decimal(
+        "30.5"
+    )
     assert results_service.compute_time_sum(None, None, False, False, False) is None
 
 
@@ -126,21 +145,25 @@ def test_tabulka_bodu_ma_30_mist():
 
 
 def test_poradi_v_kategorii_podle_casu():
-    poradi = results_service.rank_category([
-        _Radek(1, 62.0, start_number=1),
-        _Radek(2, 60.5, start_number=2),
-        _Radek(3, 61.2, start_number=3),
-    ])
+    poradi = results_service.rank_category(
+        [
+            _Radek(1, 62.0, start_number=1),
+            _Radek(2, 60.5, start_number=2),
+            _Radek(3, 61.2, start_number=3),
+        ]
+    )
 
     assert [r.row.id for r in poradi] == [2, 3, 1]
     assert [r.rank for r in poradi] == [1, 2, 3]
 
 
 def test_nedokoncivsi_jdou_za_klasifikovane_a_nemaji_poradi():
-    poradi = results_service.rank_category([
-        _Radek(1, None, dnf=True, start_number=1),
-        _Radek(2, 60.5, start_number=2),
-    ])
+    poradi = results_service.rank_category(
+        [
+            _Radek(1, None, dnf=True, start_number=1),
+            _Radek(2, 60.5, start_number=2),
+        ]
+    )
 
     assert poradi[0].row.id == 2
     assert poradi[1].rank is None
@@ -148,11 +171,13 @@ def test_nedokoncivsi_jdou_za_klasifikovane_a_nemaji_poradi():
 
 
 def test_shodny_cas_dostane_stejne_poradi_i_body():
-    poradi = results_service.rank_category([
-        _Radek(1, 60.0, start_number=1),
-        _Radek(2, 60.0, start_number=2),
-        _Radek(3, 61.0, start_number=3),
-    ])
+    poradi = results_service.rank_category(
+        [
+            _Radek(1, 60.0, start_number=1),
+            _Radek(2, 60.0, start_number=2),
+            _Radek(3, 61.0, start_number=3),
+        ]
+    )
 
     assert [r.rank for r in poradi] == [1, 1, 3]
     assert poradi[0].points == poradi[1].points
@@ -170,6 +195,7 @@ def test_stav_zavodnika_ma_prednost_dsq_pred_dnf():
 # ---------------------------------------------------------------------------
 # Přihlašování
 # ---------------------------------------------------------------------------
+
 
 def test_heslo_se_neuklada_v_otevrene_podobe():
     hash_hesla = auth.get_password_hash("TajneHeslo123!")
@@ -194,8 +220,11 @@ def test_propadly_token_neprojde():
 
 def test_podvrzeny_token_neprojde():
     assert auth.verify_token("tohle.neni.token") is None
-    cizi = jwt.encode({"sub": "42", "exp": datetime.utcnow() + timedelta(minutes=5)},
-                      "cizi-klic", algorithm=auth.ALGORITHM)
+    cizi = jwt.encode(
+        {"sub": "42", "exp": datetime.utcnow() + timedelta(minutes=5)},
+        "cizi-klic",
+        algorithm=auth.ALGORITHM,
+    )
     assert auth.verify_token(cizi) is None
 
 

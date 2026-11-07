@@ -59,11 +59,19 @@ export function useCalmRaces(enabled) {
   useEffect(() => {
     if (!enabled) return undefined;
     let cancelled = false;
-    const first = (url) => fetch(url).then((response) => (response.ok ? response.json() : [])).then((list) => (Array.isArray(list) ? list[0] ?? null : null)).catch(() => null);
-    Promise.all([first('/races/?upcoming=true'), first('/races/?past=true&limit=1')]).then(([next, last]) => {
-      if (!cancelled) setRaces({ next, last });
-    });
-    return () => { cancelled = true; };
+    const first = (url) =>
+      fetch(url)
+        .then((response) => (response.ok ? response.json() : []))
+        .then((list) => (Array.isArray(list) ? (list[0] ?? null) : null))
+        .catch(() => null);
+    Promise.all([first('/races/?upcoming=true'), first('/races/?past=true&limit=1')]).then(
+      ([next, last]) => {
+        if (!cancelled) setRaces({ next, last });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
   }, [enabled]);
 
   return races;

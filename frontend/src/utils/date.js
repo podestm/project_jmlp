@@ -35,14 +35,19 @@ export const formatDateShort = (date) => {
 export const formatDateLong = (date) => {
   const dateObj = toDate(date);
   if (!dateObj) return EMPTY;
-  return new Intl.DateTimeFormat(DATE_CONFIG.LOCALE, DATE_CONFIG.DATE_FORMAT.LONG_NO_WEEKDAY).format(dateObj);
+  return new Intl.DateTimeFormat(
+    DATE_CONFIG.LOCALE,
+    DATE_CONFIG.DATE_FORMAT.LONG_NO_WEEKDAY,
+  ).format(dateObj);
 };
 
 /** Date and time - "5. 8. 2026 14:30". */
 export const formatDateTimeShort = (date) => {
   const dateObj = toDate(date);
   if (!dateObj) return EMPTY;
-  return new Intl.DateTimeFormat(DATE_CONFIG.LOCALE, DATE_CONFIG.DATE_TIME_FORMAT.SHORT).format(dateObj);
+  return new Intl.DateTimeFormat(DATE_CONFIG.LOCALE, DATE_CONFIG.DATE_TIME_FORMAT.SHORT).format(
+    dateObj,
+  );
 };
 
 /** Time only - "14:30". */
@@ -73,5 +78,5 @@ export default {
   formatDateTimeShort,
   formatTime,
   formatDateTime,
-  isToday
+  isToday,
 };

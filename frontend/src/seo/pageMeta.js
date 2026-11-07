@@ -7,51 +7,64 @@ import { fixEncoding } from '../utils/text.js';
 
 export const SHORT_NAME = 'JMLP';
 export const OG_IMAGE = '/og-image.jpg';
-export const DEFAULT_DESCRIPTION = 'Seriál závodů v alpském lyžování pro děti a mládež na jižní Moravě. '
-  + 'Kalendář závodů, přihlášky, živé výsledky a průběžné pořadí poháru.';
+export const DEFAULT_DESCRIPTION =
+  'Seriál závodů v alpském lyžování pro děti a mládež na jižní Moravě. ' +
+  'Kalendář závodů, přihlášky, živé výsledky a průběžné pořadí poháru.';
 
 /** „Kontakty · Jihomoravský lyžařský pohár“; bez názvu jen jméno poháru. */
 export const publicTitle = (name) => (name ? `${name} · ${CUP_NAME}` : CUP_NAME);
-export const adminTitle = (name) => (name ? `${name} · Administrace ${SHORT_NAME}` : `Administrace ${SHORT_NAME}`);
-export const timekeeperTitle = (name) => (name ? `${name} · Časomíra ${SHORT_NAME}` : `Časomíra ${SHORT_NAME}`);
+export const adminTitle = (name) =>
+  name ? `${name} · Administrace ${SHORT_NAME}` : `Administrace ${SHORT_NAME}`;
+export const timekeeperTitle = (name) =>
+  name ? `${name} · Časomíra ${SHORT_NAME}` : `Časomíra ${SHORT_NAME}`;
 
 /** Veřejné stránky; klíč = stránka v Routeru. */
 export const PAGE_META = {
   home: { title: publicTitle(), description: DEFAULT_DESCRIPTION },
   races: {
     title: publicTitle('Kalendář závodů'),
-    description: 'Termíny a areály závodů Jihomoravského lyžařského poháru v aktuální sezóně, propozice a přihlášky závodníků.',
+    description:
+      'Termíny a areály závodů Jihomoravského lyžařského poháru v aktuální sezóně, propozice a přihlášky závodníků.',
   },
   results: {
     title: publicTitle('Výsledky'),
-    description: 'Průběžné a celkové pořadí Jihomoravského lyžařského poháru podle kategorií a výsledkové listiny jednotlivých závodů.',
+    description:
+      'Průběžné a celkové pořadí Jihomoravského lyžařského poháru podle kategorií a výsledkové listiny jednotlivých závodů.',
   },
   news: {
     title: publicTitle('Aktuality'),
-    description: 'Novinky a oznámení Jihomoravského lyžařského poháru: termíny, změny programu a zprávy ze závodů.',
+    description:
+      'Novinky a oznámení Jihomoravského lyžařského poháru: termíny, změny programu a zprávy ze závodů.',
   },
   documents: {
     title: publicTitle('Dokumenty'),
-    description: 'Soutěžní řád, pokyny a další dokumenty Jihomoravského lyžařského poháru ke stažení, včetně starších ročníků.',
+    description:
+      'Soutěžní řád, pokyny a další dokumenty Jihomoravského lyžařského poháru ke stažení, včetně starších ročníků.',
   },
   contacts: {
     title: publicTitle('Kontakty'),
-    description: 'Pořadatel a soutěžní výbor Jihomoravského lyžařského poháru a e-mailové kontakty na zúčastněné kluby.',
+    description:
+      'Pořadatel a soutěžní výbor Jihomoravského lyžařského poháru a e-mailové kontakty na zúčastněné kluby.',
   },
   live: {
     title: publicTitle('Živé výsledky'),
-    description: 'Průběžné časy a pořadí právě probíhajícího závodu Jihomoravského lyžařského poháru.',
+    description:
+      'Průběžné časy a pořadí právě probíhajícího závodu Jihomoravského lyžařského poháru.',
   },
   privacy: {
     title: publicTitle('Ochrana osobních údajů'),
-    description: 'Jak pořadatel Jihomoravského lyžařského poháru zpracovává osobní údaje závodníků a návštěvníků webu.',
+    description:
+      'Jak pořadatel Jihomoravského lyžařského poháru zpracovává osobní údaje závodníků a návštěvníků webu.',
   },
   notFound: { title: publicTitle('Stránka nenalezena'), noindex: true },
 };
 
 /** Datum závodu „17. 1. 2027“ (null bez data). */
 const raceDateLabel = (race) => {
-  const [year, month, day] = String(race?.datum ?? '').slice(0, 10).split('-').map(Number);
+  const [year, month, day] = String(race?.datum ?? '')
+    .slice(0, 10)
+    .split('-')
+    .map(Number);
   return year && month && day ? `${day}. ${month}. ${year}` : null;
 };
 
@@ -72,8 +85,9 @@ export const raceMeta = (race) => {
   const where = [areal && `v areálu ${areal}`, date && `dne ${date}`].filter(Boolean).join(' ');
   return {
     title: `${name} · ${SHORT_NAME}`,
-    description: `Závod Jihomoravského lyžařského poháru${where ? ` ${where}` : ''}`
-      + `${organizer ? `, pořádá ${organizer}` : ''}. Propozice, přihlášky a výsledky.`,
+    description:
+      `Závod Jihomoravského lyžařského poháru${where ? ` ${where}` : ''}` +
+      `${organizer ? `, pořádá ${organizer}` : ''}. Propozice, přihlášky a výsledky.`,
   };
 };
 

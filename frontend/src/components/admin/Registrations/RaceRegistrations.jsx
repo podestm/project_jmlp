@@ -1,6 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Badge, Button, ButtonLink, EmptyState, LoadingState, Tooltip } from '../../ms/index.js';
+import {
+  Alert,
+  Badge,
+  Button,
+  ButtonLink,
+  EmptyState,
+  LoadingState,
+  Tooltip,
+} from '../../ms/index.js';
 import AdminPage from '../frame/AdminPage/AdminPage.jsx';
 import RaceInfo from '../shared/RaceInfo/RaceInfo.jsx';
 import { raceSubtitle } from '../shared/raceText.js';
@@ -10,7 +18,14 @@ import RegistrationStats from './RegistrationStats/RegistrationStats.jsx';
 import RegistrationTable from './RegistrationTable/RegistrationTable.jsx';
 import WaitingClubNotice from './WaitingClubNotice/WaitingClubNotice.jsx';
 import {
-  EMPTY_FILTER, categoryOptions, clubOptions, filterRegistrations, groupRegistrations, isFiltered, raceMeta, registrationStats,
+  EMPTY_FILTER,
+  categoryOptions,
+  clubOptions,
+  filterRegistrations,
+  groupRegistrations,
+  isFiltered,
+  raceMeta,
+  registrationStats,
 } from './registrations.js';
 import { useAdminRaceRegistrations } from './useAdminRaceRegistrations.js';
 
@@ -40,7 +55,11 @@ function RegistrationsBody({ registrations }) {
         <EmptyState
           icon="search-x"
           title="Filtru nikdo neodpovídá"
-          action={<Button size="sm" onClick={reset}>Zrušit filtr</Button>}
+          action={
+            <Button size="sm" onClick={reset}>
+              Zrušit filtr
+            </Button>
+          }
         />
       ) : (
         <>
@@ -65,9 +84,13 @@ export default function RaceRegistrations() {
   const actions = (
     <>
       <Tooltip text="Ve správě závodů">
-        <ButtonLink to="/admin/races" size="sm" icon="download">Export CSV</ButtonLink>
+        <ButtonLink to="/admin/races" size="sm" icon="download">
+          Export CSV
+        </ButtonLink>
       </Tooltip>
-      <ButtonLink to="/admin/races" size="sm" icon="arrow-left">Zpět na závody</ButtonLink>
+      <ButtonLink to="/admin/races" size="sm" icon="arrow-left">
+        Zpět na závody
+      </ButtonLink>
     </>
   );
 
@@ -87,11 +110,11 @@ export default function RaceRegistrations() {
             race={race}
             size="lg"
             meta={[race.race_nr, raceSubtitle(race)].filter(Boolean).join(' · ')}
-            aside={(
+            aside={
               <Badge tone={race.registration ? 'open' : 'neutral'} size="sm">
                 {race.registration ? 'Registrace otevřená' : 'Registrace uzavřená'}
               </Badge>
-            )}
+            }
           />
         )}
         <RegistrationStats stats={stats} />
@@ -106,7 +129,11 @@ export default function RaceRegistrations() {
   };
 
   return (
-    <AdminPage title="Přihlášky k závodu" meta={loading ? null : raceMeta(race, raceId)} actions={actions}>
+    <AdminPage
+      title="Přihlášky k závodu"
+      meta={loading ? null : raceMeta(race, raceId)}
+      actions={actions}
+    >
       {content()}
     </AdminPage>
   );

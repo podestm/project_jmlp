@@ -13,9 +13,20 @@ import styles from './AddRacerForm.module.css';
  */
 export default function AddRacerForm({ racers }) {
   const {
-    formData, updateField, clubs, resetForm, addRacer, submitting,
-    searchResults, isSearching, selectedRacer, selectExistingRacer,
-    liveRaceNumberError, nextRaceNumber, selectedRaceNumberOption, categoryPreview,
+    formData,
+    updateField,
+    clubs,
+    resetForm,
+    addRacer,
+    submitting,
+    searchResults,
+    isSearching,
+    selectedRacer,
+    selectExistingRacer,
+    liveRaceNumberError,
+    nextRaceNumber,
+    selectedRaceNumberOption,
+    categoryPreview,
   } = racers;
 
   const handleSubmit = (e) => {
@@ -31,7 +42,14 @@ export default function AddRacerForm({ racers }) {
         formData={formData}
         updateField={updateField}
         clubs={clubs}
-        searchResults={<RacerSearchResults racers={searchResults} isSearching={isSearching} hasQuery={Boolean(racerSearchQuery(formData))} onSelect={selectExistingRacer} />}
+        searchResults={
+          <RacerSearchResults
+            racers={searchResults}
+            isSearching={isSearching}
+            hasQuery={Boolean(racerSearchQuery(formData))}
+            onSelect={selectExistingRacer}
+          />
+        }
       />
 
       <div className={styles.numbers}>
@@ -39,7 +57,11 @@ export default function AddRacerForm({ racers }) {
           label="Systémové číslo"
           id="tk-racer-number"
           error={liveRaceNumberError || undefined}
-          hint={liveRaceNumberError ? undefined : `Návrh dalšího volného čísla: ${nextRaceNumber || '—'}`}
+          hint={
+            liveRaceNumberError
+              ? undefined
+              : `Návrh dalšího volného čísla: ${nextRaceNumber || '—'}`
+          }
         >
           <Input
             size="sm"
@@ -54,9 +76,14 @@ export default function AddRacerForm({ racers }) {
         <div className={styles.bib}>
           <span className={styles.caps}>Číslo dresu</span>
           <span className={styles.bibRow}>
-            <BibNumber number={selectedRaceNumberOption?.actual_number} setColor={selectedRaceNumberOption?.set_color} />
+            <BibNumber
+              number={selectedRaceNumberOption?.actual_number}
+              setColor={selectedRaceNumberOption?.set_color}
+            />
             <span className={styles.set}>
-              {selectedRaceNumberOption ? `Sada ${setLetter(selectedRaceNumberOption.set_number)}` : 'Bez sady'}
+              {selectedRaceNumberOption
+                ? `Sada ${setLetter(selectedRaceNumberOption.set_number)}`
+                : 'Bez sady'}
             </span>
           </span>
         </div>
@@ -64,13 +91,19 @@ export default function AddRacerForm({ racers }) {
 
       <div className={styles.status}>
         {selectedRacer && (
-          <Badge tone="navy" size="sm" icon="check">Vybrán: {selectedRacer.surname} {selectedRacer.name}</Badge>
+          <Badge tone="navy" size="sm" icon="check">
+            Vybrán: {selectedRacer.surname} {selectedRacer.name}
+          </Badge>
         )}
-        <Badge tone="dry" size="sm" icon="tag">Kategorie: {categoryPreview(formData.year, formData.sex)}</Badge>
+        <Badge tone="dry" size="sm" icon="tag">
+          Kategorie: {categoryPreview(formData.year, formData.sex)}
+        </Badge>
       </div>
 
       <div className={styles.actions}>
-        <Button icon="x-circle" onClick={() => resetForm()}>Vymazat</Button>
+        <Button icon="x-circle" onClick={() => resetForm()}>
+          Vymazat
+        </Button>
         <Tooltip text="Do registrací se nezapisuje" className={styles.submit}>
           <Button type="submit" variant="primary" icon="plus" busy={submitting}>
             {submitting ? 'Přidávám…' : 'Přidat do závodu'}

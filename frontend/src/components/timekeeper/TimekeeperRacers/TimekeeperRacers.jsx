@@ -1,4 +1,13 @@
-import { Button, ButtonLink, EmptyState, LoadingState, PageHeader, Split, Table, TableScroll } from '../../ms/index.js';
+import {
+  Button,
+  ButtonLink,
+  EmptyState,
+  LoadingState,
+  PageHeader,
+  Split,
+  Table,
+  TableScroll,
+} from '../../ms/index.js';
 import NoRaceSelected from '../frame/NoRaceSelected/NoRaceSelected.jsx';
 import { useSelectedRaceId } from '../frame/selectedRace.js';
 import TkPage from '../frame/TkPage/TkPage.jsx';
@@ -23,9 +32,24 @@ export default function TimekeeperRacers() {
   const raceId = useSelectedRaceId();
   const racers = useTimekeeperRacers(raceId);
   const {
-    startList, loading, message, clearMessage, filters, setFilter, resetFilters,
-    clubOptions, categoryOptions, filteredEntries,
-    editingId, editForm, updateEditField, startEditing, cancelEditing, saveEditing, editError, categoryPreview,
+    startList,
+    loading,
+    message,
+    clearMessage,
+    filters,
+    setFilter,
+    resetFilters,
+    clubOptions,
+    categoryOptions,
+    filteredEntries,
+    editingId,
+    editForm,
+    updateEditField,
+    startEditing,
+    cancelEditing,
+    saveEditing,
+    editError,
+    categoryPreview,
   } = racers;
 
   const table = () => {
@@ -35,7 +59,13 @@ export default function TimekeeperRacers() {
         <EmptyState
           icon="search"
           title="Žádní závodníci neodpovídají aktuálním filtrům."
-          action={isFiltered(filters) && <Button size="sm" onClick={resetFilters}>Zrušit filtry</Button>}
+          action={
+            isFiltered(filters) && (
+              <Button size="sm" onClick={resetFilters}>
+                Zrušit filtry
+              </Button>
+            )
+          }
         />
       );
     }
@@ -45,12 +75,14 @@ export default function TimekeeperRacers() {
           <thead>
             <tr>
               {COLUMNS.map((column) => (
-                <th key={column} scope="col" data-align={column === 'Řádek' ? 'end' : undefined}>{column}</th>
+                <th key={column} scope="col" data-align={column === 'Řádek' ? 'end' : undefined}>
+                  {column}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filteredEntries.map((entry) => (
+            {filteredEntries.map((entry) =>
               editingId === entry.id ? (
                 <RacerEditRow
                   key={entry.id}
@@ -65,8 +97,8 @@ export default function TimekeeperRacers() {
                 />
               ) : (
                 <RacerRow key={entry.id} entry={entry} onEdit={startEditing} />
-              )
-            ))}
+              ),
+            )}
           </tbody>
         </Table>
       </TableScroll>
@@ -78,7 +110,13 @@ export default function TimekeeperRacers() {
       <PageHeader
         variant="app"
         title="Závodníci závodu"
-        actions={raceId && <ButtonLink to="/timekeeper/start-list" size="sm" icon="list">Na startovní listinu</ButtonLink>}
+        actions={
+          raceId && (
+            <ButtonLink to="/timekeeper/start-list" size="sm" icon="list">
+              Na startovní listinu
+            </ButtonLink>
+          )
+        }
       />
 
       <TimekeeperMessage message={message} onDismiss={clearMessage} />

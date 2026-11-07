@@ -28,19 +28,20 @@ const jsonResponse = (body, status = 200) => ({
   ok: status >= 200 && status < 300,
   status,
   statusText: 'Test',
-  json: async () => body
+  json: async () => body,
 });
 
-const row = (overrides) => startListEntry({
-  race_id: RACE_ID,
-  category_id: 5,
-  category_name: 'Přípravka dívky',
-  category_rank: 0,
-  club_name: 'SK Pardubice',
-  racer_year: 2017,
-  excluded: false,
-  ...overrides
-});
+const row = (overrides) =>
+  startListEntry({
+    race_id: RACE_ID,
+    category_id: 5,
+    category_name: 'Přípravka dívky',
+    category_rank: 0,
+    club_name: 'SK Pardubice',
+    racer_year: 2017,
+    excluded: false,
+    ...overrides,
+  });
 
 let serverRows;
 let fetchMock;
@@ -54,8 +55,20 @@ beforeEach(async () => {
   localStorage.setItem(SELECTED_RACE_KEY, String(RACE_ID));
 
   serverRows = [
-    row({ id: 1, start_number: 1, racer_surname: 'Nováková', racer_name: 'Anna', race_number_actual: 11 }),
-    row({ id: 2, start_number: 2, racer_surname: 'Dvořáková', racer_name: 'Bára', race_number_actual: 12 })
+    row({
+      id: 1,
+      start_number: 1,
+      racer_surname: 'Nováková',
+      racer_name: 'Anna',
+      race_number_actual: 11,
+    }),
+    row({
+      id: 2,
+      start_number: 2,
+      racer_surname: 'Dvořáková',
+      racer_name: 'Bára',
+      race_number_actual: 12,
+    }),
   ];
 
   // Malý falešný server: drží startovku a vyřazení na ní opravdu zapíše.
@@ -69,11 +82,13 @@ beforeEach(async () => {
     if (method === 'PUT' && excluded) {
       const id = Number(excluded[1]);
       const body = JSON.parse(options.body);
-      serverRows = serverRows.map((item) => (item.id === id ? { ...item, excluded: body.excluded } : item));
+      serverRows = serverRows.map((item) =>
+        item.id === id ? { ...item, excluded: body.excluded } : item,
+      );
       return jsonResponse({
         message: 'ok',
         entry: serverRows.find((item) => item.id === id),
-        idempotency_replayed: false
+        idempotency_replayed: false,
       });
     }
 
@@ -84,21 +99,23 @@ beforeEach(async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-const renderListina = () => render(
-  <MemoryRouter>
-    <StartListManager />
-  </MemoryRouter>
-);
+const renderListina = () =>
+  render(
+    <MemoryRouter>
+      <StartListManager />
+    </MemoryRouter>,
+  );
 
-const renderCasy = () => render(
-  <MemoryRouter>
-    <TimekeeperAuthProvider>
-      <SerialSessionProvider>
-        <TimingEntry />
-      </SerialSessionProvider>
-    </TimekeeperAuthProvider>
-  </MemoryRouter>
-);
+const renderCasy = () =>
+  render(
+    <MemoryRouter>
+      <TimekeeperAuthProvider>
+        <SerialSessionProvider>
+          <TimingEntry />
+        </SerialSessionProvider>
+      </TimekeeperAuthProvider>
+    </MemoryRouter>,
+  );
 
 const rowOf = async (name) => (await screen.findByText(name)).closest('tr');
 
@@ -169,7 +186,7 @@ describe('Listina - Vyřadit / Vrátit', () => {
     expect(queued[0]).toMatchObject({
       method: 'PUT',
       endpoint: '/api/timekeeper/start-list/2/excluded',
-      payload: { excluded: true }
+      payload: { excluded: true },
     });
     // Obrazovka Časy čte offline z IndexedDB - musí vyřazení vidět taky.
     expect((await timekeeperDb.startList.get(2)).excluded).toBe(true);
@@ -186,7 +203,9 @@ describe('Časy - vyřazený se nezobrazuje', () => {
 
     expect(await screen.findByText('Nováková Anna')).toBeInTheDocument();
     expect(screen.queryByText('Dvořáková Bára')).not.toBeInTheDocument();
-    expect(screen.getByText(/Vyřazení ze startovní listiny \(1\) se tu nezobrazují/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Vyřazení ze startovní listiny \(1\) se tu nezobrazují/),
+    ).toBeInTheDocument();
   });
 
   it('impulz s dresem vyřazeného nikomu nepřiřadí a vysvětlí to', async () => {
@@ -194,7 +213,9 @@ describe('Časy - vyřazený se nezobrazuje', () => {
     await appendInboxEvent({ type: 'TIME', bib: 12, time: '00:31.20', raw: '1 12 00:31.20' });
     renderCasy();
 
-    expect(await screen.findByText(/vyřazený ze startky – vraťte ho v Listině/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/vyřazený ze startky – vraťte ho v Listině/),
+    ).toBeInTheDocument();
     expect(screen.getByTitle('Přiřadit a uložit')).toBeDisabled();
   });
 });

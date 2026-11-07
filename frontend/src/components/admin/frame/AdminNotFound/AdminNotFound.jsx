@@ -5,8 +5,14 @@ import AdminPage from '../AdminPage/AdminPage.jsx';
 import styles from './AdminNotFound.module.css';
 
 // Obvyklé cíle (AdminNeznama „Kam nejčastěji vedou kroky“).
-const SHORTCUTS = ['/admin/races', '/admin/racers', '/admin/club-requests', '/admin/documents', '/admin/seasons', '/admin/clubs']
-  .map((to) => adminNav.find((item) => item.to === to));
+const SHORTCUTS = [
+  '/admin/races',
+  '/admin/racers',
+  '/admin/club-requests',
+  '/admin/documents',
+  '/admin/seasons',
+  '/admin/clubs',
+].map((to) => adminNav.find((item) => item.to === to));
 
 /**
  * Adresa pod /admin, která žádné obrazovce neodpovídá (AdminNeznama).
@@ -26,8 +32,12 @@ export default function AdminNotFound() {
           Adresa <code className={styles.path}>{pathname}</code> žádné obrazovce neodpovídá.
         </p>
         <div className={styles.actions}>
-          <ButtonLink to="/admin" variant="primary" size="sm">Zpět na přehled</ButtonLink>
-          <ButtonLink to="/" size="sm">Zpět na veřejný web</ButtonLink>
+          <ButtonLink to="/admin" variant="primary" size="sm">
+            Zpět na přehled
+          </ButtonLink>
+          <ButtonLink to="/" size="sm">
+            Zpět na veřejný web
+          </ButtonLink>
         </div>
       </Panel>
 

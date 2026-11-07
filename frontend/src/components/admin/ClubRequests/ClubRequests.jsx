@@ -14,22 +14,28 @@ import styles from './ClubRequests.module.css';
  */
 export default function ClubRequests() {
   const cr = useClubRequests();
-  const clubOptions = useMemo(() => cr.clubs.map((c) => ({ value: c.id, label: c.name })), [cr.clubs]);
+  const clubOptions = useMemo(
+    () => cr.clubs.map((c) => ({ value: c.id, label: c.name })),
+    [cr.clubs],
+  );
 
   return (
     <AdminPage
       title="Žádosti o kluby"
       meta={cr.loading ? undefined : pendingMeta(cr.requests.length)}
-      actions={<ButtonLink to="/admin/clubs" size="sm" icon="building">Správa klubů</ButtonLink>}
+      actions={
+        <ButtonLink to="/admin/clubs" size="sm" icon="building">
+          Správa klubů
+        </ButtonLink>
+      }
     >
-      {cr.error && <Alert type="danger" compact title={cr.error} onDismiss={() => cr.setError(null)} />}
+      {cr.error && (
+        <Alert type="danger" compact title={cr.error} onDismiss={() => cr.setError(null)} />
+      )}
       {cr.loading ? (
         <LoadingState label="Načítám žádosti…" />
       ) : cr.requests.length === 0 ? (
-        <EmptyState
-          icon="check"
-          title="Žádné nevyřízené žádosti"
-        />
+        <EmptyState icon="check" title="Žádné nevyřízené žádosti" />
       ) : (
         <>
           <Alert type="warning" compact title="Bez přiřazení klubu se nepočítají body." />

@@ -10,7 +10,7 @@ import {
   recoverStaleProcessing,
   reviveNetworkFailures,
   saveConflict,
-  supersedeParkedOpsFor
+  supersedeParkedOpsFor,
 } from './syncQueue.js';
 
 const SYNC_INTERVAL_MS = 10000;
@@ -27,7 +27,7 @@ const tabId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const nowIso = () => new Date().toISOString();
 
-const calculateBackoffMs = (retryCount) => (2 ** Math.min(retryCount, 6)) * 1000;
+const calculateBackoffMs = (retryCount) => 2 ** Math.min(retryCount, 6) * 1000;
 
 /**
  * Odmítnutí serverem, které opakování nespraví: obsazené startovní číslo,
@@ -105,7 +105,7 @@ export const processSyncQueue = async (executor) => {
           status: 'done',
           updated_at: nowIso(),
           last_error: null,
-          next_retry_at: null
+          next_retry_at: null,
         });
         await applySyncedRevisions(row, response);
         // Offline přidaný závodník je na serveru - dočasné id všude nahradit
@@ -127,7 +127,7 @@ export const processSyncQueue = async (executor) => {
             status: 'pending',
             updated_at: nowIso(),
             last_error: AUTH_EXPIRED_MESSAGE,
-            next_retry_at: new Date(Date.now() + 60000).toISOString()
+            next_retry_at: new Date(Date.now() + 60000).toISOString(),
           });
           changed = true;
           break;
@@ -142,7 +142,7 @@ export const processSyncQueue = async (executor) => {
           await timekeeperDb.syncQueue.update(row.id, {
             status: 'pending',
             updated_at: nowIso(),
-            next_retry_at: null
+            next_retry_at: null,
           });
           markUnreachable();
           changed = true;
@@ -155,7 +155,7 @@ export const processSyncQueue = async (executor) => {
             status: 'conflict',
             updated_at: nowIso(),
             last_error: error?.message || 'Conflict detected',
-            next_retry_at: null
+            next_retry_at: null,
           });
           block(row);
           changed = true;
@@ -168,7 +168,7 @@ export const processSyncQueue = async (executor) => {
           updated_at: nowIso(),
           retry_count: retryCount,
           last_error: error?.message || 'Sync failed',
-          next_retry_at: new Date(Date.now() + calculateBackoffMs(retryCount)).toISOString()
+          next_retry_at: new Date(Date.now() + calculateBackoffMs(retryCount)).toISOString(),
         });
         block(row);
         changed = true;

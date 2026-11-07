@@ -50,7 +50,9 @@ export default function RegistrationClosed({ race, nextOpenRace }) {
       <Paska id="prihlaska">Přihláška závodníka</Paska>
       <Panel padding="lg" className={styles.closed}>
         <div className={styles.notice}>
-          <span className={styles.noticeIcon}><Icon name="lock" size={22} /></span>
+          <span className={styles.noticeIcon}>
+            <Icon name="lock" size={22} />
+          </span>
           <div className={styles.noticeText}>
             <h3 className={styles.noticeTitle}>Na tento závod se teď přihlásit nedá</h3>
             <p>Až pořadatel přihlašování otevře, formulář bude tady.</p>

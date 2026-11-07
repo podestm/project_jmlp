@@ -4,7 +4,11 @@ import Badge from './Badge.jsx';
 
 describe('Badge', () => {
   it('nese stav textem', () => {
-    render(<Badge tone="open" icon="check">Přihlášky otevřeny</Badge>);
+    render(
+      <Badge tone="open" icon="check">
+        Přihlášky otevřeny
+      </Badge>,
+    );
     expect(screen.getByText('Přihlášky otevřeny')).toBeInTheDocument();
   });
 

@@ -11,9 +11,22 @@ import styles from './SegmentedControl.module.css';
  * allowDeselect: klik na vybranou volbu ji zruší (onChange(null)) – např. DNF.
  * fill: pod 768 px volby vyplní řádek stejnými díly (MobilZavody).
  */
-export default function SegmentedControl({ label, options, value, onChange, allowDeselect = false, size = 'md', fill = false, className }) {
+export default function SegmentedControl({
+  label,
+  options,
+  value,
+  onChange,
+  allowDeselect = false,
+  size = 'md',
+  fill = false,
+  className,
+}) {
   return (
-    <div role="group" aria-label={label} className={cx(styles.group, fill && styles.fill, className)}>
+    <div
+      role="group"
+      aria-label={label}
+      className={cx(styles.group, fill && styles.fill, className)}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -35,7 +48,9 @@ export default function SegmentedControl({ label, options, value, onChange, allo
                 <span className={styles.long}>{option.label}</span>
                 <span className={styles.short}>{option.shortLabel}</span>
               </>
-            ) : option.label}
+            ) : (
+              option.label
+            )}
           </button>
         );
       })}

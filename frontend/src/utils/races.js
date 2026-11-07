@@ -39,11 +39,10 @@ export const REGISTRATION_STATE = {
 };
 
 /** Typ závodu z race_method_id: 1 = na sněhu, cokoli jiného = suchý závod. */
-export const raceMethod = (race) => (
+export const raceMethod = (race) =>
   race.race_method_id === 1
     ? { key: 'snow', label: 'Na sněhu', icon: 'snowflake' }
-    : { key: 'dry', label: 'Suchý závod', icon: 'tree' }
-);
+    : { key: 'dry', label: 'Suchý závod', icon: 'tree' };
 
 /** Sezóna podle čísla závodu „JMLP2026-03“ → 2026 (null bez čísla). */
 export const raceSeasonId = (race) => {
@@ -65,17 +64,16 @@ export const czechPlural = (count, [one, few, many]) => {
 };
 
 /** Sezóny, které mají závod s číslem, od nejnovější. */
-export const seasonsOf = (races) => (
-  [...new Set(races.map(raceSeasonId).filter((id) => id !== null))].sort((a, b) => b - a)
-);
+export const seasonsOf = (races) =>
+  [...new Set(races.map(raceSeasonId).filter((id) => id !== null))].sort((a, b) => b - a);
 
 /**
  * Výchozí sezóna výběru: aktuální, pokud má závody (nebo žádná sezóna závody
  * nemá); jinak nejnovější se závody, aby výběr nezůstal prázdný.
  */
-export const defaultSeasonId = (seasons, currentSeasonId) => (
-  seasons.length === 0 || seasons.includes(currentSeasonId) ? currentSeasonId : seasons[0]
-);
+export const defaultSeasonId = (seasons, currentSeasonId) =>
+  seasons.length === 0 || seasons.includes(currentSeasonId) ? currentSeasonId : seasons[0];
 
 /** „2026/27 — XX. ročník“ */
-export const seasonLabel = (seasonId) => `${formatSeasonShort(seasonId)} — ${toRoman(seasonEdition(seasonId))}. ročník`;
+export const seasonLabel = (seasonId) =>
+  `${formatSeasonShort(seasonId)} — ${toRoman(seasonEdition(seasonId))}. ročník`;

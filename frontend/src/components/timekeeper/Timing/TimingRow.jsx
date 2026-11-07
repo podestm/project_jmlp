@@ -34,8 +34,14 @@ const TimingRow = memo(function TimingRow({
 
   // Navázané na řádek. Nová šipka by při každém vykreslení odpojila
   // a znovu připojila ref každého pole – to byla polovina původní ceny.
-  const refTime1 = useCallback((el) => registerInput(entryId, 'time1', el), [registerInput, entryId]);
-  const refTime2 = useCallback((el) => registerInput(entryId, 'time2', el), [registerInput, entryId]);
+  const refTime1 = useCallback(
+    (el) => registerInput(entryId, 'time1', el),
+    [registerInput, entryId],
+  );
+  const refTime2 = useCallback(
+    (el) => registerInput(entryId, 'time2', el),
+    [registerInput, entryId],
+  );
 
   const timeInput = (field, ref, lockedRound) => (
     <input
@@ -57,15 +63,26 @@ const TimingRow = memo(function TimingRow({
 
   return (
     <tr data-state={flag ? 'muted' : undefined}>
-      <td data-numeric className={styles.start}>{entry.start_number || '—'}</td>
+      <td data-numeric className={styles.start}>
+        {entry.start_number || '—'}
+      </td>
       <td>
-        <BibNumber number={entry.race_number_actual ?? entry.race_number_display} setColor={entry.set_color} code={entry.race_number_display} size="sm" />
+        <BibNumber
+          number={entry.race_number_actual ?? entry.race_number_display}
+          setColor={entry.set_color}
+          code={entry.race_number_display}
+          size="sm"
+        />
       </td>
       {/* Při užší tabulce ustupuje jméno (zkrátí se trojtečkou), ne pole časů. */}
       <td className={styles.racerCell}>
-        <span className={styles.name} title={racerName}><OfflineBadge entry={entry} className={styles.offline} />{racerName}</span>
+        <span className={styles.name} title={racerName}>
+          <OfflineBadge entry={entry} className={styles.offline} />
+          {racerName}
+        </span>
         <span className={styles.club}>
-          {entry.club_name || 'Bez klubu'}{showCategory ? ` · ${entry.category_name || '?'}` : ''} ({entry.racer_year})
+          {entry.club_name || 'Bez klubu'}
+          {showCategory ? ` · ${entry.category_name || '?'}` : ''} ({entry.racer_year})
         </span>
       </td>
       <td>{timeInput('time1', refTime1, '2')}</td>
@@ -88,7 +105,7 @@ const TimingRow = memo(function TimingRow({
         </span>
       </td>
       <td data-numeric data-align="end" className={styles.sum}>
-        {flag ? <RaceFlag flag={flag} /> : (entry.time_sum != null ? entry.time_sum.toFixed(2) : '—')}
+        {flag ? <RaceFlag flag={flag} /> : entry.time_sum != null ? entry.time_sum.toFixed(2) : '—'}
       </td>
     </tr>
   );

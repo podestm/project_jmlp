@@ -8,6 +8,7 @@ souboru pod jeho názvem a statistika úložiště.
 Složky skončily spolu s tabulkou fuj_jmlp_folders - kam soubor patří,
 říká příloha (fuj_jmlp_attachment) a jeho systematický název.
 """
+
 import os
 from typing import Any, Dict
 
@@ -29,7 +30,7 @@ router = APIRouter(tags=["admin-documents"])
 def get_files(
     file_type: str = None,
     db: Session = Depends(get_db),
-    current_admin: models.AdminUser = Depends(auth.get_current_admin)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin),
 ):
     """Všechny soubory, volitelně filtrované podle typu.
 
@@ -54,18 +55,20 @@ def get_files(
     for file_obj in files:
         usage_info = usage_map.get(file_obj.id, [])
 
-        result.append({
-            "id": file_obj.id,
-            "original_filename": file_obj.original_filename,
-            "filename": file_obj.filename,
-            "file_path": file_obj.file_path,
-            "file_size": file_obj.file_size,
-            "mime_type": file_obj.mime_type,
-            "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene",
-            "uploaded_at": file_obj.uploaded_at,
-            "uploaded_by": file_obj.uploaded_by,
-            "usage_info": usage_info
-        })
+        result.append(
+            {
+                "id": file_obj.id,
+                "original_filename": file_obj.original_filename,
+                "filename": file_obj.filename,
+                "file_path": file_obj.file_path,
+                "file_size": file_obj.file_size,
+                "mime_type": file_obj.mime_type,
+                "file_type": file_obj.file_type.value if file_obj.file_type else "neprirazene",
+                "uploaded_at": file_obj.uploaded_at,
+                "uploaded_by": file_obj.uploaded_by,
+                "usage_info": usage_info,
+            }
+        )
 
     return result
 
@@ -74,7 +77,7 @@ def get_files(
 def download_file(
     file_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Stáhne soubor pod jeho názvem (na disku leží pod UUID)."""
     file_obj = db.query(models.File).filter(models.File.id == file_id).first()
@@ -87,14 +90,13 @@ def download_file(
     return FileResponse(
         path=file_obj.file_path,
         filename=file_obj.original_filename,
-        media_type=file_obj.mime_type or 'application/octet-stream'
+        media_type=file_obj.mime_type or "application/octet-stream",
     )
 
 
 @router.get("/files/storage-stats")
 def get_storage_stats(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Vrací statistiku úložného prostoru nahraných souborů.
@@ -120,5 +122,5 @@ def get_storage_stats(
         "total_size_formatted": format_file_size(total_size),
         "file_count": file_count,
         "existing_files": existing_files,
-        "missing_files": missing_files
+        "missing_files": missing_files,
     }

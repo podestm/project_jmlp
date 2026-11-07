@@ -30,22 +30,29 @@ export function useClubManagement() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
   // Při otevřeném dialogu mazání se seznam pod ním neobnovuje
   useRevalidateOnFocus(() => load({ silent: true }), { enabled: !deleting });
 
-  const deleteClub = useCallback(async (club, targetId) => {
-    try {
-      const result = await AdminAPI.delete(
-        `/api/admin/clubs/${club.id}`, {}, targetId ? { reassign_to: targetId } : {},
-      );
-      setMessage({ type: 'success', text: deletedMessage(result) });
-      setExpandedClub((open) => (open === club.id ? null : open));
-      await load();
-    } catch (err) {
-      setMessage({ type: 'danger', text: err.message });
-    }
-  }, [load]);
+  const deleteClub = useCallback(
+    async (club, targetId) => {
+      try {
+        const result = await AdminAPI.delete(
+          `/api/admin/clubs/${club.id}`,
+          {},
+          targetId ? { reassign_to: targetId } : {},
+        );
+        setMessage({ type: 'success', text: deletedMessage(result) });
+        setExpandedClub((open) => (open === club.id ? null : open));
+        await load();
+      } catch (err) {
+        setMessage({ type: 'danger', text: err.message });
+      }
+    },
+    [load],
+  );
 
   /** Výsledek dialogu: false = zrušeno, jinak id cílového klubu nebo null. */
   const resolveDelete = (target) => {
@@ -66,10 +73,24 @@ export function useClubManagement() {
   };
 
   return {
-    clubs, visibleClubs, loading, message, setMessage, load,
-    query, setQuery, onlyOrganizers, setOnlyOrganizers, platnost, setPlatnost, resetFilters,
+    clubs,
+    visibleClubs,
+    loading,
+    message,
+    setMessage,
+    load,
+    query,
+    setQuery,
+    onlyOrganizers,
+    setOnlyOrganizers,
+    platnost,
+    setPlatnost,
+    resetFilters,
     filtersActive: Boolean(query) || onlyOrganizers || platnost !== PLATNOST.vse,
-    expandedClub, toggleLogo: (club) => setExpandedClub((open) => (open === club.id ? null : club.id)),
-    deleting, requestDelete: setDeleting, resolveDelete,
+    expandedClub,
+    toggleLogo: (club) => setExpandedClub((open) => (open === club.id ? null : club.id)),
+    deleting,
+    requestDelete: setDeleting,
+    resolveDelete,
   };
 }

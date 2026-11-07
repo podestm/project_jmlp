@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { formatSeason, formatSeasonShort, generateRaceNumber, seasonIdForDate, getSeasonIdForRace, seasonEdition, toRoman } from './season.js';
+import {
+  formatSeason,
+  formatSeasonShort,
+  generateRaceNumber,
+  seasonIdForDate,
+  getSeasonIdForRace,
+  seasonEdition,
+  toRoman,
+} from './season.js';
 import { pointsForRank, POINTS_TABLE } from './points.js';
 
 describe('seasonIdForDate', () => {

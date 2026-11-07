@@ -19,10 +19,24 @@ const DETAIL = {
   race_director: 'Ing. Tomáš Malík',
   technical_delegate: null,
   chief_timekeeper: null,
-  runs: [{ run_number: 1, course_setter: 'Martin Bureš', gates_count: 18, conditions: null, start_time: '9:00', course_length_m: '320' }],
+  runs: [
+    {
+      run_number: 1,
+      course_setter: 'Martin Bureš',
+      gates_count: 18,
+      conditions: null,
+      start_time: '9:00',
+      course_length_m: '320',
+    },
+  ],
 };
 
-const renderScreen = () => render(<MemoryRouter><RaceHeaderForm /></MemoryRouter>);
+const renderScreen = () =>
+  render(
+    <MemoryRouter>
+      <RaceHeaderForm />
+    </MemoryRouter>,
+  );
 
 beforeEach(() => {
   localStorage.clear();
@@ -34,7 +48,10 @@ describe('detail závodu', () => {
   it('bez vybraného závodu odkáže do Přehledu', () => {
     renderScreen();
     expect(screen.getByText('Vyberte závod')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Přehled závodů' })).toHaveAttribute('href', '/timekeeper');
+    expect(screen.getByRole('link', { name: 'Přehled závodů' })).toHaveAttribute(
+      'href',
+      '/timekeeper',
+    );
   });
 
   it('vyplní formulář, ukáže co se doplní samo a uloží', async () => {
@@ -42,11 +59,16 @@ describe('detail závodu', () => {
     renderScreen();
 
     expect(await screen.findByLabelText('Ředitel závodu')).toHaveValue('Ing. Tomáš Malík');
-    expect(screen.getByLabelText('Stavitel trati', { selector: '#kolo-1-course_setter' })).toHaveValue('Martin Bureš');
+    expect(
+      screen.getByLabelText('Stavitel trati', { selector: '#kolo-1-course_setter' }),
+    ).toHaveValue('Martin Bureš');
     expect(screen.getByText('FreeSki Academy Brno')).toBeInTheDocument();
     expect(screen.getByText('Pořádající klub nemá nahrané logo')).toBeInTheDocument();
 
-    await userEvent.type(screen.getByLabelText('Počet branek', { selector: '#kolo-2-gates_count' }), '20');
+    await userEvent.type(
+      screen.getByLabelText('Počet branek', { selector: '#kolo-2-gates_count' }),
+      '20',
+    );
     const length = screen.getByLabelText('Délka trati', { selector: '#kolo-2-course_length_m' });
     expect(length).toHaveAttribute('type', 'text');
     expect(length).toHaveAttribute('maxLength', '60');
@@ -56,7 +78,11 @@ describe('detail závodu', () => {
     expect(api.get).toHaveBeenCalledWith('/api/timekeeper/races/7/detail');
     const [url, payload] = api.put.mock.calls[0];
     expect(url).toBe('/api/timekeeper/races/7/detail');
-    expect(payload.runs[1]).toMatchObject({ run_number: 2, gates_count: 20, course_length_m: '400m, 7 stanovišť' });
+    expect(payload.runs[1]).toMatchObject({
+      run_number: 2,
+      gates_count: 20,
+      course_length_m: '400m, 7 stanovišť',
+    });
     expect(payload.runs[0].course_length_m).toBe('320');
     expect(await screen.findByText('Údaje závodu uloženy')).toBeInTheDocument();
   });

@@ -4,6 +4,7 @@ Strom sezóna -> podsložka -> soubor skončil: zařazení souboru dává
 fuj_jmlp_attachment (kam je připojený) a systematický název, ne ruční
 přesouvání mezi složkami. Knihovna proto jen filtruje jednu tabulku.
 """
+
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any, Dict, List, Optional, Tuple
@@ -23,6 +24,7 @@ FILTERABLE_OWNERS = tuple(owner.value for owner in AttachmentOwner)
 @dataclass(frozen=True)
 class LibraryFilters:
     """Filtry výpisu knihovny. Všechny jsou volitelné a kombinují se přes AND."""
+
     q: Optional[str] = None
     extension: Optional[str] = None
     owner_type: Optional[str] = None

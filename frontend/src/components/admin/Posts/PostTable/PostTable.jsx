@@ -23,25 +23,55 @@ function PostRow({ post, formatContent, formatDateTime, onEdit, onDelete }) {
       <td className={styles.title}>{post.title}</td>
       {/* Obsah s **tučným** a *kurzívou* – převod dělá formatContent. */}
       <td className={styles.content}>
-        <span className={styles.snippet} dangerouslySetInnerHTML={{ __html: formatContent(post.content) }} />
+        <span
+          className={styles.snippet}
+          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+        />
       </td>
       <td>
-        {post.published
-          ? <Badge size="sm" tone="open" icon="check">Publikován</Badge>
-          : <Badge size="sm" icon="pencil">Koncept</Badge>}
+        {post.published ? (
+          <Badge size="sm" tone="open" icon="check">
+            Publikován
+          </Badge>
+        ) : (
+          <Badge size="sm" icon="pencil">
+            Koncept
+          </Badge>
+        )}
       </td>
       <td>
         {attachments.length > 0 ? (
           <span className={styles.attachments}>
-            {attachments.map(({ icon, label }) => <Badge key={label} size="sm" icon={icon}>{label}</Badge>)}
+            {attachments.map(({ icon, label }) => (
+              <Badge key={label} size="sm" icon={icon}>
+                {label}
+              </Badge>
+            ))}
           </span>
-        ) : <span className={styles.none} aria-label="bez příloh">—</span>}
+        ) : (
+          <span className={styles.none} aria-label="bez příloh">
+            —
+          </span>
+        )}
       </td>
-      <td><Created value={post.created_at} formatDateTime={formatDateTime} /></td>
+      <td>
+        <Created value={post.created_at} formatDateTime={formatDateTime} />
+      </td>
       <td data-align="end">
         <span className={styles.actions}>
-          <Button size="sm" onClick={() => onEdit(post)} aria-label={`Upravit příspěvek ${post.title}`}>Upravit</Button>
-          <IconButton icon="trash" variant="danger" label={`Smazat příspěvek ${post.title}`} onClick={() => onDelete(post.id)} />
+          <Button
+            size="sm"
+            onClick={() => onEdit(post)}
+            aria-label={`Upravit příspěvek ${post.title}`}
+          >
+            Upravit
+          </Button>
+          <IconButton
+            icon="trash"
+            variant="danger"
+            label={`Smazat příspěvek ${post.title}`}
+            onClick={() => onDelete(post.id)}
+          />
         </span>
       </td>
     </tr>
@@ -63,12 +93,21 @@ export default function PostTable({ posts, formatContent, formatDateTime, onEdit
             <th scope="col">Stav</th>
             <th scope="col">Přílohy</th>
             <th scope="col">Vytvořeno</th>
-            <th scope="col" data-align="end">Akce</th>
+            <th scope="col" data-align="end">
+              Akce
+            </th>
           </tr>
         </thead>
         <tbody>
           {posts.map((post) => (
-            <PostRow key={post.id} post={post} formatContent={formatContent} formatDateTime={formatDateTime} onEdit={onEdit} onDelete={onDelete} />
+            <PostRow
+              key={post.id}
+              post={post}
+              formatContent={formatContent}
+              formatDateTime={formatDateTime}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </tbody>
       </Table>

@@ -7,7 +7,7 @@ import {
   markReachable,
   markUnreachable,
   onBackOnline,
-  onConnectivityChange
+  onConnectivityChange,
 } from './connectivity.js';
 import { setOnline } from '../test/helpers.js';
 
@@ -57,7 +57,9 @@ describe('zkouška spojení', () => {
   it('nedostupný server zkouší s odkladem a po odpovědi ohlásí návrat spojení', async () => {
     const back = vi.fn();
     const stop = onBackOnline(back);
-    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch')).mockResolvedValue(okResponse());
+    fetchMock
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValue(okResponse());
 
     markUnreachable();
     await vi.advanceTimersByTimeAsync(5000);
@@ -82,9 +84,14 @@ describe('zkouška spojení', () => {
   });
 
   it('zkouška, která visí, vyprší a spojení zůstane ztracené', async () => {
-    fetchMock.mockImplementation((url, { signal }) => new Promise((resolve, reject) => {
-      signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
-    }));
+    fetchMock.mockImplementation(
+      (url, { signal }) =>
+        new Promise((resolve, reject) => {
+          signal.addEventListener('abort', () =>
+            reject(Object.assign(new Error('aborted'), { name: 'AbortError' })),
+          );
+        }),
+    );
     markUnreachable();
     await vi.advanceTimersByTimeAsync(5000 + 4000);
     expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(true);
@@ -138,7 +145,9 @@ describe('isNetworkError', () => {
   it('pozná chyby fetch bez odpovědi i vypršení', () => {
     expect(isNetworkError(new TypeError('Failed to fetch'))).toBe(true);
     expect(isNetworkError(new TypeError('Load failed'))).toBe(true);
-    expect(isNetworkError(new TypeError('NetworkError when attempting to fetch resource.'))).toBe(true);
+    expect(isNetworkError(new TypeError('NetworkError when attempting to fetch resource.'))).toBe(
+      true,
+    );
     expect(isNetworkError(Object.assign(new Error('x'), { name: 'AbortError' }))).toBe(true);
     expect(isNetworkError(Object.assign(new Error('cokoli'), { network: true }))).toBe(true);
   });

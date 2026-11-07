@@ -50,7 +50,7 @@ export const saveTimingDrafts = async (raceId, drafts) => {
   await timekeeperDb.settings.put({
     key,
     value: drafts,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   });
 };
 

@@ -5,7 +5,7 @@ import {
   excludedEntryId,
   getQueuedMutationKeys,
   mutationKeys,
-  stripSupersededRevisions
+  stripSupersededRevisions,
 } from './entryTargets.js';
 
 export const MAX_RETRIES = 8;
@@ -25,11 +25,10 @@ export const notifyQueueChanged = () => {
   }
 };
 
-export const generateOpId = () => (
+export const generateOpId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-);
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const createQueueItem = (method, endpoint, payload = null, opId = null) => ({
   op_id: opId || generateOpId(),
@@ -41,7 +40,7 @@ const createQueueItem = (method, endpoint, payload = null, opId = null) => ({
   next_retry_at: null,
   method,
   endpoint,
-  payload
+  payload,
 });
 
 export const enqueueMutation = async (method, endpoint, payload = null, opId = null) => {
@@ -100,28 +99,36 @@ export const supersedeParkedOpsFor = async (method, endpoint, payload, createdBe
 
   if (!superseded.length) return 0;
 
-  const reason = excludedEntryId(method, endpoint) != null
-    ? 'Nahrazeno novějším vyřazením či vrácením téhož závodníka.'
-    : 'Nahrazeno novějším zápisem téhož času.';
+  const reason =
+    excludedEntryId(method, endpoint) != null
+      ? 'Nahrazeno novějším vyřazením či vrácením téhož závodníka.'
+      : 'Nahrazeno novějším zápisem téhož času.';
 
-  await Promise.all(superseded.map(async (row) => {
-    await timekeeperDb.syncQueue.update(row.id, {
-      status: 'superseded',
-      updated_at: nowIso(),
-      last_error: reason
-    });
+  await Promise.all(
+    superseded.map(async (row) => {
+      await timekeeperDb.syncQueue.update(row.id, {
+        status: 'superseded',
+        updated_at: nowIso(),
+        last_error: reason,
+      });
 
-    const open = await timekeeperDb.conflicts
-      .where('queue_item_id').equals(row.id)
-      .filter((conflict) => !conflict.resolved)
-      .toArray();
+      const open = await timekeeperDb.conflicts
+        .where('queue_item_id')
+        .equals(row.id)
+        .filter((conflict) => !conflict.resolved)
+        .toArray();
 
-    await Promise.all(open.map((conflict) => timekeeperDb.conflicts.update(conflict.id, {
-      resolved: 1,
-      resolved_at: nowIso(),
-      resolution_action: 'superseded'
-    })));
-  }));
+      await Promise.all(
+        open.map((conflict) =>
+          timekeeperDb.conflicts.update(conflict.id, {
+            resolved: 1,
+            resolved_at: nowIso(),
+            resolution_action: 'superseded',
+          }),
+        ),
+      );
+    }),
+  );
 
   notifyQueueChanged();
   return superseded.length;
@@ -140,11 +147,15 @@ export const recoverStaleProcessing = async () => {
     return Number.isNaN(ts) || ts <= cutoff;
   });
 
-  await Promise.all(stale.map((row) => timekeeperDb.syncQueue.update(row.id, {
-    status: 'pending',
-    next_retry_at: null,
-    updated_at: nowIso()
-  })));
+  await Promise.all(
+    stale.map((row) =>
+      timekeeperDb.syncQueue.update(row.id, {
+        status: 'pending',
+        next_retry_at: null,
+        updated_at: nowIso(),
+      }),
+    ),
+  );
 
   return stale.length;
 };
@@ -164,13 +175,17 @@ export const reviveNetworkFailures = async () => {
   const rows = await timekeeperDb.syncQueue.where('status').anyOf('failed', 'dead').toArray();
   const stuck = rows.filter((row) => isNetworkErrorMessage(row.last_error));
 
-  await Promise.all(stuck.map((row) => timekeeperDb.syncQueue.update(row.id, {
-    status: 'pending',
-    retry_count: 0,
-    next_retry_at: null,
-    last_error: null,
-    updated_at: nowIso()
-  })));
+  await Promise.all(
+    stuck.map((row) =>
+      timekeeperDb.syncQueue.update(row.id, {
+        status: 'pending',
+        retry_count: 0,
+        next_retry_at: null,
+        last_error: null,
+        updated_at: nowIso(),
+      }),
+    ),
+  );
 
   return stuck.length;
 };
@@ -208,7 +223,12 @@ export const saveConflict = async (queueItem, error, statusCode) => {
   // Server říká česky, co je špatně ("Číslo 12 už má ..."), to je pro
   // rozhodčího užitečnější než "API Error: 400".
   const detail = error?.detail;
-  const readable = typeof detail === 'string' ? detail : (typeof detail?.message === 'string' ? detail.message : null);
+  const readable =
+    typeof detail === 'string'
+      ? detail
+      : typeof detail?.message === 'string'
+        ? detail.message
+        : null;
   await timekeeperDb.conflicts.add({
     queue_item_id: queueItem.id,
     op_id: queueItem.op_id,
@@ -219,7 +239,7 @@ export const saveConflict = async (queueItem, error, statusCode) => {
     error_message: readable || error?.message || 'Conflict detected',
     conflict_detail: error?.detail || null,
     created_at: nowIso(),
-    resolved: 0
+    resolved: 0,
   });
 };
 
@@ -229,7 +249,7 @@ export const getSyncQueueStats = async () => {
     timekeeperDb.syncQueue.where('status').equals('failed').count(),
     timekeeperDb.syncQueue.where('status').equals('processing').count(),
     timekeeperDb.syncQueue.where('status').equals('conflict').count(),
-    timekeeperDb.syncQueue.where('status').equals('dead').count()
+    timekeeperDb.syncQueue.where('status').equals('dead').count(),
   ]);
 
   return {
@@ -238,7 +258,7 @@ export const getSyncQueueStats = async () => {
     processing,
     conflict,
     dead,
-    total: pending + failed + processing + conflict + dead
+    total: pending + failed + processing + conflict + dead,
   };
 };
 
@@ -250,23 +270,28 @@ export const getSyncQueueStats = async () => {
 export const releaseAuthParked = async (authMessage) => {
   const rows = await timekeeperDb.syncQueue.where('status').equals('pending').toArray();
   const parked = rows.filter((row) => row.last_error === authMessage);
-  await Promise.all(parked.map((row) => timekeeperDb.syncQueue.update(row.id, {
-    next_retry_at: null,
-    last_error: null,
-    updated_at: nowIso()
-  })));
+  await Promise.all(
+    parked.map((row) =>
+      timekeeperDb.syncQueue.update(row.id, {
+        next_retry_at: null,
+        last_error: null,
+        updated_at: nowIso(),
+      }),
+    ),
+  );
   if (parked.length) notifyQueueChanged();
   return parked.length;
 };
 
 /** Kolik zápisů ještě nedorazilo na server (čeká, selhal, odesílá se, konflikt). */
-export const countUnsyncedQueueItems = async () => (
-  timekeeperDb.syncQueue.where('status').anyOf('pending', 'failed', 'processing', 'conflict', 'dead').count()
-);
+export const countUnsyncedQueueItems = async () =>
+  timekeeperDb.syncQueue
+    .where('status')
+    .anyOf('pending', 'failed', 'processing', 'conflict', 'dead')
+    .count();
 
-export const getRecentQueueItems = async (limit = 100) => (
-  timekeeperDb.syncQueue.orderBy('created_at').reverse().limit(limit).toArray()
-);
+export const getRecentQueueItems = async (limit = 100) =>
+  timekeeperDb.syncQueue.orderBy('created_at').reverse().limit(limit).toArray();
 
 /**
  * Ruční „Zkusit znovu" z Centra synchronizace.
@@ -282,7 +307,7 @@ export const retryQueueItem = async (queueItemId) => {
     retry_count: 0,
     next_retry_at: null,
     last_error: null,
-    updated_at: nowIso()
+    updated_at: nowIso(),
   });
   notifyQueueChanged();
 };
@@ -307,7 +332,7 @@ const forcePayload = (payload, entryId) => {
           return { ...entry, force_apply: true };
         }
         return entry;
-      })
+      }),
     };
   }
   return { ...payload, force_apply: true };
@@ -323,20 +348,32 @@ const dropDependentsOfCreate = async (queueItemId) => {
   const tempId = item ? createTempIdOf(item.method, item.endpoint, item.payload) : null;
   if (tempId == null) return;
   const keys = new Set([`entry:${tempId}`, `excluded:${tempId}`]);
-  const rows = await timekeeperDb.syncQueue.where('status').anyOf('pending', 'failed', 'conflict', 'dead').toArray();
+  const rows = await timekeeperDb.syncQueue
+    .where('status')
+    .anyOf('pending', 'failed', 'conflict', 'dead')
+    .toArray();
   for (const row of rows) {
     if (row.id === queueItemId) continue;
     if (!mutationKeys(row.method, row.endpoint, row.payload).some((key) => keys.has(key))) continue;
     await timekeeperDb.syncQueue.update(row.id, {
       status: 'dropped',
       updated_at: nowIso(),
-      last_error: 'Zahozeno spolu s offline přidaným závodníkem.'
+      last_error: 'Zahozeno spolu s offline přidaným závodníkem.',
     });
-    const open = await timekeeperDb.conflicts.where('queue_item_id').equals(row.id)
-      .filter((conflict) => !conflict.resolved).toArray();
-    await Promise.all(open.map((conflict) => timekeeperDb.conflicts.update(conflict.id, {
-      resolved: 1, resolved_at: nowIso(), resolution_action: 'drop'
-    })));
+    const open = await timekeeperDb.conflicts
+      .where('queue_item_id')
+      .equals(row.id)
+      .filter((conflict) => !conflict.resolved)
+      .toArray();
+    await Promise.all(
+      open.map((conflict) =>
+        timekeeperDb.conflicts.update(conflict.id, {
+          resolved: 1,
+          resolved_at: nowIso(),
+          resolution_action: 'drop',
+        }),
+      ),
+    );
   }
   await removeLocalEntry(tempId);
 };
@@ -351,14 +388,17 @@ export const resolveConflict = async (conflictId, action = 'drop') => {
       status: 'pending',
       retry_count: 0,
       next_retry_at: null,
-      updated_at: nowIso()
+      updated_at: nowIso(),
     };
 
     if (action === 'retry') {
       await timekeeperDb.syncQueue.update(queueItemId, requeue);
     } else if (action === 'force') {
       const queueItem = await timekeeperDb.syncQueue.get(queueItemId);
-      if (queueItem && createTempIdOf(queueItem.method, queueItem.endpoint, queueItem.payload) != null) {
+      if (
+        queueItem &&
+        createTempIdOf(queueItem.method, queueItem.endpoint, queueItem.payload) != null
+      ) {
         // Přidání offline závodníka narazilo typicky na obsazené číslo:
         // "vynutit" = poslat bez čísla, server přidělí nejbližší volné.
         const { race_number_display, start_number, ...rest } = queueItem.payload || {};
@@ -366,13 +406,13 @@ export const resolveConflict = async (conflictId, action = 'drop') => {
       } else if (queueItem) {
         await timekeeperDb.syncQueue.update(queueItemId, {
           ...requeue,
-          payload: forcePayload(queueItem.payload || {}, conflict?.conflict_detail?.entry_id)
+          payload: forcePayload(queueItem.payload || {}, conflict?.conflict_detail?.entry_id),
         });
       }
     } else {
       await timekeeperDb.syncQueue.update(queueItemId, {
         status: 'dropped',
-        updated_at: nowIso()
+        updated_at: nowIso(),
       });
       await dropDependentsOfCreate(queueItemId);
     }
@@ -381,7 +421,7 @@ export const resolveConflict = async (conflictId, action = 'drop') => {
   await timekeeperDb.conflicts.update(conflictId, {
     resolved: 1,
     resolved_at: nowIso(),
-    resolution_action: action
+    resolution_action: action,
   });
   notifyQueueChanged();
 };

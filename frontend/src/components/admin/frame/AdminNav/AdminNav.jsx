@@ -21,7 +21,8 @@ export default function AdminNav({ variant = 'sidebar', counts = {}, onNavigate,
     <nav aria-label="Administrace" className={cx(styles.nav, styles[variant], className)}>
       {adminNav.map((item, index) => {
         const count = item.count ? counts[item.count] || 0 : 0;
-        const startsSettings = item.group === 'settings' && adminNav[index - 1]?.group !== 'settings';
+        const startsSettings =
+          item.group === 'settings' && adminNav[index - 1]?.group !== 'settings';
         return (
           <Fragment key={item.to}>
             {startsSettings && <span className={styles.divider} aria-hidden="true" />}
@@ -39,7 +40,9 @@ export default function AdminNav({ variant = 'sidebar', counts = {}, onNavigate,
                   <VisuallyHidden> čeká</VisuallyHidden>
                 </Badge>
               )}
-              {inMenu && <Icon name="chevron-right" size={20} strokeWidth={2.2} className={styles.chevron} />}
+              {inMenu && (
+                <Icon name="chevron-right" size={20} strokeWidth={2.2} className={styles.chevron} />
+              )}
             </Link>
           </Fragment>
         );

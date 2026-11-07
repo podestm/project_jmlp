@@ -9,15 +9,24 @@ import PdfPreviewModal from './PdfPreviewModal.jsx';
  * Dole zůstává jen publikace u listin, které se publikují.
  */
 describe('náhled listiny', () => {
-  const renderModal = (props = {}) => render(
-    <PdfPreviewModal objectUrl="/pdf-preview/1-a/listina.pdf" title="Výsledky 1. kola" onClose={vi.fn()} {...props} />
-  );
+  const renderModal = (props = {}) =>
+    render(
+      <PdfPreviewModal
+        objectUrl="/pdf-preview/1-a/listina.pdf"
+        title="Výsledky 1. kola"
+        onClose={vi.fn()}
+        {...props}
+      />,
+    );
 
   it('bez publikace nemá dole žádná tlačítka', () => {
     renderModal();
 
-    expect(screen.getAllByRole('button').map((button) => button.getAttribute('aria-label') || button.textContent))
-      .toEqual(['Zavřít náhled']);
+    expect(
+      screen
+        .getAllByRole('button')
+        .map((button) => button.getAttribute('aria-label') || button.textContent),
+    ).toEqual(['Zavřít náhled']);
     expect(screen.queryByText('Stáhnout')).toBeNull();
   });
 
@@ -28,7 +37,7 @@ describe('náhled listiny', () => {
     await userEvent.click(screen.getByRole('button', { name: /Zveřejnit u sezóny/ }));
 
     expect(onPublish).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByRole('button')).toHaveLength(2);   // křížek + publikace
+    expect(screen.getAllByRole('button')).toHaveLength(2); // křížek + publikace
   });
 
   it('zavírá křížek nahoře i Escape', async () => {

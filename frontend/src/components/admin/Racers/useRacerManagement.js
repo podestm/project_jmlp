@@ -2,8 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminAPI } from '../../../config/api.js';
 import { deleteRacerConfirm } from './dialogs/deleteRacerConfirm.jsx';
 import {
-  EMPTY_FILTER, PAGE_SIZE, SEARCH_DEBOUNCE_MS, categoryOptions, clubOptions, emptyRacerForm,
-  filterRacers, racerPayload, racerToForm,
+  EMPTY_FILTER,
+  PAGE_SIZE,
+  SEARCH_DEBOUNCE_MS,
+  categoryOptions,
+  clubOptions,
+  emptyRacerForm,
+  filterRacers,
+  racerPayload,
+  racerToForm,
 } from './racers.js';
 
 /**
@@ -64,13 +71,22 @@ export function useRacerManagement({ confirm }) {
     setVisibleCount(PAGE_SIZE);
   }, [searchText, filter]);
 
-  const filteredRacers = useMemo(() => filterRacers(racers, filter, searchText), [racers, filter, searchText]);
-  const visibleRacers = useMemo(() => filteredRacers.slice(0, visibleCount), [filteredRacers, visibleCount]);
+  const filteredRacers = useMemo(
+    () => filterRacers(racers, filter, searchText),
+    [racers, filter, searchText],
+  );
+  const visibleRacers = useMemo(
+    () => filteredRacers.slice(0, visibleCount),
+    [filteredRacers, visibleCount],
+  );
   const clubChoices = useMemo(() => clubOptions(clubs), [clubs]);
   const categoryChoices = useMemo(() => categoryOptions(categories), [categories]);
 
   const filtersActive = Boolean(filter.club || filter.category || filter.sex || searchInput);
-  const setFilterValue = useCallback((key, value) => setFilter((prev) => ({ ...prev, [key]: value })), []);
+  const setFilterValue = useCallback(
+    (key, value) => setFilter((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
   const resetFilters = () => {
     setFilter(EMPTY_FILTER);
     setSearchInput('');
@@ -119,16 +135,19 @@ export function useRacerManagement({ confirm }) {
     }
   };
 
-  const deleteRacer = useCallback(async (racer) => {
-    if (!await confirm(deleteRacerConfirm(racer))) return;
-    try {
-      await AdminAPI.delete(`/api/admin/racers/${racer.id}`);
-      loadData();
-    } catch (err) {
-      console.error('Error deleting racer:', err);
-      setError(err.message || 'Nepodařilo se smazat závodníka');
-    }
-  }, [confirm, loadData]);
+  const deleteRacer = useCallback(
+    async (racer) => {
+      if (!(await confirm(deleteRacerConfirm(racer)))) return;
+      try {
+        await AdminAPI.delete(`/api/admin/racers/${racer.id}`);
+        loadData();
+      } catch (err) {
+        console.error('Error deleting racer:', err);
+        setError(err.message || 'Nepodařilo se smazat závodníka');
+      }
+    },
+    [confirm, loadData],
+  );
 
   return {
     racers,

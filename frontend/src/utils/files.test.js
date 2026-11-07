@@ -5,7 +5,7 @@ import {
   getExtensionTone,
   getExtensionLabel,
   isDocumentFile,
-  isImageFile
+  isImageFile,
 } from './files.js';
 
 describe('getExtension', () => {

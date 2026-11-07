@@ -12,7 +12,13 @@ import styles from './SerialAlerts.module.css';
  * @param {object} serial celá relace z useSerialSession()
  * @param {() => void} onTakeOver převzetí časomíry od jiné karty (s potvrzením)
  */
-export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unparsedStreakAlert, onTakeOver }) {
+export default function SerialAlerts({
+  serial,
+  selectedRaceId,
+  hasWriteLock,
+  unparsedStreakAlert,
+  onTakeOver,
+}) {
   const { health } = serial;
   return (
     <div className={styles.alerts}>
@@ -23,7 +29,11 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
       )}
 
       {serial.dbStateText && (
-        <Alert type="danger" compact title="Lokální databáze je zavřená – naměřené časy se NEUKLÁDAJÍ">
+        <Alert
+          type="danger"
+          compact
+          title="Lokální databáze je zavřená – naměřené časy se NEUKLÁDAJÍ"
+        >
           {serial.dbStateText}
         </Alert>
       )}
@@ -33,9 +43,13 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
           type="danger"
           compact
           title={`${health.persistFailures} událostí z časomíry se nepodařilo uložit do zařízení`}
-          actions={health.bufferedEvents > 0 && (
-            <Button size="sm" variant="danger" onClick={serial.retryPersist}>Zkusit uložit znovu</Button>
-          )}
+          actions={
+            health.bufferedEvents > 0 && (
+              <Button size="sm" variant="danger" onClick={serial.retryPersist}>
+                Zkusit uložit znovu
+              </Button>
+            )
+          }
         >
           {health.bufferedEvents > 0
             ? `${health.bufferedEvents} čeká v paměti a bude uloženo po obnovení databáze.`
@@ -45,9 +59,19 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
       )}
 
       {health.unparsedStreak >= unparsedStreakAlert && (
-        <Alert type="warning" compact title={`${health.unparsedStreak} řádky po sobě se nepodařilo rozpoznat`}>
-          Celkem {health.unparsedTotal}, řádky jsou ve schránce. Zkontrolujte formát výstupu zařízení.
-          {health.lastUnparsedLine ? <> Poslední řádek: <code className={styles.code}>{health.lastUnparsedLine}</code></> : null}
+        <Alert
+          type="warning"
+          compact
+          title={`${health.unparsedStreak} řádky po sobě se nepodařilo rozpoznat`}
+        >
+          Celkem {health.unparsedTotal}, řádky jsou ve schránce. Zkontrolujte formát výstupu
+          zařízení.
+          {health.lastUnparsedLine ? (
+            <>
+              {' '}
+              Poslední řádek: <code className={styles.code}>{health.lastUnparsedLine}</code>
+            </>
+          ) : null}
         </Alert>
       )}
 
@@ -55,10 +79,14 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
         <Alert
           type="info"
           compact
-          actions={<Button size="sm" onClick={() => serial.cancelDetection()}>Zastavit</Button>}
+          actions={
+            <Button size="sm" onClick={() => serial.cancelDetection()}>
+              Zastavit
+            </Button>
+          }
         >
-          Hledám rychlost časomíry: <span className={styles.mono}>{serial.detection.baud}</span>
-          {' '}({serial.detection.index + 1} z {serial.detection.total}). Posílejte z časomíry časy.
+          Hledám rychlost časomíry: <span className={styles.mono}>{serial.detection.baud}</span> (
+          {serial.detection.index + 1} z {serial.detection.total}). Posílejte z časomíry časy.
         </Alert>
       )}
 
@@ -66,9 +94,14 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
         <Alert
           type="warning"
           compact
-          actions={<Button size="sm" icon="search" onClick={serial.detectBaud}>Zjistit rychlost</Button>}
+          actions={
+            <Button size="sm" icon="search" onClick={serial.detectBaud}>
+              Zjistit rychlost
+            </Button>
+          }
         >
-          Časomíra nejspíš vysílá jinou rychlostí než <span className={styles.mono}>{serial.baud}</span>.
+          Časomíra nejspíš vysílá jinou rychlostí než{' '}
+          <span className={styles.mono}>{serial.baud}</span>.
         </Alert>
       )}
 
@@ -77,7 +110,11 @@ export default function SerialAlerts({ serial, selectedRaceId, hasWriteLock, unp
           type="info"
           compact
           title="Časomíru obsluhuje jiná karta"
-          actions={<Button size="sm" icon="plug" onClick={onTakeOver}>Převzít časomíru</Button>}
+          actions={
+            <Button size="sm" icon="plug" onClick={onTakeOver}>
+              Převzít časomíru
+            </Button>
+          }
         >
           Události se zobrazují i zde.
         </Alert>

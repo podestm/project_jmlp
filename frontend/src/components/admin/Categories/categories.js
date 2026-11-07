@@ -7,7 +7,7 @@ export const SEX_OPTIONS = [
   { value: 0, label: 'Muži i ženy společně' },
 ];
 
-export const sexLabel = (sex) => ({ 0: 'Mix', 1: 'Muži', 2: 'Ženy' }[Number(sex)] ?? 'Mix');
+export const sexLabel = (sex) => ({ 0: 'Mix', 1: 'Muži', 2: 'Ženy' })[Number(sex)] ?? 'Mix';
 
 /** Prázdný formulář - stejný tvar pro první render i po uložení. */
 export const emptyCategoryForm = (year = new Date().getFullYear()) => ({
@@ -30,17 +30,15 @@ export const categoryForm = (category) => ({
 });
 
 /** Primárně od nejmladších ročníků, sekundárně Mix(0), Muži(1), Ženy(2). Vrací kopii. */
-export const sortCategories = (categories) => [...categories].sort((a, b) => (
-  b.max_birth_year - a.max_birth_year || a.sex - b.sex
-));
+export const sortCategories = (categories) =>
+  [...categories].sort((a, b) => b.max_birth_year - a.max_birth_year || a.sex - b.sex);
 
 /** Hlavní název kategorie: zobrazovaný, jinak interní. */
 export const categoryLabel = (category) => category.display_name || category.name;
 
 /** Věkové rozmezí, které kategorie letos pokrývá: „7 – 9 let“. */
-export const ageRange = (category, year = new Date().getFullYear()) => (
-  `${year - category.max_birth_year} – ${year - category.min_birth_year} let`
-);
+export const ageRange = (category, year = new Date().getFullYear()) =>
+  `${year - category.max_birth_year} – ${year - category.min_birth_year} let`;
 
 /** Zrcadlová kategorie: opačné pohlaví, mix zrcadlit nejde (null). */
 export const mirrorSex = (sex) => {

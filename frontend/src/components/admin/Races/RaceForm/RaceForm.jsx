@@ -11,7 +11,8 @@ import styles from './RaceForm.module.css';
 // i backend (ATTACHMENT_ROLES_BY_OWNER / ATTACHMENT_EXCLUSIVE_GROUPS).
 const RACE_ROLES = [ROLE.propozice, ROLE.vysledky, ROLE.sponzori];
 
-const registrationCount = (race) => (race ? `Přihlášek: ${race.registrations_count || 0}` : undefined);
+const registrationCount = (race) =>
+  race ? `Přihlášek: ${race.registrations_count || 0}` : undefined;
 
 /**
  * Formulář závodu (AdminZavodForm) pro založení i úpravu. Číslo a sezóna se
@@ -59,8 +60,14 @@ export default function RaceForm({
   return (
     <form className={styles.form} onSubmit={handleSubmit} aria-labelledby="zavod-formular">
       <div className={styles.head}>
-        <h2 id="zavod-formular" className={styles.title}>{editingRace ? 'Upravit závod' : 'Přidat nový závod'}</h2>
-        {order && <Badge tone="neutral" size="sm">{order}</Badge>}
+        <h2 id="zavod-formular" className={styles.title}>
+          {editingRace ? 'Upravit závod' : 'Přidat nový závod'}
+        </h2>
+        {order && (
+          <Badge tone="neutral" size="sm">
+            {order}
+          </Badge>
+        )}
         <IconButton icon="close" label="Zavřít formulář" onClick={onClose} />
       </div>
 
@@ -74,14 +81,31 @@ export default function RaceForm({
             <div className={styles.preview}>
               <span className={styles.previewLabel}>Náhled</span>
               <span className={styles.previewBox}>
-                {formData.datum ? <BibDate date={formData.datum} variant="table" /> : <span aria-hidden="true">—</span>}
+                {formData.datum ? (
+                  <BibDate date={formData.datum} variant="table" />
+                ) : (
+                  <span aria-hidden="true">—</span>
+                )}
               </span>
             </div>
             <Field label="Číslo závodu (automatické)" className={styles.grow}>
-              <Input size="sm" mono value={raceNumberPreview} readOnly placeholder="Vyberte datum pro automatické generování" className={styles.readonly} />
+              <Input
+                size="sm"
+                mono
+                value={raceNumberPreview}
+                readOnly
+                placeholder="Vyberte datum pro automatické generování"
+                className={styles.readonly}
+              />
             </Field>
             <Field label="Sezóna (automatická)" className={styles.grow}>
-              <Input size="sm" value={seasonPreview} readOnly placeholder="Automaticky podle data" className={styles.readonly} />
+              <Input
+                size="sm"
+                value={seasonPreview}
+                readOnly
+                placeholder="Automaticky podle data"
+                className={styles.readonly}
+              />
             </Field>
           </div>
         </section>
@@ -116,12 +140,14 @@ export default function RaceForm({
               <OptionTile
                 label="Suchý slalom"
                 checked={isDry}
-                onChange={(e) => setFormData((prev) => ({
-                  ...prev,
-                  race_method_id: e.target.checked ? 2 : 1,
-                  // Suchý závod finálem být nemůže.
-                  is_final: e.target.checked ? false : prev.is_final,
-                }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    race_method_id: e.target.checked ? 2 : 1,
+                    // Suchý závod finálem být nemůže.
+                    is_final: e.target.checked ? false : prev.is_final,
+                  }))
+                }
               />
               {!isDry && (
                 <OptionTile
@@ -144,7 +170,11 @@ export default function RaceForm({
         <section className={styles.section} aria-labelledby="zavod-dokumenty">
           <Paska id="zavod-dokumenty">Dokumenty závodu</Paska>
           {/* U nového závodu ještě není ownerId, AttachmentManager to ošetří sám. */}
-          <AttachmentManager ownerType={OWNER.race} ownerId={editingRace?.id || null} roles={RACE_ROLES} />
+          <AttachmentManager
+            ownerType={OWNER.race}
+            ownerId={editingRace?.id || null}
+            roles={RACE_ROLES}
+          />
         </section>
 
         <div className={styles.footer}>

@@ -21,11 +21,21 @@ beforeEach(resetTimekeeperDb);
 const RACE_ID = '10';
 
 /** Totéž zapojení jako v TimingEntry, jen bez obrazovky. */
-const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '1', drafts = {}, confirm = vi.fn() }) => {
+const useHarness = ({
+  startList,
+  queueSave,
+  hasWriteLock = true,
+  targetRound = '1',
+  drafts = {},
+  confirm = vi.fn(),
+}) => {
   const [inboxEvents, setInboxEvents] = useState([]);
   const [message, setMessage] = useState(null);
   const [editedTimes, setEditedTimes] = useState(drafts);
-  const startListById = useMemo(() => Object.fromEntries(startList.map((e) => [e.id, e])), [startList]);
+  const startListById = useMemo(
+    () => Object.fromEntries(startList.map((e) => [e.id, e])),
+    [startList],
+  );
 
   const startListRef = useRef(startList);
   const startListByIdRef = useRef(startListById);
@@ -36,11 +46,21 @@ const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '
   const bridgeTargetRoundRef = useRef(targetRound);
   const tabIdRef = useRef('tab-test');
 
-  useEffect(() => { editedTimesRef.current = editedTimes; }, [editedTimes]);
-  useEffect(() => { startListRef.current = startList; }, [startList]);
-  useEffect(() => { startListByIdRef.current = startListById; }, [startListById]);
-  useEffect(() => { inboxEventsRef.current = inboxEvents; }, [inboxEvents]);
-  useEffect(() => { hasWriteLockRef.current = hasWriteLock; }, [hasWriteLock]);
+  useEffect(() => {
+    editedTimesRef.current = editedTimes;
+  }, [editedTimes]);
+  useEffect(() => {
+    startListRef.current = startList;
+  }, [startList]);
+  useEffect(() => {
+    startListByIdRef.current = startListById;
+  }, [startListById]);
+  useEffect(() => {
+    inboxEventsRef.current = inboxEvents;
+  }, [inboxEvents]);
+  useEffect(() => {
+    hasWriteLockRef.current = hasWriteLock;
+  }, [hasWriteLock]);
 
   const inbox = useInboxEvents({
     inboxEvents,
@@ -70,7 +90,14 @@ const useHarness = ({ startList, queueSave, hasWriteLock = true, targetRound = '
 
 const savedOk = () => vi.fn(async () => ({ ok: true, queued: false, opId: null, queueId: null }));
 
-const timeEvent = (overrides = {}) => ({ type: 'TIME', bib: 23, time: '01:02.34', seq: 1, raw: 'x', ...overrides });
+const timeEvent = (overrides = {}) => ({
+  type: 'TIME',
+  bib: 23,
+  time: '01:02.34',
+  seq: 1,
+  raw: 'x',
+  ...overrides,
+});
 
 /**
  * Automatický zápis bere jen impulzy, které přišly po jeho zapnutí v kartě.
@@ -86,7 +113,9 @@ const storedRow = async () => (await timekeeperDb.bridgeInbox.toArray())[0];
 
 /** Nech proběhnout párování na pozadí a případný automatický zápis. */
 const settle = async (ms = 400) => {
-  await act(async () => { await new Promise((resolve) => setTimeout(resolve, ms)); });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  });
 };
 
 const racer = (overrides = {}) => startListEntry({ id: 1, race_number_actual: 23, ...overrides });
@@ -159,7 +188,9 @@ describe('automatický zápis z časomíry', () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
     await freshen();
-    renderHook(() => useHarness({ startList: [racer({ time1: 70.5 })], queueSave, targetRound: '2' }));
+    renderHook(() =>
+      useHarness({ startList: [racer({ time1: 70.5 })], queueSave, targetRound: '2' }),
+    );
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
     expect(queueSave.mock.calls[0][1]).toMatchObject({ time1: '70.5', time2: '62.34' });
@@ -169,10 +200,12 @@ describe('automatický zápis z časomíry', () => {
     const queueSave = savedOk();
     await appendInboxEvent(timeEvent());
     await freshen();
-    renderHook(() => useHarness({
-      startList: [racer(), racer({ id: 2, start_number: 2 })],
-      queueSave,
-    }));
+    renderHook(() =>
+      useHarness({
+        startList: [racer(), racer({ id: 2, start_number: 2 })],
+        queueSave,
+      }),
+    );
 
     await waitFor(async () => expect((await storedRow()).reason).toBe('multiple_matches'));
     await settle();
@@ -234,7 +267,12 @@ describe('automatický zápis z časomíry', () => {
     renderHook(() => useHarness({ startList: [racer()], queueSave }));
 
     await waitFor(() => expect(queueSave).toHaveBeenCalledTimes(1));
-    expect(queueSave.mock.calls[0][1]).toMatchObject({ dnf: true, dns: false, dsq: false, time1: '' });
+    expect(queueSave.mock.calls[0][1]).toMatchObject({
+      dnf: true,
+      dns: false,
+      dsq: false,
+      time1: '',
+    });
   });
 
   it('DNS ze zařízení zapíše automaticky', async () => {
@@ -311,7 +349,9 @@ describe('Zamítnout u automaticky zapsané události', () => {
     const confirm = vi.fn(async () => null);
     const { result } = await autoWritten({ confirm });
 
-    await act(async () => { await result.current.clearResolvedInbox(); });
+    await act(async () => {
+      await result.current.clearResolvedInbox();
+    });
 
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ danger: true }));
     expect((await storedRow()).status).toBe('saved');
@@ -321,7 +361,9 @@ describe('Zamítnout u automaticky zapsané události', () => {
     const { result, queueSave } = await autoWritten();
     const id = result.current.inboxEvents[0].id;
 
-    await act(async () => { await result.current.rejectAutoWrittenEvent(id); });
+    await act(async () => {
+      await result.current.rejectAutoWrittenEvent(id);
+    });
 
     expect(queueSave).toHaveBeenCalledTimes(2);
     const [entryId, revert] = queueSave.mock.calls[1];
@@ -342,7 +384,9 @@ describe('Zamítnout u automaticky zapsané události', () => {
       1: { time1: '63.00', time2: '', dnf: false, dns: false, dsq: false },
     };
 
-    await act(async () => { await result.current.rejectAutoWrittenEvent(id); });
+    await act(async () => {
+      await result.current.rejectAutoWrittenEvent(id);
+    });
 
     expect(queueSave).toHaveBeenCalledTimes(1);
     expect(result.current.message?.text).toMatch(/změnilo/);
@@ -354,7 +398,9 @@ describe('Zamítnout u automaticky zapsané události', () => {
     const id = result.current.inboxEvents[0].id;
     queueSave.mockResolvedValueOnce({ ok: false, queued: false });
 
-    await act(async () => { await result.current.rejectAutoWrittenEvent(id); });
+    await act(async () => {
+      await result.current.rejectAutoWrittenEvent(id);
+    });
 
     expect((await storedRow()).status).toBe('saved');
   });
@@ -370,20 +416,21 @@ describe('řádek automaticky zapsané události', () => {
     type: 'TIME',
     targetRound: '1',
   };
-  const renderRow = (event, props = {}) => render(
-    <BridgeEventRow
-      event={event}
-      resolvedEntry={entry}
-      candidateCount={1}
-      candidateIndex={0}
-      fallbackTargetRound="1"
-      onCycle={vi.fn()}
-      onConfirm={vi.fn()}
-      onReject={vi.fn()}
-      onRejectAuto={vi.fn()}
-      {...props}
-    />
-  );
+  const renderRow = (event, props = {}) =>
+    render(
+      <BridgeEventRow
+        event={event}
+        resolvedEntry={entry}
+        candidateCount={1}
+        candidateIndex={0}
+        fallbackTargetRound="1"
+        onCycle={vi.fn()}
+        onConfirm={vi.fn()}
+        onReject={vi.fn()}
+        onRejectAuto={vi.fn()}
+        {...props}
+      />,
+    );
 
   it('ukáže "Zapsáno automaticky" a jedinou akci Zamítnout', async () => {
     const onRejectAuto = vi.fn();

@@ -129,10 +129,14 @@
     scrollbar-width: thin;
     scrollbar-color: var(--ms-ice) transparent;
     background:
-      linear-gradient(to right, var(--ms-navy) 40%, transparent) left / var(--ms-space-8) 100% no-repeat local,
-      linear-gradient(to left, var(--ms-navy) 40%, transparent) right / var(--ms-space-8) 100% no-repeat local,
-      linear-gradient(to right, var(--ms-navy-deep), transparent) left / var(--ms-space-6) 100% no-repeat scroll,
-      linear-gradient(to left, var(--ms-navy-deep), transparent) right / var(--ms-space-6) 100% no-repeat scroll;
+      linear-gradient(to right, var(--ms-navy) 40%, transparent) left / var(--ms-space-8) 100%
+        no-repeat local,
+      linear-gradient(to left, var(--ms-navy) 40%, transparent) right / var(--ms-space-8) 100%
+        no-repeat local,
+      linear-gradient(to right, var(--ms-navy-deep), transparent) left / var(--ms-space-6) 100%
+        no-repeat scroll,
+      linear-gradient(to left, var(--ms-navy-deep), transparent) right / var(--ms-space-6) 100%
+        no-repeat scroll;
   }
 
   .tab,

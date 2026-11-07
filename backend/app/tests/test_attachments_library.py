@@ -7,6 +7,7 @@ co z toho vidí administrace (knihovna, výpis příloh vlastníka).
 Soubory se opravdu zapisují do uploads/documents - fixtura na konci testu
 uklidí právě ty, které v testovací databázi zůstaly.
 """
+
 import io
 import zipfile
 from datetime import date, datetime, timedelta
@@ -40,8 +41,14 @@ def _uklid_nahranych_souboru(db):
 # --------------------------------------------------------------------------
 def _zavod(db, race_nr="JMLP2026-01", datum=date(2026, 1, 17), season_id=2026):
     race = models.Race(
-        closed=False, datum=datum, race_nr=race_nr, registration=True,
-        race_method_id=1, season_id=season_id, is_live=False, run_count=1,
+        closed=False,
+        datum=datum,
+        race_nr=race_nr,
+        registration=True,
+        race_method_id=1,
+        season_id=season_id,
+        is_live=False,
+        run_count=1,
     )
     db.add(race)
     db.commit()
@@ -51,7 +58,9 @@ def _zavod(db, race_nr="JMLP2026-01", datum=date(2026, 1, 17), season_id=2026):
 
 def _sezona(db, year_start=2025):
     season = models.Season(
-        year_start=year_start, year_end=year_start + 1, edition=19,
+        year_start=year_start,
+        year_end=year_start + 1,
+        edition=19,
         name=f"Sezóna {year_start}/{year_start + 1}",
     )
     db.add(season)
@@ -76,8 +85,17 @@ def _clanek(db, title="Pozvánka na závod"):
     return post
 
 
-def _nahraj(client, headers, *, owner_type, owner_id=None, role=None,
-            filename="soubor.pdf", obsah=PDF, content_type="application/pdf"):
+def _nahraj(
+    client,
+    headers,
+    *,
+    owner_type,
+    owner_id=None,
+    role=None,
+    filename="soubor.pdf",
+    obsah=PDF,
+    content_type="application/pdf",
+):
     data = {"owner_type": owner_type}
     if owner_id is not None:
         data["owner_id"] = str(owner_id)
@@ -108,8 +126,14 @@ def _prilohy(client, headers, owner_type, owner_id=None, role=None):
 def test_nahrani_prilohy_zalozi_soubor_vazbu_i_data_na_disku(client, db, admin_headers):
     race = _zavod(db)
 
-    response = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                       role="propozice", filename="sken propozic.pdf")
+    response = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="propozice",
+        filename="sken propozic.pdf",
+    )
 
     assert response.status_code == 200, response.text
     telo = response.json()
@@ -134,8 +158,14 @@ def test_nahrani_prilohy_zalozi_soubor_vazbu_i_data_na_disku(client, db, admin_h
 def test_soubor_na_disku_lezi_pod_uuid_ne_pod_svym_nazvem(client, db, admin_headers):
     race = _zavod(db)
 
-    telo = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                   role="propozice", filename="sken propozic.pdf").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="propozice",
+        filename="sken propozic.pdf",
+    ).json()
 
     assert telo["filename"] != telo["original_filename"]
     assert telo["filename"].endswith(".pdf")
@@ -146,8 +176,14 @@ def test_soubor_na_disku_lezi_pod_uuid_ne_pod_svym_nazvem(client, db, admin_head
 def test_nahrany_soubor_dostane_systematicky_nazev_podle_zavodu(client, db, admin_headers):
     race = _zavod(db, race_nr="JMLP2026-05")
 
-    telo = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                   role="propozice", filename="sken propozic.pdf").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="propozice",
+        filename="sken propozic.pdf",
+    ).json()
 
     assert telo["original_filename"] == "JMLP2026-05_propozice.pdf"
     assert telo["title"] == "JMLP2026-05_propozice.pdf"
@@ -156,8 +192,14 @@ def test_nahrany_soubor_dostane_systematicky_nazev_podle_zavodu(client, db, admi
 def test_systematicky_nazev_sezony_obsahuje_oba_roky(client, db, admin_headers):
     _sezona(db, year_start=2025)
 
-    telo = _nahraj(client, admin_headers, owner_type="season", owner_id=2025,
-                   role="vysledky", filename="celkove.pdf").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="season",
+        owner_id=2025,
+        role="vysledky",
+        filename="celkove.pdf",
+    ).json()
 
     assert telo["original_filename"] == "sezona-2025-2026_vysledky.pdf"
 
@@ -165,9 +207,16 @@ def test_systematicky_nazev_sezony_obsahuje_oba_roky(client, db, admin_headers):
 def test_systematicky_nazev_klubu_je_bez_diakritiky(client, db, admin_headers):
     club = _klub(db, name="Ski klub Velké Meziříčí")
 
-    telo = _nahraj(client, admin_headers, owner_type="club", owner_id=club.id,
-                   role="logo", filename="Logo klubu.PNG", obsah=b"\x89PNG data",
-                   content_type="image/png").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="club",
+        owner_id=club.id,
+        role="logo",
+        filename="Logo klubu.PNG",
+        obsah=b"\x89PNG data",
+        content_type="image/png",
+    ).json()
 
     assert telo["original_filename"] == "klub-ski-klub-velke-mezirici_logo.png"
 
@@ -175,16 +224,24 @@ def test_systematicky_nazev_klubu_je_bez_diakritiky(client, db, admin_headers):
 def test_systematicky_nazev_clanku_pouzije_jeho_id(client, db, admin_headers):
     post = _clanek(db)
 
-    telo = _nahraj(client, admin_headers, owner_type="post", owner_id=post.id,
-                   role="image", filename="fotka.jpg", obsah=b"JPEG",
-                   content_type="image/jpeg").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="post",
+        owner_id=post.id,
+        role="image",
+        filename="fotka.jpg",
+        obsah=b"JPEG",
+        content_type="image/jpeg",
+    ).json()
 
     assert telo["original_filename"] == f"clanek-{post.id}_obrazek.jpg"
 
 
 def test_soubor_nahrany_do_knihovny_si_nechava_svuj_nazev(client, db, admin_headers):
-    telo = _nahraj(client, admin_headers, owner_type="library", role="document",
-                   filename="Zápis ze schůze.pdf").json()
+    telo = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="Zápis ze schůze.pdf"
+    ).json()
 
     assert telo["original_filename"] == "Zápis ze schůze.pdf"
     assert telo["owner_type"] == "library"
@@ -194,10 +251,22 @@ def test_soubor_nahrany_do_knihovny_si_nechava_svuj_nazev(client, db, admin_head
 def test_druhy_soubor_stejneho_zavodu_a_role_dostane_poradove_cislo(client, db, admin_headers):
     race = _zavod(db, race_nr="JMLP2026-01")
 
-    prvni = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                    role="propozice", filename="a.pdf").json()
-    druhy = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                    role="propozice", filename="b.pdf").json()
+    prvni = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="propozice",
+        filename="a.pdf",
+    ).json()
+    druhy = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="propozice",
+        filename="b.pdf",
+    ).json()
 
     assert prvni["original_filename"] == "JMLP2026-01_propozice.pdf"
     # Starý soubor zůstává v knihovně, takže se název nesmí zopakovat.
@@ -205,8 +274,14 @@ def test_druhy_soubor_stejneho_zavodu_a_role_dostane_poradove_cislo(client, db, 
 
 
 def test_mime_typ_urcuje_pripona_ne_hlavicka_prohlizece(client, db, admin_headers):
-    telo = _nahraj(client, admin_headers, owner_type="library", role="document",
-                   filename="pravidla.pdf", content_type="text/plain").json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="pravidla.pdf",
+        content_type="text/plain",
+    ).json()
 
     assert telo["mime_type"] == "application/pdf"
 
@@ -214,23 +289,34 @@ def test_mime_typ_urcuje_pripona_ne_hlavicka_prohlizece(client, db, admin_header
 def test_u_nezname_pripony_se_pouzije_typ_z_prohlizece(client, db, admin_headers):
     docx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-    telo = _nahraj(client, admin_headers, owner_type="library", role="document",
-                   filename="pravidla.docx", obsah=b"PK docx", content_type=docx).json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="pravidla.docx",
+        obsah=b"PK docx",
+        content_type=docx,
+    ).json()
 
     assert telo["mime_type"] == docx
 
 
-@pytest.mark.parametrize("role,ocekavany_typ", [
-    ("propozice", "propozice"),
-    ("vysledky", "vysledky"),
-])
+@pytest.mark.parametrize(
+    "role,ocekavany_typ",
+    [
+        ("propozice", "propozice"),
+        ("vysledky", "vysledky"),
+    ],
+)
 def test_role_zavodu_urcuje_typ_souboru_v_knihovne(client, db, admin_headers, role, ocekavany_typ):
     race = _zavod(db)
 
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role=role)
 
-    response = client.get("/api/admin/files", params={"file_type": ocekavany_typ},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/files", params={"file_type": ocekavany_typ}, headers=admin_headers
+    )
     assert [f["file_type"] for f in response.json()] == [ocekavany_typ]
 
 
@@ -239,19 +325,27 @@ def test_prubezne_vysledky_se_v_knihovne_vedou_jako_vysledky(client, db, admin_h
 
     _nahraj(client, admin_headers, owner_type="season", owner_id=2025, role="prubezne")
 
-    response = client.get("/api/admin/files", params={"file_type": "vysledky"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/files", params={"file_type": "vysledky"}, headers=admin_headers
+    )
     assert len(response.json()) == 1
 
 
 def test_logo_klubu_se_v_knihovne_vede_jako_obrazek(client, db, admin_headers):
     club = _klub(db)
 
-    _nahraj(client, admin_headers, owner_type="club", owner_id=club.id, role="logo",
-            filename="logo.png", obsah=b"\x89PNG", content_type="image/png")
+    _nahraj(
+        client,
+        admin_headers,
+        owner_type="club",
+        owner_id=club.id,
+        role="logo",
+        filename="logo.png",
+        obsah=b"\x89PNG",
+        content_type="image/png",
+    )
 
-    response = client.get("/api/admin/files", params={"file_type": "image"},
-                          headers=admin_headers)
+    response = client.get("/api/admin/files", params={"file_type": "image"}, headers=admin_headers)
     assert len(response.json()) == 1
 
 
@@ -259,8 +353,7 @@ def test_logo_klubu_se_v_knihovne_vede_jako_obrazek(client, db, admin_headers):
 # Nahrání, které se má nepovést
 # --------------------------------------------------------------------------
 def test_nahrani_k_neexistujicimu_zavodu_skonci_404_a_nic_neulozi(client, db, admin_headers):
-    response = _nahraj(client, admin_headers, owner_type="race", owner_id=9999,
-                       role="propozice")
+    response = _nahraj(client, admin_headers, owner_type="race", owner_id=9999, role="propozice")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Vlastník přílohy nebyl nalezen"
@@ -270,8 +363,7 @@ def test_nahrani_k_neexistujicimu_zavodu_skonci_404_a_nic_neulozi(client, db, ad
 def test_nahrani_k_neexistujici_sezone_skonci_404(client, db, admin_headers):
     _sezona(db, year_start=2025)
 
-    response = _nahraj(client, admin_headers, owner_type="season", owner_id=2030,
-                       role="vysledky")
+    response = _nahraj(client, admin_headers, owner_type="season", owner_id=2030, role="vysledky")
 
     assert response.status_code == 404
     assert db.query(models.File).count() == 0
@@ -298,8 +390,7 @@ def test_nahrani_s_neznamym_typem_vlastnika_skonci_400(client, db, admin_headers
 def test_role_mimo_povolene_pro_vlastnika_se_odmitne(client, db, admin_headers):
     race = _zavod(db)
 
-    response = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                       role="logo")
+    response = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="logo")
 
     assert response.status_code == 400
     detail = response.json()["detail"]
@@ -321,16 +412,24 @@ def test_zavod_neprijme_prilohu_bez_urcene_role(client, db, admin_headers):
 def test_neznama_role_skonci_400(client, db, admin_headers):
     race = _zavod(db)
 
-    response = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                       role="neco-jineho")
+    response = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="neco-jineho"
+    )
 
     assert response.status_code == 400
     assert "neco-jineho" in response.json()["detail"]
 
 
 def test_nepodporovany_typ_souboru_se_neulozi(client, db, admin_headers):
-    response = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="virus.exe", obsah=b"MZ", content_type="application/x-msdownload")
+    response = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="virus.exe",
+        obsah=b"MZ",
+        content_type="application/x-msdownload",
+    )
 
     assert response.status_code == 400
     assert "Nepodporovaný typ souboru" in response.json()["detail"]
@@ -338,8 +437,14 @@ def test_nepodporovany_typ_souboru_se_neulozi(client, db, admin_headers):
 
 
 def test_soubor_bez_pripony_se_neulozi(client, db, admin_headers):
-    response = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="propozice", obsah=b"data")
+    response = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="propozice",
+        obsah=b"data",
+    )
 
     assert response.status_code == 400
     assert db.query(models.File).count() == 0
@@ -348,8 +453,14 @@ def test_soubor_bez_pripony_se_neulozi(client, db, admin_headers):
 def test_prilis_velky_soubor_se_neulozi(client, db, admin_headers):
     velky = b"x" * (file_service.MAX_FILE_SIZE + 1)
 
-    response = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="velky.pdf", obsah=velky)
+    response = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="velky.pdf",
+        obsah=velky,
+    )
 
     assert response.status_code == 400
     assert "příliš velký" in response.json()["detail"]
@@ -359,15 +470,27 @@ def test_prilis_velky_soubor_se_neulozi(client, db, admin_headers):
 def test_soubor_presne_na_limitu_projde(client, db, admin_headers):
     na_limitu = b"x" * file_service.MAX_FILE_SIZE
 
-    telo = _nahraj(client, admin_headers, owner_type="library", role="document",
-                   filename="tesne.pdf", obsah=na_limitu).json()
+    telo = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="tesne.pdf",
+        obsah=na_limitu,
+    ).json()
 
     assert telo["file_size"] == file_service.MAX_FILE_SIZE
 
 
 def test_prazdny_soubor_se_neulozi(client, db, admin_headers):
-    response = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="prazdny.pdf", obsah=b"")
+    response = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="prazdny.pdf",
+        obsah=b"",
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Soubor je prázdný"
@@ -380,10 +503,22 @@ def test_prazdny_soubor_se_neulozi(client, db, admin_headers):
 def test_nove_vysledky_zavodu_nahradi_predchozi(client, db, admin_headers):
     race = _zavod(db)
 
-    stare = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                    role="vysledky", filename="stare.pdf").json()
-    nove = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                   role="vysledky", filename="nove.pdf").json()
+    stare = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="vysledky",
+        filename="stare.pdf",
+    ).json()
+    nove = _nahraj(
+        client,
+        admin_headers,
+        owner_type="race",
+        owner_id=race.id,
+        role="vysledky",
+        filename="nove.pdf",
+    ).json()
 
     prilohy = _prilohy(client, admin_headers, "race", race.id, role="vysledky")
     assert [p["file_id"] for p in prilohy] == [nove["file_id"]]
@@ -405,8 +540,9 @@ def test_prubezne_vysledky_sezony_nahradi_celkove(client, db, admin_headers):
     _sezona(db, year_start=2025)
 
     _nahraj(client, admin_headers, owner_type="season", owner_id=2025, role="vysledky")
-    prubezne = _nahraj(client, admin_headers, owner_type="season", owner_id=2025,
-                       role="prubezne").json()
+    prubezne = _nahraj(
+        client, admin_headers, owner_type="season", owner_id=2025, role="prubezne"
+    ).json()
 
     prilohy = _prilohy(client, admin_headers, "season", 2025)
     # Sezóna má buď průběžné, nebo celkové pořadí - nikdy obojí.
@@ -438,12 +574,16 @@ def test_zmena_role_prilohy_obejde_vylucnost_roli(client, db, admin_headers):
     role u existující přílohy ale ano - a závod pak má dvě.
     """
     race = _zavod(db)
-    propozice = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                        role="propozice").json()
+    propozice = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="vysledky")
 
-    response = client.put(f"/api/admin/attachments/{propozice['id']}",
-                          json={"role": "vysledky"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/attachments/{propozice['id']}",
+        json={"role": "vysledky"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
     vysledky = _prilohy(client, admin_headers, "race", race.id, role="vysledky")
@@ -455,13 +595,20 @@ def test_zmena_role_prilohy_obejde_vylucnost_roli(client, db, admin_headers):
 # --------------------------------------------------------------------------
 def test_pripojeni_souboru_z_knihovny_nemeni_jeho_nazev(client, db, admin_headers):
     race = _zavod(db)
-    soubor = _nahraj(client, admin_headers, owner_type="library", role="document",
-                     filename="Soutěžní řád.pdf").json()
+    soubor = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="Soutěžní řád.pdf"
+    ).json()
 
-    response = client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": soubor["file_id"], "owner_type": "race",
-        "owner_id": race.id, "role": "propozice",
-    })
+    response = client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": soubor["file_id"],
+            "owner_type": "race",
+            "owner_id": race.id,
+            "role": "propozice",
+        },
+    )
 
     assert response.status_code == 200, response.text
     telo = response.json()
@@ -474,13 +621,20 @@ def test_pripojeni_souboru_z_knihovny_nemeni_jeho_nazev(client, db, admin_header
 def test_jeden_soubor_muze_slouzit_vice_vlastnikum(client, db, admin_headers):
     race = _zavod(db)
     post = _clanek(db)
-    soubor = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                     role="propozice").json()
+    soubor = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": soubor["file_id"], "owner_type": "post",
-        "owner_id": post.id, "role": "document",
-    })
+    client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": soubor["file_id"],
+            "owner_type": "post",
+            "owner_id": post.id,
+            "role": "document",
+        },
+    )
 
     knihovna = client.get("/api/admin/library", headers=admin_headers).json()
     pouziti = knihovna["files"][0]["usage_info"]
@@ -492,9 +646,15 @@ def test_jeden_soubor_muze_slouzit_vice_vlastnikum(client, db, admin_headers):
 def test_pripojeni_bez_file_id_skonci_400(client, db, admin_headers):
     race = _zavod(db)
 
-    response = client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "owner_type": "race", "owner_id": race.id, "role": "propozice",
-    })
+    response = client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "owner_type": "race",
+            "owner_id": race.id,
+            "role": "propozice",
+        },
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Chybí file_id"
@@ -503,9 +663,16 @@ def test_pripojeni_bez_file_id_skonci_400(client, db, admin_headers):
 def test_pripojeni_neexistujiciho_souboru_skonci_404(client, db, admin_headers):
     race = _zavod(db)
 
-    response = client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": 4242, "owner_type": "race", "owner_id": race.id, "role": "propozice",
-    })
+    response = client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": 4242,
+            "owner_type": "race",
+            "owner_id": race.id,
+            "role": "propozice",
+        },
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Soubor nebyl nalezen"
@@ -514,13 +681,26 @@ def test_pripojeni_neexistujiciho_souboru_skonci_404(client, db, admin_headers):
 
 def test_pripojeni_s_roli_mimo_vlastnika_skonci_400(client, db, admin_headers):
     club = _klub(db)
-    soubor = _nahraj(client, admin_headers, owner_type="library", role="image",
-                     filename="logo.png", obsah=b"\x89PNG", content_type="image/png").json()
+    soubor = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="image",
+        filename="logo.png",
+        obsah=b"\x89PNG",
+        content_type="image/png",
+    ).json()
 
-    response = client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": soubor["file_id"], "owner_type": "club",
-        "owner_id": club.id, "role": "document",
-    })
+    response = client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": soubor["file_id"],
+            "owner_type": "club",
+            "owner_id": club.id,
+            "role": "document",
+        },
+    )
 
     assert response.status_code == 400
     assert _prilohy(client, admin_headers, "club", club.id) == []
@@ -531,25 +711,30 @@ def test_pripojeni_s_roli_mimo_vlastnika_skonci_400(client, db, admin_headers):
 # --------------------------------------------------------------------------
 def test_prilohu_lze_skryt_i_znovu_zverejnit(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    skryta = client.put(f"/api/admin/attachments/{priloha['id']}",
-                        json={"published": False}, headers=admin_headers).json()
+    skryta = client.put(
+        f"/api/admin/attachments/{priloha['id']}", json={"published": False}, headers=admin_headers
+    ).json()
     assert skryta["published"] is False
 
-    vracena = client.put(f"/api/admin/attachments/{priloha['id']}",
-                         json={"published": True}, headers=admin_headers).json()
+    vracena = client.put(
+        f"/api/admin/attachments/{priloha['id']}", json={"published": True}, headers=admin_headers
+    ).json()
     assert vracena["published"] is True
 
 
 def test_zmena_role_na_pro_vlastnika_nepovolenou_se_odmitne(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    response = client.put(f"/api/admin/attachments/{priloha['id']}",
-                          json={"role": "logo"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/attachments/{priloha['id']}", json={"role": "logo"}, headers=admin_headers
+    )
 
     assert response.status_code == 400
     assert _prilohy(client, admin_headers, "race", race.id)[0]["role"] == "propozice"
@@ -557,34 +742,45 @@ def test_zmena_role_na_pro_vlastnika_nepovolenou_se_odmitne(client, db, admin_he
 
 def test_uprava_prilohy_nemeni_nazev_souboru(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
     # Název je vlastnost souboru, ne přílohy - "title" v těle se ignoruje.
-    telo = client.put(f"/api/admin/attachments/{priloha['id']}",
-                      json={"title": "Něco jiného"}, headers=admin_headers).json()
+    telo = client.put(
+        f"/api/admin/attachments/{priloha['id']}",
+        json={"title": "Něco jiného"},
+        headers=admin_headers,
+    ).json()
 
     assert telo["title"] == "JMLP2026-01_propozice.pdf"
 
 
 def test_uprava_neexistujici_prilohy_skonci_404(client, db, admin_headers):
-    response = client.put("/api/admin/attachments/999", json={"published": False},
-                          headers=admin_headers)
+    response = client.put(
+        "/api/admin/attachments/999", json={"published": False}, headers=admin_headers
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Příloha nebyla nalezena"
 
 
 def test_prerazeni_priloh_ulozi_nove_poradi(client, db, admin_headers):
-    prvni = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="a.pdf").json()
-    druha = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="b.pdf").json()
-    treti = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="c.pdf").json()
+    prvni = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="a.pdf"
+    ).json()
+    druha = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="b.pdf"
+    ).json()
+    treti = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="c.pdf"
+    ).json()
 
-    response = client.post("/api/admin/attachments/reorder", headers=admin_headers,
-                           json={"attachment_ids": [treti["id"], prvni["id"], druha["id"]]})
+    response = client.post(
+        "/api/admin/attachments/reorder",
+        headers=admin_headers,
+        json={"attachment_ids": [treti["id"], prvni["id"], druha["id"]]},
+    )
 
     assert response.json() == {"message": "Pořadí uloženo", "updated": 3}
     prilohy = _prilohy(client, admin_headers, "library")
@@ -593,8 +789,9 @@ def test_prerazeni_priloh_ulozi_nove_poradi(client, db, admin_headers):
 
 
 def test_prerazeni_s_necislenym_seznamem_skonci_400(client, db, admin_headers):
-    response = client.post("/api/admin/attachments/reorder", headers=admin_headers,
-                           json={"attachment_ids": "1,2,3"})
+    response = client.post(
+        "/api/admin/attachments/reorder", headers=admin_headers, json={"attachment_ids": "1,2,3"}
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "attachment_ids musí být seznam"
@@ -608,12 +805,16 @@ def test_neciselne_poradi_prilohy_shodi_endpoint(client, db, admin_headers):
     místo 400.
     """
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
     with pytest.raises(ValueError):
-        client.put(f"/api/admin/attachments/{priloha['id']}",
-                   json={"sort_order": "prvni"}, headers=admin_headers)
+        client.put(
+            f"/api/admin/attachments/{priloha['id']}",
+            json={"sort_order": "prvni"},
+            headers=admin_headers,
+        )
 
 
 # --------------------------------------------------------------------------
@@ -621,8 +822,9 @@ def test_neciselne_poradi_prilohy_shodi_endpoint(client, db, admin_headers):
 # --------------------------------------------------------------------------
 def test_odpojena_priloha_vrati_soubor_do_knihovny(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
     response = client.delete(f"/api/admin/attachments/{priloha['id']}", headers=admin_headers)
 
@@ -636,12 +838,19 @@ def test_odpojena_priloha_vrati_soubor_do_knihovny(client, db, admin_headers):
 def test_odpojeni_prilohy_pouzite_jinde_soubor_do_knihovny_nevraci(client, db, admin_headers):
     race = _zavod(db)
     post = _clanek(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
-    client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": priloha["file_id"], "owner_type": "post",
-        "owner_id": post.id, "role": "document",
-    })
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
+    client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": priloha["file_id"],
+            "owner_type": "post",
+            "owner_id": post.id,
+            "role": "document",
+        },
+    )
 
     client.delete(f"/api/admin/attachments/{priloha['id']}", headers=admin_headers)
 
@@ -651,11 +860,15 @@ def test_odpojeni_prilohy_pouzite_jinde_soubor_do_knihovny_nevraci(client, db, a
 
 def test_smazani_prilohy_i_souboru_odstrani_data_z_disku(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    response = client.delete(f"/api/admin/attachments/{priloha['id']}",
-                             params={"delete_file": "true"}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/attachments/{priloha['id']}",
+        params={"delete_file": "true"},
+        headers=admin_headers,
+    )
 
     assert response.json() == {"message": "Příloha i soubor smazány"}
     assert db.query(models.File).count() == 0
@@ -663,7 +876,9 @@ def test_smazani_prilohy_i_souboru_odstrani_data_z_disku(client, db, admin_heade
     assert not (file_service.DOCUMENTS_DIR / priloha["filename"]).exists()
 
 
-def test_smazani_souboru_pouziteho_jinde_skonci_409_ale_prilohu_uz_odpoji(client, db, admin_headers):
+def test_smazani_souboru_pouziteho_jinde_skonci_409_ale_prilohu_uz_odpoji(
+    client, db, admin_headers
+):
     """CHYBA: konflikt se hlásí až po smazání přílohy.
 
     Endpoint odpojí přílohu a teprve pak zjistí, že soubor je použitý i jinde.
@@ -672,15 +887,25 @@ def test_smazani_souboru_pouziteho_jinde_skonci_409_ale_prilohu_uz_odpoji(client
     """
     race = _zavod(db)
     post = _clanek(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
-    client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": priloha["file_id"], "owner_type": "post",
-        "owner_id": post.id, "role": "document",
-    })
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
+    client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": priloha["file_id"],
+            "owner_type": "post",
+            "owner_id": post.id,
+            "role": "document",
+        },
+    )
 
-    response = client.delete(f"/api/admin/attachments/{priloha['id']}",
-                             params={"delete_file": "true"}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/attachments/{priloha['id']}",
+        params={"delete_file": "true"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 409
     assert "použitý i jinde" in response.json()["detail"]
@@ -699,9 +924,11 @@ def test_odpojeni_neexistujici_prilohy_skonci_404(client, db, admin_headers):
 
 
 def test_vypis_priloh_neexistujiciho_vlastnika_skonci_404(client, db, admin_headers):
-    response = client.get("/api/admin/attachments",
-                          params={"owner_type": "post", "owner_id": 12345},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/attachments",
+        params={"owner_type": "post", "owner_id": 12345},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 404
 
@@ -709,9 +936,11 @@ def test_vypis_priloh_neexistujiciho_vlastnika_skonci_404(client, db, admin_head
 def test_filtr_role_ve_vypisu_musi_byt_pro_vlastnika_povoleny(client, db, admin_headers):
     race = _zavod(db)
 
-    response = client.get("/api/admin/attachments",
-                          params={"owner_type": "race", "owner_id": race.id, "role": "logo"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/attachments",
+        params={"owner_type": "race", "owner_id": race.id, "role": "logo"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 400
 
@@ -720,10 +949,12 @@ def test_filtr_role_ve_vypisu_musi_byt_pro_vlastnika_povoleny(client, db, admin_
 # Knihovna - výpis a filtry
 # --------------------------------------------------------------------------
 def test_knihovna_vraci_soubory_od_nejnovejsiho(client, db, admin_headers):
-    prvni = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="prvni.pdf").json()
-    druhy = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="druhy.pdf").json()
+    prvni = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="prvni.pdf"
+    ).json()
+    druhy = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="druhy.pdf"
+    ).json()
 
     telo = client.get("/api/admin/library", headers=admin_headers).json()
 
@@ -734,13 +965,16 @@ def test_knihovna_vraci_soubory_od_nejnovejsiho(client, db, admin_headers):
 
 
 def test_knihovna_filtruje_podle_casti_nazvu(client, db, admin_headers):
-    _nahraj(client, admin_headers, owner_type="library", role="document",
-            filename="propozice-kvetna.pdf")
-    _nahraj(client, admin_headers, owner_type="library", role="document",
-            filename="zapis.pdf")
+    _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="propozice-kvetna.pdf",
+    )
+    _nahraj(client, admin_headers, owner_type="library", role="document", filename="zapis.pdf")
 
-    telo = client.get("/api/admin/library", params={"q": "propozice"},
-                      headers=admin_headers).json()
+    telo = client.get("/api/admin/library", params={"q": "propozice"}, headers=admin_headers).json()
 
     assert telo["count"] == 1
     assert telo["total"] == 2  # total je vždy celá knihovna, ne výsledek filtru
@@ -749,13 +983,22 @@ def test_knihovna_filtruje_podle_casti_nazvu(client, db, admin_headers):
 
 def test_knihovna_filtruje_podle_pripony_bez_ohledu_na_tecku(client, db, admin_headers):
     _nahraj(client, admin_headers, owner_type="library", role="document", filename="a.pdf")
-    _nahraj(client, admin_headers, owner_type="library", role="image", filename="b.png",
-            obsah=b"\x89PNG", content_type="image/png")
+    _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="image",
+        filename="b.png",
+        obsah=b"\x89PNG",
+        content_type="image/png",
+    )
 
-    s_teckou = client.get("/api/admin/library", params={"extension": ".PNG"},
-                          headers=admin_headers).json()
-    bez_tecky = client.get("/api/admin/library", params={"extension": "png"},
-                           headers=admin_headers).json()
+    s_teckou = client.get(
+        "/api/admin/library", params={"extension": ".PNG"}, headers=admin_headers
+    ).json()
+    bez_tecky = client.get(
+        "/api/admin/library", params={"extension": "png"}, headers=admin_headers
+    ).json()
 
     assert [f["original_filename"] for f in s_teckou["files"]] == ["b.png"]
     assert [f["original_filename"] for f in bez_tecky["files"]] == ["b.png"]
@@ -764,13 +1007,16 @@ def test_knihovna_filtruje_podle_pripony_bez_ohledu_na_tecku(client, db, admin_h
 def test_knihovna_umi_najit_soubory_nepripojene_nikam(client, db, admin_headers):
     race = _zavod(db)
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="propozice")
-    volny = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="volny.pdf").json()
+    volny = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="volny.pdf"
+    ).json()
 
-    nepripojene = client.get("/api/admin/library", params={"owner_type": "library"},
-                             headers=admin_headers).json()
-    u_zavodu = client.get("/api/admin/library", params={"owner_type": "race"},
-                          headers=admin_headers).json()
+    nepripojene = client.get(
+        "/api/admin/library", params={"owner_type": "library"}, headers=admin_headers
+    ).json()
+    u_zavodu = client.get(
+        "/api/admin/library", params={"owner_type": "race"}, headers=admin_headers
+    ).json()
 
     assert [f["id"] for f in nepripojene["files"]] == [volny["file_id"]]
     assert [f["original_filename"] for f in u_zavodu["files"]] == ["JMLP2026-01_propozice.pdf"]
@@ -780,20 +1026,25 @@ def test_knihovna_filtruje_podle_data_nahrani(client, db, admin_headers):
     soubor = _nahraj(client, admin_headers, owner_type="library", role="document").json()
     dnes = datetime.utcnow().date()
 
-    v_rozsahu = client.get("/api/admin/library",
-                           params={"date_from": dnes.isoformat(), "date_to": dnes.isoformat()},
-                           headers=admin_headers).json()
-    vcerejsi = client.get("/api/admin/library",
-                          params={"date_to": (dnes - timedelta(days=1)).isoformat()},
-                          headers=admin_headers).json()
+    v_rozsahu = client.get(
+        "/api/admin/library",
+        params={"date_from": dnes.isoformat(), "date_to": dnes.isoformat()},
+        headers=admin_headers,
+    ).json()
+    vcerejsi = client.get(
+        "/api/admin/library",
+        params={"date_to": (dnes - timedelta(days=1)).isoformat()},
+        headers=admin_headers,
+    ).json()
 
     assert [f["id"] for f in v_rozsahu["files"]] == [soubor["file_id"]]
     assert vcerejsi["files"] == []
 
 
 def test_knihovna_s_neznamym_typem_vlastnika_skonci_400(client, db, admin_headers):
-    response = client.get("/api/admin/library", params={"owner_type": "trener"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/library", params={"owner_type": "trener"}, headers=admin_headers
+    )
 
     assert response.status_code == 400
     assert "trener" in response.json()["detail"]
@@ -804,11 +1055,15 @@ def test_knihovna_s_neznamym_typem_vlastnika_skonci_400(client, db, admin_header
 # --------------------------------------------------------------------------
 def test_prejmenovani_souboru_zachova_skutecnou_priponu(client, db, admin_headers):
     race = _zavod(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    response = client.put(f"/api/admin/library/files/{priloha['file_id']}",
-                          json={"name": "Propozice Pardubice.jpg"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/library/files/{priloha['file_id']}",
+        json={"name": "Propozice Pardubice.jpg"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
     assert response.json()["original_filename"] == "Propozice Pardubice.pdf"
@@ -819,45 +1074,60 @@ def test_prejmenovani_souboru_zachova_skutecnou_priponu(client, db, admin_header
 def test_prejmenovani_zahodi_kus_cesty_v_nazvu(client, db, admin_headers):
     soubor = _nahraj(client, admin_headers, owner_type="library", role="document").json()
 
-    response = client.put(f"/api/admin/library/files/{soubor['file_id']}",
-                          json={"name": "../../etc/passwd"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/library/files/{soubor['file_id']}",
+        json={"name": "../../etc/passwd"},
+        headers=admin_headers,
+    )
 
     assert response.json()["original_filename"] == "etc-passwd.pdf"
 
 
 def test_prejmenovani_na_uz_obsazeny_nazev_skonci_409(client, db, admin_headers):
-    _nahraj(client, admin_headers, owner_type="library", role="document",
-            filename="Propozice.pdf")
-    druhy = _nahraj(client, admin_headers, owner_type="library", role="document",
-                    filename="jiny.pdf").json()
+    _nahraj(client, admin_headers, owner_type="library", role="document", filename="Propozice.pdf")
+    druhy = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="jiny.pdf"
+    ).json()
 
     # Kolace je case-insensitive, takže "propozice" koliduje s "Propozice".
-    response = client.put(f"/api/admin/library/files/{druhy['file_id']}",
-                          json={"name": "propozice"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/library/files/{druhy['file_id']}",
+        json={"name": "propozice"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 409
     assert "už v knihovně je" in response.json()["detail"]
     knihovna = client.get("/api/admin/library", headers=admin_headers).json()
-    assert sorted(f["original_filename"] for f in knihovna["files"]) == ["Propozice.pdf", "jiny.pdf"]
+    assert sorted(f["original_filename"] for f in knihovna["files"]) == [
+        "Propozice.pdf",
+        "jiny.pdf",
+    ]
 
 
 def test_prejmenovani_na_stejny_nazev_projde(client, db, admin_headers):
-    soubor = _nahraj(client, admin_headers, owner_type="library", role="document",
-                     filename="Propozice.pdf").json()
+    soubor = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="Propozice.pdf"
+    ).json()
 
-    response = client.put(f"/api/admin/library/files/{soubor['file_id']}",
-                          json={"name": "Propozice.pdf"}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/library/files/{soubor['file_id']}",
+        json={"name": "Propozice.pdf"},
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
     assert response.json()["original_filename"] == "Propozice.pdf"
 
 
 def test_prejmenovani_na_prazdny_nazev_skonci_400(client, db, admin_headers):
-    soubor = _nahraj(client, admin_headers, owner_type="library", role="document",
-                     filename="puvodni.pdf").json()
+    soubor = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="puvodni.pdf"
+    ).json()
 
-    response = client.put(f"/api/admin/library/files/{soubor['file_id']}",
-                          json={"name": "   "}, headers=admin_headers)
+    response = client.put(
+        f"/api/admin/library/files/{soubor['file_id']}", json={"name": "   "}, headers=admin_headers
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Zadejte název souboru"
@@ -866,8 +1136,9 @@ def test_prejmenovani_na_prazdny_nazev_skonci_400(client, db, admin_headers):
 
 
 def test_prejmenovani_neexistujiciho_souboru_skonci_404(client, db, admin_headers):
-    response = client.put("/api/admin/library/files/321", json={"name": "cokoliv"},
-                          headers=admin_headers)
+    response = client.put(
+        "/api/admin/library/files/321", json={"name": "cokoliv"}, headers=admin_headers
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Soubor nebyl nalezen"
@@ -879,8 +1150,7 @@ def test_prejmenovani_neexistujiciho_souboru_skonci_404(client, db, admin_header
 def test_smazani_nepouziteho_souboru_projde_bez_vynuceni(client, db, admin_headers):
     soubor = _nahraj(client, admin_headers, owner_type="library", role="document").json()
 
-    response = client.delete(f"/api/admin/library/files/{soubor['file_id']}",
-                             headers=admin_headers)
+    response = client.delete(f"/api/admin/library/files/{soubor['file_id']}", headers=admin_headers)
 
     assert response.json() == {"message": "Soubor smazán"}
     assert db.query(models.File).count() == 0
@@ -891,11 +1161,13 @@ def test_smazani_nepouziteho_souboru_projde_bez_vynuceni(client, db, admin_heade
 
 def test_smazani_pouziteho_souboru_skonci_409_a_rekne_kde_je(client, db, admin_headers):
     race = _zavod(db, race_nr="JMLP2026-03", datum=date(2026, 3, 7))
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    response = client.delete(f"/api/admin/library/files/{priloha['file_id']}",
-                             headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/library/files/{priloha['file_id']}", headers=admin_headers
+    )
 
     assert response.status_code == 409
     assert "Propozice: Závod JMLP2026-03 - 2026-03-07" in response.json()["detail"]
@@ -906,15 +1178,25 @@ def test_smazani_pouziteho_souboru_skonci_409_a_rekne_kde_je(client, db, admin_h
 def test_vynucene_smazani_odstrani_soubor_i_vsechny_jeho_prilohy(client, db, admin_headers):
     race = _zavod(db)
     post = _clanek(db)
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
-    client.post("/api/admin/attachments/link", headers=admin_headers, json={
-        "file_id": priloha["file_id"], "owner_type": "post",
-        "owner_id": post.id, "role": "document",
-    })
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
+    client.post(
+        "/api/admin/attachments/link",
+        headers=admin_headers,
+        json={
+            "file_id": priloha["file_id"],
+            "owner_type": "post",
+            "owner_id": post.id,
+            "role": "document",
+        },
+    )
 
-    response = client.delete(f"/api/admin/library/files/{priloha['file_id']}",
-                             params={"force": "true"}, headers=admin_headers)
+    response = client.delete(
+        f"/api/admin/library/files/{priloha['file_id']}",
+        params={"force": "true"},
+        headers=admin_headers,
+    )
 
     assert response.json() == {"message": "Soubor smazán"}
     assert _prilohy(client, admin_headers, "race", race.id) == []
@@ -926,8 +1208,7 @@ def test_smazani_souboru_chybejiciho_na_disku_projde(client, db, admin_headers):
     soubor = _nahraj(client, admin_headers, owner_type="library", role="document").json()
     (file_service.DOCUMENTS_DIR / soubor["filename"]).unlink()
 
-    response = client.delete(f"/api/admin/library/files/{soubor['file_id']}",
-                             headers=admin_headers)
+    response = client.delete(f"/api/admin/library/files/{soubor['file_id']}", headers=admin_headers)
 
     assert response.status_code == 200
     assert db.query(models.File).count() == 0
@@ -945,8 +1226,7 @@ def test_smazani_neexistujiciho_souboru_skonci_404(client, db, admin_headers):
 def test_export_roztridi_soubory_do_slozek_podle_vlastnika(client, db, admin_headers):
     race = _zavod(db, race_nr="JMLP2026-02")
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="propozice")
-    _nahraj(client, admin_headers, owner_type="library", role="document",
-            filename="zapis.pdf")
+    _nahraj(client, admin_headers, owner_type="library", role="document", filename="zapis.pdf")
 
     response = client.get("/api/admin/library/export.zip", headers=admin_headers)
 
@@ -965,8 +1245,9 @@ def test_export_respektuje_filtr_vypisu(client, db, admin_headers):
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="propozice")
     _nahraj(client, admin_headers, owner_type="library", role="document", filename="zapis.pdf")
 
-    response = client.get("/api/admin/library/export.zip", params={"q": "zapis"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/library/export.zip", params={"q": "zapis"}, headers=admin_headers
+    )
 
     with zipfile.ZipFile(io.BytesIO(response.content)) as archiv:
         assert archiv.namelist() == ["nezarazene/zapis.pdf"]
@@ -975,18 +1256,21 @@ def test_export_respektuje_filtr_vypisu(client, db, admin_headers):
 def test_export_bez_odpovidajicich_souboru_skonci_404(client, db, admin_headers):
     _nahraj(client, admin_headers, owner_type="library", role="document", filename="zapis.pdf")
 
-    response = client.get("/api/admin/library/export.zip", params={"q": "neexistuje"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/library/export.zip", params={"q": "neexistuje"}, headers=admin_headers
+    )
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Filtru neodpovídá žádný soubor"
 
 
 def test_export_preskoci_soubor_chybejici_na_disku(client, db, admin_headers):
-    zdravy = _nahraj(client, admin_headers, owner_type="library", role="document",
-                     filename="zdravy.pdf").json()
-    ztraceny = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="ztraceny.pdf").json()
+    zdravy = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="zdravy.pdf"
+    ).json()
+    ztraceny = _nahraj(
+        client, admin_headers, owner_type="library", role="document", filename="ztraceny.pdf"
+    ).json()
     (file_service.DOCUMENTS_DIR / ztraceny["filename"]).unlink()
 
     response = client.get("/api/admin/library/export.zip", headers=admin_headers)
@@ -1008,8 +1292,9 @@ def test_vypis_souboru_filtruje_podle_typu(client, db, admin_headers):
     _nahraj(client, admin_headers, owner_type="race", owner_id=race.id, role="propozice")
     _nahraj(client, admin_headers, owner_type="library", role="document", filename="zapis.pdf")
 
-    response = client.get("/api/admin/files", params={"file_type": "propozice"},
-                          headers=admin_headers)
+    response = client.get(
+        "/api/admin/files", params={"file_type": "propozice"}, headers=admin_headers
+    )
 
     telo = response.json()
     assert [f["original_filename"] for f in telo] == ["JMLP2026-01_propozice.pdf"]
@@ -1021,19 +1306,18 @@ def test_neznamy_typ_ve_filtru_vrati_vsechny_soubory(client, db, admin_headers):
     _nahraj(client, admin_headers, owner_type="library", role="document", filename="b.pdf")
 
     # Neznámý typ se mlčky ignoruje - filtr neplatí, vrátí se všechno.
-    response = client.get("/api/admin/files", params={"file_type": "neco"},
-                          headers=admin_headers)
+    response = client.get("/api/admin/files", params={"file_type": "neco"}, headers=admin_headers)
 
     assert len(response.json()) == 2
 
 
 def test_stazeni_souboru_pouzije_jeho_nazev_ne_uuid(client, db, admin_headers):
     race = _zavod(db, race_nr="JMLP2026-04")
-    priloha = _nahraj(client, admin_headers, owner_type="race", owner_id=race.id,
-                      role="propozice").json()
+    priloha = _nahraj(
+        client, admin_headers, owner_type="race", owner_id=race.id, role="propozice"
+    ).json()
 
-    response = client.get(f"/api/admin/files/{priloha['file_id']}/download",
-                          headers=admin_headers)
+    response = client.get(f"/api/admin/files/{priloha['file_id']}/download", headers=admin_headers)
 
     assert response.status_code == 200
     assert response.content == PDF
@@ -1045,8 +1329,7 @@ def test_stazeni_souboru_chybejiciho_na_disku_skonci_404(client, db, admin_heade
     soubor = _nahraj(client, admin_headers, owner_type="library", role="document").json()
     (file_service.DOCUMENTS_DIR / soubor["filename"]).unlink()
 
-    response = client.get(f"/api/admin/files/{soubor['file_id']}/download",
-                          headers=admin_headers)
+    response = client.get(f"/api/admin/files/{soubor['file_id']}/download", headers=admin_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Soubor nenalezen na disku"
@@ -1060,10 +1343,22 @@ def test_stazeni_neexistujiciho_souboru_skonci_404(client, db, admin_headers):
 
 
 def test_statistika_uloziste_scita_velikosti_a_hlida_disk(client, db, admin_headers):
-    _nahraj(client, admin_headers, owner_type="library", role="document",
-            filename="a.pdf", obsah=b"x" * 2048)
-    ztraceny = _nahraj(client, admin_headers, owner_type="library", role="document",
-                       filename="b.pdf", obsah=b"y" * 1024).json()
+    _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="a.pdf",
+        obsah=b"x" * 2048,
+    )
+    ztraceny = _nahraj(
+        client,
+        admin_headers,
+        owner_type="library",
+        role="document",
+        filename="b.pdf",
+        obsah=b"y" * 1024,
+    ).json()
     (file_service.DOCUMENTS_DIR / ztraceny["filename"]).unlink()
 
     telo = client.get("/api/admin/files/storage-stats", headers=admin_headers).json()
@@ -1090,20 +1385,23 @@ def test_statistika_prazdneho_uloziste_je_nulova(client, db, admin_headers):
 # --------------------------------------------------------------------------
 # Oprávnění
 # --------------------------------------------------------------------------
-@pytest.mark.parametrize("metoda,cesta", [
-    ("get", "/api/admin/attachments?owner_type=library"),
-    ("post", "/api/admin/attachments/link"),
-    ("put", "/api/admin/attachments/1"),
-    ("delete", "/api/admin/attachments/1"),
-    ("post", "/api/admin/attachments/reorder"),
-    ("get", "/api/admin/library"),
-    ("put", "/api/admin/library/files/1"),
-    ("delete", "/api/admin/library/files/1"),
-    ("get", "/api/admin/library/export.zip"),
-    ("get", "/api/admin/files"),
-    ("get", "/api/admin/files/storage-stats"),
-    ("get", "/api/admin/files/1/download"),
-])
+@pytest.mark.parametrize(
+    "metoda,cesta",
+    [
+        ("get", "/api/admin/attachments?owner_type=library"),
+        ("post", "/api/admin/attachments/link"),
+        ("put", "/api/admin/attachments/1"),
+        ("delete", "/api/admin/attachments/1"),
+        ("post", "/api/admin/attachments/reorder"),
+        ("get", "/api/admin/library"),
+        ("put", "/api/admin/library/files/1"),
+        ("delete", "/api/admin/library/files/1"),
+        ("get", "/api/admin/library/export.zip"),
+        ("get", "/api/admin/files"),
+        ("get", "/api/admin/files/storage-stats"),
+        ("get", "/api/admin/files/1/download"),
+    ],
+)
 def test_casomeric_do_priloh_ani_do_knihovny_nesmi(client, timekeeper_headers, metoda, cesta):
     response = client.request(metoda, cesta, json={}, headers=timekeeper_headers)
 
@@ -1139,7 +1437,9 @@ def test_neplatny_token_neprojde(client, db):
 # --------------------------------------------------------------------------
 def _soubor(db, original_filename="dokument.pdf", obsah=PDF):
     return file_service.store_document_bytes(
-        db, content=obsah, original_filename=original_filename,
+        db,
+        content=obsah,
+        original_filename=original_filename,
         file_type=models.FileTypeEnum.document,
     )
 
@@ -1149,10 +1449,12 @@ def test_sync_single_nahradi_predchozi_soubor_stejne_role(db):
     stary = _soubor(db, "stare-vysledky.pdf")
     novy = _soubor(db, "nove-vysledky.pdf")
 
-    attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                   role="vysledky", file_id=stary.id)
-    attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                   role="vysledky", file_id=novy.id)
+    attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="vysledky", file_id=stary.id
+    )
+    attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="vysledky", file_id=novy.id
+    )
 
     prilohy = attachment_service.list_for_owner(db, "race", race.id)
     assert [p["file_id"] for p in prilohy] == [novy.id]
@@ -1161,11 +1463,13 @@ def test_sync_single_nahradi_predchozi_soubor_stejne_role(db):
 def test_sync_single_s_prazdnym_file_id_prilohu_odpoji(db):
     race = _zavod(db)
     soubor = _soubor(db)
-    attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                   role="propozice", file_id=soubor.id)
+    attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="propozice", file_id=soubor.id
+    )
 
-    vysledek = attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                              role="propozice", file_id=None)
+    vysledek = attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="propozice", file_id=None
+    )
 
     assert vysledek is None
     assert attachment_service.list_for_owner(db, "race", race.id) == []
@@ -1177,10 +1481,12 @@ def test_sync_single_stejny_soubor_podruhe_nepripoji(db):
     race = _zavod(db)
     soubor = _soubor(db)
 
-    prvni = attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                           role="propozice", file_id=soubor.id)
-    druha = attachment_service.sync_single(db, owner_type="race", owner_id=race.id,
-                                           role="propozice", file_id=soubor.id)
+    prvni = attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="propozice", file_id=soubor.id
+    )
+    druha = attachment_service.sync_single(
+        db, owner_type="race", owner_id=race.id, role="propozice", file_id=soubor.id
+    )
 
     assert druha.id == prvni.id
     assert db.query(models.Attachment).count() == 1
@@ -1191,8 +1497,9 @@ def test_detach_owner_odpoji_vsechny_prilohy_ale_soubory_nechava(db):
     propozice = _soubor(db, "propozice.pdf")
     vysledky = _soubor(db, "vysledky.pdf")
     for role, soubor in (("propozice", propozice), ("vysledky", vysledky)):
-        attachment_service.attach(db, file_id=soubor.id, owner_type="race",
-                                  owner_id=race.id, role=role)
+        attachment_service.attach(
+            db, file_id=soubor.id, owner_type="race", owner_id=race.id, role=role
+        )
 
     odpojeno = attachment_service.detach_owner(db, "race", race.id)
 
@@ -1206,10 +1513,12 @@ def test_apply_post_documents_doplni_obrazek_i_dokument(db):
     bez_priloh = _clanek(db, title="Holý článek")
     obrazek = _soubor(db, "fotka.jpg")
     dokument = _soubor(db, "pozvanka.pdf")
-    attachment_service.attach(db, file_id=obrazek.id, owner_type="post",
-                              owner_id=post.id, role="image")
-    attachment_service.attach(db, file_id=dokument.id, owner_type="post",
-                              owner_id=post.id, role="document")
+    attachment_service.attach(
+        db, file_id=obrazek.id, owner_type="post", owner_id=post.id, role="image"
+    )
+    attachment_service.attach(
+        db, file_id=dokument.id, owner_type="post", owner_id=post.id, role="document"
+    )
 
     attachment_service.apply_post_documents(db, [post, bez_priloh])
 
@@ -1222,8 +1531,9 @@ def test_apply_post_documents_doplni_obrazek_i_dokument(db):
 def test_race_document_file_vraci_jen_zverejneny_soubor(db):
     race = _zavod(db)
     soubor = _soubor(db, "vysledky.pdf")
-    priloha = attachment_service.attach(db, file_id=soubor.id, owner_type="race",
-                                        owner_id=race.id, role="vysledky")
+    priloha = attachment_service.attach(
+        db, file_id=soubor.id, owner_type="race", owner_id=race.id, role="vysledky"
+    )
 
     assert attachment_service.race_document_file(db, race.id, "vysledky").id == soubor.id
 
@@ -1238,10 +1548,12 @@ def test_first_for_owner_vraci_aktualni_logo_klubu(db):
     club = _klub(db)
     prvni = _soubor(db, "logo-stare.png")
     druhy = _soubor(db, "logo-nove.png")
-    attachment_service.attach(db, file_id=prvni.id, owner_type="club",
-                              owner_id=club.id, role="logo")
-    attachment_service.attach(db, file_id=druhy.id, owner_type="club",
-                              owner_id=club.id, role="logo")
+    attachment_service.attach(
+        db, file_id=prvni.id, owner_type="club", owner_id=club.id, role="logo"
+    )
+    attachment_service.attach(
+        db, file_id=druhy.id, owner_type="club", owner_id=club.id, role="logo"
+    )
 
     logo = attachment_service.first_for_owner(db, "club", club.id, "logo")
 
@@ -1253,8 +1565,14 @@ def test_vygenerovana_priloha_je_oznacena(db, client, admin_headers):
     race = _zavod(db)
     soubor = _soubor(db, "vysledky.pdf")
 
-    attachment_service.attach(db, file_id=soubor.id, owner_type="race",
-                              owner_id=race.id, role="vysledky", is_generated=True)
+    attachment_service.attach(
+        db,
+        file_id=soubor.id,
+        owner_type="race",
+        owner_id=race.id,
+        role="vysledky",
+        is_generated=True,
+    )
 
     priloha = _prilohy(client, admin_headers, "race", race.id)[0]
     assert priloha["is_generated"] is True

@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../../config/timekeeperApi.js';
 import {
-  DEFAULT_DISCIPLINE, configProblems, createConfirm, createdMessage, planSummary, readSlcrChoice, sendConfirm,
-  sentMessage, slcrErrorText, storeSlcrChoice,
+  DEFAULT_DISCIPLINE,
+  configProblems,
+  createConfirm,
+  createdMessage,
+  planSummary,
+  readSlcrChoice,
+  sendConfirm,
+  sentMessage,
+  slcrErrorText,
+  storeSlcrChoice,
 } from './slcr.js';
 
 /**
@@ -34,16 +42,32 @@ export function useSlcrEvidence({ raceId, hasResults, confirm }) {
         setStatus(data);
         if (!data?.token) return null;
         return TimekeeperAPI.getOnline(`/api/timekeeper/races/${raceId}/slcr/events`)
-          .then((list) => { if (!cancelled) setEvents(Array.isArray(list) ? list : []); })
-          .catch((err) => { if (!cancelled) setEventsError(slcrErrorText(err)); });
+          .then((list) => {
+            if (!cancelled) setEvents(Array.isArray(list) ? list : []);
+          })
+          .catch((err) => {
+            if (!cancelled) setEventsError(slcrErrorText(err));
+          });
       })
-      .catch((err) => { if (!cancelled) setMessage({ type: 'danger', text: slcrErrorText(err) }); });
-    return () => { cancelled = true; };
+      .catch((err) => {
+        if (!cancelled) setMessage({ type: 'danger', text: slcrErrorText(err) });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [raceId]);
 
   // Jiná akce nebo disciplína = starý náhled neplatí.
-  const setEventId = (value) => { setEventIdState(String(value).replace(/\D/g, '')); setPlan(null); setSent(false); };
-  const setDiscipline = (value) => { setDisciplineState(Number(value)); setPlan(null); setSent(false); };
+  const setEventId = (value) => {
+    setEventIdState(String(value).replace(/\D/g, ''));
+    setPlan(null);
+    setSent(false);
+  };
+  const setDiscipline = (value) => {
+    setDisciplineState(Number(value));
+    setPlan(null);
+    setSent(false);
+  };
 
   const run = async (kind, action) => {
     setBusy(kind);
@@ -60,37 +84,48 @@ export function useSlcrEvidence({ raceId, hasResults, confirm }) {
 
   const body = () => ({ event_id: Number(eventId), discipline: Number(discipline) });
 
-  const loadPlan = () => run('plan', async () => {
-    const data = await TimekeeperAPI.getOnline(`/api/timekeeper/races/${raceId}/slcr/plan`, {
-      event_id: eventId, discipline,
+  const loadPlan = () =>
+    run('plan', async () => {
+      const data = await TimekeeperAPI.getOnline(`/api/timekeeper/races/${raceId}/slcr/plan`, {
+        event_id: eventId,
+        discipline,
+      });
+      setPlan(data);
+      storeSlcrChoice(raceId, { eventId, discipline });
     });
-    setPlan(data);
-    storeSlcrChoice(raceId, { eventId, discipline });
-  });
 
   // Zápis do ostré evidence – vždy až po potvrzení.
   const createRaces = async () => {
-    if (!await confirm(createConfirm(plan, { ...planSummary(plan), dryRun }))) return;
+    if (!(await confirm(createConfirm(plan, { ...planSummary(plan), dryRun })))) return;
     await createRacesNow();
   };
   const sendResults = async () => {
-    const eventName = plan?.event?.name || events?.find((event) => String(event.id) === eventId)?.name;
-    if (!await confirm(sendConfirm(eventName, dryRun))) return;
+    const eventName =
+      plan?.event?.name || events?.find((event) => String(event.id) === eventId)?.name;
+    if (!(await confirm(sendConfirm(eventName, dryRun)))) return;
     await sendResultsNow();
   };
 
-  const createRacesNow = () => run('races', async () => {
-    const data = await TimekeeperAPI.postOnline(`/api/timekeeper/races/${raceId}/slcr/races`, body());
-    setPlan({ event: data.event, items: data.items });
-    setMessage({ type: 'success', text: createdMessage(data) });
-  });
+  const createRacesNow = () =>
+    run('races', async () => {
+      const data = await TimekeeperAPI.postOnline(
+        `/api/timekeeper/races/${raceId}/slcr/races`,
+        body(),
+      );
+      setPlan({ event: data.event, items: data.items });
+      setMessage({ type: 'success', text: createdMessage(data) });
+    });
 
-  const sendResultsNow = () => run('results', async () => {
-    const data = await TimekeeperAPI.postOnline(`/api/timekeeper/races/${raceId}/slcr/results`, body());
-    storeSlcrChoice(raceId, { eventId, discipline });
-    setSent(true);
-    setMessage({ type: 'success', text: sentMessage(data) });
-  });
+  const sendResultsNow = () =>
+    run('results', async () => {
+      const data = await TimekeeperAPI.postOnline(
+        `/api/timekeeper/races/${raceId}/slcr/results`,
+        body(),
+      );
+      storeSlcrChoice(raceId, { eventId, discipline });
+      setSent(true);
+      setMessage({ type: 'success', text: sentMessage(data) });
+    });
 
   const dryRun = Boolean(status?.dry_run);
   const problems = configProblems(status);

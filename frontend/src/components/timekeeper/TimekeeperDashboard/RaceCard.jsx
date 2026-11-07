@@ -15,18 +15,35 @@ export default function RaceCard({ race, selected, onSelect, onToggleLive }) {
   const tone = selected ? 'open' : 'ice';
 
   return (
-    <article className={cx(styles.card, styles[tone])} aria-label={race.areal_name || 'Neznámé místo'}>
+    <article
+      className={cx(styles.card, styles[tone])}
+      aria-label={race.areal_name || 'Neznámé místo'}
+    >
       <div className={styles.head}>
-        {race.datum ? <BibDate date={race.datum} variant="list" /> : <span className={styles.noDate}>—</span>}
+        {race.datum ? (
+          <BibDate date={race.datum} variant="list" />
+        ) : (
+          <span className={styles.noDate}>—</span>
+        )}
         <div className={styles.text}>
           <div className={styles.titleRow}>
             <h3 className={styles.title}>{race.areal_name || 'Neznámé místo'}</h3>
-            {selected && <Badge tone="open" size="sm" icon="check">Vybráno</Badge>}
+            {selected && (
+              <Badge tone="open" size="sm" icon="check">
+                Vybráno
+              </Badge>
+            )}
           </div>
           <p className={styles.meta}>{race.race_nr || `#${race.id}`}</p>
           <Cluster gap={2}>
-            <Badge tone={registration.badge} size="sm">{registration.label}</Badge>
-            {isRaceToday(race) && <Badge tone="dry" size="sm">Dnes se měří</Badge>}
+            <Badge tone={registration.badge} size="sm">
+              {registration.label}
+            </Badge>
+            {isRaceToday(race) && (
+              <Badge tone="dry" size="sm">
+                Dnes se měří
+              </Badge>
+            )}
           </Cluster>
         </div>
       </div>

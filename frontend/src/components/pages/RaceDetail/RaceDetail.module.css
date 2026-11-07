@@ -134,15 +134,7 @@
   color: var(--ms-open);
 }
 
-
-
-
 /* Tabulka bodů 1.–10. místo jako řada „startovních čísel“. */
-
-
-
-
-
 
 /* Závod minulé sezóny: pás v barvě upozornění pod hlavičkou. */
 .banner {
@@ -183,7 +175,6 @@
   .page {
     padding-block: var(--ms-space-6) var(--ms-space-10);
   }
-
 
   .bannerInner {
     flex-wrap: wrap;

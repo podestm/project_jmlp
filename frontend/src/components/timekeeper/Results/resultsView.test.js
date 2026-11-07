@@ -9,7 +9,15 @@ describe('výsledky v časomíře', () => {
   });
 
   it('dělená místa', () => {
-    expect([...sharedRanks([{ display_rank: 1 }, { display_rank: 4 }, { display_rank: 4 }, { display_rank: null }, { display_rank: null }])]).toEqual([4]);
+    expect([
+      ...sharedRanks([
+        { display_rank: 1 },
+        { display_rank: 4 },
+        { display_rank: 4 },
+        { display_rank: null },
+        { display_rank: null },
+      ]),
+    ]).toEqual([4]);
   });
 
   it('kategorie bez jediného času', () => {

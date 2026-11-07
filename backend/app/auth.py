@@ -48,7 +48,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     # iat: klient podle něj pozná polovinu platnosti a token včas obnoví
     # (klouzavé prodlužování, viz issue_token a /auth/refresh).
     to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
@@ -85,8 +85,7 @@ def verify_token(token: str) -> Optional[schemas.TokenData]:
 
 
 async def get_current_admin(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)
 ) -> models.AdminUser:
     """Get current authenticated admin user."""
     credentials_exception = HTTPException(
@@ -98,21 +97,20 @@ async def get_current_admin(
     token_data = verify_token(credentials.credentials)
     if token_data is None or token_data.admin_id is None:
         raise credentials_exception
-    
-    admin = db.query(models.AdminUser).filter(
-        models.AdminUser.id == token_data.admin_id
-    ).first()
-    
+
+    admin = db.query(models.AdminUser).filter(models.AdminUser.id == token_data.admin_id).first()
+
     if admin is None or not admin.is_active:
         raise credentials_exception
-    
+
     return admin
 
 
 def require_role(*roles: str):
     """Vytvoří dependency, která vyžaduje jednu z uvedených rolí (kontrola proti DB)."""
+
     async def _role_checker(
-        current_admin: models.AdminUser = Depends(get_current_admin)
+        current_admin: models.AdminUser = Depends(get_current_admin),
     ) -> models.AdminUser:
         if current_admin.role not in roles:
             raise HTTPException(
@@ -120,6 +118,7 @@ def require_role(*roles: str):
                 detail="Nemáte oprávnění k této akci",
             )
         return current_admin
+
     return _role_checker
 
 

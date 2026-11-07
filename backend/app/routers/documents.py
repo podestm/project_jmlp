@@ -6,6 +6,7 @@ kde všech 17 položek odkazovalo na '#' a nešlo stáhnout nic.
 Vrací obecné dokumenty sezóny (soutěžní řád, pokyny pro organizátory) seskupené
 po sezónách - aktuální sezóna zvlášť, starší jako archiv.
 """
+
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
@@ -39,21 +40,26 @@ def list_documents(db: Session = Depends(get_db)) -> Dict[str, Any]:
         if not documents:
             continue
 
-        groups.append({
-            "season_year_start": season.year_start,
-            "season_year_end": season.year_end,
-            "season_label": f"{season.year_start}/{season.year_end}",
-            "edition_label": f"{to_roman(season.edition)}." if season.edition else None,
-            "name": season.name,
-            "is_current": season.year_start == current_season_id,
-            "documents": [{
-                "id": doc["id"],
-                "title": doc["original_filename"],
-                "original_filename": doc["original_filename"],
-                "file_size": doc["file_size"],
-                "url": doc["download_url"],
-            } for doc in documents],
-        })
+        groups.append(
+            {
+                "season_year_start": season.year_start,
+                "season_year_end": season.year_end,
+                "season_label": f"{season.year_start}/{season.year_end}",
+                "edition_label": f"{to_roman(season.edition)}." if season.edition else None,
+                "name": season.name,
+                "is_current": season.year_start == current_season_id,
+                "documents": [
+                    {
+                        "id": doc["id"],
+                        "title": doc["original_filename"],
+                        "original_filename": doc["original_filename"],
+                        "file_size": doc["file_size"],
+                        "url": doc["download_url"],
+                    }
+                    for doc in documents
+                ],
+            }
+        )
 
     return {
         "current": next((g for g in groups if g["is_current"]), None),

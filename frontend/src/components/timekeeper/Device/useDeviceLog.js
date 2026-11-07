@@ -12,13 +12,21 @@ const LOG_LIMIT = 200;
 export function useDeviceLog(subscribeLines) {
   const [log, setLog] = useState([]);
 
-  useEffect(() => subscribeLines((line) => {
-    const text = String(line ?? '').trim();
-    if (!text) return;
-    const kind = parseTimingDeviceLine(text) ? 'time' : (isCleanDeviceLine(text) ? 'info' : 'unknown');
-    const time = new Date().toLocaleTimeString('cs-CZ');
-    setLog((previous) => [{ kind, text, time }, ...previous].slice(0, LOG_LIMIT));
-  }), [subscribeLines]);
+  useEffect(
+    () =>
+      subscribeLines((line) => {
+        const text = String(line ?? '').trim();
+        if (!text) return;
+        const kind = parseTimingDeviceLine(text)
+          ? 'time'
+          : isCleanDeviceLine(text)
+            ? 'info'
+            : 'unknown';
+        const time = new Date().toLocaleTimeString('cs-CZ');
+        setLog((previous) => [{ kind, text, time }, ...previous].slice(0, LOG_LIMIT));
+      }),
+    [subscribeLines],
+  );
 
   return { log, clearLog: () => setLog([]) };
 }

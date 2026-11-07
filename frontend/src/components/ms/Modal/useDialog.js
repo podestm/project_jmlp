@@ -14,7 +14,13 @@ import { useEffect, useRef } from 'react';
  * - Po zavření i odmontování se fokus vrátí tam, odkud se dialog otevřel.
  *   Stránka pod ním se neroluje (base.css, :root:has(dialog[data-ms-modal][open])).
  */
-export function useDialog({ open, onClose, dismissible = true, initialFocusRef, fallbackFocusRef }) {
+export function useDialog({
+  open,
+  onClose,
+  dismissible = true,
+  initialFocusRef,
+  fallbackFocusRef,
+}) {
   const dialogRef = useRef(null);
   const returnFocusRef = useRef(null);
 
@@ -28,11 +34,12 @@ export function useDialog({ open, onClose, dismissible = true, initialFocusRef, 
     if (open && !dialog.open) {
       returnFocusRef.current = document.activeElement;
       dialog.showModal();
-      const target = initialFocusRef?.current
-        ?? dialog.querySelector('[data-autofocus]')
-        ?? dialog.querySelector('[data-cancel]')
-        ?? fallbackFocusRef?.current
-        ?? dialog;
+      const target =
+        initialFocusRef?.current ??
+        dialog.querySelector('[data-autofocus]') ??
+        dialog.querySelector('[data-cancel]') ??
+        fallbackFocusRef?.current ??
+        dialog;
       target.focus();
     } else if (!open && dialog.open) {
       dialog.close();

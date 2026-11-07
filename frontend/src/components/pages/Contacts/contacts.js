@@ -13,7 +13,7 @@ export const ORGANIZER = {
 export const OFFICIALS = [
   { name: 'Roman Keznikl', position: 'Komisař soutěže', email: 'rk@rkak.cz' },
   { name: 'Renata Podešťová', position: 'Soutěžní výbor', email: 'rpodestova@seznam.cz' },
-  { name: 'Marketa Slováčková', position: 'Soutěžní výbor', email: 'marketa@freeskiacademy.net' }
+  { name: 'Marketa Slováčková', position: 'Soutěžní výbor', email: 'marketa@freeskiacademy.net' },
 ];
 
 export const CLUBS = [
@@ -41,5 +41,5 @@ export const CLUBS = [
   { name: 'Ski Klub Olešnice', email: 'skiklub@ski-areal.cz' },
   { name: 'SKI KLUB Hranice', email: 'skipotstat@skipotstat.cz' },
   { name: 'SKIEUR Brno', email: 'karel.aujesky@seznam.cz' },
-  { name: 'Potštejnský Racing', email: 'potstejnsky@seznam.cz' }
+  { name: 'Potštejnský Racing', email: 'potstejnsky@seznam.cz' },
 ];

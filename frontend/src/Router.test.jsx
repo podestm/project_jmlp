@@ -8,7 +8,10 @@ import AppRouter from './Router.jsx';
  * v rámci webu.
  */
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) })),
+  );
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
@@ -39,12 +42,16 @@ describe('veřejné routy', () => {
 
   it('neznámá adresa ukáže 404 v rámci webu', async () => {
     openAt('/tohle-neexistuje');
-    expect(await screen.findByRole('heading', { level: 1, name: /Tady nic není/ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /Tady nic není/ }),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole('navigation', { name: 'Hlavní menu' }).length).toBeGreaterThan(0);
   });
 
   it('/vysledky má poctivý prázdný stav', async () => {
     openAt('/vysledky');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Výsledky a pořadí' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Výsledky a pořadí' }),
+    ).toBeInTheDocument();
   });
 });

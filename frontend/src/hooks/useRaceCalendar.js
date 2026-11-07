@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 /** Výsledky sezón z /season-results/ podle roku začátku sezóny. */
-const bySeason = (results) => Object.fromEntries(results.map((result) => [result.season_year_start, result]));
+const bySeason = (results) =>
+  Object.fromEntries(results.map((result) => [result.season_year_start, result]));
 
 /**
  * Data kalendáře: všechny závody a zveřejněné výsledky sezón.
@@ -22,17 +23,23 @@ export function useRaceCalendar() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
       }),
-      fetch('/season-results/').then((response) => response.json()).catch(() => []),
-    ]).then(([raceData, resultData]) => {
-      setRaces(raceData);
-      setSeasonResults(bySeason(Array.isArray(resultData) ? resultData : []));
-      setStatus('ready');
-    }).catch(() => {
-      if (!silent) setStatus('error');
-    });
+      fetch('/season-results/')
+        .then((response) => response.json())
+        .catch(() => []),
+    ])
+      .then(([raceData, resultData]) => {
+        setRaces(raceData);
+        setSeasonResults(bySeason(Array.isArray(resultData) ? resultData : []));
+        setStatus('ready');
+      })
+      .catch(() => {
+        if (!silent) setStatus('error');
+      });
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
   useRevalidateOnFocus(() => load({ silent: true }));
 
   return { races, seasonResults, status, reload: load };

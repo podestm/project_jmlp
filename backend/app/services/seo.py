@@ -8,6 +8,7 @@ pageMeta.js; při změně upravit obojí.
 
 Tady je i obsah /robots.txt a /sitemap.xml.
 """
+
 import re
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -115,10 +116,14 @@ def race_meta(race: RaceInfo) -> PageMeta:
     """„Kraličák, 17. 1. 2027 · JMLP“ - stejně jako raceMeta ve frontendu."""
     date_label = _date_label(race.datum)
     name = ", ".join(part for part in (race.areal or "Závod", date_label) if part)
-    where = " ".join(part for part in (
-        race.areal and f"v areálu {race.areal}",
-        date_label and f"dne {date_label}",
-    ) if part)
+    where = " ".join(
+        part
+        for part in (
+            race.areal and f"v areálu {race.areal}",
+            date_label and f"dne {date_label}",
+        )
+        if part
+    )
     description = (
         f"Závod Jihomoravského lyžařského poháru{f' {where}' if where else ''}"
         f"{f', pořádá {race.organizer}' if race.organizer else ''}. Propozice, přihlášky a výsledky."
@@ -169,7 +174,9 @@ def _race_info(row, today: date) -> RaceInfo:
         season_id=row.season_id,
         areal=_known(row.areal_name),
         organizer=_known(row.organizer_name),
-        lastmod=_lastmod(row.datum, row.proposition_uploaded_at, row.results_uploaded_at, today=today),
+        lastmod=_lastmod(
+            row.datum, row.proposition_uploaded_at, row.results_uploaded_at, today=today
+        ),
     )
 
 

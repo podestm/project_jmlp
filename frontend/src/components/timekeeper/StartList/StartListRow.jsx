@@ -22,9 +22,18 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
   const racerName = `${entry.racer_surname} ${entry.racer_name}`;
 
   return (
-    <tr data-state={excluded ? 'muted' : undefined} className={excluded ? styles.excludedRow : undefined}>
+    <tr
+      data-state={excluded ? 'muted' : undefined}
+      className={excluded ? styles.excludedRow : undefined}
+    >
       <td data-numeric>{entry.start_number || '—'}</td>
-      <td><BibNumber number={entry.race_number_actual} setColor={entry.set_color} code={entry.race_number_display} /></td>
+      <td>
+        <BibNumber
+          number={entry.race_number_actual}
+          setColor={entry.set_color}
+          code={entry.race_number_display}
+        />
+      </td>
       {/* Kategorie se neopakuje – řádek je v části své kategorie */}
       <td>
         <span className={styles.racer}>
@@ -32,15 +41,23 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
             <span className={excluded ? styles.excludedName : styles.name}>{racerName}</span>
             <OfflineBadge entry={entry} />
             {excluded && (
-              <Badge tone="navy" size="sm">vyřazen</Badge>
+              <Badge tone="navy" size="sm">
+                vyřazen
+              </Badge>
             )}
           </span>
           {entry.club_name && <span className={styles.club}>{entry.club_name}</span>}
         </span>
       </td>
-      <td data-numeric className={styles.year}>{entry.racer_year}</td>
-      <td data-numeric data-align="end">{flag ? '—' : time(entry.time1)}</td>
-      <td data-numeric data-align="end">{flag ? '—' : time(entry.time2)}</td>
+      <td data-numeric className={styles.year}>
+        {entry.racer_year}
+      </td>
+      <td data-numeric data-align="end">
+        {flag ? '—' : time(entry.time1)}
+      </td>
+      <td data-numeric data-align="end">
+        {flag ? '—' : time(entry.time2)}
+      </td>
       <td data-numeric data-align="end" className={styles.sum}>
         {flag ? <RaceFlag flag={flag} /> : time(entry.time_sum)}
       </td>
@@ -53,13 +70,17 @@ const StartListRow = memo(function StartListRow({ entry, onEdit, onDelete, onTog
             variant={excluded ? 'open' : 'outline'}
             icon={excluded ? 'undo' : 'user-minus'}
             onClick={() => onToggleExcluded(entry)}
-            title={excluded
-              ? 'Vrátit na startovní listinu i se vším, co u něj bylo zapsané'
-              : 'Vyřadit ze startovní listiny (nedorazil) – nesmaže se, půjde vrátit'}
+            title={
+              excluded
+                ? 'Vrátit na startovní listinu i se vším, co u něj bylo zapsané'
+                : 'Vyřadit ze startovní listiny (nedorazil) – nesmaže se, půjde vrátit'
+            }
           >
             {excluded ? 'Vrátit' : 'Vyřadit'}
           </Button>
-          <Button size="sm" onClick={() => onEdit(entry)} aria-label={`Upravit ${racerName}`}>Upravit</Button>
+          <Button size="sm" onClick={() => onEdit(entry)} aria-label={`Upravit ${racerName}`}>
+            Upravit
+          </Button>
           <IconButton icon="trash" label="Odebrat" onClick={() => onDelete(entry.id, racerName)} />
         </span>
       </td>

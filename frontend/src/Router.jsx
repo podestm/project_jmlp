@@ -21,10 +21,14 @@ import { loadSection } from './utils/moduleLoad.js';
 // loadSection reloads the page once when a tab opened before a deploy asks
 // for a section file the server no longer has (see utils/moduleLoad.js).
 const AdminRoutes = lazy(() => loadSection(() => import('./components/admin/AdminRoutes.jsx')));
-const TimekeeperRoutes = lazy(() => loadSection(() => import('./components/timekeeper/TimekeeperRoutes.jsx')));
+const TimekeeperRoutes = lazy(() =>
+  loadSection(() => import('./components/timekeeper/TimekeeperRoutes.jsx')),
+);
 
 // Katalog kitu Modré stopy jen pro vývoj; v produkčním buildu větev odpadne i s chunkem.
-const MsCatalogue = import.meta.env.DEV ? lazy(() => import('./components/ms/Catalogue/Catalogue.jsx')) : null;
+const MsCatalogue = import.meta.env.DEV
+  ? lazy(() => import('./components/ms/Catalogue/Catalogue.jsx'))
+  : null;
 
 // Wrapper pro tracking, který musí být uvnitř BrowserRouter
 const RouterContent = () => {
@@ -33,15 +37,78 @@ const RouterContent = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<SiteLayout footer="full"><Home /></SiteLayout>} />
-      <Route path="/zavody" element={<SiteLayout><RaceCalendar /></SiteLayout>} />
-      <Route path="/zavod/:raceId" element={<SiteLayout><RaceDetail /></SiteLayout>} />
-      <Route path="/vysledky" element={<SiteLayout><Results /></SiteLayout>} />
-      <Route path="/aktuality" element={<SiteLayout><News /></SiteLayout>} />
-      <Route path="/dokumenty" element={<SiteLayout><Documents /></SiteLayout>} />
-      <Route path="/kontakty" element={<SiteLayout><Contacts /></SiteLayout>} />
-      <Route path="/zive" element={<SiteLayout><Live /></SiteLayout>} />
-      <Route path="/ochrana-osobnich-udaju" element={<SiteLayout><Privacy /></SiteLayout>} />
+      <Route
+        path="/"
+        element={
+          <SiteLayout footer="full">
+            <Home />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/zavody"
+        element={
+          <SiteLayout>
+            <RaceCalendar />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/zavod/:raceId"
+        element={
+          <SiteLayout>
+            <RaceDetail />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/vysledky"
+        element={
+          <SiteLayout>
+            <Results />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/aktuality"
+        element={
+          <SiteLayout>
+            <News />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/dokumenty"
+        element={
+          <SiteLayout>
+            <Documents />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/kontakty"
+        element={
+          <SiteLayout>
+            <Contacts />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/zive"
+        element={
+          <SiteLayout>
+            <Live />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path="/ochrana-osobnich-udaju"
+        element={
+          <SiteLayout>
+            <Privacy />
+          </SiteLayout>
+        }
+      />
 
       {/* Staré adresy ze záložek a e-mailů; přihláška je u závodu v kalendáři */}
       <Route path="/archiv-zprav" element={<Navigate to="/aktuality" replace />} />
@@ -67,11 +134,25 @@ const RouterContent = () => {
       />
 
       {MsCatalogue && (
-        <Route path="/__ms" element={<Suspense fallback={null}><MsCatalogue /></Suspense>} />
+        <Route
+          path="/__ms"
+          element={
+            <Suspense fallback={null}>
+              <MsCatalogue />
+            </Suspense>
+          }
+        />
       )}
 
       {/* 404 - neznámá cesta */}
-      <Route path="*" element={<SiteLayout><NotFound /></SiteLayout>} />
+      <Route
+        path="*"
+        element={
+          <SiteLayout>
+            <NotFound />
+          </SiteLayout>
+        }
+      />
     </Routes>
   );
 };

@@ -10,10 +10,16 @@ import styles from './RaceCard.module.css';
  */
 export default function RaceCard({ race, onEdit, onToggleRegistration, onDownloadCsv }) {
   const count = race.registrations_count || 0;
-  const docs = [race.proposition_file_id && 'propozice', race.results_file_id && 'výsledky'].filter(Boolean);
+  const docs = [race.proposition_file_id && 'propozice', race.results_file_id && 'výsledky'].filter(
+    Boolean,
+  );
 
   return (
-    <article className={styles.card} data-open={race.registration || undefined} aria-label={race.areal_name || race.race_nr}>
+    <article
+      className={styles.card}
+      data-open={race.registration || undefined}
+      aria-label={race.areal_name || race.race_nr}
+    >
       <div className={styles.head}>
         {race.datum && <BibDate date={race.datum} variant="table" />}
         <span className={styles.text}>
@@ -21,9 +27,14 @@ export default function RaceCard({ race, onEdit, onToggleRegistration, onDownloa
           <span className={styles.sub}>{raceSubtitle(race)}</span>
           <span className={styles.sub}>
             <span className={styles.mono}>{race.race_nr}</span>
-            {' · '}{docs.length > 0 ? `${docs.join(' a ')} nahrané` : 'bez dokumentů'}
+            {' · '}
+            {docs.length > 0 ? `${docs.join(' a ')} nahrané` : 'bez dokumentů'}
           </span>
-          {race.is_final && <Badge tone="dry" size="sm">Finále</Badge>}
+          {race.is_final && (
+            <Badge tone="dry" size="sm">
+              Finále
+            </Badge>
+          )}
         </span>
         <span className={styles.count}>
           <span className={styles.number}>{count}</span>
@@ -39,9 +50,15 @@ export default function RaceCard({ race, onEdit, onToggleRegistration, onDownloa
           className={styles.switch}
         />
         <div className={styles.actions}>
-          <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">Přihlášky</ButtonLink>
-          <Button size="sm" onClick={() => onDownloadCsv(race.id, race.race_nr)}>Export CSV</Button>
-          <Button size="sm" onClick={() => onEdit(race)}>Upravit</Button>
+          <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">
+            Přihlášky
+          </ButtonLink>
+          <Button size="sm" onClick={() => onDownloadCsv(race.id, race.race_nr)}>
+            Export CSV
+          </Button>
+          <Button size="sm" onClick={() => onEdit(race)}>
+            Upravit
+          </Button>
         </div>
         {!race.registration && !race.proposition_file_id && (
           <p className={styles.hint}>

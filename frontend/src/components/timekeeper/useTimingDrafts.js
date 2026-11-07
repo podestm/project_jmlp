@@ -50,15 +50,18 @@ export function useTimingDrafts({
     return drafts;
   }, [editedTimesRef, originalTimesRef]);
 
-  const persistDrafts = useCallback((raceId) => {
-    const target = raceId ?? selectedRaceIdRef.current;
-    // Kontrola závodu je zásadní: prázdná sada z jiného závodu by smazala
-    // koncepty, které k němu patří.
-    if (!target || !hasWriteLockRef.current || draftsRaceRef.current !== String(target)) return;
-    saveTimingDrafts(target, collectDrafts()).catch(() => {
-      onError('Nepodařilo se uložit rozepsané časy do zařízení.');
-    });
-  }, [collectDrafts, selectedRaceIdRef, hasWriteLockRef, draftsRaceRef, onError]);
+  const persistDrafts = useCallback(
+    (raceId) => {
+      const target = raceId ?? selectedRaceIdRef.current;
+      // Kontrola závodu je zásadní: prázdná sada z jiného závodu by smazala
+      // koncepty, které k němu patří.
+      if (!target || !hasWriteLockRef.current || draftsRaceRef.current !== String(target)) return;
+      saveTimingDrafts(target, collectDrafts()).catch(() => {
+        onError('Nepodařilo se uložit rozepsané časy do zařízení.');
+      });
+    },
+    [collectDrafts, selectedRaceIdRef, hasWriteLockRef, draftsRaceRef, onError],
+  );
 
   useEffect(() => {
     if (!selectedRaceId || loading) return undefined;

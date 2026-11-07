@@ -32,7 +32,7 @@ export default function ConfirmDialog({
   message,
   choices,
   cancelLabel = 'Zrušit',
-  onResolve
+  onResolve,
 }) {
   const focusIndex = choices.findIndex((choice) => !choice.disabled && !choice.danger);
   const mainIndex = focusIndex >= 0 ? focusIndex : choices.length - 1;
@@ -65,14 +65,19 @@ export default function ConfirmDialog({
       open
       title={title}
       onClose={() => onResolve(null)}
-      footerStart={dangerousOthers.length > 0 && dangerousOthers.map(({ choice, index }) => renderChoice(choice, index))}
-      footer={(
+      footerStart={
+        dangerousOthers.length > 0 &&
+        dangerousOthers.map(({ choice, index }) => renderChoice(choice, index))
+      }
+      footer={
         <>
           {safeOthers.map(({ choice, index }) => renderChoice(choice, index))}
-          <Button data-cancel onClick={() => onResolve(null)}>{cancelLabel}</Button>
+          <Button data-cancel onClick={() => onResolve(null)}>
+            {cancelLabel}
+          </Button>
           {choices[mainIndex] && renderChoice(choices[mainIndex], mainIndex)}
         </>
-      )}
+      }
     >
       {typeof message === 'string' ? <p>{message}</p> : message}
     </Modal>

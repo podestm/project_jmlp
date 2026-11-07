@@ -26,8 +26,10 @@ export const daysWord = (n) => {
   return 'dní';
 };
 
-const sameDay = (a, b) => a.getFullYear() === b.getFullYear()
-  && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const sameDay = (a, b) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
 
 /**
  * Kdy se kdo přihlásil, krátce: { day: 'dnes' | 'včera' | '12. 10.', time: '18:47' }.
@@ -46,9 +48,14 @@ export const whenParts = (iso, now = new Date()) => {
 };
 
 /** Dnešní datum do záhlaví: „středa 23. září 2026“. */
-export const todayLabel = (now = new Date()) => now.toLocaleDateString('cs-CZ', {
-  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-});
+export const todayLabel = (now = new Date()) =>
+  now.toLocaleDateString('cs-CZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
 /** Číslo s mezerou po tisících („1 284“); chybějící hodnota jako pomlčka. */
-export const formatCount = (value) => (value === null || value === undefined ? '—' : value.toLocaleString('cs-CZ'));
+export const formatCount = (value) =>
+  value === null || value === undefined ? '—' : value.toLocaleString('cs-CZ');

@@ -15,7 +15,9 @@
   background: var(--ms-surface-card);
   /* Pruh v barvě stránky pod lištou zakryje pár pixelů, které lepivá
      hlavička tabulky (border-collapse) pod sebou nepřekreslí. */
-  box-shadow: 0 var(--ms-space-2) 0 var(--ms-surface-page), var(--ms-shadow-raised);
+  box-shadow:
+    0 var(--ms-space-2) 0 var(--ms-surface-page),
+    var(--ms-shadow-raised);
   white-space: nowrap;
 }
 

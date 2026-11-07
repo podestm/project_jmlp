@@ -28,7 +28,8 @@ export default function TimingToolbar({
   onPrintResults,
   printBusy,
 }) {
-  const percent = categoryFilteredLength > 0 ? Math.round((completedCount / categoryFilteredLength) * 100) : 0;
+  const percent =
+    categoryFilteredLength > 0 ? Math.round((completedCount / categoryFilteredLength) * 100) : 0;
   const filterOptions = [
     { value: 'all', label: `Vše (${categoryFilteredLength})` },
     { value: 'pending', label: `Čeká (${categoryFilteredLength - completedCount})` },
@@ -44,11 +45,23 @@ export default function TimingToolbar({
       <div className={styles.row}>
         <span className={styles.field}>
           <span className={styles.caps}>Zobrazit</span>
-          <SegmentedControl label="Zobrazit" size="sm" options={filterOptions} value={filter} onChange={setFilter} />
+          <SegmentedControl
+            label="Zobrazit"
+            size="sm"
+            options={filterOptions}
+            value={filter}
+            onChange={setFilter}
+          />
         </span>
         <span className={styles.field}>
           <span className={styles.caps}>Kolo</span>
-          <SegmentedControl label="Kolo" size="sm" options={ROUND_OPTIONS} value={activeRound} onChange={setActiveRound} />
+          <SegmentedControl
+            label="Kolo"
+            size="sm"
+            options={ROUND_OPTIONS}
+            value={activeRound}
+            onChange={setActiveRound}
+          />
         </span>
         {activeRound !== 'both' && (
           <span className={styles.locked}>
@@ -57,7 +70,9 @@ export default function TimingToolbar({
           </span>
         )}
         <div className={styles.progress}>
-          <span>Hotovo {completedCount} z {categoryFilteredLength}</span>
+          <span>
+            Hotovo {completedCount} z {categoryFilteredLength}
+          </span>
           <progress className={styles.bar} max={100} value={percent} aria-label="Hotovo" />
           <span className={styles.percent}>{percent} %</span>
         </div>
@@ -73,7 +88,9 @@ export default function TimingToolbar({
       </div>
 
       <div className={styles.row}>
-        <span className={styles.caps}><Icon name="printer" size={16} /> Tisk</span>
+        <span className={styles.caps}>
+          <Icon name="printer" size={16} /> Tisk
+        </span>
         <PrintRunButtons
           label="Vybraná kategorie"
           busy={printBusy}

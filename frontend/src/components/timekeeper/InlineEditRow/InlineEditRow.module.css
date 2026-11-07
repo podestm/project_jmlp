@@ -34,7 +34,6 @@
   text-transform: uppercase;
 }
 
-
 @media (max-width: 1279.98px) {
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

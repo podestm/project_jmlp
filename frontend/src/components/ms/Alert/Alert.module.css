@@ -9,9 +9,15 @@
   border-radius: var(--ms-radius-card);
 }
 
-.danger { --alert-tone: var(--ms-live-ink); }
-.success { --alert-tone: var(--ms-open); }
-.info { --alert-tone: var(--ms-navy); }
+.danger {
+  --alert-tone: var(--ms-live-ink);
+}
+.success {
+  --alert-tone: var(--ms-open);
+}
+.info {
+  --alert-tone: var(--ms-navy);
+}
 
 /* Upozornění na podkladu --ms-dry-bg (StavyVerejnehoWebu2). */
 .warning {

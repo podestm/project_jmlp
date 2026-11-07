@@ -15,11 +15,12 @@ const SRC = join(ROOT, 'src');
 const ENTRY = join(SRC, 'main.jsx');
 const EXTENSIONS = ['', '.js', '.jsx', '/index.js', '/index.jsx'];
 
-const walk = (dir) => readdirSync(dir).flatMap((name) => {
-  const full = join(dir, name);
-  if (statSync(full).isDirectory()) return walk(full);
-  return /\.jsx?$/.test(name) ? [full] : [];
-});
+const walk = (dir) =>
+  readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return walk(full);
+    return /\.jsx?$/.test(name) ? [full] : [];
+  });
 
 const resolveImport = (fromFile, spec) => {
   const base = resolve(dirname(fromFile), spec);
@@ -27,7 +28,9 @@ const resolveImport = (fromFile, spec) => {
     const candidate = base + ext;
     try {
       if (statSync(candidate).isFile()) return candidate;
-    } catch { /* zkoušíme další příponu */ }
+    } catch {
+      /* zkoušíme další příponu */
+    }
   }
   return null;
 };

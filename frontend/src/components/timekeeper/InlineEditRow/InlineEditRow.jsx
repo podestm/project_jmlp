@@ -7,15 +7,26 @@ import styles from './InlineEditRow.module.css';
  * po uložení. Pole dodá obrazovka (`children`), `columns` je jejich
  * grid-template-columns na desktopu.
  */
-export default function InlineEditRow({ colSpan, columns, categoryPreview, onSave, onCancel, children }) {
+export default function InlineEditRow({
+  colSpan,
+  columns,
+  categoryPreview,
+  onSave,
+  onCancel,
+  children,
+}) {
   return (
     <tr data-state="warning" className={styles.row}>
       <td colSpan={colSpan}>
         <div className={styles.grid} style={{ '--edit-columns': columns }}>
           {children}
           <div className={styles.actions}>
-            <Button size="sm" variant="primary" onClick={onSave}>Uložit</Button>
-            <Button size="sm" data-cancel onClick={onCancel}>Zrušit</Button>
+            <Button size="sm" variant="primary" onClick={onSave}>
+              Uložit
+            </Button>
+            <Button size="sm" data-cancel onClick={onCancel}>
+              Zrušit
+            </Button>
           </div>
         </div>
         <p className={styles.category}>

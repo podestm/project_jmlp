@@ -4,21 +4,39 @@
   gap: var(--gap);
 }
 
-.align-start { align-items: start; }
-.align-stretch { align-items: stretch; }
-.align-center { align-items: center; }
+.align-start {
+  align-items: start;
+}
+.align-stretch {
+  align-items: stretch;
+}
+.align-center {
+  align-items: center;
+}
 
 @media (max-width: 767.98px) {
-  .below768 { grid-template-columns: minmax(0, 1fr); }
-  .below768.reverse > :first-child { order: 2; }
+  .below768 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .below768.reverse > :first-child {
+    order: 2;
+  }
 }
 
 @media (max-width: 1023.98px) {
-  .below1024 { grid-template-columns: minmax(0, 1fr); }
-  .below1024.reverse > :first-child { order: 2; }
+  .below1024 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .below1024.reverse > :first-child {
+    order: 2;
+  }
 }
 
 @media (max-width: 1279.98px) {
-  .below1280 { grid-template-columns: minmax(0, 1fr); }
-  .below1280.reverse > :first-child { order: 2; }
+  .below1280 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .below1280.reverse > :first-child {
+    order: 2;
+  }
 }

@@ -31,17 +31,25 @@ export default function DeviceDialog({
       onClose={onClose}
       eyebrow="Zařízení"
       title="Připojení časomíry"
-      footer={<Button variant="primary" data-autofocus onClick={() => onClose('button')}>Hotovo</Button>}
+      footer={
+        <Button variant="primary" data-autofocus onClick={() => onClose('button')}>
+          Hotovo
+        </Button>
+      }
     >
       <div className={styles.body}>
         <div className={styles.row}>
           <span className={cx(styles.dot, serial.connected && styles.dotOn)} aria-hidden="true" />
           <span className={styles.status}>{serial.status}</span>
-          {serial.port && <span className={styles.port}>{describeSerialPort(serial.port, portIndex)}</span>}
+          {serial.port && (
+            <span className={styles.port}>{describeSerialPort(serial.port, portIndex)}</span>
+          )}
         </div>
 
         <div className={styles.row}>
-          <label className={styles.caps} htmlFor="tk-baud">Baud</label>
+          <label className={styles.caps} htmlFor="tk-baud">
+            Baud
+          </label>
           <Select
             id="tk-baud"
             size="sm"
@@ -50,7 +58,11 @@ export default function DeviceDialog({
             onChange={(e) => serial.setBaud(e.target.value)}
             disabled={serial.connected}
           >
-            {BAUD_OPTIONS.map((b) => <option key={b} value={String(b)}>{b}</option>)}
+            {BAUD_OPTIONS.map((b) => (
+              <option key={b} value={String(b)}>
+                {b}
+              </option>
+            ))}
           </Select>
           {!serial.connected && serial.knownPorts.length > 1 && (
             <Select
@@ -64,7 +76,9 @@ export default function DeviceDialog({
             >
               <option value="-1">-- Vyberte port --</option>
               {serial.knownPorts.map((p, index) => (
-                <option key={index} value={String(index)}>{describeSerialPort(p, index)}</option>
+                <option key={index} value={String(index)}>
+                  {describeSerialPort(p, index)}
+                </option>
               ))}
             </Select>
           )}
@@ -77,26 +91,46 @@ export default function DeviceDialog({
           {serial.connected ? (
             <Button onClick={serial.disconnect}>Odpojit</Button>
           ) : (
-            <Button variant="primary" onClick={() => serial.connect()} disabled={!serial.port || !usable}>Připojit</Button>
+            <Button
+              variant="primary"
+              onClick={() => serial.connect()}
+              disabled={!serial.port || !usable}
+            >
+              Připojit
+            </Button>
           )}
           <Tooltip text="Zavře a znovu otevře port">
-            <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>Obnovit</Button>
+            <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>
+              Obnovit
+            </Button>
           </Tooltip>
         </div>
 
         <ul className={styles.counts}>
           {!serial.supported && <li className={styles.warn}>Web Serial nepodporováno</li>}
-          {serial.supported && !serial.canUse && <li className={styles.warn}>Vyžaduje HTTPS/localhost</li>}
-          {health.unparsedStreak > 0 && <li className={styles.warn}>Nerozpoznané řádky: {health.unparsedStreak}</li>}
-          {health.persistFailures > 0 && <li className={styles.danger}>Neuloženo: {health.persistFailures}</li>}
-          <li title="Nepotvrzené, čekající, chybové a varovné řádky">Nevyřízeno: {liveInboxCount}</li>
+          {serial.supported && !serial.canUse && (
+            <li className={styles.warn}>Vyžaduje HTTPS/localhost</li>
+          )}
+          {health.unparsedStreak > 0 && (
+            <li className={styles.warn}>Nerozpoznané řádky: {health.unparsedStreak}</li>
+          )}
+          {health.persistFailures > 0 && (
+            <li className={styles.danger}>Neuloženo: {health.persistFailures}</li>
+          )}
+          <li title="Nepotvrzené, čekající, chybové a varovné řádky">
+            Nevyřízeno: {liveInboxCount}
+          </li>
           <li title="Zapsané na server nebo ručně zamítnuté">Vyřízeno: {resolvedInboxCount}</li>
           {unassignedInboxCount > 0 && (
-            <li title="Události zatím nepřiřazené k žádnému závodu">Bez závodu: {unassignedInboxCount}</li>
+            <li title="Události zatím nepřiřazené k žádnému závodu">
+              Bez závodu: {unassignedInboxCount}
+            </li>
           )}
         </ul>
 
-        <Link to="/timekeeper/device" className={styles.more}>Rychlost a záznam řádků</Link>
+        <Link to="/timekeeper/device" className={styles.more}>
+          Rychlost a záznam řádků
+        </Link>
       </div>
     </Modal>
   );

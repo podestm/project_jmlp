@@ -5,6 +5,7 @@
 výsledky ne - tištěná listina by tak měla jiné pořadí než obrazovka. Proto je
 logika tady a používají ji obě strany.
 """
+
 import json
 from typing import Dict, List
 

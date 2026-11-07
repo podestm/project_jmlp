@@ -14,7 +14,11 @@ function LibraryResults({ lib }) {
       <EmptyState
         icon="search-x"
         title="Filtru neodpovídá žádný soubor"
-        action={<Button size="sm" onClick={lib.clearFilters}>Zrušit filtry</Button>}
+        action={
+          <Button size="sm" onClick={lib.clearFilters}>
+            Zrušit filtry
+          </Button>
+        }
       />
     ) : (
       <EmptyState icon="folder" title="Knihovna je prázdná" />
@@ -50,11 +54,11 @@ export default function DocumentLibrary() {
   return (
     <AdminPage
       title="Knihovna dokumentů"
-      actions={(
+      actions={
         <Button size="sm" icon="download" busy={lib.exporting} onClick={lib.exportZip}>
           {lib.filtersActive ? 'Stáhnout vyfiltrované (ZIP)' : 'Stáhnout vše (ZIP)'}
         </Button>
-      )}
+      }
     >
       {lib.message && (
         <Alert
@@ -77,7 +81,12 @@ export default function DocumentLibrary() {
       />
       <LibraryResults lib={lib} />
       {lib.publishing && (
-        <PublishDialog file={lib.publishing} seasons={lib.seasons} onPublish={lib.publish} onClose={lib.cancelPublish} />
+        <PublishDialog
+          file={lib.publishing}
+          seasons={lib.seasons}
+          onPublish={lib.publish}
+          onClose={lib.cancelPublish}
+        />
       )}
       {confirmElement}
     </AdminPage>

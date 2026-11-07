@@ -17,7 +17,7 @@ const entry = (overrides = {}) => ({
   start_number: 7,
   race_number_actual: 23,
   set_color: 'rose',
-  ...overrides
+  ...overrides,
 });
 
 const event = (overrides = {}) => ({
@@ -29,22 +29,23 @@ const event = (overrides = {}) => ({
   reason: 'ready',
   targetRound: '1',
   raw: 'TIME;23;01:02.34',
-  ...overrides
+  ...overrides,
 });
 
-const renderRow = (props = {}) => render(
-  <BridgeEventRow
-    event={event()}
-    resolvedEntry={entry()}
-    candidateCount={1}
-    candidateIndex={0}
-    fallbackTargetRound="1"
-    onCycle={vi.fn()}
-    onConfirm={vi.fn()}
-    onReject={vi.fn()}
-    {...props}
-  />
-);
+const renderRow = (props = {}) =>
+  render(
+    <BridgeEventRow
+      event={event()}
+      resolvedEntry={entry()}
+      candidateCount={1}
+      candidateIndex={0}
+      fallbackTargetRound="1"
+      onCycle={vi.fn()}
+      onConfirm={vi.fn()}
+      onReject={vi.fn()}
+      {...props}
+    />,
+  );
 
 describe('BridgeEventRow', () => {
   it('ukazuje kategorii i startovní číslo, i když dres nikdo nesdílí', () => {
@@ -87,7 +88,7 @@ describe('BridgeEventRow', () => {
       event: event({ reason: 'unparsed', raw: 'ABC;;;' }),
       resolvedEntry: null,
       candidateCount: 0,
-      candidateIndex: -1
+      candidateIndex: -1,
     });
 
     expect(screen.getByText('ABC;;;')).toBeInTheDocument();
@@ -100,7 +101,7 @@ describe('BridgeEventRow', () => {
       resolvedEntry: null,
       candidateCount: 0,
       candidateIndex: -1,
-      excludedMatch: true
+      excludedMatch: true,
     });
 
     expect(screen.getByText(/vyřazený ze startky – vraťte ho v Listině/)).toBeInTheDocument();
@@ -114,7 +115,7 @@ describe('BridgeEventRow', () => {
       event: event({ status: 'warning', reason: 'bib_not_found' }),
       resolvedEntry: null,
       candidateCount: 0,
-      candidateIndex: -1
+      candidateIndex: -1,
     });
 
     expect(screen.getByText(/Číslo dresu není ve startovní listině/)).toBeInTheDocument();

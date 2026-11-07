@@ -38,7 +38,7 @@ export function useTabWriteLock(selectedRaceId, tabIdRef) {
     const writeLock = () => {
       localStorage.setItem(lockKey, JSON.stringify({ tab_id: tabId, ts: Date.now() }));
     };
-    const isStale = (lock) => !lock?.ts || (Date.now() - Number(lock.ts)) > TAB_LOCK_STALE_MS;
+    const isStale = (lock) => !lock?.ts || Date.now() - Number(lock.ts) > TAB_LOCK_STALE_MS;
 
     const releasePreviousLock = () => {
       const previousKey = lastLockKeyRef.current;

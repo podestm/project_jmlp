@@ -24,11 +24,11 @@ export const isLineSettingsError = (error) => LINE_SETTINGS_ERRORS.includes(erro
 export const hasWebSerial = () => typeof navigator !== 'undefined' && 'serial' in navigator;
 
 /** Web Serial is a secure-context API - HTTPS or localhost only. */
-export const canUseWebSerial = () => typeof location !== 'undefined' && (
-  location.protocol === 'https:'
-  || location.hostname === 'localhost'
-  || location.hostname === '127.0.0.1'
-);
+export const canUseWebSerial = () =>
+  typeof location !== 'undefined' &&
+  (location.protocol === 'https:' ||
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1');
 
 /**
  * LIP TIMER (Ver 3.01) - the hardware actually used at the races.
@@ -95,7 +95,10 @@ export const parseTimingDeviceLine = (line) => {
     return { type: 'TIME', time: value.replace(',', '.'), ...common };
   }
 
-  const parts = trimmed.replace(',', '.').split(';').map((item) => item.trim());
+  const parts = trimmed
+    .replace(',', '.')
+    .split(';')
+    .map((item) => item.trim());
   if (parts.length < 2) return null;
   const type = String(parts[0] || '').toUpperCase();
   if (!ACCEPTED_TYPES.includes(type)) return null;
@@ -133,7 +136,7 @@ export const parseIncomingTime = (raw) => {
     const minutes = parseFloat(parts[0]);
     const sec = parseFloat(parts[1]);
     if (Number.isFinite(minutes) && Number.isFinite(sec)) {
-      return (minutes * 60) + sec;
+      return minutes * 60 + sec;
     }
   }
   if (parts.length === 3) {
@@ -141,7 +144,7 @@ export const parseIncomingTime = (raw) => {
     const minutes = parseFloat(parts[1]);
     const sec = parseFloat(parts[2]);
     if (Number.isFinite(hours) && Number.isFinite(minutes) && Number.isFinite(sec)) {
-      return (hours * 3600) + (minutes * 60) + sec;
+      return hours * 3600 + minutes * 60 + sec;
     }
   }
   return null;
@@ -186,13 +189,20 @@ export const closeSerialPortSafely = async (port) => {
 /** Nothing on an unplugged device is allowed to hang a retry for longer. */
 const RELEASE_TIMEOUT_MS = 2500;
 
-const withDeadline = (promise, ms) => new Promise((resolve, reject) => {
-  const handle = setTimeout(() => reject(new Error('Časový limit vypršel')), ms);
-  Promise.resolve(promise).then(
-    (value) => { clearTimeout(handle); resolve(value); },
-    (error) => { clearTimeout(handle); reject(error); }
-  );
-});
+const withDeadline = (promise, ms) =>
+  new Promise((resolve, reject) => {
+    const handle = setTimeout(() => reject(new Error('Časový limit vypršel')), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(handle);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(handle);
+        reject(error);
+      },
+    );
+  });
 
 /**
  * The reader + pipe currently holding `port.readable`, per port.

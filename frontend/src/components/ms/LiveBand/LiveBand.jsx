@@ -16,7 +16,9 @@ export default function LiveBand({ title, detail, action = 'Živé výsledky', t
           <strong className={styles.title}>{title}</strong>
           {detail && <span>{detail}</span>}
         </span>
-        <span className={styles.action}>{action} <Icon name="arrow-right" size={18} /></span>
+        <span className={styles.action}>
+          {action} <Icon name="arrow-right" size={18} />
+        </span>
       </Container>
     </Link>
   );

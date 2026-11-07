@@ -14,10 +14,11 @@ router = APIRouter(prefix="/registrations", tags=["registrations"])
 def _ensure_not_registered(db: Session, race_id: int, racer_id: int) -> None:
     """Pre-check duplicity - MyISAM neumí transakce, takže musíme zabránit
     částečnému zápisu (úprava závodníka) před selháním INSERTu registrace."""
-    existing = db.query(models.Registration).filter(
-        models.Registration.race_id == race_id,
-        models.Registration.racer_id == racer_id
-    ).first()
+    existing = (
+        db.query(models.Registration)
+        .filter(models.Registration.race_id == race_id, models.Registration.racer_id == racer_id)
+        .first()
+    )
     if existing:
         raise StandardExceptions.already_registered()
 
@@ -32,8 +33,8 @@ def _identity_matches(racer: models.Racer, payload: schemas.RegistrationCreate) 
     if not all([payload.racer_name, payload.racer_surname, payload.racer_year]):
         return False
     return (
-        (racer.name or '').strip().lower() == payload.racer_name.strip().lower()
-        and (racer.surname or '').strip().lower() == payload.racer_surname.strip().lower()
+        (racer.name or "").strip().lower() == payload.racer_name.strip().lower()
+        and (racer.surname or "").strip().lower() == payload.racer_surname.strip().lower()
         and racer.year == payload.racer_year
     )
 
@@ -71,17 +72,23 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
 
         # Kontakty a pohlaví přepíšeme jen tomu, kdo prokáže znalost identity
         # závodníka (jméno, příjmení, ročník). Samotné racer_id není důkaz totožnosti.
-        has_contact_update = any([
-            payload.racer_telefon and payload.racer_telefon.strip(),
-            payload.racer_email and payload.racer_email.strip(),
-            payload.racer_slcr_id and payload.racer_slcr_id.strip(),
-        ])
+        has_contact_update = any(
+            [
+                payload.racer_telefon and payload.racer_telefon.strip(),
+                payload.racer_email and payload.racer_email.strip(),
+                payload.racer_slcr_id and payload.racer_slcr_id.strip(),
+            ]
+        )
         has_sex_correction = payload.racer_sex is not None and payload.racer_sex != racer.sex
         if has_contact_update or has_sex_correction:
-            identity_supplied = any([
-                payload.racer_name, payload.racer_surname,
-                payload.racer_year, payload.racer_sex is not None,
-            ])
+            identity_supplied = any(
+                [
+                    payload.racer_name,
+                    payload.racer_surname,
+                    payload.racer_year,
+                    payload.racer_sex is not None,
+                ]
+            )
             if identity_supplied and not _identity_matches(racer, payload):
                 raise StandardExceptions.bad_request("Údaje závodníka nesouhlasí")
             if identity_supplied:
@@ -98,30 +105,43 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
             racer.name = racer.name.strip()
         if racer.surname:
             racer.surname = racer.surname.strip()
-        
+
         # Přiřadíme kategorii podle roku narození (vždy aktuální)
         racer.category_id = get_category_for_birth_year(racer.year, racer.sex, db)
     else:
         # creating new racer
-        if not all([payload.racer_name, payload.racer_surname, payload.racer_sex is not None, payload.racer_year]):
-            raise HTTPException(status_code=400, detail="Missing required racer fields: name, surname, sex, year")
-        
+        if not all(
+            [
+                payload.racer_name,
+                payload.racer_surname,
+                payload.racer_sex is not None,
+                payload.racer_year,
+            ]
+        ):
+            raise HTTPException(
+                status_code=400, detail="Missing required racer fields: name, surname, sex, year"
+            )
+
         # Trim input values
         racer_name = payload.racer_name.strip() if payload.racer_name else None
         racer_surname = payload.racer_surname.strip() if payload.racer_surname else None
         racer_telefon = payload.racer_telefon.strip() if payload.racer_telefon else None
         racer_email = payload.racer_email.strip() if payload.racer_email else None
         racer_slcr_id = payload.racer_slcr_id.strip() if payload.racer_slcr_id else None
-        
+
         # Existující závodník podle identity - jméno, příjmení a ročník. Dřív se
         # hledalo i podle pohlaví, takže přihláška s opraveným pohlavím založila
         # duplicitní záznam místo opravy. Kdyby už takové duplicity existovaly,
         # přednost má záznam se shodným pohlavím.
-        candidates = db.query(models.Racer).filter(
-            models.Racer.name == racer_name,
-            models.Racer.surname == racer_surname,
-            models.Racer.year == payload.racer_year,
-        ).all()
+        candidates = (
+            db.query(models.Racer)
+            .filter(
+                models.Racer.name == racer_name,
+                models.Racer.surname == racer_surname,
+                models.Racer.year == payload.racer_year,
+            )
+            .all()
+        )
         existing_racer = next(
             (candidate for candidate in candidates if candidate.sex == payload.racer_sex),
             candidates[0] if candidates else None,
@@ -143,7 +163,7 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         else:
             # Přiřadíme kategorii podle roku narození
             category_id = get_category_for_birth_year(payload.racer_year, payload.racer_sex, db)
-            
+
             racer = models.Racer(
                 name=racer_name,
                 surname=racer_surname,
@@ -152,7 +172,7 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
                 telefon=racer_telefon,
                 email=racer_email,
                 slcr_id=racer_slcr_id,
-                category_id=category_id
+                category_id=category_id,
             )
             db.add(racer)
             db.flush()  # get racer.id
@@ -160,7 +180,11 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
     # přiřazení klubu nebo uložení poznámky pro admina
     club_request_note = None
     if payload.club_id:
-        club = db.query(models.Club).filter(models.Club.id == payload.club_id, models.Club.valid == True).first()
+        club = (
+            db.query(models.Club)
+            .filter(models.Club.id == payload.club_id, models.Club.valid == True)
+            .first()
+        )
         if not club:
             raise HTTPException(status_code=404, detail="Klub nenalezen")
         racer.club_id = club.id
@@ -173,10 +197,10 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         race_id=payload.race_id,
         racer_id=racer.id,
         category_id=racer.category_id,
-        club_request_note=club_request_note
+        club_request_note=club_request_note,
     )
     db.add(reg)
-    
+
     try:
         db.commit()
     except IntegrityError:
@@ -188,7 +212,6 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         db.rollback()
         logger.exception("Uložení registrace selhalo (race_id=%s)", payload.race_id)
         raise StandardExceptions.internal_error("Registraci se nepodařilo uložit")
-
 
     db.refresh(reg)
     return reg

@@ -31,7 +31,7 @@ export function usePageTracking() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
-      keepalive: true
+      keepalive: true,
     }).catch((error) => {
       // Tichý fail - logování nesmí pokazit UX
       console.debug('Failed to log visit:', error);

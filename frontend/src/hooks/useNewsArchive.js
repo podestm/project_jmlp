@@ -4,141 +4,145 @@ import { MONTH_NAMES } from '../config/constants.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
 export const useNewsArchive = () => {
-    // State management
-    const [posts, setPosts] = useState([]);
-    const [filteredPosts, setFilteredPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedYear, setSelectedYear] = useState('');
-    const [selectedMonth, setSelectedMonth] = useState('');
-    
-    const postsPerPage = 10;
+  // State management
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
 
-    // Effects
-    useEffect(() => {
-        fetchPosts();
-    }, []);
+  const postsPerPage = 10;
 
-    useEffect(() => {
-        filterPosts();
-    }, [posts, searchTerm, selectedYear, selectedMonth]);
+  // Effects
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
-    useEffect(() => {
-        setCurrentPage(1); // Reset to first page when filters change
-    }, [searchTerm, selectedYear, selectedMonth]);
+  useEffect(() => {
+    filterPosts();
+  }, [posts, searchTerm, selectedYear, selectedMonth]);
 
-    // Data fetching
-    // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes
-    // aktuality, které už na obrazovce jsou
-    const fetchPosts = async ({ silent = false } = {}) => {
-        try {
-            if (!silent) { setLoading(true); setError(null); }
-            const data = await API.get(API_CONFIG.ENDPOINTS.POSTS);
-            setPosts(data);
-        } catch (err) {
-            if (!silent) setError(err.message);
-        } finally {
-            if (!silent) setLoading(false);
-        }
-    };
+  useEffect(() => {
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchTerm, selectedYear, selectedMonth]);
 
-    useRevalidateOnFocus(() => fetchPosts({ silent: true }));
+  // Data fetching
+  // silent: obnova na pozadí - bez spinneru a bez chybové hlášky přes
+  // aktuality, které už na obrazovce jsou
+  const fetchPosts = async ({ silent = false } = {}) => {
+    try {
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
+      const data = await API.get(API_CONFIG.ENDPOINTS.POSTS);
+      setPosts(data);
+    } catch (err) {
+      if (!silent) setError(err.message);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
 
-    // Filtering logic
-    const filterPosts = () => {
-        let filtered = posts;
+  useRevalidateOnFocus(() => fetchPosts({ silent: true }));
 
-        // Filter by search term
-        if (searchTerm) {
-            filtered = filtered.filter(post =>
-                post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                post.content.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
+  // Filtering logic
+  const filterPosts = () => {
+    let filtered = posts;
 
-        // Filter by year
-        if (selectedYear) {
-            filtered = filtered.filter(post => {
-                const postYear = new Date(post.created_at).getFullYear().toString();
-                return postYear === selectedYear;
-            });
-        }
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.content.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
 
-        // Filter by month
-        if (selectedMonth) {
-            filtered = filtered.filter(post => {
-                const postMonth = (new Date(post.created_at).getMonth() + 1).toString().padStart(2, '0');
-                return postMonth === selectedMonth;
-            });
-        }
+    // Filter by year
+    if (selectedYear) {
+      filtered = filtered.filter((post) => {
+        const postYear = new Date(post.created_at).getFullYear().toString();
+        return postYear === selectedYear;
+      });
+    }
 
-        setFilteredPosts(filtered);
-    };
+    // Filter by month
+    if (selectedMonth) {
+      filtered = filtered.filter((post) => {
+        const postMonth = (new Date(post.created_at).getMonth() + 1).toString().padStart(2, '0');
+        return postMonth === selectedMonth;
+      });
+    }
 
-    // Utility functions
-    const getAvailableYears = () => {
-        const years = posts.map(post => new Date(post.created_at).getFullYear());
-        return [...new Set(years)].sort((a, b) => b - a);
-    };
+    setFilteredPosts(filtered);
+  };
 
-    const getAvailableMonths = () => {
-        if (!selectedYear) return [];
-        
-        const months = posts
-            .filter(post => new Date(post.created_at).getFullYear().toString() === selectedYear)
-            .map(post => new Date(post.created_at).getMonth() + 1);
-        
-        return [...new Set(months)].sort((a, b) => a - b);
-    };
+  // Utility functions
+  const getAvailableYears = () => {
+    const years = posts.map((post) => new Date(post.created_at).getFullYear());
+    return [...new Set(years)].sort((a, b) => b - a);
+  };
 
-    const monthNames = ['', ...MONTH_NAMES];
+  const getAvailableMonths = () => {
+    if (!selectedYear) return [];
 
-    // Pagination
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
-    const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
-    const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+    const months = posts
+      .filter((post) => new Date(post.created_at).getFullYear().toString() === selectedYear)
+      .map((post) => new Date(post.created_at).getMonth() + 1);
 
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    return [...new Set(months)].sort((a, b) => a - b);
+  };
 
-    const clearFilters = () => {
-        setSearchTerm('');
-        setSelectedYear('');
-        setSelectedMonth('');
-        setCurrentPage(1);
-    };
+  const monthNames = ['', ...MONTH_NAMES];
 
-    return {
-        // State
-        posts,
-        filteredPosts,
-        loading,
-        error,
-        currentPage,
-        searchTerm,
-        selectedYear,
-        selectedMonth,
-        postsPerPage,
-        currentPosts,
-        totalPages,
-        
-        // Setters
-        setSearchTerm,
-        setSelectedYear,
-        setSelectedMonth,
-        setCurrentPage,
-        
-        // Functions
-        reload: fetchPosts,
-        getAvailableYears,
-        getAvailableMonths,
-        monthNames,
-        handlePageChange,
-        clearFilters,
-    };
+  // Pagination
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedYear('');
+    setSelectedMonth('');
+    setCurrentPage(1);
+  };
+
+  return {
+    // State
+    posts,
+    filteredPosts,
+    loading,
+    error,
+    currentPage,
+    searchTerm,
+    selectedYear,
+    selectedMonth,
+    postsPerPage,
+    currentPosts,
+    totalPages,
+
+    // Setters
+    setSearchTerm,
+    setSelectedYear,
+    setSelectedMonth,
+    setCurrentPage,
+
+    // Functions
+    reload: fetchPosts,
+    getAvailableYears,
+    getAvailableMonths,
+    monthNames,
+    handlePageChange,
+    clearFilters,
+  };
 };

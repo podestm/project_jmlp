@@ -7,7 +7,9 @@ export const fileType = (document) => {
 };
 
 /** Název bez přípony („Pokyny JMLP 26-27.pdf“ → „Pokyny JMLP 26-27“). */
-export const documentName = (document) => (document.title || '').replace(/\.[a-z0-9]{2,5}$/i, '').trim();
+export const documentName = (document) =>
+  (document.title || '').replace(/\.[a-z0-9]{2,5}$/i, '').trim();
 
 /** „2025/2026“ → „2025/26“ */
-export const shortSeasonLabel = (season) => `${season.season_year_start}/${String(season.season_year_end).slice(-2)}`;
+export const shortSeasonLabel = (season) =>
+  `${season.season_year_start}/${String(season.season_year_end).slice(-2)}`;

@@ -1,4 +1,13 @@
-import { Button, EmptyState, Field, Input, LoadingState, PageHeader, Paska, Tooltip } from '../../ms/index.js';
+import {
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  LoadingState,
+  PageHeader,
+  Paska,
+  Tooltip,
+} from '../../ms/index.js';
 import NoRaceSelected from '../frame/NoRaceSelected/NoRaceSelected.jsx';
 import { useSelectedRaceId } from '../frame/selectedRace.js';
 import TkPage from '../frame/TkPage/TkPage.jsx';
@@ -23,7 +32,17 @@ export default function RaceHeaderForm() {
   // Závod se vybírá v Přehledu, tady se jen čte.
   const raceId = useSelectedRaceId();
   const {
-    detail, form, loading, saving, message, clearMessage, unavailable, reload, setField, setRunField, save,
+    detail,
+    form,
+    loading,
+    saving,
+    message,
+    clearMessage,
+    unavailable,
+    reload,
+    setField,
+    setRunField,
+    save,
   } = useRaceHeader(raceId);
 
   const handleSubmit = (e) => {
@@ -38,7 +57,11 @@ export default function RaceHeaderForm() {
         <EmptyState
           icon="wifi-off"
           title="Údaje závodu nejsou v zařízení"
-          action={<Button size="sm" icon="refresh" onClick={reload}>Zkusit znovu</Button>}
+          action={
+            <Button size="sm" icon="refresh" onClick={reload}>
+              Zkusit znovu
+            </Button>
+          }
         />
       );
     }
@@ -51,7 +74,10 @@ export default function RaceHeaderForm() {
             <div className={styles.officials}>
               {OFFICIALS.map((official) => (
                 <Field key={official.key} label={official.label} id={`hlavicka-${official.key}`}>
-                  <Input value={form[official.key]} onChange={(e) => setField(official.key, e.target.value)} />
+                  <Input
+                    value={form[official.key]}
+                    onChange={(e) => setField(official.key, e.target.value)}
+                  />
                 </Field>
               ))}
             </div>
@@ -59,12 +85,16 @@ export default function RaceHeaderForm() {
 
           <section className={styles.section}>
             <Paska>Parametry kol</Paska>
-            {form.runs.map((run) => <RunPanel key={run.run_number} run={run} onChange={setRunField} />)}
+            {form.runs.map((run) => (
+              <RunPanel key={run.run_number} run={run} onChange={setRunField} />
+            ))}
           </section>
 
           <div className={styles.saveBar}>
             <Tooltip text="Offline odejde s frontou">
-              <Button type="submit" variant="primary" size="lg" icon="save" busy={saving}>Uložit údaje závodu</Button>
+              <Button type="submit" variant="primary" size="lg" icon="save" busy={saving}>
+                Uložit údaje závodu
+              </Button>
             </Tooltip>
           </div>
         </div>
@@ -76,10 +106,7 @@ export default function RaceHeaderForm() {
 
   return (
     <TkPage>
-      <PageHeader
-        variant="app"
-        title="Detail závodu"
-      />
+      <PageHeader variant="app" title="Detail závodu" />
       <TimekeeperMessage message={message} onDismiss={clearMessage} />
       {body()}
     </TkPage>

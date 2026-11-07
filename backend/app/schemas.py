@@ -17,33 +17,33 @@ class RacerBase(BaseModel):
 
 def _reject_formula_prefix(v):
     """Odmítne hodnoty, které by se v Excelu vyhodnotily jako vzorec (CSV injection)."""
-    if isinstance(v, str) and v[:1] in ('=', '+', '-', '@', '\t', '\r'):
-        raise ValueError('Hodnota nesmí začínat znakem =, +, -, @ ani tabulátorem')
+    if isinstance(v, str) and v[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        raise ValueError("Hodnota nesmí začínat znakem =, +, -, @ ani tabulátorem")
     return v
 
 
 def _empty_slcr_id(v):
     """Starší záznamy mají místo chybějícího ID SLČR pomlčku ("-") nebo nulu;
     formulář je při úpravě pošle zpátky. Pomlčka, nula i prázdný text = bez ID."""
-    if isinstance(v, str) and (v.strip() in ('', '-') or set(v.strip()) == {'0'}):
+    if isinstance(v, str) and (v.strip() in ("", "-") or set(v.strip()) == {"0"}):
         return None
     return v.strip() if isinstance(v, str) else v
 
 
 class RacerCreate(BaseModel):
     firstName: str  # Will be mapped to 'name' field
-    lastName: str   # Will be mapped to 'surname' field
+    lastName: str  # Will be mapped to 'surname' field
     sex: int
     birthYear: int  # Will be mapped to 'year' field
     club_id: Optional[int] = None
     idSlcr: Optional[str] = None  # Will be mapped to 'slcr_id' field
 
-    @field_validator('idSlcr', mode='before')
+    @field_validator("idSlcr", mode="before")
     @classmethod
     def empty_slcr_id(cls, v):
         return _empty_slcr_id(v)
 
-    @field_validator('firstName', 'lastName', 'idSlcr')
+    @field_validator("firstName", "lastName", "idSlcr")
     @classmethod
     def no_formula_prefix(cls, v):
         return _reject_formula_prefix(v)
@@ -65,6 +65,7 @@ class Racer(RacerBase):
 
 class RacerPublic(BaseModel):
     """Veřejná varianta závodníka - bez kontaktních údajů (telefon, email)."""
+
     id: int
     name: Optional[str] = None
     surname: str
@@ -157,19 +158,20 @@ class Race(BaseModel):
 
 class RaceRunIn(BaseModel):
     """Údaje o jednom kole závodu (blok 1.KOLO / 2.KOLO v listině)."""
-    run_number: int
-    course_setter: Optional[str] = None     # STAVITEL TRATI
-    gates_count: Optional[int] = None       # BRANEK
-    conditions: Optional[str] = None        # PODMÍNKY
-    start_time: Optional[str] = None        # ČAS STARTU ("10:00")
-    course_length_m: Optional[str] = None   # DÉLKA TRATI ("400m, 7 stanovišť")
 
-    @field_validator('gates_count', mode='before')
+    run_number: int
+    course_setter: Optional[str] = None  # STAVITEL TRATI
+    gates_count: Optional[int] = None  # BRANEK
+    conditions: Optional[str] = None  # PODMÍNKY
+    start_time: Optional[str] = None  # ČAS STARTU ("10:00")
+    course_length_m: Optional[str] = None  # DÉLKA TRATI ("400m, 7 stanovišť")
+
+    @field_validator("gates_count", mode="before")
     @classmethod
     def empty_to_none(cls, v):
-        return None if v in ('', None) else v
+        return None if v in ("", None) else v
 
-    @field_validator('course_length_m', mode='before')
+    @field_validator("course_length_m", mode="before")
     @classmethod
     def length_text(cls, v):
         if v is None:
@@ -189,7 +191,8 @@ class RaceDetailUpdate(BaseModel):
     listina se řídí naměřenými daty. Údaje o kolech se ukládají pro obě kola
     a do hlavičky se tiskne jen to kolo, které je vyplněné.
     """
-    model_config = ConfigDict(extra='ignore')
+
+    model_config = ConfigDict(extra="ignore")
     race_director: Optional[str] = None
     technical_delegate: Optional[str] = None
     chief_timekeeper: Optional[str] = None
@@ -198,19 +201,20 @@ class RaceDetailUpdate(BaseModel):
 
 class RaceDetail(BaseModel):
     """Vše, co potřebuje hlavička výsledkové listiny."""
+
     race_id: int
     race_nr: Optional[str] = None
-    race_number_label: Optional[str] = None   # "2025-05" (race_nr bez prefixu JMLP)
+    race_number_label: Optional[str] = None  # "2025-05" (race_nr bez prefixu JMLP)
     datum: Optional[date] = None
     areal_name: Optional[str] = None
     organizer_id: Optional[int] = None
     organizer_name: Optional[str] = None
     organizer_logo_url: Optional[str] = None
-    sponsors_url: Optional[str] = None      # pruh sponzorů pod výsledkovou listinou
+    sponsors_url: Optional[str] = None  # pruh sponzorů pod výsledkovou listinou
     season_id: int
     season_name: Optional[str] = None
     edition: Optional[int] = None
-    edition_label: Optional[str] = None       # "XIX."
+    edition_label: Optional[str] = None  # "XIX."
     race_director: Optional[str] = None
     technical_delegate: Optional[str] = None
     chief_timekeeper: Optional[str] = None
@@ -233,20 +237,20 @@ class RegistrationCreate(BaseModel):
     club_id: Optional[int] = None
     club_request_note: Optional[str] = None
 
-    @field_validator('racer_slcr_id', mode='before')
+    @field_validator("racer_slcr_id", mode="before")
     @classmethod
     def empty_slcr_id(cls, v):
         return _empty_slcr_id(v)
 
-    @field_validator('racer_name', 'racer_surname', 'racer_slcr_id')
+    @field_validator("racer_name", "racer_surname", "racer_slcr_id")
     @classmethod
     def no_formula_prefix(cls, v):
         return _reject_formula_prefix(v)
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_club(self):
         if not self.club_id and not (self.club_request_note and self.club_request_note.strip()):
-            raise ValueError('Musíte vybrat klub nebo uvést poznámku')
+            raise ValueError("Musíte vybrat klub nebo uvést poznámku")
         return self
 
 
@@ -265,10 +269,10 @@ class ResolveClubRequest(BaseModel):
     club_id: Optional[int] = None
     new_club_name: Optional[str] = None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_resolution(self):
         if not self.club_id and not (self.new_club_name and self.new_club_name.strip()):
-            raise ValueError('Musíte vybrat existující klub nebo zadat název nového')
+            raise ValueError("Musíte vybrat existující klub nebo zadat název nového")
         return self
 
 
@@ -376,14 +380,14 @@ class File(FileBase):
 
 def _empty_to_none(v):
     """Convert empty strings and 'null' to None for optional integer fields."""
-    if v == '' or v == 'null':
+    if v == "" or v == "null":
         return None
     return v
 
 
 # Race management schemas
 class RaceCreate(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra="ignore")
 
     datum: Optional[str] = None  # Changed from date to str - will be converted in backend
     race_nr: Optional[str] = None
@@ -395,18 +399,25 @@ class RaceCreate(BaseModel):
     areal_id: Optional[Union[int, str]] = None
     organizer_id: Optional[Union[int, str]] = None
     race_method_id: Optional[int] = 1
-    season_id: Optional[int] = None     # Will be auto-generated
+    season_id: Optional[int] = None  # Will be auto-generated
     closed: bool = False
     is_final: bool = False
 
-    @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
+    @field_validator(
+        "areal_id",
+        "organizer_id",
+        "proposition_file_id",
+        "results_file_id",
+        "season_id",
+        mode="before",
+    )
     @classmethod
     def empty_string_to_none(cls, v):
         return _empty_to_none(v)
 
 
 class RaceUpdate(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra="ignore")
 
     datum: Optional[date] = None
     race_nr: Optional[str] = None
@@ -422,7 +433,14 @@ class RaceUpdate(BaseModel):
     closed: Optional[bool] = None
     is_final: Optional[bool] = None
 
-    @field_validator('areal_id', 'organizer_id', 'proposition_file_id', 'results_file_id', 'season_id', mode='before')
+    @field_validator(
+        "areal_id",
+        "organizer_id",
+        "proposition_file_id",
+        "results_file_id",
+        "season_id",
+        mode="before",
+    )
     @classmethod
     def empty_string_to_none(cls, v):
         return _empty_to_none(v)
@@ -430,10 +448,11 @@ class RaceUpdate(BaseModel):
 
 # ===== Sezóny (ročníky poháru) =====
 
+
 class SeasonBase(BaseModel):
     year_start: int
-    year_end: Optional[int] = None       # dopočítá se jako year_start + 1
-    edition: Optional[int] = None        # 19 -> "XIX."
+    year_end: Optional[int] = None  # dopočítá se jako year_start + 1
+    edition: Optional[int] = None  # 19 -> "XIX."
     name: str = "Jihomoravský lyžařský pohár"
 
 
@@ -442,7 +461,7 @@ class SeasonCreate(SeasonBase):
 
 
 class SeasonUpdate(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra="ignore")
     year_end: Optional[int] = None
     edition: Optional[int] = None
     name: Optional[str] = None
@@ -451,9 +470,9 @@ class SeasonUpdate(BaseModel):
 class Season(SeasonBase):
     id: int
     year_end: int
-    is_current: bool = False              # aktuální sezóna (nastavuje se zvlášť)
-    edition_label: Optional[str] = None   # "XIX."
-    season_label: Optional[str] = None    # "2025/2026"
+    is_current: bool = False  # aktuální sezóna (nastavuje se zvlášť)
+    edition_label: Optional[str] = None  # "XIX."
+    season_label: Optional[str] = None  # "2025/2026"
     races_count: int = 0
     documents_count: int = 0
 
@@ -462,6 +481,7 @@ class Season(SeasonBase):
 
 # ===== Timekeeper schemas =====
 
+
 class StartListEntryBase(BaseModel):
     race_id: int
     racer_id: int
@@ -469,8 +489,10 @@ class StartListEntryBase(BaseModel):
     start_number: Optional[int] = None
     race_number_id: Optional[int] = None
 
+
 class StartListEntryCreate(StartListEntryBase):
     pass
+
 
 class StartListEntryUpdate(BaseModel):
     base_revision: Optional[str] = None
@@ -493,9 +515,12 @@ class StartListEntryUpdate(BaseModel):
     dsq: Optional[bool] = None
     points: Optional[int] = None
 
+
 class StartListExcludedUpdate(BaseModel):
     """Vyřazení ze startovky - cílový stav, ne přepínač (viz start_list.py)."""
+
     excluded: bool
+
 
 class StartListEntry(StartListEntryBase):
     id: int
@@ -523,8 +548,10 @@ class StartListEntry(StartListEntryBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class TimeEntry(BaseModel):
     """For batch time entry"""
+
     entry_id: int
     base_revision: Optional[str] = None
     force_apply: Optional[bool] = False
@@ -534,9 +561,12 @@ class TimeEntry(BaseModel):
     dns: bool = False
     dsq: bool = False
 
+
 class BatchTimeEntry(BaseModel):
     """Batch update times for multiple racers"""
+
     entries: list[TimeEntry]
+
 
 class RaceNumberInfo(BaseModel):
     id: int

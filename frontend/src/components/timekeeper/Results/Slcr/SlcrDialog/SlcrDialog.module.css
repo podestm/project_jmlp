@@ -4,7 +4,7 @@
  */
 .layout {
   display: grid;
-  grid-template-areas: "event" "plan" "results";
+  grid-template-areas: 'event' 'plan' 'results';
   align-items: start;
   gap: var(--ms-space-4);
 }
@@ -41,8 +41,8 @@
     grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
     grid-template-areas:
-      "event plan"
-      "results plan";
+      'event plan'
+      'results plan';
   }
 
   .plan {

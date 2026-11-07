@@ -1,6 +1,12 @@
 import { Fragment } from 'react';
 import { Badge, Table, TableScroll } from '../../../ms/index.js';
-import { clubLabel, formatRegisteredAt, isWaitingForClub, racerName, sexLabel } from '../registrations.js';
+import {
+  clubLabel,
+  formatRegisteredAt,
+  isWaitingForClub,
+  racerName,
+  sexLabel,
+} from '../registrations.js';
 import styles from './RegistrationTable.module.css';
 
 /**
@@ -17,12 +23,20 @@ export default function RegistrationTable({ groups }) {
         <thead>
           <tr>
             <th scope="col">Závodník</th>
-            <th scope="col" className={styles.narrow}>Ročník</th>
-            <th scope="col" className={styles.narrow}>Pohlaví</th>
+            <th scope="col" className={styles.narrow}>
+              Ročník
+            </th>
+            <th scope="col" className={styles.narrow}>
+              Pohlaví
+            </th>
             <th scope="col">Kategorie</th>
-            <th scope="col" className={styles.narrow}>SLČR</th>
+            <th scope="col" className={styles.narrow}>
+              SLČR
+            </th>
             {showClub && <th scope="col">Klub</th>}
-            <th scope="col" data-align="end">Přihlášen</th>
+            <th scope="col" data-align="end">
+              Přihlášen
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -39,19 +53,32 @@ export default function RegistrationTable({ groups }) {
               {group.items.map((registration) => {
                 const waiting = isWaitingForClub(registration);
                 return (
-                  <tr key={registration.registration_id} data-state={waiting ? 'warning' : undefined}>
+                  <tr
+                    key={registration.registration_id}
+                    data-state={waiting ? 'warning' : undefined}
+                  >
                     <td>
                       <span className={styles.name}>
                         <strong>{racerName(registration)}</strong>
-                        {waiting && <Badge tone="dry" size="sm">Čeká na klub</Badge>}
+                        {waiting && (
+                          <Badge tone="dry" size="sm">
+                            Čeká na klub
+                          </Badge>
+                        )}
                       </span>
                     </td>
                     <td data-numeric>{registration.birthYear}</td>
-                    <td>{sexLabel(registration.sex) && <Badge size="sm">{sexLabel(registration.sex)}</Badge>}</td>
+                    <td>
+                      {sexLabel(registration.sex) && (
+                        <Badge size="sm">{sexLabel(registration.sex)}</Badge>
+                      )}
+                    </td>
                     <td>{registration.category_name}</td>
                     <td className={styles.mono}>{registration.idSlcr}</td>
                     {showClub && <td>{clubLabel(registration.club_name)}</td>}
-                    <td data-align="end" className={styles.mono}>{formatRegisteredAt(registration.registration_date)}</td>
+                    <td data-align="end" className={styles.mono}>
+                      {formatRegisteredAt(registration.registration_date)}
+                    </td>
                   </tr>
                 );
               })}

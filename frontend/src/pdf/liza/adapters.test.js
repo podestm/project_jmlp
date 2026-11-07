@@ -5,19 +5,36 @@ import {
   clubListInput,
   resultCategories,
   secondRunEntries,
-  startListCategories
+  startListCategories,
 } from './adapters.js';
 
 const row = (id, overrides = {}) => ({
-  id, start_number: id, race_number_actual: id, racer_surname: `P${id}`, racer_name: 'J', racer_year: 2018,
-  racer_sex: 2, club_name: 'Klub', category_sex: 2, time1: null, time2: null, time_sum: null,
-  dnf: false, dns: false, dsq: false, ...overrides
+  id,
+  start_number: id,
+  race_number_actual: id,
+  racer_surname: `P${id}`,
+  racer_name: 'J',
+  racer_year: 2018,
+  racer_sex: 2,
+  club_name: 'Klub',
+  category_sex: 2,
+  time1: null,
+  time2: null,
+  time_sum: null,
+  dnf: false,
+  dns: false,
+  dsq: false,
+  ...overrides,
 });
 
 describe('2. kolo', () => {
   const entries = [
-    row(1, { time1: 32 }), row(2, { time1: 30 }), row(3, { dnf: true }),
-    row(4, { time1: 31, dsq: true }), row(5), row(6, { time1: 30 })
+    row(1, { time1: 32 }),
+    row(2, { time1: 30 }),
+    row(3, { dnf: true }),
+    row(4, { time1: 31, dsq: true }),
+    row(5),
+    row(6, { time1: 30 }),
   ];
 
   it('kdo měl v 1. kole DSQ/DNF/DNS nebo nemá čas, nestartuje', () => {
@@ -29,14 +46,19 @@ describe('2. kolo', () => {
   });
 
   it('startovka 2. kola vynechá kategorii bez startujících', () => {
-    const categories = [{ category_name: 'A', entries: [row(9, { dns: true })] }, { category_name: 'B', entries }];
+    const categories = [
+      { category_name: 'A', entries: [row(9, { dns: true })] },
+      { category_name: 'B', entries },
+    ];
     expect(startListCategories(categories, 2).map((c) => c.name)).toEqual(['B']);
   });
 });
 
 describe('výsledky', () => {
   it('pořadí, ztráta a body; od 30. místa po bodu', () => {
-    const entries = Array.from({ length: 32 }, (_, i) => row(i + 1, { time1: 30 + i, time_sum: 30 + i }));
+    const entries = Array.from({ length: 32 }, (_, i) =>
+      row(i + 1, { time1: 30 + i, time_sum: 30 + i }),
+    );
     const [category] = resultCategories([{ category_name: 'A', entries }], 'final');
     expect(category.entries[0]).toMatchObject({ rank: 1, points: 100, diff: null, total: 30 });
     expect(category.entries[1]).toMatchObject({ rank: 2, points: 80, diff: 1 });
@@ -44,7 +66,9 @@ describe('výsledky', () => {
   });
 
   it('nedokončivší nesou stav místo pořadí', () => {
-    const [category] = resultCategories([{ category_name: 'A', entries: [row(1, { dsq: true }), row(2, { time1: 30, time_sum: 30 })] }]);
+    const [category] = resultCategories([
+      { category_name: 'A', entries: [row(1, { dsq: true }), row(2, { time1: 30, time_sum: 30 })] },
+    ]);
     expect(category.entries.map((e) => e.rank ?? e.status)).toEqual([1, 'DSQ']);
   });
 });
@@ -54,11 +78,13 @@ describe('listina 2. kola', () => {
     const entries = [
       row(1, { time1: 30, time2: 35, time_sum: 65 }),
       row(2, { time1: 31, time2: 31, time_sum: 62 }),
-      row(3, { time1: 29, time_sum: 29 })
+      row(3, { time1: 29, time_sum: 29 }),
     ];
     const [category] = resultCategories([{ category_name: 'A', entries }], 'run', 2);
     expect(category.entries.map((e) => [e.surname, e.rank, e.total, e.diff])).toEqual([
-      ['P2', 1, 62, null], ['P1', 2, 65, 3], ['P3', null, null, null]
+      ['P2', 1, 62, null],
+      ['P1', 2, 65, 3],
+      ['P3', null, null, null],
     ]);
     expect(category.entries[2]).toMatchObject({ time1: 29, time2: null });
   });
@@ -67,11 +93,23 @@ describe('listina 2. kola', () => {
 describe('rozpis po klubech', () => {
   it('sady a zkratky kategorií z dat', () => {
     const input = clubListInput([
-      { category_name: 'Myšáci dívky', entries: [row(1, { set_number: 1 }), row(2, { set_number: 2 })] },
-      { category_name: 'OPEN muži', entries: [row(3, { set_number: 1, racer_sex: 1, category_sex: 1 })] }
+      {
+        category_name: 'Myšáci dívky',
+        entries: [row(1, { set_number: 1 }), row(2, { set_number: 2 })],
+      },
+      {
+        category_name: 'OPEN muži',
+        entries: [row(3, { set_number: 1, racer_sex: 1, category_sex: 1 })],
+      },
     ]);
-    expect(input.sets).toEqual([{ number: 1, name: 'První sada' }, { number: 2, name: 'Druhá sada' }]);
-    expect(input.categories).toEqual([{ code: 'MYD', name: 'Myšáci dívky' }, { code: 'OM', name: 'OPEN muži' }]);
+    expect(input.sets).toEqual([
+      { number: 1, name: 'První sada' },
+      { number: 2, name: 'Druhá sada' },
+    ]);
+    expect(input.categories).toEqual([
+      { code: 'MYD', name: 'Myšáci dívky' },
+      { code: 'OM', name: 'OPEN muži' },
+    ]);
     expect(input.entries.map((e) => e.categoryCode)).toEqual(['MYD', 'MYD', 'OM']);
   });
 });

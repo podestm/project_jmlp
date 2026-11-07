@@ -29,7 +29,7 @@ const EXPLANATION = [
   'Uvedeno je vždy pořadí/přidělené body (vyznačeny jsou započtené body)',
   'V součtových sloupcích je uveden součet bodů v přípravných kolech,',
   'v závodech na sněhu a  suma započtených bodů. Body z přípravných závodů se',
-  'započtou pouze při alespoň jedné účasti na závodech na sněhu.'
+  'započtou pouze při alespoň jedné účasti na závodech na sněhu.',
 ];
 const POINTS_HEADER = 'BODY   přípr.      sníh.         za';
 
@@ -55,14 +55,15 @@ const onGrid = (value) => Math.round(value / GRID) * GRID;
 
 /** Levé okraje sloupců závodů; víc sloupců, než se vejde, se zúží. */
 export function raceColumns(count) {
-  const pitch = count > 1
-    ? Math.min(COLUMN_PITCH, (COLUMNS_END - COLUMN_START - CELL_WIDTH) / (count - 1))
-    : COLUMN_PITCH;
+  const pitch =
+    count > 1
+      ? Math.min(COLUMN_PITCH, (COLUMNS_END - COLUMN_START - CELL_WIDTH) / (count - 1))
+      : COLUMN_PITCH;
   const width = Math.min(CELL_WIDTH, pitch - 1.44);
   return Array.from({ length: count }, (_, index) => ({
     left: onGrid(COLUMN_START + pitch * index),
     head: onGrid(COLUMN_START + 0.9 + pitch * index),
-    width
+    width,
   }));
 }
 
@@ -102,7 +103,9 @@ function drawTitleBlock(canvas, { cupName, seasonLabel, final, printedOn, logo }
   const labelX = Math.max(370.08, 144.72 + textWidth(cupName, TITLE) + textWidth(' ', TITLE));
   canvas.text(seasonLabel, labelX, 37.56, TITLE);
   canvas.text(final ? SUBTITLE_FINAL : SUBTITLE_INTERIM, 146.88, 63.84, SUBTITLE);
-  EXPLANATION.forEach((line, index) => spacedText(canvas, line, 492.48, 30.96 + 9 * index, REGULAR8));
+  EXPLANATION.forEach((line, index) =>
+    spacedText(canvas, line, 492.48, 30.96 + 9 * index, REGULAR8),
+  );
   canvas.line(17.28, 84.24, 792.0, 84.24);
 }
 
@@ -112,7 +115,9 @@ function drawColumnHeader(canvas, columns, races, line) {
   canvas.text('pořadí', 18.72, base, ITALIC10);
   canvas.text('jméno a ročník', 75.6, base, ITALIC10);
   canvas.text('klub', 241.2, base, ITALIC10);
-  races.forEach((race, index) => canvas.text(race.code, columns[index].head, base - 0.12, REGULAR8));
+  races.forEach((race, index) =>
+    canvas.text(race.code, columns[index].head, base - 0.12, REGULAR8),
+  );
   spacedText(canvas, POINTS_HEADER, 668.16, base + 1.44, ITALIC10);
   canvas.line(15.12, line, 792.0, line);
   return line;
@@ -140,26 +145,38 @@ function drawRow(canvas, row, base, columns, final, index) {
   // Tučně první tři řádky kategorie - u LIP podle řádku, ne podle místa
   // (v průběžném pořadí 28. 1. 2026 tak tučně i třetí řádek bez místa).
   const podium = index < 3;
-  canvas.text(name, 48.96, podium ? base + 0.12 : base, { ...(podium ? BOLD10 : REGULAR10), maxWidth: 193.92 - 48.96 });
+  canvas.text(name, 48.96, podium ? base + 0.12 : base, {
+    ...(podium ? BOLD10 : REGULAR10),
+    maxWidth: 193.92 - 48.96,
+  });
   if (row.year != null) canvas.text(String(row.year), 193.92, base - 0.72, REGULAR8);
   // Klub se ořízne o první sloupec závodu ("TJ Sokol Deštné v Orlických ho").
-  canvas.text(row.club || '', 218.16, base - 0.72, { ...REGULAR8, maxWidth: COLUMN_START - 218.16 });
+  canvas.text(row.club || '', 218.16, base - 0.72, {
+    ...REGULAR8,
+    maxWidth: COLUMN_START - 218.16,
+  });
 
   row.cells.forEach((cell, index) => {
     if (!cell) return;
     const column = columns[index];
     if (cell.counted) {
       canvas.rect(column.left, base - 8.4, column.left + column.width, base + 3.12, {
-        fill: cell.kind === 'P' ? COUNTED_PREP : COUNTED_SNOW
+        fill: cell.kind === 'P' ? COUNTED_PREP : COUNTED_SNOW,
       });
     }
     canvas.text(cell.text, column.left + column.width / 2, base, { ...REGULAR8, align: 'center' });
   });
 
-  if (row.prep_points > 0) canvas.text(String(row.prep_points), 714.95, base + 0.72, { ...REGULAR8, align: 'right' });
-  if (row.snow_points > 0) canvas.text(String(row.snow_points), 749.51, base + 0.72, { ...REGULAR8, align: 'right' });
+  if (row.prep_points > 0)
+    canvas.text(String(row.prep_points), 714.95, base + 0.72, { ...REGULAR8, align: 'right' });
+  if (row.snow_points > 0)
+    canvas.text(String(row.snow_points), 749.51, base + 0.72, { ...REGULAR8, align: 'right' });
   const style = totalStyle(row, final);
-  if (style) canvas.text(String(row.total), 786.23, style.bold ? base + 0.12 : base, { ...style, align: 'right' });
+  if (style)
+    canvas.text(String(row.total), 786.23, style.bold ? base + 0.12 : base, {
+      ...style,
+      align: 'right',
+    });
 
   canvas.line(36.0, base + 3.12, 792.0, base + 3.12, { color: ROW_LINE });
 }
@@ -169,7 +186,8 @@ const LEGEND_TITLE = 'Zpracované výsledky ze závodů:';
 const LEGEND_PER_COLUMN = 5;
 const LEGEND_COLUMN_PITCH = 156.96;
 
-const legendBottom = (top, count) => top + 11.52 + 13.8 + ROW_PITCH * (Math.min(count, LEGEND_PER_COLUMN) - 1);
+const legendBottom = (top, count) =>
+  top + 11.52 + 13.8 + ROW_PITCH * (Math.min(count, LEGEND_PER_COLUMN) - 1);
 
 function drawLegend(canvas, races, line) {
   canvas.line(18.72, line, 792.0, line);
@@ -181,7 +199,8 @@ function drawLegend(canvas, races, line) {
     const codeX = 18.0 + LEGEND_COLUMN_PITCH * column;
     canvas.text(race.code, codeX, base, REGULAR8);
     canvas.text(race.areal_name || '', column === 0 ? 48.96 : codeX + 32.4, base, {
-      ...REGULAR8, maxWidth: LEGEND_COLUMN_PITCH - 34
+      ...REGULAR8,
+      maxWidth: LEGEND_COLUMN_PITCH - 34,
     });
   });
 }
@@ -209,7 +228,7 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
     seasonLabel: standings.season_label || '',
     final,
     printedOn,
-    logo
+    logo,
   });
   drawColumnHeader(canvas, columns, races, FIRST_HEADER_LINE);
   // Účaří "předchozího řádku" - kategorie i řádky se odvíjejí od něj.
@@ -252,7 +271,6 @@ export function buildStandingsDoc({ standings, printedOn = new Date(), logo = nu
 
   canvas.footer(() => drawFooter(canvas));
   return canvas.toDocDefinition({
-    title: `${final ? SUBTITLE_FINAL : SUBTITLE_INTERIM} ${standings.season_label || ''}`.trim()
+    title: `${final ? SUBTITLE_FINAL : SUBTITLE_INTERIM} ${standings.season_label || ''}`.trim(),
   });
 }
-

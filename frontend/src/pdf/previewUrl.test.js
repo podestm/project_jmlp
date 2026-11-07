@@ -8,9 +8,15 @@ import { createPreviewUrl, PREVIEW_CACHE } from './previewUrl.js';
 const fakeCaches = () => {
   const store = new Map();
   const cache = {
-    put: vi.fn(async (url, response) => { store.set(new URL(url, 'https://jmlp.cz').href, response); }),
+    put: vi.fn(async (url, response) => {
+      store.set(new URL(url, 'https://jmlp.cz').href, response);
+    }),
     keys: vi.fn(async () => [...store.keys()].map((url) => ({ url }))),
-    delete: vi.fn(async (request) => store.delete(typeof request === 'string' ? new URL(request, 'https://jmlp.cz').href : request.url))
+    delete: vi.fn(async (request) =>
+      store.delete(
+        typeof request === 'string' ? new URL(request, 'https://jmlp.cz').href : request.url,
+      ),
+    ),
   };
   return { store, cache, open: vi.fn(async () => cache) };
 };
@@ -21,7 +27,10 @@ beforeEach(() => {
   caches = fakeCaches();
   vi.stubGlobal('caches', caches);
   vi.stubGlobal('navigator', { serviceWorker: { controller: {} } });
-  vi.stubGlobal('fetch', vi.fn(async () => ({ headers: new Headers({ 'Content-Type': 'application/pdf' }) })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ headers: new Headers({ 'Content-Type': 'application/pdf' }) })),
+  );
   URL.createObjectURL = vi.fn(() => 'blob:nahodne-uuid');
   URL.revokeObjectURL = vi.fn();
 });
@@ -35,7 +44,9 @@ describe('náhled PDF pod správným názvem', () => {
   it('soubor je v keši náhledů pod adresou končící názvem souboru', async () => {
     const preview = await createPreviewUrl(pdf, NAME, 1000);
 
-    expect(preview.url).toMatch(/^\/pdf-preview\/1000-[a-z0-9]+\/2026-10-03_JMLP2026-01_vysledky\.pdf$/);
+    expect(preview.url).toMatch(
+      /^\/pdf-preview\/1000-[a-z0-9]+\/2026-10-03_JMLP2026-01_vysledky\.pdf$/,
+    );
     expect(caches.open).toHaveBeenCalledWith(PREVIEW_CACHE);
     const stored = [...caches.store.values()][0];
     expect(stored.headers.get('Content-Type')).toBe('application/pdf');

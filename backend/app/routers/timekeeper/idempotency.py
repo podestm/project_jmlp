@@ -1,4 +1,5 @@
 """Helpers for idempotent timekeeper sync operations."""
+
 import json
 from typing import Any, Dict, Optional
 from sqlalchemy import text
@@ -12,7 +13,8 @@ def ensure_idempotency_table(db: Session) -> None:
     if _table_ready:
         return
 
-    db.execute(text("""
+    db.execute(
+        text("""
         CREATE TABLE IF NOT EXISTS fuj_jmlp_timekeeper_idempotency (
             id BIGINT NOT NULL AUTO_INCREMENT,
             idempotency_key VARCHAR(128) NOT NULL,
@@ -26,24 +28,22 @@ def ensure_idempotency_table(db: Session) -> None:
             UNIQUE KEY uq_timekeeper_idempotency (idempotency_key, admin_id, method, endpoint),
             KEY idx_timekeeper_idempotency_created (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    """))
+    """)
+    )
     db.commit()
     _table_ready = True
 
 
 def try_get_idempotent_response(
-    db: Session,
-    idempotency_key: Optional[str],
-    admin_id: int,
-    method: str,
-    endpoint: str
+    db: Session, idempotency_key: Optional[str], admin_id: int, method: str, endpoint: str
 ) -> Optional[Dict[str, Any]]:
     if not idempotency_key:
         return None
 
     ensure_idempotency_table(db)
 
-    row = db.execute(text("""
+    row = db.execute(
+        text("""
         SELECT response_json
         FROM fuj_jmlp_timekeeper_idempotency
         WHERE idempotency_key = :idempotency_key
@@ -51,12 +51,14 @@ def try_get_idempotent_response(
           AND method = :method
           AND endpoint = :endpoint
         LIMIT 1
-    """), {
-        "idempotency_key": idempotency_key,
-        "admin_id": admin_id,
-        "method": method,
-        "endpoint": endpoint,
-    }).first()
+    """),
+        {
+            "idempotency_key": idempotency_key,
+            "admin_id": admin_id,
+            "method": method,
+            "endpoint": endpoint,
+        },
+    ).first()
 
     if not row:
         return None
@@ -72,14 +74,15 @@ def store_idempotent_response(
     admin_id: int,
     method: str,
     endpoint: str,
-    response_payload: Dict[str, Any]
+    response_payload: Dict[str, Any],
 ) -> None:
     if not idempotency_key:
         return
 
     ensure_idempotency_table(db)
 
-    db.execute(text("""
+    db.execute(
+        text("""
         INSERT INTO fuj_jmlp_timekeeper_idempotency (
             idempotency_key,
             admin_id,
@@ -96,11 +99,13 @@ def store_idempotent_response(
         ON DUPLICATE KEY UPDATE
             response_json = VALUES(response_json),
             updated_at = CURRENT_TIMESTAMP
-    """), {
-        "idempotency_key": idempotency_key,
-        "admin_id": admin_id,
-        "method": method,
-        "endpoint": endpoint,
-        "response_json": json.dumps(response_payload, ensure_ascii=False),
-    })
+    """),
+        {
+            "idempotency_key": idempotency_key,
+            "admin_id": admin_id,
+            "method": method,
+            "endpoint": endpoint,
+            "response_json": json.dumps(response_payload, ensure_ascii=False),
+        },
+    )
     db.commit()

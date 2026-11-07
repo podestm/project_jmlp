@@ -26,13 +26,18 @@ export default function RaceNumbersManager() {
       <PageHeader
         variant="app"
         title="Startovní čísla"
-        actions={(
+        actions={
           <Tooltip text="Sady platí pro celou sezónu">
-            <Button variant="primary" icon={showSetForm ? 'close' : 'plus'} aria-expanded={showSetForm} onClick={() => setShowSetForm(!showSetForm)}>
+            <Button
+              variant="primary"
+              icon={showSetForm ? 'close' : 'plus'}
+              aria-expanded={showSetForm}
+              onClick={() => setShowSetForm(!showSetForm)}
+            >
               {showSetForm ? 'Zrušit' : 'Nová sada'}
             </Button>
           </Tooltip>
-        )}
+        }
       />
 
       <TimekeeperMessage message={message} onDismiss={clearMessage} />
@@ -44,12 +49,17 @@ export default function RaceNumbersManager() {
           <section className={styles.sets} aria-labelledby="sady-dresu">
             <Paska
               id="sady-dresu"
-              aside={sets.length > 0 && `${summary.sets} ${plural(summary.sets, ['sada', 'sady', 'sad'])} · ${summary.total} čísel celkem · ${summary.active} aktivních`}
+              aside={
+                sets.length > 0 &&
+                `${summary.sets} ${plural(summary.sets, ['sada', 'sady', 'sad'])} · ${summary.total} čísel celkem · ${summary.active} aktivních`
+              }
             >
               Sady dresů
             </Paska>
             {sets.length > 0 ? (
-              sets.map((set) => <NumberSetCard key={set.set_number} set={set} numbersApi={numbersApi} />)
+              sets.map((set) => (
+                <NumberSetCard key={set.set_number} set={set} numbersApi={numbersApi} />
+              ))
             ) : (
               <EmptyState icon="numbers" title="Žádné sady startovních čísel" />
             )}

@@ -16,7 +16,7 @@ const queueRow = (overrides = {}) => ({
   method: 'PUT',
   endpoint: '/api/timekeeper/start-list/1/time',
   payload: { time1: 10 },
-  ...overrides
+  ...overrides,
 });
 
 beforeEach(async () => {
@@ -34,7 +34,9 @@ describe('useSyncStatus - výpadek spojení', () => {
     await timekeeperDb.syncQueue.add(queueRow());
     const { result } = renderHook(() => useSyncStatus());
 
-    await act(async () => { await TimekeeperAPI.flushQueue(); });
+    await act(async () => {
+      await TimekeeperAPI.flushQueue();
+    });
 
     await waitFor(() => expect(result.current.syncState).toBe('offline'));
     expect(result.current.isOnline).toBe(false);
@@ -42,13 +44,21 @@ describe('useSyncStatus - výpadek spojení', () => {
   });
 
   it('skutečná chyba serveru zůstává chybou synchronizace', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false, status: 503, statusText: 'Test', json: async () => ({})
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Test',
+        json: async () => ({}),
+      }),
+    );
     await timekeeperDb.syncQueue.add(queueRow());
     const { result } = renderHook(() => useSyncStatus());
 
-    await act(async () => { await TimekeeperAPI.flushQueue(); });
+    await act(async () => {
+      await TimekeeperAPI.flushQueue();
+    });
 
     await waitFor(() => expect(result.current.syncState).toBe('error'));
     expect(result.current.isOnline).toBe(true);

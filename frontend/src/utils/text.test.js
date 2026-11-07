@@ -6,10 +6,8 @@ import { fixEncoding, formatText } from './text.js';
  * přečtené jako Latin-1. Psát ji do zdrojáku ručně nejde - obsahuje
  * neviditelné řídicí znaky, které se při kopírování ztratí.
  */
-const mojibake = (text) => Array.from(
-  new TextEncoder().encode(text),
-  (byte) => String.fromCharCode(byte)
-).join('');
+const mojibake = (text) =>
+  Array.from(new TextEncoder().encode(text), (byte) => String.fromCharCode(byte)).join('');
 
 describe('fixEncoding', () => {
   it('opraví dvojitě zakódovanou češtinu', () => {
@@ -55,8 +53,7 @@ describe('formatText', () => {
 
   it('escapuje HTML dřív, než přidá vlastní značky', () => {
     // Bez toho by šel do dangerouslySetInnerHTML cizí skript.
-    expect(formatText('<script>alert(1)</script>'))
-      .toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(formatText('<script>alert(1)</script>')).toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(formatText('<img onerror="x">')).not.toContain('<img');
   });
 

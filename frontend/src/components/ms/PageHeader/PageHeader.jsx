@@ -6,7 +6,15 @@ import styles from './PageHeader.module.css';
  * - variant public: H1 42 px (veřejný web)
  * - variant app: H1 27 px a `meta` hned za ním na řádku (administrace, časomíra)
  */
-export default function PageHeader({ variant = 'public', eyebrow, title, meta, description, actions, className }) {
+export default function PageHeader({
+  variant = 'public',
+  eyebrow,
+  title,
+  meta,
+  description,
+  actions,
+  className,
+}) {
   return (
     <header className={cx(styles.header, styles[variant], className)}>
       <div className={styles.text}>

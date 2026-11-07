@@ -19,8 +19,12 @@
   background: var(--ms-overlay, rgb(0 41 62 / 0.6));
 }
 
-.sm { inline-size: 480px; }
-.lg { inline-size: 880px; }
+.sm {
+  inline-size: 480px;
+}
+.lg {
+  inline-size: 880px;
+}
 
 .full {
   inline-size: var(--ms-container);

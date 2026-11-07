@@ -4,9 +4,18 @@ import SlcrName from './SlcrName.jsx';
 
 describe('SlcrName', () => {
   it('propojený závodník je odkaz na kartu člena SLČR do nového okna', () => {
-    render(<SlcrName racer={{ slcr_url: 'https://evidence.czech-ski.com/clenove/42073/valeska-viktorie' }}>Valeská Viktorie</SlcrName>);
+    render(
+      <SlcrName
+        racer={{ slcr_url: 'https://evidence.czech-ski.com/clenove/42073/valeska-viktorie' }}
+      >
+        Valeská Viktorie
+      </SlcrName>,
+    );
     const link = screen.getByRole('link', { name: 'Valeská Viktorie' });
-    expect(link).toHaveAttribute('href', 'https://evidence.czech-ski.com/clenove/42073/valeska-viktorie');
+    expect(link).toHaveAttribute(
+      'href',
+      'https://evidence.czech-ski.com/clenove/42073/valeska-viktorie',
+    );
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });

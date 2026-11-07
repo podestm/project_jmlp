@@ -83,10 +83,14 @@ export function drawFlag(canvas, x1, top, x2, bottom) {
         closePath: true,
         color: FLAG_BLUE,
         lineWidth: 0,
-        points: [{ x: x1, y: y1 }, { x: tip, y: y1 + h / 2 }, { x: x1, y: y2 }]
-      }
+        points: [
+          { x: x1, y: y1 },
+          { x: tip, y: y1 + h / 2 },
+          { x: x1, y: y2 },
+        ],
+      },
     ],
-    absolutePosition: { x: 0, y: 0 }
+    absolutePosition: { x: 0, y: 0 },
   });
 }
 
@@ -113,13 +117,19 @@ export function drawLogo(canvas, logo, x, y, maxWidth, maxHeight) {
  * Pruh s logy sponzorů na konci listiny, mezi dvěma linkami. Bez obrázku
  * zůstane mezi linkami prázdné místo - LiZa ho tiskne i u startovní listiny.
  */
-export function drawSponsors(canvas, sponsors, lastRowBottom, { lineFrom = 17.28, lineTo = 537.84, gap = 79.2 } = {}) {
+export function drawSponsors(
+  canvas,
+  sponsors,
+  lastRowBottom,
+  { lineFrom = 17.28, lineTo = 537.84, gap = 79.2 } = {},
+) {
   const top = lastRowBottom + 0.72;
   canvas.line(lineFrom, top, lineTo, top);
   if (sponsors?.dataUrl) {
     const maxWidth = 540.72;
     const maxHeight = gap - 2;
-    const ratio = sponsors.width && sponsors.height ? sponsors.width / sponsors.height : maxWidth / maxHeight;
+    const ratio =
+      sponsors.width && sponsors.height ? sponsors.width / sponsors.height : maxWidth / maxHeight;
     let width = maxWidth;
     let height = width / ratio;
     if (height > maxHeight) {

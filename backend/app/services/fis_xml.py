@@ -24,6 +24,7 @@ v jednom <Fisresults> neprojde). Výsledky přiřadí k závodu v akci podle
 navíc. Do <Fiscode> jde české číslo závodníka - při nahrání zvolit
 "České číslo závodníka" (athleteCodeType=RACE_CODE).
 """
+
 from __future__ import annotations
 
 import re
@@ -57,7 +58,7 @@ class RaceHeader:
 @dataclass
 class CategoryResults:
     name: str
-    sex: Optional[int]          # 1 muži, 2 ženy
+    sex: Optional[int]  # 1 muži, 2 ženy
     ranked: List[RankedEntry] = field(default_factory=list)
     # Kodex závodu v evidenci (sloupec "Kodex" u závodu). Stálé číslo
     # kategorie - podle něj má import přiřadit soubor k existujícímu závodu
@@ -99,7 +100,7 @@ def _bib(row) -> str:
 
 
 def _split_name(full_name: Optional[str]) -> tuple[str, str]:
-    """"Markéta Slováčková" -> ("Slováčková", "Markéta")."""
+    """ "Markéta Slováčková" -> ("Slováčková", "Markéta")."""
     parts = (full_name or "").split()
     if not parts:
         return "", ""
@@ -172,8 +173,10 @@ def _race_element(header: RaceHeader, category: CategoryResults) -> ET.Element:
 
     al_race = _sub(root, "AL_race")
     info = _sub(al_race, "AL_raceinfo")
-    for function, person in (("TechnicalDelegate", header.technical_delegate),
-                             ("RaceDirector", header.race_director)):
+    for function, person in (
+        ("TechnicalDelegate", header.technical_delegate),
+        ("RaceDirector", header.race_director),
+    ):
         if not _clean(person):
             continue
         last, first = _split_name(_clean(person))
@@ -213,4 +216,6 @@ def _race_element(header: RaceHeader, category: CategoryResults) -> ET.Element:
 
 def unfinished_count(categories: Iterable[CategoryResults]) -> int:
     """Kolik startujících nemá čas ani příznak (do XML se nedostanou)."""
-    return sum(1 for c in categories for item in c.ranked if item.rank is None and item.status is None)
+    return sum(
+        1 for c in categories for item in c.ranked if item.rank is None and item.status is None
+    )

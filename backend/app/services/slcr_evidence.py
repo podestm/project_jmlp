@@ -53,6 +53,7 @@ Zkušební režim (SLCR_DRY_RUN=1): čtení jde do evidence naostro, zápisy
 zveřejnění) se neposílají – jen se zapamatují v paměti procesu a čtení akce
 je do výsledku promítne, aby šel celý postup proklikat. Do restartu backendu.
 """
+
 from __future__ import annotations
 
 import os
@@ -157,12 +158,14 @@ def existing_race_input(race: Dict[str, Any]) -> Dict[str, Any]:
     if category.get("__typename") == "PublicRacingCategory":
         category_input = {"codebook": category.get("id")}
     else:
-        category_input = {"manual": {
-            "name": category.get("name") or race.get("name") or "",
-            "sex": category.get("sex") or race.get("sex") or "Both",
-            "yearFrom": category.get("yearFrom"),
-            "yearTo": category.get("yearTo"),
-        }}
+        category_input = {
+            "manual": {
+                "name": category.get("name") or race.get("name") or "",
+                "sex": category.get("sex") or race.get("sex") or "Both",
+                "yearFrom": category.get("yearFrom"),
+                "yearTo": category.get("yearTo"),
+            }
+        }
     return {
         "id": race["id"],
         "type": _id_of(race.get("type")),
@@ -178,7 +181,11 @@ def existing_race_input(race: Dict[str, Any]) -> Dict[str, Any]:
         "state": race.get("state") or "Published",
         "registrationLimit": race.get("registrationLimit"),
         "documents": [
-            {"id": doc.get("id"), "variant": doc.get("variant"), "file": (doc.get("file") or {}).get("uuid")}
+            {
+                "id": doc.get("id"),
+                "variant": doc.get("variant"),
+                "file": (doc.get("file") or {}).get("uuid"),
+            }
             for doc in race.get("documents") or []
         ],
     }
@@ -224,7 +231,9 @@ def plan_races(
     used: set = set()
     plan: List[Dict[str, Any]] = []
     for category in categories:
-        found = next((race for race in existing if race["id"] not in used and _matches(race, category)), None)
+        found = next(
+            (race for race in existing if race["id"] not in used and _matches(race, category)), None
+        )
         codex = str(category["id"])
         empty = category.get("entries") == 0
         if found is not None:
@@ -232,39 +241,66 @@ def plan_races(
             action = "keep" if same_codex(found.get("codex"), category["id"]) else "codex"
             if action == "codex" and empty:
                 action = "skip"
-            plan.append({"category_id": category["id"], "name": category["name"], "action": action,
-                         "slcr_race_id": found["id"], "slcr_name": found.get("name"),
-                         **({"reason": SKIP_REASON} if action == "skip" else {})})
+            plan.append(
+                {
+                    "category_id": category["id"],
+                    "name": category["name"],
+                    "action": action,
+                    "slcr_race_id": found["id"],
+                    "slcr_name": found.get("name"),
+                    **({"reason": SKIP_REASON} if action == "skip" else {}),
+                }
+            )
             continue
         if empty:
-            plan.append({"category_id": category["id"], "name": category["name"], "action": "skip",
-                         "slcr_race_id": None, "reason": SKIP_REASON})
-            continue
-        years = sorted(y for y in (category.get("year_from"), category.get("year_to")) if y is not None)
-        plan.append({
-            "category_id": category["id"], "name": category["name"], "action": "create", "slcr_race_id": None,
-            "input": {
-                "discipline": discipline,
-                "category": {"manual": {
+            plan.append(
+                {
+                    "category_id": category["id"],
                     "name": category["name"],
-                    "sex": racing_sex(category.get("sex")),
-                    "yearFrom": years[0] if years else None,
-                    "yearTo": years[-1] if years else None,
-                }},
+                    "action": "skip",
+                    "slcr_race_id": None,
+                    "reason": SKIP_REASON,
+                }
+            )
+            continue
+        years = sorted(
+            y for y in (category.get("year_from"), category.get("year_to")) if y is not None
+        )
+        plan.append(
+            {
+                "category_id": category["id"],
                 "name": category["name"],
-                "codex": codex,
-                "date": race_date.isoformat(),
-                "startTime": start_time or DEFAULT_START_TIME,
-                "state": "Published",
-                "documents": [],
-            },
-        })
+                "action": "create",
+                "slcr_race_id": None,
+                "input": {
+                    "discipline": discipline,
+                    "category": {
+                        "manual": {
+                            "name": category["name"],
+                            "sex": racing_sex(category.get("sex")),
+                            "yearFrom": years[0] if years else None,
+                            "yearTo": years[-1] if years else None,
+                        }
+                    },
+                    "name": category["name"],
+                    "codex": codex,
+                    "date": race_date.isoformat(),
+                    "startTime": start_time or DEFAULT_START_TIME,
+                    "state": "Published",
+                    "documents": [],
+                },
+            }
+        )
     return plan
 
 
-def build_inputs(existing: Iterable[Dict[str, Any]], plan: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def build_inputs(
+    existing: Iterable[Dict[str, Any]], plan: Iterable[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     """Celý seznam závodů akce pro racingRacesUpdate: stávající + nové."""
-    codex_by_race = {item["slcr_race_id"]: str(item["category_id"]) for item in plan if item["action"] == "codex"}
+    codex_by_race = {
+        item["slcr_race_id"]: str(item["category_id"]) for item in plan if item["action"] == "codex"
+    }
     inputs = []
     for race in existing:
         data = existing_race_input(race)
@@ -324,13 +360,16 @@ mutation RacesUpdate($event: Int!, $inputs: [RacingRaceInput!]!) {
 """
 
 
-def _graphql(client: httpx.Client, query: str, variables: Dict[str, Any],
-             token: Optional[str] = None) -> tuple[Dict[str, Any], httpx.Response]:
+def _graphql(
+    client: httpx.Client, query: str, variables: Dict[str, Any], token: Optional[str] = None
+) -> tuple[Dict[str, Any], httpx.Response]:
     headers = {"Content-Type": "application/json"}
     if token:
         headers[AUTH_HEADER] = token
     try:
-        response = client.post(f"{BASE_URL}/graphql", json={"query": query, "variables": variables}, headers=headers)
+        response = client.post(
+            f"{BASE_URL}/graphql", json={"query": query, "variables": variables}, headers=headers
+        )
     except httpx.HTTPError as exc:
         raise SlcrError(f"Evidence SLČR neodpovídá ({exc.__class__.__name__})") from exc
     if response.status_code >= 500:
@@ -338,7 +377,9 @@ def _graphql(client: httpx.Client, query: str, variables: Dict[str, Any],
     try:
         payload = response.json()
     except ValueError as exc:
-        raise SlcrError(f"Evidence SLČR vrátila neočekávanou odpověď ({response.status_code})") from exc
+        raise SlcrError(
+            f"Evidence SLČR vrátila neočekávanou odpověď ({response.status_code})"
+        ) from exc
     errors = payload.get("errors") or []
     if errors:
         message = "; ".join(str(error.get("message") or error) for error in errors[:3])
@@ -359,10 +400,16 @@ def pick_identity(options: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         for option in options:
             if wanted in (option.get("label"), option.get("id")):
                 return option
+
     def rank(option):
         kind = option.get("type")
-        order = IDENTITY_PREFERENCE.index(kind) if kind in IDENTITY_PREFERENCE else len(IDENTITY_PREFERENCE)
+        order = (
+            IDENTITY_PREFERENCE.index(kind)
+            if kind in IDENTITY_PREFERENCE
+            else len(IDENTITY_PREFERENCE)
+        )
         return (order, not option.get("manager"))
+
     return min(options, key=rank) if options else None
 
 
@@ -370,7 +417,9 @@ def _login(client: httpx.Client, config: Settings) -> Optional[str]:
     if not config.has_login:
         raise SlcrError("Chybí přihlášení do evidence (SLCR_USERNAME a SLCR_PASSWORD v .env)")
     try:
-        data, response = _graphql(client, LOGIN_MUTATION, {"username": config.username, "password": config.password})
+        data, response = _graphql(
+            client, LOGIN_MUTATION, {"username": config.username, "password": config.password}
+        )
     except SlcrError as exc:
         raise SlcrError(f"Přihlášení do evidence se nepovedlo - {exc}") from exc
     # Za koho uživatel jedná (klub, měřící skupina...) - web to drží v cookie
@@ -383,24 +432,32 @@ def _login(client: httpx.Client, config: Settings) -> Optional[str]:
     return response.headers.get(AUTH_HEADER) or client.cookies.get(AUTH_HEADER)
 
 
-def fetch_event(event_id: int, config: Optional[Settings] = None, login: bool = True) -> Dict[str, Any]:
+def fetch_event(
+    event_id: int, config: Optional[Settings] = None, login: bool = True
+) -> Dict[str, Any]:
     """Akce s jejími závody. S přihlášením (je-li nastavené) - jen tak je vidět kodex."""
     config = config or settings()
     with httpx.Client(timeout=TIMEOUT) as client:
         token = _login(client, config) if login and config.has_login else None
-        event = _graphql(client, EVENT_QUERY, {"event": int(event_id)}, token)[0].get("publicRacingEvent")
+        event = _graphql(client, EVENT_QUERY, {"event": int(event_id)}, token)[0].get(
+            "publicRacingEvent"
+        )
     if not event:
         raise SlcrError(f"Akce {event_id} v evidenci není")
     return _DRY.overlay(event) if dry_run() else event
 
 
-def update_races(event_id: int, inputs: List[Dict[str, Any]], config: Optional[Settings] = None) -> Dict[str, Any]:
+def update_races(
+    event_id: int, inputs: List[Dict[str, Any]], config: Optional[Settings] = None
+) -> Dict[str, Any]:
     if dry_run():
         return _DRY.update_races(int(event_id), inputs)
     config = config or settings()
     with httpx.Client(timeout=TIMEOUT) as client:
         token = _login(client, config)
-        data, _ = _graphql(client, RACES_UPDATE_MUTATION, {"event": int(event_id), "inputs": inputs}, token)
+        data, _ = _graphql(
+            client, RACES_UPDATE_MUTATION, {"event": int(event_id), "inputs": inputs}, token
+        )
     return data.get("racingRacesUpdate") or {}
 
 
@@ -421,7 +478,9 @@ def _api_error(response: httpx.Response) -> SlcrError:
     except ValueError:
         detail = response.text[:500]
     if response.status_code in (401, 403):
-        return SlcrError(f"Evidence odmítla token časomíry ({response.status_code}) {detail}".strip())
+        return SlcrError(
+            f"Evidence odmítla token časomíry ({response.status_code}) {detail}".strip()
+        )
     return SlcrError(f"Evidence SLČR vrátila {response.status_code}: {detail}".strip())
 
 
@@ -437,20 +496,33 @@ def _event_summary(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def list_events(date_from: date, date_to: date, config: Optional[Settings] = None) -> List[Dict[str, Any]]:
+def list_events(
+    date_from: date, date_to: date, config: Optional[Settings] = None
+) -> List[Dict[str, Any]]:
     """Akce alpského úseku v rozsahu dat (oficiální API)."""
     config = config or settings()
-    params = {"department": DEPARTMENT_ALPINE, "dateFrom": date_from.isoformat(), "dateTo": date_to.isoformat()}
+    params = {
+        "department": DEPARTMENT_ALPINE,
+        "dateFrom": date_from.isoformat(),
+        "dateTo": date_to.isoformat(),
+    }
     try:
         with httpx.Client(timeout=TIMEOUT) as client:
-            response = client.get(f"{BASE_URL}/api/v1/timekeeper/racing/event", params=params,
-                                  headers=_api_headers(config))
+            response = client.get(
+                f"{BASE_URL}/api/v1/timekeeper/racing/event",
+                params=params,
+                headers=_api_headers(config),
+            )
     except httpx.HTTPError as exc:
         raise SlcrError(f"Evidence SLČR neodpovídá ({exc.__class__.__name__})") from exc
     if response.status_code != 200:
         raise _api_error(response)
     body = response.json()
-    items = body if isinstance(body, list) else (body.get("items") or body.get("data") or body.get("result") or [])
+    items = (
+        body
+        if isinstance(body, list)
+        else (body.get("items") or body.get("data") or body.get("result") or [])
+    )
     return [_event_summary(item) for item in items if isinstance(item, dict)]
 
 
@@ -462,7 +534,9 @@ def is_own_event(owner: Dict[str, Any], own: str = OWN_TIMEKEEPING) -> bool:
     return fold(own) in (fold(company.get("name")), fold(company.get("id")))
 
 
-def own_events(events: List[Dict[str, Any]], config: Optional[Settings] = None) -> List[Dict[str, Any]]:
+def own_events(
+    events: List[Dict[str, Any]], config: Optional[Settings] = None
+) -> List[Dict[str, Any]]:
     """Z akcí alpského úseku nechá jen ty, které měří naše měřící skupina.
     Měřící firmu vrací jen GraphQL webu evidence, proto se dotáže po akcích
     (kolem data závodu jich je jen pár)."""
@@ -478,8 +552,9 @@ def own_events(events: List[Dict[str, Any]], config: Optional[Settings] = None) 
     return [event for event in events if is_own_event(owners.get(event["id"]))]
 
 
-def upload_results(event_id: int, xml: bytes, layout: Optional[str] = None,
-                   config: Optional[Settings] = None) -> Dict[str, Any]:
+def upload_results(
+    event_id: int, xml: bytes, layout: Optional[str] = None, config: Optional[Settings] = None
+) -> Dict[str, Any]:
     """Nahraje FIS XML (dataset) do akce. Import je atomický."""
     if dry_run():
         return {"message": "Zkušební režim: výsledky se do evidence neposlaly.", "dry_run": True}
@@ -490,8 +565,9 @@ def upload_results(event_id: int, xml: bytes, layout: Optional[str] = None,
     url = f"{BASE_URL}/api/v1/timekeeper/racing/department/{DEPARTMENT_ALPINE}/event/{int(event_id)}/results"
     try:
         with httpx.Client(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
-            response = client.post(url, params=params, content=xml,
-                                   headers=_api_headers(config, "application/xml"))
+            response = client.post(
+                url, params=params, content=xml, headers=_api_headers(config, "application/xml")
+            )
     except httpx.HTTPError as exc:
         raise SlcrError(f"Evidence SLČR neodpovídá ({exc.__class__.__name__})") from exc
     if response.status_code >= 300:
@@ -537,15 +613,24 @@ def result_state(race: Optional[Dict[str, Any]]) -> Optional[str]:
     return ((race or {}).get("resultRace") or {}).get("state")
 
 
-def _read_state(client: httpx.Client, token: Optional[str], event_id: int, race_id: int) -> Optional[str]:
-    event = _graphql(client, RESULT_STATE_QUERY, {"event": int(event_id)}, token)[0].get("publicRacingEvent") or {}
+def _read_state(
+    client: httpx.Client, token: Optional[str], event_id: int, race_id: int
+) -> Optional[str]:
+    event = (
+        _graphql(client, RESULT_STATE_QUERY, {"event": int(event_id)}, token)[0].get(
+            "publicRacingEvent"
+        )
+        or {}
+    )
     race = next((item for item in event.get("races") or [] if item.get("id") == race_id), None)
     if race is None:
         raise SlcrError(f"Závod {race_id} v akci {event_id} v evidenci není")
     return result_state(race)
 
 
-def _change_state(client: httpx.Client, token: Optional[str], mutation: str, race_id: int) -> Optional[str]:
+def _change_state(
+    client: httpx.Client, token: Optional[str], mutation: str, race_id: int
+) -> Optional[str]:
     assert mutation in RESULT_MUTATIONS
     data, _ = _graphql(client, RESULT_MUTATION % mutation, {"race": int(race_id)}, token)
     return result_state(data.get(mutation))
@@ -553,11 +638,18 @@ def _change_state(client: httpx.Client, token: Optional[str], mutation: str, rac
 
 def _not_published(state: Optional[str]) -> SlcrError:
     label = STATE_LABELS.get(state or "", state or "bez výsledků")
-    return SlcrError(f"Výsledky jsou v evidenci, ale zůstaly {label} - dokončete zveřejnění přímo v evidenci.")
+    return SlcrError(
+        f"Výsledky jsou v evidenci, ale zůstaly {label} - dokončete zveřejnění přímo v evidenci."
+    )
 
 
-def publish_race_results(event_id: int, race_id: int, xml: bytes, layout: Optional[str] = None,
-                         config: Optional[Settings] = None) -> str:
+def publish_race_results(
+    event_id: int,
+    race_id: int,
+    xml: bytes,
+    layout: Optional[str] = None,
+    config: Optional[Settings] = None,
+) -> str:
     """Pošle výsledky jednoho závodu a zveřejní je. Vrací konečný stav.
 
     Už zveřejněný závod se nejdřív vrátí do rozpracovaných (oprava), pak se
@@ -571,21 +663,27 @@ def publish_race_results(event_id: int, race_id: int, xml: bytes, layout: Option
             token = _login(client, config)
             state = _read_state(client, token, event_id, race_id)
             if state in ("Canceled", "Hidden"):
-                raise SlcrError(f"Výsledky závodu jsou v evidenci {STATE_LABELS[state]} - "
-                                "to se dá změnit jen přímo v evidenci.")
+                raise SlcrError(
+                    f"Výsledky závodu jsou v evidenci {STATE_LABELS[state]} - "
+                    "to se dá změnit jen přímo v evidenci."
+                )
             if state == "Published":
                 _change_state(client, token, "resultRaceDraft", race_id)
         try:
             upload_results(event_id, xml, layout, config)
         except SlcrError as exc:
             if state == "Published":
-                raise SlcrError(f"{exc} Pozor: dřívější výsledky kategorie teď v evidenci nejsou zveřejněné.") from exc
+                raise SlcrError(
+                    f"{exc} Pozor: dřívější výsledky kategorie teď v evidenci nejsou zveřejněné."
+                ) from exc
             raise
         with httpx.Client(timeout=TIMEOUT) as client:
             token = _login(client, config)
             state = _read_state(client, token, event_id, race_id)
             if state is None:
-                raise SlcrError("Evidence výsledky k závodu nepřiřadila - zkontrolujte kodex závodu v akci.")
+                raise SlcrError(
+                    "Evidence výsledky k závodu nepřiřadila - zkontrolujte kodex závodu v akci."
+                )
             if state == "Draft":
                 state = _change_state(client, token, "resultRaceCheck", race_id)
             if state == "Checked":
@@ -613,7 +711,9 @@ def race_lock(race_id: int):
     race_id = int(race_id)
     with _BUSY_LOCK:
         if race_id in _BUSY:
-            raise SlcrBusy("Výsledky téhle kategorie se do evidence právě posílají - počkejte na dokončení.")
+            raise SlcrBusy(
+                "Výsledky téhle kategorie se do evidence právě posílají - počkejte na dokončení."
+            )
         _BUSY.add(race_id)
     try:
         yield
@@ -639,15 +739,30 @@ class _DryStore:
 
     def _fake_race(self, data: Dict[str, Any]) -> Dict[str, Any]:
         manual = (data.get("category") or {}).get("manual") or {}
-        race = {key: data.get(key) for key in ("name", "code", "codex", "date", "startTime", "distance",
-                                               "state", "registrationLimit")}
-        race.update({
-            "id": data.get("id") or self.next_id,
-            "sex": manual.get("sex") or "Both",
-            "type": None, "technique": None, "documents": [],
-            "discipline": {"id": data.get("discipline")},
-            "category": {"__typename": "PublicRacingRaceCategory", **manual},
-        })
+        race = {
+            key: data.get(key)
+            for key in (
+                "name",
+                "code",
+                "codex",
+                "date",
+                "startTime",
+                "distance",
+                "state",
+                "registrationLimit",
+            )
+        }
+        race.update(
+            {
+                "id": data.get("id") or self.next_id,
+                "sex": manual.get("sex") or "Both",
+                "type": None,
+                "technique": None,
+                "documents": [],
+                "discipline": {"id": data.get("discipline")},
+                "category": {"__typename": "PublicRacingRaceCategory", **manual},
+            }
+        )
         if not data.get("id"):
             self.next_id -= 1
         return race
@@ -656,8 +771,11 @@ class _DryStore:
         with self.lock:
             self.races[event_id] = [self._fake_race(item) for item in inputs]
             races = self.races[event_id]
-        return {"id": event_id, "races": [{"id": r["id"], "name": r["name"], "codex": r["codex"]} for r in races],
-                "dry_run": True}
+        return {
+            "id": event_id,
+            "races": [{"id": r["id"], "name": r["name"], "codex": r["codex"]} for r in races],
+            "dry_run": True,
+        }
 
     def publish(self, race_id: int) -> str:
         with self.lock:
@@ -676,8 +794,12 @@ class _DryStore:
                 race = {**race, "codex": stored[race["id"]].get("codex")}
             races.append(race)
         races.extend(race for race_id, race in stored.items() if race_id < 0)
-        races = [{**race, "resultRace": {"id": race["id"], "state": results[race["id"]]}}
-                 if race["id"] in results else race for race in races]
+        races = [
+            {**race, "resultRace": {"id": race["id"], "state": results[race["id"]]}}
+            if race["id"] in results
+            else race
+            for race in races
+        ]
         return {**event, "races": races}
 
 

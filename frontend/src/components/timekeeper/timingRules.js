@@ -20,7 +20,11 @@ export const clearZeroTimes = (data) => {
   if (!data) return data;
   const cleared = { ...data };
   ['time1', 'time2'].forEach((field) => {
-    if (cleared[field] !== '' && cleared[field] != null && parseStoredTime(cleared[field]) == null) {
+    if (
+      cleared[field] !== '' &&
+      cleared[field] != null &&
+      parseStoredTime(cleared[field]) == null
+    ) {
       cleared[field] = '';
     }
   });
@@ -59,7 +63,13 @@ export const normalizeDraft = (data) => ({
 export const isSameDraft = (a, b) => {
   const x = normalizeDraft(a);
   const y = normalizeDraft(b);
-  return x.time1 === y.time1 && x.time2 === y.time2 && x.dnf === y.dnf && x.dns === y.dns && x.dsq === y.dsq;
+  return (
+    x.time1 === y.time1 &&
+    x.time2 === y.time2 &&
+    x.dnf === y.dnf &&
+    x.dns === y.dns &&
+    x.dsq === y.dsq
+  );
 };
 
 /**
@@ -122,7 +132,11 @@ export const formatConflictValue = (value) => {
  * seznamu zůstane fokus, kde je (null).
  */
 export const findRowInDirection = (list, currentIndex, direction, isEnabled) => {
-  for (let index = currentIndex + direction; index >= 0 && index < list.length; index += direction) {
+  for (
+    let index = currentIndex + direction;
+    index >= 0 && index < list.length;
+    index += direction
+  ) {
     if (isEnabled(list[index])) return index;
   }
   return null;

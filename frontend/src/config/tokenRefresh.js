@@ -21,7 +21,12 @@ export function decodeTokenTimes(token) {
   try {
     const part = String(token).split('.')[1];
     if (!part) return null;
-    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '='));
+    const json = atob(
+      part
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(Math.ceil(part.length / 4) * 4, '='),
+    );
     const claims = JSON.parse(json);
     const exp = Number(claims.exp);
     if (!Number.isFinite(exp)) return null;
@@ -55,7 +60,12 @@ export function needsRefresh(token, nowMs = Date.now()) {
  * @param {(token: string) => void} [options.onRefreshed]
  * @returns {{ check: () => Promise<boolean>, stop: () => void }}
  */
-export function startTokenRefresh({ endpoint, store, onRefreshed, intervalMs = REFRESH_INTERVAL_MS }) {
+export function startTokenRefresh({
+  endpoint,
+  store,
+  onRefreshed,
+  intervalMs = REFRESH_INTERVAL_MS,
+}) {
   let running = false;
   let stopped = false;
 
@@ -65,7 +75,11 @@ export function startTokenRefresh({ endpoint, store, onRefreshed, intervalMs = R
     if (!token || !needsRefresh(token)) return false;
     running = true;
     try {
-      const { access_token, expires_in } = await API.post(endpoint, {}, { Authorization: `Bearer ${token}` });
+      const { access_token, expires_in } = await API.post(
+        endpoint,
+        {},
+        { Authorization: `Bearer ${token}` },
+      );
       // Mezitím se mohl někdo odhlásit nebo přihlásit jinak - pak nic nepřepisovat.
       if (stopped || store.getToken() !== token) return false;
       store.save(access_token, expires_in);
@@ -101,6 +115,6 @@ export function startTokenRefresh({ endpoint, store, onRefreshed, intervalMs = R
         document.removeEventListener('visibilitychange', onVisible);
         window.clearInterval(timer);
       }
-    }
+    },
   };
 }

@@ -12,27 +12,36 @@ const TABLES = ['races', 'startList', 'cache', 'syncQueue', 'settings', 'conflic
 const DEDUPE_KEYS = {
   bridgeInbox: 'op_key',
   syncQueue: 'op_id',
-  conflicts: 'op_id'
+  conflicts: 'op_id',
 };
 
 // Tabulky s vlastním primárním klíčem - ten znamená totéž na každém zařízení.
 const OWN_KEYS = {
   startList: 'id',
   cache: 'key',
-  settings: 'key'
+  settings: 'key',
 };
 
 // Odkazy na řádek fronty; po přidělení nových id se musí přepsat.
 const QUEUE_REFERENCES = {
   bridgeInbox: 'sync_queue_id',
-  conflicts: 'queue_item_id'
+  conflicts: 'queue_item_id',
 };
 
 // syncQueue jde první schválně: bridgeInbox a conflicts na ni odkazují, takže
 // mapa "staré id -> nové id" musí být hotová dřív, než na ně přijde řada.
-const IMPORT_ORDER = ['syncQueue', 'races', 'startList', 'cache', 'settings', 'conflicts', 'bridgeInbox'];
+const IMPORT_ORDER = [
+  'syncQueue',
+  'races',
+  'startList',
+  'cache',
+  'settings',
+  'conflicts',
+  'bridgeInbox',
+];
 
-const pickExistingTables = () => TABLES.filter((name) => Boolean(timekeeperDb.tables.find((table) => table.name === name)));
+const pickExistingTables = () =>
+  TABLES.filter((name) => Boolean(timekeeperDb.tables.find((table) => table.name === name)));
 
 /**
  * Přepíše odkaz na frontu na id, které řádek dostal při tomhle importu.
@@ -115,9 +124,10 @@ const importWithOwnKeys = async (tableName, keyField, rows) => {
   const table = timekeeperDb.table(tableName);
   const existingKeys = new Set(await table.toCollection().primaryKeys());
 
-  const toAdd = rows.filter((row) => (
-    row && typeof row === 'object' && row[keyField] != null && !existingKeys.has(row[keyField])
-  ));
+  const toAdd = rows.filter(
+    (row) =>
+      row && typeof row === 'object' && row[keyField] != null && !existingKeys.has(row[keyField]),
+  );
 
   if (toAdd.length > 0) await table.bulkPut(toAdd);
   return { added: toAdd.length, skipped: rows.length - toAdd.length };
@@ -127,17 +137,19 @@ export const createBackupSnapshot = async () => {
   const tables = pickExistingTables();
   const data = {};
 
-  await Promise.all(tables.map(async (tableName) => {
-    data[tableName] = await timekeeperDb.table(tableName).toArray();
-  }));
+  await Promise.all(
+    tables.map(async (tableName) => {
+      data[tableName] = await timekeeperDb.table(tableName).toArray();
+    }),
+  );
 
   return {
     meta: {
       version: BACKUP_VERSION,
       exported_at: new Date().toISOString(),
-      app: 'JMLP-Timekeeper'
+      app: 'JMLP-Timekeeper',
     },
-    data
+    data,
   };
 };
 
@@ -180,46 +192,50 @@ export const importBackupPayload = async (rawText) => {
   const tables = pickExistingTables();
   const ordered = [
     ...IMPORT_ORDER.filter((name) => tables.includes(name)),
-    ...tables.filter((name) => !IMPORT_ORDER.includes(name))
+    ...tables.filter((name) => !IMPORT_ORDER.includes(name)),
   ];
 
   const tableCounts = {};
   const skippedCounts = {};
   const idMap = new Map();
 
-  await timekeeperDb.transaction('rw', tables.map((name) => timekeeperDb.table(name)), async () => {
-    // Sekvenčně, ne Promise.all - pořadí tabulek je tu nosné kvůli idMap.
-    for (const tableName of ordered) {
-      const rows = Array.isArray(parsed.data[tableName]) ? parsed.data[tableName] : [];
-      tableCounts[tableName] = 0;
-      skippedCounts[tableName] = 0;
-      if (!rows.length) continue;
+  await timekeeperDb.transaction(
+    'rw',
+    tables.map((name) => timekeeperDb.table(name)),
+    async () => {
+      // Sekvenčně, ne Promise.all - pořadí tabulek je tu nosné kvůli idMap.
+      for (const tableName of ordered) {
+        const rows = Array.isArray(parsed.data[tableName]) ? parsed.data[tableName] : [];
+        tableCounts[tableName] = 0;
+        skippedCounts[tableName] = 0;
+        if (!rows.length) continue;
 
-      const dedupeKey = DEDUPE_KEYS[tableName];
-      if (dedupeKey) {
-        const { added, skipped } = await importWithNewIds(tableName, dedupeKey, rows, idMap);
-        tableCounts[tableName] = added;
-        skippedCounts[tableName] = skipped;
-        continue;
+        const dedupeKey = DEDUPE_KEYS[tableName];
+        if (dedupeKey) {
+          const { added, skipped } = await importWithNewIds(tableName, dedupeKey, rows, idMap);
+          tableCounts[tableName] = added;
+          skippedCounts[tableName] = skipped;
+          continue;
+        }
+
+        const ownKey = OWN_KEYS[tableName];
+        if (ownKey) {
+          const { added, skipped } = await importWithOwnKeys(tableName, ownKey, rows);
+          tableCounts[tableName] = added;
+          skippedCounts[tableName] = skipped;
+          continue;
+        }
+
+        await timekeeperDb.table(tableName).bulkPut(rows);
+        tableCounts[tableName] = rows.length;
       }
-
-      const ownKey = OWN_KEYS[tableName];
-      if (ownKey) {
-        const { added, skipped } = await importWithOwnKeys(tableName, ownKey, rows);
-        tableCounts[tableName] = added;
-        skippedCounts[tableName] = skipped;
-        continue;
-      }
-
-      await timekeeperDb.table(tableName).bulkPut(rows);
-      tableCounts[tableName] = rows.length;
-    }
-  });
+    },
+  );
 
   return {
     importedAt: new Date().toISOString(),
     tableCounts,
     skippedCounts,
-    skippedTotal: Object.values(skippedCounts).reduce((acc, count) => acc + count, 0)
+    skippedTotal: Object.values(skippedCounts).reduce((acc, count) => acc + count, 0),
   };
 };

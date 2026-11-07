@@ -14,7 +14,7 @@ import {
   drawFlag,
   drawLogo,
   drawSponsors,
-  formatLongDate
+  formatLongDate,
 } from './common.js';
 
 const ROW_HEIGHT = 20.16;
@@ -45,9 +45,17 @@ function drawRaceHeader(canvas, header) {
 
   const big = { size: 14.04, bold: true };
   canvas.text('ČÍSLO ZÁVODU:', 308.33, 87.36, { ...big, align: 'right' });
-  canvas.text(header.raceNumberLabel || '', 394.92, 87.36, { ...big, align: 'center', maxWidth: 124 });
+  canvas.text(header.raceNumberLabel || '', 394.92, 87.36, {
+    ...big,
+    align: 'center',
+    maxWidth: 124,
+  });
   canvas.text(header.organizerName || '', 100.8, 107.52, { ...big, maxWidth: 206 });
-  canvas.text(formatLongDate(header.raceDate), 394.92, 107.52, { ...big, align: 'center', maxWidth: 124 });
+  canvas.text(formatLongDate(header.raceDate), 394.92, 107.52, {
+    ...big,
+    align: 'center',
+    maxWidth: 124,
+  });
 }
 
 /** Modrý pás s nadpisem a hlavičkou sloupců; vrací horní hranu obsahu. */
@@ -90,13 +98,17 @@ function drawEntry(canvas, entry, bottom) {
     canvas.text(`    ${entry.number}`, 36.35, bottom - 6.96, { ...BOLD8, align: 'center' });
   }
   // Sloupec Body patří bodům (nasazení na start); registrační číslo má svůj sloupec.
-  if (entry.points != null) canvas.text(String(entry.points), 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
+  if (entry.points != null)
+    canvas.text(String(entry.points), 79.2, bottom - 2.64, { ...REGULAR8, maxWidth: 46 });
   canvas.text(entry.surname || '', 126.72, bottom - 10.92, { ...BOLD10, maxWidth: 128 });
   canvas.text(entry.firstName || '', 126.72, bottom - 2.04, { ...REGULAR8, maxWidth: 128 });
   canvas.text(entry.club || '', 257.76, bottom - 7.44, { ...REGULAR8, maxWidth: 154 });
   drawFlag(canvas, 414.0, bottom - 15.84, 432.72, bottom - 5.76);
   canvas.text(entry.nation || 'CZE', 435.6, bottom - 8.16, REGULAR8);
-  canvas.text(entry.year != null ? String(entry.year) : '', 495.39, bottom - 8.16, { ...REGULAR8, align: 'right' });
+  canvas.text(entry.year != null ? String(entry.year) : '', 495.39, bottom - 8.16, {
+    ...REGULAR8,
+    align: 'right',
+  });
   canvas.text(entry.slcrId || '', REG_X, bottom - 8.16, { ...REGULAR8, maxWidth: 542 - REG_X });
 }
 
@@ -141,4 +153,3 @@ export function buildStartListDoc({ header = {}, round = 1, categories = [] }) {
 
   return canvas.toDocDefinition({ title });
 }
-

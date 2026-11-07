@@ -1,4 +1,5 @@
 """Timekeeper race listing - shows races with registration data."""
+
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -15,8 +16,7 @@ router = APIRouter(prefix="/races", tags=["timekeeper-races"])
 
 @router.get("")
 def get_races_for_timekeeper(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
     """Get all races with registration counts, ordered by date desc.
 
@@ -35,30 +35,32 @@ def get_races_for_timekeeper(
     """)
     rows = db.execute(query).fetchall()
 
-    return [{
-        "id": row.id,
-        "race_nr": row.race_nr,
-        "datum": row.datum.isoformat() if row.datum else None,
-        "closed": bool(row.closed),
-        "registration": bool(row.registration),
-        "season_id": row.season_id,
-        "is_live": bool(row.is_live),
-        "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
-        "reg_count": row.reg_count,
-        "start_list_count": row.start_list_count,
-    } for row in rows]
+    return [
+        {
+            "id": row.id,
+            "race_nr": row.race_nr,
+            "datum": row.datum.isoformat() if row.datum else None,
+            "closed": bool(row.closed),
+            "registration": bool(row.registration),
+            "season_id": row.season_id,
+            "is_live": bool(row.is_live),
+            "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
+            "reg_count": row.reg_count,
+            "start_list_count": row.start_list_count,
+        }
+        for row in rows
+    ]
 
 
 @router.put("/{race_id}/live")
 def toggle_race_live(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Toggle live status for a race. Only one race can be live at a time."""
     current = db.execute(
-        text("SELECT is_live FROM fuj_jmlp_race WHERE id = :id"),
-        {"id": race_id}
+        text("SELECT is_live FROM fuj_jmlp_race WHERE id = :id"), {"id": race_id}
     ).fetchone()
 
     if not current:
@@ -82,13 +84,17 @@ def toggle_race_live(
 # listiny. GET se ukládá do IndexedDB, takže hlavička je dostupná i offline.
 # ============================================================================
 
+
 def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
     areal_name = None
     if race.areal_id:
-        row = db.execute(text(f"""
+        row = db.execute(
+            text(f"""
             SELECT {convert_utf8_field('name')} as name
             FROM fuj_jmlp_areal WHERE id = :areal_id
-        """), {"areal_id": race.areal_id}).first()
+        """),
+            {"areal_id": race.areal_id},
+        ).first()
         areal_name = fix_encoding(row.name) if row else None
 
     organizer_name = None
@@ -108,9 +114,12 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
 
     season = db.query(models.Season).filter(models.Season.year_start == race.season_id).first()
 
-    runs = db.query(models.RaceRun).filter(
-        models.RaceRun.race_id == race.id
-    ).order_by(models.RaceRun.run_number).all()
+    runs = (
+        db.query(models.RaceRun)
+        .filter(models.RaceRun.race_id == race.id)
+        .order_by(models.RaceRun.run_number)
+        .all()
+    )
 
     return {
         "race_id": race.id,
@@ -132,14 +141,17 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
         "chief_timekeeper": race.chief_timekeeper,
         # Počet kol se závodu nenastavuje: každá kategorie může jet jiný počet
         # kol, takže listina se řídí naměřenými daty (viz resultsPdf.js).
-        "runs": [{
-            "run_number": run.run_number,
-            "course_setter": run.course_setter,
-            "gates_count": run.gates_count,
-            "conditions": run.conditions,
-            "start_time": run.start_time,
-            "course_length_m": run.course_length_m,
-        } for run in runs],
+        "runs": [
+            {
+                "run_number": run.run_number,
+                "course_setter": run.course_setter,
+                "gates_count": run.gates_count,
+                "conditions": run.conditions,
+                "start_time": run.start_time,
+                "course_length_m": run.course_length_m,
+            }
+            for run in runs
+        ],
     }
 
 
@@ -147,7 +159,7 @@ def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
 def get_race_detail(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Hlavičkové údaje závodu."""
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
@@ -161,7 +173,7 @@ def update_race_detail(
     race_id: int,
     payload: schemas.RaceDetailUpdate,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Uloží hlavičkové údaje a údaje o jednotlivých kolech."""
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
@@ -178,10 +190,14 @@ def update_race_detail(
     if runs is not None:
         for run_data in runs:
             run_number = int(run_data["run_number"])
-            existing = db.query(models.RaceRun).filter(
-                models.RaceRun.race_id == race_id,
-                models.RaceRun.run_number == run_number,
-            ).first()
+            existing = (
+                db.query(models.RaceRun)
+                .filter(
+                    models.RaceRun.race_id == race_id,
+                    models.RaceRun.run_number == run_number,
+                )
+                .first()
+            )
             if existing:
                 for field, value in run_data.items():
                     if field != "run_number":

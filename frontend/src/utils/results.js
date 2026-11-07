@@ -85,7 +85,7 @@ export const rankEntriesByTime = (entries, { timeField = 'time_sum' } = {}) => {
       status: resultStatus(entry),
       display_rank: rank,
       display_points: pointsForRank(rank),
-      display_diff: hasTime && rank !== 1 ? time - winnerTime : null
+      display_diff: hasTime && rank !== 1 ? time - winnerTime : null,
     };
   });
 };

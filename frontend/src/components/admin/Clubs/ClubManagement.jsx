@@ -25,10 +25,20 @@ export default function ClubManagement() {
     <AdminPage
       title="Kluby"
       meta={`${counts.total} ${clubsWord(counts.total)} · loga má ${counts.withLogo} z ${counts.organizers} pořadatelů`}
-      actions={<ButtonLink to="/admin/club-requests" size="sm">Žádosti o kluby</ButtonLink>}
+      actions={
+        <ButtonLink to="/admin/club-requests" size="sm">
+          Žádosti o kluby
+        </ButtonLink>
+      }
     >
       {cm.message && (
-        <Alert key={cm.message.text} type={cm.message.type} compact title={cm.message.text} onDismiss={() => cm.setMessage(null)} />
+        <Alert
+          key={cm.message.text}
+          type={cm.message.type}
+          compact
+          title={cm.message.text}
+          onDismiss={() => cm.setMessage(null)}
+        />
       )}
       <ClubFilters cm={cm} counts={counts} />
       {/*
@@ -58,7 +68,9 @@ export default function ClubManagement() {
           )}
         />
       )}
-      {cm.deleting && <ClubDeleteDialog club={cm.deleting} clubs={cm.clubs} onResolve={cm.resolveDelete} />}
+      {cm.deleting && (
+        <ClubDeleteDialog club={cm.deleting} clubs={cm.clubs} onResolve={cm.resolveDelete} />
+      )}
     </AdminPage>
   );
 }

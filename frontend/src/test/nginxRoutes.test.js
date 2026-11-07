@@ -33,18 +33,23 @@ describe('nginx a routy aplikace', () => {
     expect(isSpaRoute(sampleOf(path))).toBe(true);
   });
 
-  it.each(['/tohle-neexistuje', '/zavod', '/wp-login.php', '/zavody/stara-stranka'])('%s dostane 404', (path) => {
-    expect(isSpaRoute(path)).toBe(false);
-  });
+  it.each(['/tohle-neexistuje', '/zavod', '/wp-login.php', '/zavody/stara-stranka'])(
+    '%s dostane 404',
+    (path) => {
+      expect(isSpaRoute(path)).toBe(false);
+    },
+  );
 });
 
 /** Regexy jedné mapy nginxu: [{ re, value }] v pořadí (vyhrává první shoda). */
 const mapRules = (name) => {
   const block = nginx.match(new RegExp(`map \\S+ \\$${name} \\{([\\s\\S]*?)\\n\\}`))[1];
-  return [...block.matchAll(/^\s*~(\*?)(\S+)\s+(.+?);$/gm)].map(([, insensitive, pattern, value]) => ({
-    re: new RegExp(pattern, insensitive ? 'i' : ''),
-    value: value.replace(/"/g, ''),
-  }));
+  return [...block.matchAll(/^\s*~(\*?)(\S+)\s+(.+?);$/gm)].map(
+    ([, insensitive, pattern, value]) => ({
+      re: new RegExp(pattern, insensitive ? 'i' : ''),
+      value: value.replace(/"/g, ''),
+    }),
+  );
 };
 /** Hodnota mapy pro vstup; null = výchozí hodnota (žádný regex nesedí). */
 const mapValue = (name, input) => mapRules(name).find(({ re }) => re.test(input))?.value ?? null;
@@ -82,7 +87,8 @@ describe('nginx: náhledy odkazů pro boty a robots', () => {
   });
 
   it('robots.txt a sitemap.xml jdou na backend', () => {
-    expect(nginx).toMatch(/location ~ \^\/\(robots\\\.txt\|sitemap\\\.xml\)\$ \{\s*proxy_pass http:\/\/\$backend_upstream;/);
+    expect(nginx).toMatch(
+      /location ~ \^\/\(robots\\\.txt\|sitemap\\\.xml\)\$ \{\s*proxy_pass http:\/\/\$backend_upstream;/,
+    );
   });
 });
-

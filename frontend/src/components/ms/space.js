@@ -4,7 +4,8 @@ export const SPACE_STEPS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14];
 /** CSS hodnota pro krok mezery; neznámý krok je chyba (v dev výjimka). */
 export const spaceVar = (step) => {
   if (!SPACE_STEPS.includes(step)) {
-    if (import.meta.env.DEV) throw new Error(`Neznámý krok mezery ${step} (povolené: ${SPACE_STEPS.join(', ')})`);
+    if (import.meta.env.DEV)
+      throw new Error(`Neznámý krok mezery ${step} (povolené: ${SPACE_STEPS.join(', ')})`);
     return undefined;
   }
   return `var(--ms-space-${step})`;

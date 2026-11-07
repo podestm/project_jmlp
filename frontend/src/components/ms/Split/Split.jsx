@@ -9,12 +9,25 @@ import styles from './Split.module.css';
  * nahoru (místo přeskládání pořadím v markupu).
  */
 export default function Split({
-  as: Tag = 'div', columns = 'minmax(0, 1fr) minmax(0, 1fr)', gap = 10, stackBelow = 1024, reverse = false,
-  align = 'start', className, children, ...rest
+  as: Tag = 'div',
+  columns = 'minmax(0, 1fr) minmax(0, 1fr)',
+  gap = 10,
+  stackBelow = 1024,
+  reverse = false,
+  align = 'start',
+  className,
+  children,
+  ...rest
 }) {
   return (
     <Tag
-      className={cx(styles.split, styles[`below${stackBelow}`], reverse && styles.reverse, styles[`align-${align}`], className)}
+      className={cx(
+        styles.split,
+        styles[`below${stackBelow}`],
+        reverse && styles.reverse,
+        styles[`align-${align}`],
+        className,
+      )}
       style={{ '--split-columns': columns, '--gap': spaceVar(gap) }}
       {...rest}
     >

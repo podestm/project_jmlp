@@ -8,7 +8,16 @@ import styles from './RacerFilters.module.css';
  * „Zobrazeno X z Y“, při aktivním filtru s tlačítkem Zrušit filtry.
  */
 export default function RacerFilters({
-  searchInput, onSearchChange, filter, onFilterChange, clubs, categories, shown, total, active, onReset,
+  searchInput,
+  onSearchChange,
+  filter,
+  onFilterChange,
+  clubs,
+  categories,
+  shown,
+  total,
+  active,
+  onReset,
 }) {
   // Combobox posílá null (křížek „Zrušit výběr“), filtr drží prázdný řetězec.
   const choose = (key) => (value) => onFilterChange(key, value ?? '');
@@ -48,15 +57,25 @@ export default function RacerFilters({
         />
       </Field>
       <Field label="Pohlaví" className={styles.sex}>
-        <Select size="sm" value={filter.sex} onChange={(event) => onFilterChange('sex', event.target.value)}>
+        <Select
+          size="sm"
+          value={filter.sex}
+          onChange={(event) => onFilterChange('sex', event.target.value)}
+        >
           <option value="">Všichni</option>
           <option value="1">Muži</option>
           <option value="2">Ženy</option>
         </Select>
       </Field>
       <p className={styles.summary} aria-live="polite">
-        <span>Zobrazeno <strong>{formatCount(shown)}</strong> z <strong>{formatCount(total)}</strong></span>
-        {active && <Button size="sm" variant="quiet" icon="close" onClick={onReset}>Zrušit filtry</Button>}
+        <span>
+          Zobrazeno <strong>{formatCount(shown)}</strong> z <strong>{formatCount(total)}</strong>
+        </span>
+        {active && (
+          <Button size="sm" variant="quiet" icon="close" onClick={onReset}>
+            Zrušit filtry
+          </Button>
+        )}
       </p>
     </section>
   );

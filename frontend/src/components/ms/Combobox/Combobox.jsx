@@ -16,10 +16,23 @@ import styles from './Combobox.module.css';
  * - footer: řádek pod seznamem (např. „Můj klub tu není – napíšu ho ručně“)
  * - size: lg 52 px (veřejný formulář) | sm 44 px (filtry administrace, AdminDialogVyberKlubu)
  */
-const Combobox = forwardRef(function Combobox({
-  options, value, onChange, placeholder, noMatchText = () => 'Nic neodpovídá hledání.', footer,
-  clearLabel = 'Zrušit výběr', toggleLabel = 'Zobrazit seznam', disabled = false, size = 'lg', className, ...inputProps
-}, ref) {
+const Combobox = forwardRef(function Combobox(
+  {
+    options,
+    value,
+    onChange,
+    placeholder,
+    noMatchText = () => 'Nic neodpovídá hledání.',
+    footer,
+    clearLabel = 'Zrušit výběr',
+    toggleLabel = 'Zobrazit seznam',
+    disabled = false,
+    size = 'lg',
+    className,
+    ...inputProps
+  },
+  ref,
+) {
   const listId = useId();
   const wrapRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -29,14 +42,26 @@ const Combobox = forwardRef(function Combobox({
   const selected = options.find((option) => option.value === value) ?? null;
   const visible = useMemo(() => filterOptions(options, query), [options, query]);
 
-  const openList = () => { setOpen(true); setActive(0); };
-  const close = () => { setOpen(false); setQuery(''); };
-  const choose = (option) => { onChange(option.value); close(); };
+  const openList = () => {
+    setOpen(true);
+    setActive(0);
+  };
+  const close = () => {
+    setOpen(false);
+    setQuery('');
+  };
+  const choose = (option) => {
+    onChange(option.value);
+    close();
+  };
 
   const onKeyDown = (event) => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (!open) { openList(); return; }
+      if (!open) {
+        openList();
+        return;
+      }
       const step = event.key === 'ArrowDown' ? 1 : -1;
       setActive((index) => Math.min(Math.max(index + step, 0), Math.max(visible.length - 1, 0)));
     } else if (event.key === 'Enter' && open) {
@@ -72,14 +97,30 @@ const Combobox = forwardRef(function Combobox({
           placeholder={placeholder}
           disabled={disabled}
           value={open ? query : (selected?.label ?? '')}
-          onFocus={() => { if (!open) openList(); }}
-          onClick={() => { if (!open) openList(); }}
-          onChange={(event) => { setQuery(event.target.value); setOpen(true); setActive(0); }}
+          onFocus={() => {
+            if (!open) openList();
+          }}
+          onClick={() => {
+            if (!open) openList();
+          }}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setOpen(true);
+            setActive(0);
+          }}
           onKeyDown={onKeyDown}
           {...inputProps}
         />
         {selected && !disabled && (
-          <button type="button" className={styles.iconButton} aria-label={clearLabel} onClick={() => { onChange(null); close(); }}>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label={clearLabel}
+            onClick={() => {
+              onChange(null);
+              close();
+            }}
+          >
             <Icon name="close" size={18} />
           </button>
         )}

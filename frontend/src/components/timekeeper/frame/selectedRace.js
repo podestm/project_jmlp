@@ -78,7 +78,9 @@ export const useSelectedRace = () => {
   // pak fungují offline, i když se online neotevřely.
   useEffect(() => {
     if (!raceId) return undefined;
-    const preload = () => { preloadRaceData(raceId).catch(() => {}); };
+    const preload = () => {
+      preloadRaceData(raceId).catch(() => {});
+    };
     preload();
     return onBackOnline(preload);
   }, [raceId]);

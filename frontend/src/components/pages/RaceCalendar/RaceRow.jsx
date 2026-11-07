@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Badge, BibDate, ButtonLink, DataRow, Icon } from '../../ms/index.js';
 import { fixEncoding } from '../../../utils/text.js';
-import { REGISTRATION_STATE, raceMethod, raceOrder, registrationState } from '../../../utils/races.js';
+import {
+  REGISTRATION_STATE,
+  raceMethod,
+  raceOrder,
+  registrationState,
+} from '../../../utils/races.js';
 import styles from './RaceRow.module.css';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
@@ -10,7 +15,9 @@ const API_BASE = import.meta.env.VITE_API_BASE || '';
 function DocumentAction({ href, label, missingLabel }) {
   if (!href) return <span className={styles.missing}>{missingLabel}</span>;
   return (
-    <ButtonLink href={href} target="_blank" rel="noopener noreferrer" size="sm" icon="download">{label}</ButtonLink>
+    <ButtonLink href={href} target="_blank" rel="noopener noreferrer" size="sm" icon="download">
+      {label}
+    </ButtonLink>
   );
 }
 
@@ -26,7 +33,11 @@ export default function RaceRow({ race, today }) {
   const method = raceMethod(race);
   const order = raceOrder(race);
   const detailPath = `/zavod/${race.id}`;
-  const meta = [fixEncoding(race.organizer_name), method.label.toLowerCase(), order && `${order}. závod sezóny`]
+  const meta = [
+    fixEncoding(race.organizer_name),
+    method.label.toLowerCase(),
+    order && `${order}. závod sezóny`,
+  ]
     .filter(Boolean)
     .join(' · ');
 
@@ -36,16 +47,18 @@ export default function RaceRow({ race, today }) {
       variant="card"
       tone={status.bar}
       lead={<BibDate date={race.datum} variant="list" />}
-      title={(
+      title={
         <Link to={detailPath} className={styles.titleLink}>
           <Icon name={method.icon} size={17} className={styles.methodIcon} />
           {fixEncoding(race.areal_name)}
         </Link>
-      )}
+      }
       meta={meta}
-      aside={(
+      aside={
         <>
-          <Badge tone={status.badge} icon={status.icon} className={styles.badge}>{status.label}</Badge>
+          <Badge tone={status.badge} icon={status.icon} className={styles.badge}>
+            {status.label}
+          </Badge>
           <div className={styles.actions}>
             {state === 'past' ? (
               <DocumentAction
@@ -60,12 +73,18 @@ export default function RaceRow({ race, today }) {
                 missingLabel="Bez propozic"
               />
             )}
-            {state === 'open'
-              ? <ButtonLink to={`${detailPath}#prihlaska`} variant="primary" size="sm">Registrovat</ButtonLink>
-              : <ButtonLink to={detailPath} size="sm">Detail</ButtonLink>}
+            {state === 'open' ? (
+              <ButtonLink to={`${detailPath}#prihlaska`} variant="primary" size="sm">
+                Registrovat
+              </ButtonLink>
+            ) : (
+              <ButtonLink to={detailPath} size="sm">
+                Detail
+              </ButtonLink>
+            )}
           </div>
         </>
-      )}
+      }
     />
   );
 }

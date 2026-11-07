@@ -2,10 +2,19 @@ import { cx } from '../cx.js';
 import { ICONS } from './icons.js';
 import styles from './Icon.module.css';
 
-const SHAPES = { path: 'path', circle: 'circle', rect: 'rect', line: 'line', polyline: 'polyline', polygon: 'polygon', ellipse: 'ellipse' };
+const SHAPES = {
+  path: 'path',
+  circle: 'circle',
+  rect: 'rect',
+  line: 'line',
+  polyline: 'polyline',
+  polygon: 'polygon',
+  ellipse: 'ellipse',
+};
 
 /** Tloušťka tahu: výslovná > nakreslená pro tuto velikost > výchozí ikony. */
-const resolveStroke = (icon, size, override) => override ?? (typeof size === 'number' ? icon.sizes?.[size] : undefined) ?? icon.strokeWidth;
+const resolveStroke = (icon, size, override) =>
+  override ?? (typeof size === 'number' ? icon.sizes?.[size] : undefined) ?? icon.strokeWidth;
 
 /**
  * Ikona Modré stopy: vložené stroke SVG s geometrií z artboardů (icons.js).
@@ -17,7 +26,8 @@ const resolveStroke = (icon, size, override) => override ?? (typeof size === 'nu
 export default function Icon({ name, size, strokeWidth, className, style }) {
   const icon = ICONS[name];
   if (!icon) {
-    if (import.meta.env.DEV) throw new Error(`Neznámá ikona „${name}“ – přidej ji do components/ms/Icon/icons.js`);
+    if (import.meta.env.DEV)
+      throw new Error(`Neznámá ikona „${name}“ – přidej ji do components/ms/Icon/icons.js`);
     return null;
   }
   const dimension = size ?? '1em';

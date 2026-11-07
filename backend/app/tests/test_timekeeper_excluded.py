@@ -11,6 +11,7 @@ příznak `excluded`, a dokud ho má:
 "Vrátit" ho obnoví i se vším, co u něj bylo zapsané. Zápis vyřazení přitom
 neposouvá revizi řádku - ta hlídá souběžné zápisy časů a vyřazení časy nemění.
 """
+
 from datetime import date, datetime
 
 import pytest
@@ -27,6 +28,7 @@ STARTOVKA = "fuj_jmlp_race_start_list"
 # --------------------------------------------------------------------------
 # Pomocníci pro testovací data
 # --------------------------------------------------------------------------
+
 
 def _zavod(db, race_nr="JMLP2026-03", is_live=False):
     zavod = models.Race(
@@ -46,8 +48,12 @@ def _zavod(db, race_nr="JMLP2026-03", is_live=False):
 
 def _kategorie(db):
     kategorie = models.Category(
-        name="U10", display_name="Přípravka dívky",
-        min_birth_year=2016, max_birth_year=2018, sex=2, active=True,
+        name="U10",
+        display_name="Přípravka dívky",
+        min_birth_year=2016,
+        max_birth_year=2018,
+        sex=2,
+        active=True,
     )
     db.add(kategorie)
     db.commit()
@@ -63,8 +69,19 @@ def _zavodnik(db, name, surname):
     return zavodnik
 
 
-def _polozka(db, zavod, kategorie, name, surname, start_number,
-             time1=None, time2=None, time_sum=None, points=None, excluded=False):
+def _polozka(
+    db,
+    zavod,
+    kategorie,
+    name,
+    surname,
+    start_number,
+    time1=None,
+    time2=None,
+    time_sum=None,
+    points=None,
+    excluded=False,
+):
     zavodnik = _zavodnik(db, name, surname)
     polozka = models.StartListEntry(
         race_id=zavod.id,
@@ -77,7 +94,9 @@ def _polozka(db, zavod, kategorie, name, surname, start_number,
         racer_sex=zavodnik.sex,
         category_name=kategorie.display_name,
         category_sex=kategorie.sex,
-        time1=time1, time2=time2, time_sum=time_sum,
+        time1=time1,
+        time2=time2,
+        time_sum=time_sum,
         points=points,
         excluded=excluded,
     )
@@ -101,7 +120,9 @@ def _vyradit(client, polozka, hlavicky, excluded=True, idempotency_key=None):
 def _ulozeny_radek(db, polozka):
     """Přímo z tabulky - identity mapa session by vrátila stav před voláním API."""
     return db.execute(
-        text(f"SELECT excluded, time1, time_sum, points, updated_at FROM {STARTOVKA} WHERE id = :id"),
+        text(
+            f"SELECT excluded, time1, time_sum, points, updated_at FROM {STARTOVKA} WHERE id = :id"
+        ),
         {"id": polozka.id},
     ).first()
 
@@ -120,18 +141,49 @@ def kategorie(db):
 def tri_zavodnice(db, zavod, kategorie):
     """Nejrychlejší z nich (Rychla) se nakonec nepostaví na start."""
     return {
-        "rychla": _polozka(db, zavod, kategorie, "Anna", "Rychla", 1,
-                           time1=29.0, time2=29.0, time_sum=58.0, points=100),
-        "druha": _polozka(db, zavod, kategorie, "Bara", "Druha", 2,
-                          time1=30.0, time2=30.0, time_sum=60.0, points=80),
-        "treti": _polozka(db, zavod, kategorie, "Cilka", "Treti", 3,
-                          time1=30.5, time2=31.0, time_sum=61.5, points=60),
+        "rychla": _polozka(
+            db,
+            zavod,
+            kategorie,
+            "Anna",
+            "Rychla",
+            1,
+            time1=29.0,
+            time2=29.0,
+            time_sum=58.0,
+            points=100,
+        ),
+        "druha": _polozka(
+            db,
+            zavod,
+            kategorie,
+            "Bara",
+            "Druha",
+            2,
+            time1=30.0,
+            time2=30.0,
+            time_sum=60.0,
+            points=80,
+        ),
+        "treti": _polozka(
+            db,
+            zavod,
+            kategorie,
+            "Cilka",
+            "Treti",
+            3,
+            time1=30.5,
+            time2=31.0,
+            time_sum=61.5,
+            points=60,
+        ),
     }
 
 
 # --------------------------------------------------------------------------
 # Vyřazení a vrácení
 # --------------------------------------------------------------------------
+
 
 def test_vyrazeny_zustane_na_startovce_s_priznakem(client, db, tri_zavodnice, timekeeper_headers):
     rychla = tri_zavodnice["rychla"]
@@ -144,10 +196,13 @@ def test_vyrazeny_zustane_na_startovce_s_priznakem(client, db, tri_zavodnice, ti
     assert odpoved.json()["idempotency_replayed"] is False
 
     # Listina časoměřiče ho dál vidí - jen tam se dá vrátit.
-    vypis = client.get(f"/api/timekeeper/races/{rychla.race_id}/start-list",
-                       headers=timekeeper_headers).json()
+    vypis = client.get(
+        f"/api/timekeeper/races/{rychla.race_id}/start-list", headers=timekeeper_headers
+    ).json()
     assert {r["racer_surname"]: r["excluded"] for r in vypis} == {
-        "Rychla": True, "Druha": False, "Treti": False,
+        "Rychla": True,
+        "Druha": False,
+        "Treti": False,
     }
     assert _ulozeny_radek(db, rychla).excluded == 1
 
@@ -167,8 +222,9 @@ def test_vraceni_obnovi_zavodnika_i_s_casy(client, db, tri_zavodnice, timekeeper
     assert vraceny["time_sum"] == 58.0
     assert vraceny["start_number"] == 1
 
-    vysledky = client.get(f"/api/timekeeper/races/{rychla.race_id}/results",
-                          headers=timekeeper_headers).json()
+    vysledky = client.get(
+        f"/api/timekeeper/races/{rychla.race_id}/results", headers=timekeeper_headers
+    ).json()
     assert vysledky["categories"][0]["entries"][0]["racer_surname"] == "Rychla"
 
 
@@ -188,8 +244,10 @@ def test_vyrazeni_nemeni_revizi_casu(client, db, tri_zavodnice, timekeeper_heade
     """Revize hlídá souběžné zápisy ČASŮ. Kdyby ji vyřazení posunulo, tablet,
     který zrovna zapisuje čas, by dostal konflikt 409 o ničem."""
     druha = tri_zavodnice["druha"]
-    db.execute(text(f"UPDATE {STARTOVKA} SET updated_at = '2026-01-01 10:00:00' WHERE id = :id"),
-               {"id": druha.id})
+    db.execute(
+        text(f"UPDATE {STARTOVKA} SET updated_at = '2026-01-01 10:00:00' WHERE id = :id"),
+        {"id": druha.id},
+    )
     db.commit()
 
     _vyradit(client, druha, timekeeper_headers)
@@ -211,8 +269,11 @@ def test_casomeric_smi_zapsat_cas_i_vyrazenemu(client, db, tri_zavodnice, timeke
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
 
-    zapis = client.put(f"/api/timekeeper/start-list/{rychla.id}/time",
-                       json={"time1": 28.0, "time2": 28.0}, headers=timekeeper_headers)
+    zapis = client.put(
+        f"/api/timekeeper/start-list/{rychla.id}/time",
+        json={"time1": 28.0, "time2": 28.0},
+        headers=timekeeper_headers,
+    )
 
     assert zapis.status_code == 200, zapis.text
     radek = _ulozeny_radek(db, rychla)
@@ -220,7 +281,9 @@ def test_casomeric_smi_zapsat_cas_i_vyrazenemu(client, db, tri_zavodnice, timeke
     assert float(radek.time_sum) == 56.0
 
 
-def test_dvoji_odeslani_vyrazeni_se_neprovede_dvakrat(client, db, tri_zavodnice, timekeeper_headers):
+def test_dvoji_odeslani_vyrazeni_se_neprovede_dvakrat(
+    client, db, tri_zavodnice, timekeeper_headers
+):
     """Přehrávka z offline fronty se stejným klíčem je jen ozvěna první odpovědi
     - nesmí znovu vyřadit závodníka, kterého mezitím někdo vrátil."""
     rychla = tri_zavodnice["rychla"]
@@ -246,8 +309,11 @@ def test_ruzne_klice_vyrazeni_se_provedou_oba(client, db, tri_zavodnice, timekee
 
 
 def test_vyrazeni_neexistujici_polozky_vrati_404(client, timekeeper_headers):
-    odpoved = client.put("/api/timekeeper/start-list/9999/excluded",
-                         json={"excluded": True}, headers=timekeeper_headers)
+    odpoved = client.put(
+        "/api/timekeeper/start-list/9999/excluded",
+        json={"excluded": True},
+        headers=timekeeper_headers,
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Záznam na startovní listině nenalezen"
@@ -256,8 +322,9 @@ def test_vyrazeni_neexistujici_polozky_vrati_404(client, timekeeper_headers):
 def test_vyrazeni_bez_ciloveho_stavu_odmitne(client, db, tri_zavodnice, timekeeper_headers):
     rychla = tri_zavodnice["rychla"]
 
-    odpoved = client.put(f"/api/timekeeper/start-list/{rychla.id}/excluded",
-                         json={}, headers=timekeeper_headers)
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{rychla.id}/excluded", json={}, headers=timekeeper_headers
+    )
 
     assert odpoved.status_code == 422
     assert _ulozeny_radek(db, rychla).excluded == 0
@@ -270,7 +337,9 @@ def test_vyrazeni_smi_i_spravce(client, db, tri_zavodnice, admin_headers):
 def test_vyrazeni_bez_prihlaseni_neprojde(client, db, tri_zavodnice):
     rychla = tri_zavodnice["rychla"]
 
-    odpoved = client.put(f"/api/timekeeper/start-list/{rychla.id}/excluded", json={"excluded": True})
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{rychla.id}/excluded", json={"excluded": True}
+    )
 
     assert odpoved.status_code == 403
     assert _ulozeny_radek(db, rychla).excluded == 0
@@ -280,44 +349,54 @@ def test_vyrazeni_bez_prihlaseni_neprojde(client, db, tri_zavodnice):
 # Kde vyřazený není
 # --------------------------------------------------------------------------
 
-def test_vysledky_pocitaji_poradi_a_body_bez_vyrazeneho(client, db, tri_zavodnice,
-                                                         timekeeper_headers):
+
+def test_vysledky_pocitaji_poradi_a_body_bez_vyrazeneho(
+    client, db, tri_zavodnice, timekeeper_headers
+):
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
 
-    vysledky = client.get(f"/api/timekeeper/races/{rychla.race_id}/results",
-                          headers=timekeeper_headers).json()
+    vysledky = client.get(
+        f"/api/timekeeper/races/{rychla.race_id}/results", headers=timekeeper_headers
+    ).json()
 
     assert vysledky["total_entries"] == 2
     radky = vysledky["categories"][0]["entries"]
     assert [(r["racer_surname"], r["position"], r["points"]) for r in radky] == [
-        ("Druha", 1, 100), ("Treti", 2, 80),
+        ("Druha", 1, 100),
+        ("Treti", 2, 80),
     ]
     # Ztráta se měří na nového vítěze, ne na vyřazenou.
     assert radky[0]["diff"] is None
     assert radky[1]["diff"] == 1.5
 
 
-def test_plochy_vypis_vysledku_vyrazeneho_taky_vynecha(client, db, tri_zavodnice,
-                                                         timekeeper_headers):
+def test_plochy_vypis_vysledku_vyrazeneho_taky_vynecha(
+    client, db, tri_zavodnice, timekeeper_headers
+):
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
 
-    vysledky = client.get(f"/api/timekeeper/races/{rychla.race_id}/results?group_by_category=false",
-                          headers=timekeeper_headers).json()
+    vysledky = client.get(
+        f"/api/timekeeper/races/{rychla.race_id}/results?group_by_category=false",
+        headers=timekeeper_headers,
+    ).json()
 
     assert [r["racer_surname"] for r in vysledky["entries"]] == ["Druha", "Treti"]
 
 
-def test_vypocet_bodu_vyrazeneho_preskoci_a_jeho_stare_body_smaze(client, db, tri_zavodnice,
-                                                                   timekeeper_headers):
+def test_vypocet_bodu_vyrazeneho_preskoci_a_jeho_stare_body_smaze(
+    client, db, tri_zavodnice, timekeeper_headers
+):
     """Body se uložily ještě před vyřazením; nechat je tam by znamenalo, že
     sloupec points tvrdí něco jiného než výsledky."""
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
 
-    odpoved = client.post(f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
-                          headers=timekeeper_headers)
+    odpoved = client.post(
+        f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
+        headers=timekeeper_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["updated"] == 2
@@ -331,12 +410,16 @@ def test_vypocet_bodu_vyrazeneho_preskoci_a_jeho_stare_body_smaze(client, db, tr
 def test_po_vraceni_vypocet_bodu_vrati_i_jeho_body(client, db, tri_zavodnice, timekeeper_headers):
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
-    client.post(f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
-                headers=timekeeper_headers)
+    client.post(
+        f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
+        headers=timekeeper_headers,
+    )
 
     _vyradit(client, rychla, timekeeper_headers, excluded=False)
-    client.post(f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
-                headers=timekeeper_headers)
+    client.post(
+        f"/api/timekeeper/races/{rychla.race_id}/results/calculate-points",
+        headers=timekeeper_headers,
+    )
 
     assert _ulozeny_radek(db, rychla).points == 100
     assert _ulozeny_radek(db, tri_zavodnice["druha"]).points == 80
@@ -356,7 +439,8 @@ def test_verejny_live_prenos_vyrazeneho_neukaze(client, db, kategorie, timekeepe
 
 
 def test_verejny_live_prenos_bez_jedine_kategorie_kdyz_jsou_vsichni_vyrazeni(
-        client, db, kategorie, timekeeper_headers):
+    client, db, kategorie, timekeeper_headers
+):
     zavod = _zavod(db, race_nr="JMLP2026-04", is_live=True)
     _vyradit(client, _polozka(db, zavod, kategorie, "Anna", "Rychla", 1), timekeeper_headers)
 
@@ -366,8 +450,9 @@ def test_verejny_live_prenos_bez_jedine_kategorie_kdyz_jsou_vsichni_vyrazeni(
     assert odpoved.json()["categories"] == []
 
 
-def test_prehled_zavodu_pocita_na_listine_jen_nevyrazene(client, db, tri_zavodnice,
-                                                         timekeeper_headers):
+def test_prehled_zavodu_pocita_na_listine_jen_nevyrazene(
+    client, db, tri_zavodnice, timekeeper_headers
+):
     _vyradit(client, tri_zavodnice["rychla"], timekeeper_headers)
 
     zavody = client.get("/api/timekeeper/races", headers=timekeeper_headers).json()
@@ -379,12 +464,16 @@ def test_prehled_zavodu_pocita_na_listine_jen_nevyrazene(client, db, tri_zavodni
 # Vyřazený pořád patří k závodu - nedá se přidat podruhé
 # --------------------------------------------------------------------------
 
+
 def test_rucni_pridani_vyrazeneho_poradi_vratit_ho(client, db, tri_zavodnice, timekeeper_headers):
     rychla = tri_zavodnice["rychla"]
     _vyradit(client, rychla, timekeeper_headers)
 
-    odpoved = client.post(f"/api/timekeeper/races/{rychla.race_id}/start-list/entry",
-                          json={"racer_id": rychla.racer_id}, headers=timekeeper_headers)
+    odpoved = client.post(
+        f"/api/timekeeper/races/{rychla.race_id}/start-list/entry",
+        json={"racer_id": rychla.racer_id},
+        headers=timekeeper_headers,
+    )
 
     assert odpoved.status_code == 400
     assert "vyřazený" in odpoved.json()["detail"]
@@ -397,8 +486,11 @@ def test_generovani_vyrazeneho_neprida_znovu(client, db, tri_zavodnice, timekeep
     db.commit()
     _vyradit(client, rychla, timekeeper_headers)
 
-    odpoved = client.post(f"/api/timekeeper/races/{rychla.race_id}/start-list/generate",
-                          json={}, headers=timekeeper_headers)
+    odpoved = client.post(
+        f"/api/timekeeper/races/{rychla.race_id}/start-list/generate",
+        json={},
+        headers=timekeeper_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["added"] == 0
@@ -409,24 +501,31 @@ def test_generovani_vyrazeneho_neprida_znovu(client, db, tri_zavodnice, timekeep
 # Migrace ostré databáze
 # --------------------------------------------------------------------------
 
+
 def test_migrace_doplni_sloupec_a_dosavadni_radky_necha_na_startovce(db, zavod, kategorie):
     """Na ostré databázi sloupec chybí - doplní ho migrace při startu backendu.
     Spustí se tam jednou, ale každý restart ji zavolá znovu."""
     with engine.begin() as conn:
         conn.execute(text(f"ALTER TABLE {STARTOVKA} DROP COLUMN excluded"))
-        conn.execute(text(
-            f"INSERT INTO {STARTOVKA} (race_id, racer_id, category_id, start_number) "
-            "VALUES (:race_id, 1, :category_id, 1)"
-        ), {"race_id": zavod.id, "category_id": kategorie.id})
+        conn.execute(
+            text(
+                f"INSERT INTO {STARTOVKA} (race_id, racer_id, category_id, start_number) "
+                "VALUES (:race_id, 1, :category_id, 1)"
+            ),
+            {"race_id": zavod.id, "category_id": kategorie.id},
+        )
     try:
         with engine.begin() as conn:
             _m_start_list_excluded(conn)
             _m_start_list_excluded(conn)  # druhý start backendu už nic nedělá
 
-            sloupec = conn.execute(text(
-                "SELECT COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS "
-                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND COLUMN_NAME = 'excluded'"
-            ), {"t": STARTOVKA}).first()
+            sloupec = conn.execute(
+                text(
+                    "SELECT COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS "
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t AND COLUMN_NAME = 'excluded'"
+                ),
+                {"t": STARTOVKA},
+            ).first()
             assert sloupec.COLUMN_TYPE == "tinyint(1)"
             assert sloupec.IS_NULLABLE == "NO"
             assert str(sloupec.COLUMN_DEFAULT) == "0"
@@ -436,6 +535,8 @@ def test_migrace_doplni_sloupec_a_dosavadni_radky_necha_na_startovce(db, zavod, 
         # Schéma je společné celé sadě testů - musí zůstat, jak bylo.
         with engine.begin() as conn:
             if not _column_exists(conn, STARTOVKA, "excluded"):
-                conn.execute(text(
-                    f"ALTER TABLE {STARTOVKA} ADD COLUMN excluded TINYINT(1) NOT NULL DEFAULT 0"
-                ))
+                conn.execute(
+                    text(
+                        f"ALTER TABLE {STARTOVKA} ADD COLUMN excluded TINYINT(1) NOT NULL DEFAULT 0"
+                    )
+                )

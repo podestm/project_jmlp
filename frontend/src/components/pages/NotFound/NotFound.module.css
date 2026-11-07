@@ -92,10 +92,18 @@
   background: var(--ms-surface-sunken);
 }
 
-.suggestion[data-tone='open'] { --tone: var(--ms-open); }
-.suggestion[data-tone='navy'] { --tone: var(--ms-navy); }
-.suggestion[data-tone='live'] { --tone: var(--ms-red); }
-.suggestion[data-tone='neutral'] { --tone: var(--ms-line); }
+.suggestion[data-tone='open'] {
+  --tone: var(--ms-open);
+}
+.suggestion[data-tone='navy'] {
+  --tone: var(--ms-navy);
+}
+.suggestion[data-tone='live'] {
+  --tone: var(--ms-red);
+}
+.suggestion[data-tone='neutral'] {
+  --tone: var(--ms-line);
+}
 
 .suggestionText {
   display: flex;

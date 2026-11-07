@@ -8,8 +8,13 @@ const panelNote = ({ slcr, item, missing, isOnline }) => {
   if (slcr.loading && !item) return { text: 'Načítám stav v evidenci SLČR…' };
   if (slcr.error) return { text: slcr.error, retry: true };
   if (!item) return { text: 'Stav kategorie v evidenci se nepodařilo zjistit.', retry: true };
-  if (!item.slcr_race_id) return { text: 'Kategorie nemá v akci svůj závod – založte ho v Evidenci SLČR (krok 2).', openEvidence: true };
-  if (missing > 0) return { text: `${racersText(missing)} bez času – nejdřív zapište čas nebo DNF/DNS/DSQ.` };
+  if (!item.slcr_race_id)
+    return {
+      text: 'Kategorie nemá v akci svůj závod – založte ho v Evidenci SLČR (krok 2).',
+      openEvidence: true,
+    };
+  if (missing > 0)
+    return { text: `${racersText(missing)} bez času – nejdřív zapište čas nebo DNF/DNS/DSQ.` };
   return { text: 'Všichni mají čas nebo DNF/DNS/DSQ.', ready: true };
 };
 
@@ -22,7 +27,11 @@ const panelNote = ({ slcr, item, missing, isOnline }) => {
 export default function SlcrCategoryPanel({ category, slcr, isOnline, onOpenEvidence }) {
   const id = String(category.category_id);
   const headingId = `slcr-kategorie-${id}`;
-  const title = <h3 id={headingId} className={styles.title}>Evidence SLČR</h3>;
+  const title = (
+    <h3 id={headingId} className={styles.title}>
+      Evidence SLČR
+    </h3>
+  );
 
   if (!slcr.eventId) {
     return (
@@ -32,7 +41,9 @@ export default function SlcrCategoryPanel({ category, slcr, isOnline, onOpenEvid
             {title}
             <p className={styles.note}>Akce zatím není vybraná.</p>
           </div>
-          <Button size="sm" icon="cloud-upload" disabled={!isOnline} onClick={onOpenEvidence}>Evidence SLČR</Button>
+          <Button size="sm" icon="cloud-upload" disabled={!isOnline} onClick={onOpenEvidence}>
+            Evidence SLČR
+          </Button>
         </div>
       </Panel>
     );
@@ -52,15 +63,34 @@ export default function SlcrCategoryPanel({ category, slcr, isOnline, onOpenEvid
         <div className={styles.info}>
           <div className={styles.head}>
             {title}
-            {item && <Badge size="sm" tone={state.tone}>{state.label}</Badge>}
+            {item && (
+              <Badge size="sm" tone={state.tone}>
+                {state.label}
+              </Badge>
+            )}
           </div>
           <p className={styles.note}>
             {note.text}
-            {slcr.event?.name && <span className={styles.event}>{` Akce: ${slcr.event.name}`}</span>}
+            {slcr.event?.name && (
+              <span className={styles.event}>{` Akce: ${slcr.event.name}`}</span>
+            )}
           </p>
         </div>
-        {note.retry && <Button size="sm" icon="refresh" disabled={!isOnline || slcr.loading} onClick={slcr.reload}>Načíst znovu</Button>}
-        {note.openEvidence && <Button size="sm" icon="cloud-upload" onClick={onOpenEvidence}>Evidence SLČR</Button>}
+        {note.retry && (
+          <Button
+            size="sm"
+            icon="refresh"
+            disabled={!isOnline || slcr.loading}
+            onClick={slcr.reload}
+          >
+            Načíst znovu
+          </Button>
+        )}
+        {note.openEvidence && (
+          <Button size="sm" icon="cloud-upload" onClick={onOpenEvidence}>
+            Evidence SLČR
+          </Button>
+        )}
         {!note.retry && !note.openEvidence && (
           <Button
             size="sm"
@@ -76,7 +106,9 @@ export default function SlcrCategoryPanel({ category, slcr, isOnline, onOpenEvid
       </div>
       {slcr.dryRun && <p className={styles.dryRun}>{DRY_RUN_TEXT}</p>}
       {message && (
-        <Alert type={message.type} compact autoDismissDelay={0} onDismiss={slcr.clearMessage}>{message.text}</Alert>
+        <Alert type={message.type} compact autoDismissDelay={0} onDismiss={slcr.clearMessage}>
+          {message.text}
+        </Alert>
       )}
     </Panel>
   );

@@ -13,5 +13,9 @@ export const flagOf = (entry) => (entry.dnf ? 'dnf' : entry.dns ? 'dns' : entry.
 /** Odznak DNF / DNS / DSQ (TkStartovniListina). Význam nese zkratka, title ji vypíše. */
 export default function RaceFlag({ flag }) {
   const { label, title } = FLAGS[flag];
-  return <abbr title={title} className={cx(styles.flag, styles[flag])}>{label}</abbr>;
+  return (
+    <abbr title={title} className={cx(styles.flag, styles[flag])}>
+      {label}
+    </abbr>
+  );
 }

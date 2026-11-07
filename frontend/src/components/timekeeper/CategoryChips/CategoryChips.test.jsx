@@ -19,8 +19,12 @@ describe('CategoryChips', () => {
   });
 
   it('značka stavu má text pro čtečku, ne jen barvu', () => {
-    const options = [{ ...OPTIONS[1], mark: { icon: 'check', label: 'zveřejněno v SLČR', tone: 'done' } }];
+    const options = [
+      { ...OPTIONS[1], mark: { icon: 'check', label: 'zveřejněno v SLČR', tone: 'done' } },
+    ];
     render(<CategoryChips options={options} value="" onChange={() => {}} />);
-    expect(screen.getByRole('button', { name: 'Předžáci 10 , zveřejněno v SLČR' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Předžáci 10 , zveřejněno v SLČR' }),
+    ).toBeInTheDocument();
   });
 });

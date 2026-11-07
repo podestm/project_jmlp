@@ -15,10 +15,19 @@ import styles from './Field.module.css';
 const mergeControlProps = (own, fromField) => ({
   ...fromField,
   required: own.required || fromField.required,
-  'aria-describedby': [own['aria-describedby'], fromField['aria-describedby']].filter(Boolean).join(' ') || undefined,
+  'aria-describedby':
+    [own['aria-describedby'], fromField['aria-describedby']].filter(Boolean).join(' ') || undefined,
 });
 
-export default function Field({ label, hint, error, required = false, id: idProp, className, children }) {
+export default function Field({
+  label,
+  hint,
+  error,
+  required = false,
+  id: idProp,
+  className,
+  children,
+}) {
   const autoId = useId();
   const id = idProp ?? `f${autoId}`;
   const hintId = hint ? `${id}-napoveda` : undefined;
@@ -36,17 +45,28 @@ export default function Field({ label, hint, error, required = false, id: idProp
     control = children(controlProps);
   } else {
     const child = Children.only(children);
-    control = isValidElement(child) ? cloneElement(child, mergeControlProps(child.props, controlProps)) : child;
+    control = isValidElement(child)
+      ? cloneElement(child, mergeControlProps(child.props, controlProps))
+      : child;
   }
 
   return (
     <div className={cx(styles.field, className)}>
       <label htmlFor={id} className={styles.label}>
         {label}
-        {required && <span className={styles.required} aria-hidden="true"> *</span>}
+        {required && (
+          <span className={styles.required} aria-hidden="true">
+            {' '}
+            *
+          </span>
+        )}
       </label>
       {control}
-      {hint && <span id={hintId} className={styles.hint}>{hint}</span>}
+      {hint && (
+        <span id={hintId} className={styles.hint}>
+          {hint}
+        </span>
+      )}
       {error && (
         <span id={errorId} className={styles.error}>
           <Icon name="error" size={18} />

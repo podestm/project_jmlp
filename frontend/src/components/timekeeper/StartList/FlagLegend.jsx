@@ -8,10 +8,14 @@ export default function FlagLegend() {
     <div className={styles.legend}>
       <ul className={styles.items}>
         {Object.entries(FLAGS).map(([flag, { title }]) => (
-          <li key={flag} className={styles.item}><RaceFlag flag={flag} /> {title}</li>
+          <li key={flag} className={styles.item}>
+            <RaceFlag flag={flag} /> {title}
+          </li>
         ))}
         <li className={styles.item}>
-          <Badge tone="navy" size="sm">vyřazen</Badge>
+          <Badge tone="navy" size="sm">
+            vyřazen
+          </Badge>
           nedorazil, mimo startovku i výsledky
         </li>
       </ul>

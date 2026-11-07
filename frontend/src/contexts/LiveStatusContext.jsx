@@ -58,11 +58,7 @@ export function LiveStatusProvider({ children }) {
     };
   }, []);
 
-  return (
-    <LiveStatusContext.Provider value={liveRace}>
-      {children}
-    </LiveStatusContext.Provider>
-  );
+  return <LiveStatusContext.Provider value={liveRace}>{children}</LiveStatusContext.Provider>;
 }
 
 export function useLiveStatus() {

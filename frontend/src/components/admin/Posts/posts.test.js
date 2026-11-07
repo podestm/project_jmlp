@@ -3,7 +3,9 @@ import { postsMeta, shownSummary } from './posts.js';
 
 describe('aktuality v administraci', () => {
   it('meta počítá publikované a koncepty', () => {
-    expect(postsMeta([{ published: true }, { published: true }, { published: false }])).toBe('2 publikované · 1 koncept');
+    expect(postsMeta([{ published: true }, { published: true }, { published: false }])).toBe(
+      '2 publikované · 1 koncept',
+    );
     expect(postsMeta([])).toBe('0 publikovaných · 0 konceptů');
   });
 

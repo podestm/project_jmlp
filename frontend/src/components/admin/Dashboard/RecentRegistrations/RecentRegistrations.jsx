@@ -4,7 +4,11 @@ import styles from './RecentRegistrations.module.css';
 
 const When = ({ iso }) => {
   const { day, time } = whenParts(iso);
-  return <>{day} <span className={styles.time}>{time}</span></>;
+  return (
+    <>
+      {day} <span className={styles.time}>{time}</span>
+    </>
+  );
 };
 
 /**
@@ -25,19 +29,25 @@ export default function RecentRegistrations({ registrations }) {
               <th scope="col">Závodník</th>
               <th scope="col">Klub</th>
               <th scope="col">Závod</th>
-              <th scope="col" data-align="end">Přihlášen</th>
+              <th scope="col" data-align="end">
+                Přihlášen
+              </th>
             </tr>
           </thead>
           <tbody>
             {registrations.map((reg, index) => (
               <tr key={`${reg.registered_at}-${index}`}>
-                <td className={styles.name}>{reg.racer_surname} {reg.racer_name}</td>
+                <td className={styles.name}>
+                  {reg.racer_surname} {reg.racer_name}
+                </td>
                 <td>{reg.club_name || '—'}</td>
                 <td>
                   <span className={styles.race}>{reg.race_nr || '?'}</span>
                   {reg.areal_name && <span className={styles.areal}> · {reg.areal_name}</span>}
                 </td>
-                <td data-align="end" className={styles.when}><When iso={reg.registered_at} /></td>
+                <td data-align="end" className={styles.when}>
+                  <When iso={reg.registered_at} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -48,12 +58,16 @@ export default function RecentRegistrations({ registrations }) {
         {registrations.map((reg, index) => (
           <li key={`${reg.registered_at}-${index}`} className={styles.item}>
             <span className={styles.itemText}>
-              <span className={styles.name}>{reg.racer_surname} {reg.racer_name}</span>
+              <span className={styles.name}>
+                {reg.racer_surname} {reg.racer_name}
+              </span>
               <span className={styles.meta}>
                 {[reg.club_name, reg.race_nr].filter(Boolean).join(' · ')}
               </span>
             </span>
-            <span className={styles.when}><When iso={reg.registered_at} /></span>
+            <span className={styles.when}>
+              <When iso={reg.registered_at} />
+            </span>
           </li>
         ))}
       </ul>

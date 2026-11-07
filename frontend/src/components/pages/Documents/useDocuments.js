@@ -10,11 +10,18 @@ export function useDocuments() {
   const load = useCallback(({ silent = false } = {}) => {
     if (!silent) setStatus('loading');
     return API.get('/documents')
-      .then((result) => { setData(result); setStatus('ready'); })
-      .catch(() => { if (!silent) setStatus('error'); });
+      .then((result) => {
+        setData(result);
+        setStatus('ready');
+      })
+      .catch(() => {
+        if (!silent) setStatus('error');
+      });
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
   // Obnova na pozadí: seznam, který už na obrazovce je, se jen potichu vymění.
   useRevalidateOnFocus(() => load({ silent: true }));
 

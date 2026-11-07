@@ -11,7 +11,10 @@ import styles from './RaceInfo.module.css';
  */
 export default function RaceInfo({ race, meta, aside, size = 'sm', className }) {
   return (
-    <div className={cx(styles.card, styles[size], className)} data-open={race.registration || undefined}>
+    <div
+      className={cx(styles.card, styles[size], className)}
+      data-open={race.registration || undefined}
+    >
       {race.datum && <BibDate date={race.datum} variant="table" />}
       <span className={styles.text}>
         <span className={styles.name}>{race.areal_name || race.race_nr}</span>

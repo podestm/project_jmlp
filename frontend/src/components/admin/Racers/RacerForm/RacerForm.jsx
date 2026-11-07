@@ -4,8 +4,10 @@ import { MIN_BIRTH_YEAR } from '../racers.js';
 import styles from './RacerForm.module.css';
 
 /** Úvodní řádek dialogu úpravy: koho upravuji. */
-const lead = (racer) => [`${racer.lastName || ''} ${racer.firstName || ''}`.trim(), racer.birthYear, racer.club_name]
-  .filter(Boolean).join(' · ');
+const lead = (racer) =>
+  [`${racer.lastName || ''} ${racer.firstName || ''}`.trim(), racer.birthYear, racer.club_name]
+    .filter(Boolean)
+    .join(' · ');
 
 /**
  * Formulář závodníka v dialogu (AdminDialogZavodnik, AdminDialogZavodnikChyba).
@@ -13,11 +15,23 @@ const lead = (racer) => [`${racer.lastName || ''} ${racer.firstName || ''}`.trim
  * nezahodí. Chyba uložení se ukáže v dialogu nad poli, údaje zůstanou.
  */
 export default function RacerForm({
-  open, editingRacer, formData, setFormData, clubs, saving, error, onDismissError, onSubmit, onClose,
+  open,
+  editingRacer,
+  formData,
+  setFormData,
+  clubs,
+  saving,
+  error,
+  onDismissError,
+  onSubmit,
+  onClose,
 }) {
   const formId = useId();
   const maxYear = new Date().getFullYear();
-  const set = (key, parse = (value) => value) => (event) => setFormData({ ...formData, [key]: parse(event.target.value) });
+  const set =
+    (key, parse = (value) => value) =>
+    (event) =>
+      setFormData({ ...formData, [key]: parse(event.target.value) });
   const toInt = (value) => parseInt(value);
 
   return (
@@ -27,29 +41,54 @@ export default function RacerForm({
       title={editingRacer ? 'Upravit závodníka' : 'Nový závodník'}
       closeLabel="Zavřít formulář"
       // Křížek ('button'); 'close' = dialog zavřel prohlížeč sám, nesmí zůstat viset.
-      onClose={(reason) => { if (reason === 'button' || reason === 'close') onClose(); }}
-      footer={(
+      onClose={(reason) => {
+        if (reason === 'button' || reason === 'close') onClose();
+      }}
+      footer={
         <>
-          <Button data-cancel onClick={onClose}>Zrušit</Button>
-          <Button type="submit" form={formId} variant="primary" icon={editingRacer ? 'check' : 'plus'} busy={saving}>
+          <Button data-cancel onClick={onClose}>
+            Zrušit
+          </Button>
+          <Button
+            type="submit"
+            form={formId}
+            variant="primary"
+            icon={editingRacer ? 'check' : 'plus'}
+            busy={saving}
+          >
             {saving ? 'Ukládám…' : editingRacer ? 'Uložit změny' : 'Vytvořit závodníka'}
           </Button>
         </>
-      )}
+      }
     >
       {editingRacer && <p className={styles.lead}>{lead(editingRacer)}</p>}
       {error && (
-        <Alert type="danger" compact title={editingRacer ? 'Změny se neuložily.' : 'Závodník se neuložil.'} onDismiss={onDismissError}>
+        <Alert
+          type="danger"
+          compact
+          title={editingRacer ? 'Změny se neuložily.' : 'Závodník se neuložil.'}
+          onDismiss={onDismissError}
+        >
           {error}
         </Alert>
       )}
       <form id={formId} className={styles.form} onSubmit={onSubmit}>
         <div className={styles.names}>
           <Field label="Jméno" required>
-            <Input size="sm" value={formData.firstName} onChange={set('firstName')} placeholder="Jan" />
+            <Input
+              size="sm"
+              value={formData.firstName}
+              onChange={set('firstName')}
+              placeholder="Jan"
+            />
           </Field>
           <Field label="Příjmení" required>
-            <Input size="sm" value={formData.lastName} onChange={set('lastName')} placeholder="Novák" />
+            <Input
+              size="sm"
+              value={formData.lastName}
+              onChange={set('lastName')}
+              placeholder="Novák"
+            />
           </Field>
         </div>
         <div className={styles.details}>
@@ -72,13 +111,24 @@ export default function RacerForm({
             />
           </Field>
           <Field label="Registrační číslo SLČR" hint="Nejvýše 10 znaků.">
-            <Input size="sm" mono value={formData.idSlcr} onChange={set('idSlcr')} maxLength={10} placeholder="Bez čísla nechte prázdné" />
+            <Input
+              size="sm"
+              mono
+              value={formData.idSlcr}
+              onChange={set('idSlcr')}
+              maxLength={10}
+              placeholder="Bez čísla nechte prázdné"
+            />
           </Field>
         </div>
         <Field label="Klub">
           <Select size="sm" value={formData.club_id} onChange={set('club_id')}>
             <option value="">— bez klubu —</option>
-            {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
+            {clubs.map((club) => (
+              <option key={club.id} value={club.id}>
+                {club.name}
+              </option>
+            ))}
           </Select>
         </Field>
       </form>

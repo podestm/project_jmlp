@@ -3,6 +3,7 @@
 Jediné místo, které zapisuje do uploads/documents/. Používá ho jak ruční upload
 z administrace, tak publikace vygenerovaného PDF.
 """
+
 import logging
 import uuid
 from pathlib import Path
@@ -21,7 +22,16 @@ DOCUMENTS_DIR = Path("uploads/documents")
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {
-    ".pdf", ".doc", ".docx", ".txt", ".jpg", ".jpeg", ".png", ".xlsx", ".xls", ".csv",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".xlsx",
+    ".xls",
+    ".csv",
 }
 
 _MIME_BY_EXTENSION = {

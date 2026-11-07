@@ -21,10 +21,21 @@ export default function StartListToolbar({ hasEntries, setup, print, onClear }) 
         >
           {setup.open ? 'Zrušit generování' : 'Generovat z přihlášek'}
         </Button>
-        <ButtonLink to="/timekeeper/racers" icon="user-plus">Závodníci</ButtonLink>
-        {hasEntries && <Button icon="trash" variant="danger" onClick={onClear}>Smazat listinu</Button>}
+        <ButtonLink to="/timekeeper/racers" icon="user-plus">
+          Závodníci
+        </ButtonLink>
         {hasEntries && (
-          <ButtonLink to="/timekeeper/timing" variant="primary" iconEnd="arrow-right" className={styles.timing}>
+          <Button icon="trash" variant="danger" onClick={onClear}>
+            Smazat listinu
+          </Button>
+        )}
+        {hasEntries && (
+          <ButtonLink
+            to="/timekeeper/timing"
+            variant="primary"
+            iconEnd="arrow-right"
+            className={styles.timing}
+          >
             Zadávání časů
           </ButtonLink>
         )}
@@ -43,22 +54,25 @@ export default function StartListToolbar({ hasEntries, setup, print, onClear }) 
               Startovka 1. kola
             </Button>
             <Tooltip text="Pořadí jako 1. kolo, bez DSQ/DNF/DNS">
-              <Button size="sm" disabled={pdf.generating} onClick={() => printStartList(2, SECOND_RUN_SAME)}>
+              <Button
+                size="sm"
+                disabled={pdf.generating}
+                onClick={() => printStartList(2, SECOND_RUN_SAME)}
+              >
                 2. kolo
               </Button>
             </Tooltip>
             <Tooltip text="Nejrychlejší startuje první">
-              <Button size="sm" disabled={pdf.generating} onClick={() => printStartList(2, SECOND_RUN_BY_RESULTS)}>
+              <Button
+                size="sm"
+                disabled={pdf.generating}
+                onClick={() => printStartList(2, SECOND_RUN_BY_RESULTS)}
+              >
                 2. kolo podle výsledků
               </Button>
             </Tooltip>
           </div>
-          <Button
-            size="sm"
-            icon="users"
-            disabled={pdf.generating}
-            onClick={printClubList}
-          >
+          <Button size="sm" icon="users" disabled={pdf.generating} onClick={printClubList}>
             Rozpis po klubech
           </Button>
         </div>

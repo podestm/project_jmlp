@@ -16,7 +16,18 @@ const FIRST_PAGE_TOP = 43.8;
 const NEXT_PAGE_TOP = -1.56;
 const PAGE_BOTTOM = A4_PORTRAIT.height;
 
-const SET_NAMES = ['První', 'Druhá', 'Třetí', 'Čtvrtá', 'Pátá', 'Šestá', 'Sedmá', 'Osmá', 'Devátá', 'Desátá'];
+const SET_NAMES = [
+  'První',
+  'Druhá',
+  'Třetí',
+  'Čtvrtá',
+  'Pátá',
+  'Šestá',
+  'Sedmá',
+  'Osmá',
+  'Devátá',
+  'Desátá',
+];
 
 /** "První sada", "Druhá sada" ... - LiZa sady pojmenovává řadovou číslovkou. */
 export const setName = (number) => `${SET_NAMES[number - 1] || `${number}.`} sada`;
@@ -30,8 +41,7 @@ export const setName = (number) => `${SET_NAMES[number - 1] || `${number}.`} sad
  */
 export function categoryCode(name, sex) {
   const lower = String(name || '').toLocaleLowerCase('cs');
-  const female = Number(sex) === 2
-    || (sex == null && /dívk|žačk|juniork|žen|dívky/.test(lower));
+  const female = Number(sex) === 2 || (sex == null && /dívk|žačk|juniork|žen|dívky/.test(lower));
   if (lower.includes('open')) return female ? 'OZ' : 'OM';
   let group = null;
   if (lower.includes('myš')) group = 'MY';
@@ -72,7 +82,7 @@ export function groupByClub(entries) {
     .sort(([a], [b]) => ordinalCompare(a, b))
     .map(([name, list]) => ({
       name,
-      entries: [...list].sort((a, b) => (a.bib ?? Infinity) - (b.bib ?? Infinity))
+      entries: [...list].sort((a, b) => (a.bib ?? Infinity) - (b.bib ?? Infinity)),
     }));
 }
 
@@ -114,15 +124,19 @@ export function buildClubListDoc({ header = {}, entries = [], sets = [], categor
       const base = y + 12.24;
       const small = { size: 8.04 };
       if (entry.setNumber != null) canvas.text(String(entry.setNumber), 23.64, base - 1.92, small);
-      if (entry.bib != null) canvas.text(String(entry.bib), 34.56, base, { size: 9.96, bold: true });
+      if (entry.bib != null)
+        canvas.text(String(entry.bib), 34.56, base, { size: 9.96, bold: true });
       const sexLetter = Number(entry.sex) === 2 ? 'Z' : 'M';
       canvas.text(
         `${sexLetter} - ${entry.surname || ''} ${entry.firstName || ''}`.trimEnd(),
         61.92,
         base - 0.12,
-        { size: 9.96, maxWidth: 300 }
+        { size: 9.96, maxWidth: 300 },
       );
-      canvas.text(entry.year != null ? String(entry.year) : '', 385.23, base - 1.92, { ...small, align: 'right' });
+      canvas.text(entry.year != null ? String(entry.year) : '', 385.23, base - 1.92, {
+        ...small,
+        align: 'right',
+      });
       canvas.text(entry.categoryCode || '', 395.28, base - 1.92, small);
       y += ROW_HEIGHT;
     });
@@ -152,4 +166,3 @@ export function buildClubListDoc({ header = {}, entries = [], sets = [], categor
 
   return canvas.toDocDefinition({ title: 'Seznam startujících podle oddílu' });
 }
-

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { isLineSettingsError, openSerialReader, parseIncomingTime, parseTimingDeviceLine } from './serial.js';
+import {
+  isLineSettingsError,
+  openSerialReader,
+  parseIncomingTime,
+  parseTimingDeviceLine,
+} from './serial.js';
 
 /**
  * Řádky z časomíry. Co parser nepozná, skončí v inboxu jako nerozpoznané a
@@ -9,7 +14,11 @@ import { isLineSettingsError, openSerialReader, parseIncomingTime, parseTimingDe
 describe('parseTimingDeviceLine', () => {
   it('přečte LIP řádek s časem od zapnutí', () => {
     expect(parseTimingDeviceLine('00:03:07 16 213 188.19')).toMatchObject({
-      type: 'TIME', seq: 16, bib: 213, time: '188.19', uptime: '00:03:07',
+      type: 'TIME',
+      seq: 16,
+      bib: 213,
+      time: '188.19',
+      uptime: '00:03:07',
     });
   });
 
@@ -55,10 +64,13 @@ describe('parseTimingDeviceLine', () => {
   });
 
   it('dál čte formát simulátoru TIME;DRES;ČAS', () => {
-    expect(parseTimingDeviceLine('TIME;12;1:02.34')).toMatchObject({ type: 'TIME', bib: 12, time: '1:02.34' });
+    expect(parseTimingDeviceLine('TIME;12;1:02.34')).toMatchObject({
+      type: 'TIME',
+      bib: 12,
+      time: '1:02.34',
+    });
   });
 });
-
 
 /**
  * Proč čtení z časomíry skončilo. Dřív se chyba spolkla a obrazovka hlásila
@@ -78,8 +90,12 @@ describe('openSerialReader hlásí důvod konce čtení', () => {
     });
 
     const reader = await openSerialReader(port, {
-      onLine: (line) => { lines.push(line); },
-      onClose: (error) => { closedWith = error; },
+      onLine: (line) => {
+        lines.push(line);
+      },
+      onClose: (error) => {
+        closedWith = error;
+      },
     });
     await reader.done;
 
@@ -92,7 +108,12 @@ describe('openSerialReader hlásí důvod konce čtení', () => {
     let closedWith = 'nezavolano';
     const port = portWith(() => {});
 
-    const reader = await openSerialReader(port, { onLine: () => {}, onClose: (error) => { closedWith = error; } });
+    const reader = await openSerialReader(port, {
+      onLine: () => {},
+      onClose: (error) => {
+        closedWith = error;
+      },
+    });
     await reader.close();
 
     expect(closedWith).toBeNull();

@@ -38,14 +38,16 @@ def _sync_post_documents(db: Session, post_id: int, document_ids: dict, admin_id
 
 @router.get("/posts", response_model=List[schemas.Post])
 def get_posts(
-    skip: int = 0, 
+    skip: int = 0,
     limit: int = 100,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Get all posts for admin management."""
-    posts = db.query(models.Post).order_by(desc(models.Post.created_at)).offset(skip).limit(limit).all()
-    
+    posts = (
+        db.query(models.Post).order_by(desc(models.Post.created_at)).offset(skip).limit(limit).all()
+    )
+
     # Fix encoding issues in posts for admin interface
     for post in posts:
         post.title = fix_encoding(post.title)
@@ -59,7 +61,7 @@ def get_posts(
 def create_post(
     post_data: schemas.PostCreate,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Create a new post."""
     post_dict = post_data.dict()
@@ -85,18 +87,16 @@ def update_post(
     post_id: int,
     post_data: schemas.PostUpdate,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Update an existing post."""
     db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not db_post:
         raise HTTPException(status_code=404, detail="Post nenalezen")
-    
+
     update_data = post_data.dict(exclude_unset=True)
     document_ids = {
-        field: update_data.pop(field)
-        for field in list(POST_DOCUMENT_ROLES)
-        if field in update_data
+        field: update_data.pop(field) for field in list(POST_DOCUMENT_ROLES) if field in update_data
     }
 
     for field, value in update_data.items():
@@ -119,16 +119,14 @@ def update_post(
 def delete_post(
     post_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Delete a post."""
     db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not db_post:
         raise HTTPException(status_code=404, detail="Post nenalezen")
-    
+
     attachment_service.detach_owner(db, AttachmentOwner.post.value, post_id)
     db.delete(db_post)
     db.commit()
     return {"message": "Post úspěšně smazán"}
-
-
