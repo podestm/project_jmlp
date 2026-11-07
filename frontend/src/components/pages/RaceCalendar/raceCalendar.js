@@ -1,6 +1,7 @@
 // Čisté funkce kalendáře závodů: sezóny, filtr podle typu, rozdělení na
 // nadcházející a odjeté a souhrnná věta nad seznamem.
 import { raceDate, raceMethod } from '../../../utils/races.js';
+import { formatSeasonShort } from '../../../utils/season.js';
 
 /** Filtr Vše / Na sněhu / Suché (race_method_id 1 = sníh, jinak suché). */
 export const METHOD_FILTERS = [
@@ -19,4 +20,15 @@ export const splitByDate = (races, today) => {
   return { upcoming: upcoming.map(({ race }) => race), past: past.map(({ race }) => race) };
 };
 
-
+/**
+ * Nadpis prázdného filtru (Na sněhu / Suché). V aktuální a budoucí sezóně závody
+ * jen ještě nemusí být vypsané, takže "nezávodí se" by bylo nepravdivé; v proběhlé
+ * sezóně už je to fakt.
+ */
+export const emptyFilterTitle = (filter, seasonId, currentSeasonId) => {
+  if (seasonId >= currentSeasonId) {
+    return filter === 'snow' ? 'Závody na sněhu zatím nejsou vypsané' : 'Suché závody zatím nejsou vypsané';
+  }
+  const season = formatSeasonShort(seasonId);
+  return filter === 'snow' ? `V sezóně ${season} se na sněhu nezávodilo` : `V sezóně ${season} se suchý závod nekonal`;
+};
