@@ -1,0 +1,2 @@
+# Development tools (not installed in the app image).
+ruff==0.6.9

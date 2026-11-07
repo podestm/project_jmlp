@@ -1,0 +1,10 @@
+# Generated or vendored files: formatted by their generator, not by hand.
+dist/
+coverage/
+node_modules/
+package-lock.json
+src/components/ms/Icon/icons.js
+scripts/*.json
+scripts/icons/*.json
+public/
+*.md
