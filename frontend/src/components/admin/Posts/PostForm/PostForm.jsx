@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { OWNER, ROLE } from '../../../../config/attachmentsApi.js';
-import { Alert, Button, Checkbox, Field, Input, Paska, RadioTiles, Textarea } from '../../../ms/index.js';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Field,
+  Input,
+  Paska,
+  RadioTiles,
+  Textarea,
+} from '../../../ms/index.js';
 import AttachmentManager from '../../Attachments/AttachmentManager.jsx';
 import { IMAGE_POSITIONS } from '../posts.js';
 import styles from './PostForm.module.css';
@@ -14,24 +23,56 @@ const POST_ROLES = [ROLE.image, ROLE.document];
  * a pozice obrázku. Přílohy se ukládají hned; u nového příspěvku až po
  * prvním uložení (formulář pak zůstane otevřený jako úprava).
  */
-export default function PostForm({ editingPost, formData, setFormData, handleSubmit, closeForm, error, setError, success, setSuccess }) {
+export default function PostForm({
+  editingPost,
+  formData,
+  setFormData,
+  handleSubmit,
+  closeForm,
+  error,
+  setError,
+  success,
+  setSuccess,
+}) {
   // Pozice obrázku má smysl jen když nějaký obrázek připojený je. Stav
   // příloh zná AttachmentManager, proto si ho posílá zpátky přes onChange.
   const [hasImage, setHasImage] = useState(false);
   const set = (name, value) => setFormData({ ...formData, [name]: value });
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} aria-label={editingPost ? 'Upravit příspěvek' : 'Nový příspěvek'}>
+    <form
+      className={styles.form}
+      onSubmit={handleSubmit}
+      aria-label={editingPost ? 'Upravit příspěvek' : 'Nový příspěvek'}
+    >
       {error && <Alert type="danger" compact title={error} onDismiss={() => setError('')} />}
-      {success && <Alert key={success} type="success" compact title={success} onDismiss={() => setSuccess('')} />}
+      {success && (
+        <Alert
+          key={success}
+          type="success"
+          compact
+          title={success}
+          onDismiss={() => setSuccess('')}
+        />
+      )}
 
       <section className={styles.section} aria-labelledby="prispevek-text">
         <Paska id="prispevek-text">Text příspěvku</Paska>
         <Field label="Nadpis" required>
-          <Input size="sm" value={formData.title} onChange={(e) => set('title', e.target.value)} placeholder="Zadejte nadpis příspěvku..." />
+          <Input
+            size="sm"
+            value={formData.title}
+            onChange={(e) => set('title', e.target.value)}
+            placeholder="Zadejte nadpis příspěvku..."
+          />
         </Field>
         <Field label="Obsah" required hint="**tučně**, *kurzíva*">
-          <Textarea rows={10} value={formData.content} onChange={(e) => set('content', e.target.value)} placeholder="Napište obsah příspěvku..." />
+          <Textarea
+            rows={10}
+            value={formData.content}
+            onChange={(e) => set('content', e.target.value)}
+            placeholder="Napište obsah příspěvku..."
+          />
         </Field>
         <Checkbox
           label="Publikovat příspěvek"
@@ -62,7 +103,9 @@ export default function PostForm({ editingPost, formData, setFormData, handleSub
 
       <div className={styles.footer}>
         <Button onClick={closeForm}>Zrušit</Button>
-        <Button type="submit" variant="primary" icon="save">{editingPost ? 'Uložit příspěvek' : 'Vytvořit příspěvek'}</Button>
+        <Button type="submit" variant="primary" icon="save">
+          {editingPost ? 'Uložit příspěvek' : 'Vytvořit příspěvek'}
+        </Button>
       </div>
     </form>
   );

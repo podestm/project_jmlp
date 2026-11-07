@@ -10,15 +10,32 @@ const DATA = {
   event: { id: 501, name: 'JMLP Hlubočky' },
   dry_run: false,
   categories: [
-    { category_id: 1, name: 'Předžáci', total: 3, missing: 0, ready: true, slcr_race_id: 900, slcr_state: null },
-    { category_id: 2, name: 'Žáci', total: 2, missing: 0, ready: true, slcr_race_id: 901, slcr_state: 'Published' },
+    {
+      category_id: 1,
+      name: 'Předžáci',
+      total: 3,
+      missing: 0,
+      ready: true,
+      slcr_race_id: 900,
+      slcr_state: null,
+    },
+    {
+      category_id: 2,
+      name: 'Žáci',
+      total: 2,
+      missing: 0,
+      ready: true,
+      slcr_race_id: 901,
+      slcr_state: 'Published',
+    },
   ],
 };
 
 const confirm = vi.fn(async () => true);
-const setup = (props = {}) => renderHook((p) => useSlcrCategories({ raceId: '7', isOnline: true, confirm, ...p }), {
-  initialProps: props,
-});
+const setup = (props = {}) =>
+  renderHook((p) => useSlcrCategories({ raceId: '7', isOnline: true, confirm, ...p }), {
+    initialProps: props,
+  });
 
 describe('useSlcrCategories', () => {
   beforeEach(() => {
@@ -38,7 +55,9 @@ describe('useSlcrCategories', () => {
     localStorage.setItem('slcr_event_7', JSON.stringify({ eventId: 501, discipline: 18 }));
     const { result } = setup();
     await waitFor(() => expect(result.current.items).toHaveLength(2));
-    expect(api.getOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/categories', { event_id: '501' });
+    expect(api.getOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/categories', {
+      event_id: '501',
+    });
     expect(result.current.find(2).slcr_state).toBe('Published');
   });
 
@@ -58,16 +77,26 @@ describe('useSlcrCategories', () => {
   it('zveřejní kategorii po potvrzení a přepíše její stav', async () => {
     localStorage.setItem('slcr_event_7', JSON.stringify({ eventId: 501, discipline: 18 }));
     api.postOnline.mockResolvedValue({
-      corrected: false, dry_run: false,
-      category: { ...DATA.categories[0], slcr_state: 'Published', published_at: '2026-10-12T12:05:00+00:00' },
+      corrected: false,
+      dry_run: false,
+      category: {
+        ...DATA.categories[0],
+        slcr_state: 'Published',
+        published_at: '2026-10-12T12:05:00+00:00',
+      },
     });
     const { result } = setup();
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     await act(() => result.current.publish(1, 'Předžáci'));
 
-    expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: 'Zveřejnit kategorii Předžáci v SLČR?' }));
+    expect(confirm).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Zveřejnit kategorii Předžáci v SLČR?' }),
+    );
     expect(confirm.mock.calls[0][0].message).toContain('JMLP Hlubočky');
-    expect(api.postOnline).toHaveBeenCalledWith('/api/timekeeper/races/7/slcr/categories/1/publish', { event_id: 501, discipline: 18 });
+    expect(api.postOnline).toHaveBeenCalledWith(
+      '/api/timekeeper/races/7/slcr/categories/1/publish',
+      { event_id: 501, discipline: 18 },
+    );
     expect(result.current.find(1).slcr_state).toBe('Published');
     expect(result.current.message).toMatchObject({ categoryId: '1', type: 'success' });
   });
@@ -84,7 +113,9 @@ describe('useSlcrCategories', () => {
 
   it('chybu z backendu ukáže u kategorie', async () => {
     localStorage.setItem('slcr_event_7', JSON.stringify({ eventId: 501, discipline: 18 }));
-    api.postOnline.mockRejectedValue({ detail: 'V kategorii Předžáci 1 závodník ještě nemá čas ani DNF/DNS/DSQ.' });
+    api.postOnline.mockRejectedValue({
+      detail: 'V kategorii Předžáci 1 závodník ještě nemá čas ani DNF/DNS/DSQ.',
+    });
     const { result } = setup();
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     await act(() => result.current.publish(1, 'Předžáci'));

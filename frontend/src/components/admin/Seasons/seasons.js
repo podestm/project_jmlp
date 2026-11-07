@@ -5,7 +5,11 @@ import { seasonEdition, seasonIdForDate, toRoman } from '../../../utils/season.j
 /** Prázdný formulář nové sezóny: sezóna podle dnešního data a její ročník. */
 export const emptySeasonForm = () => {
   const yearStart = seasonIdForDate();
-  return { year_start: yearStart, edition: seasonEdition(yearStart), name: 'Jihomoravský lyžařský pohár' };
+  return {
+    year_start: yearStart,
+    edition: seasonEdition(yearStart),
+    name: 'Jihomoravský lyžařský pohár',
+  };
 };
 
 /** Formulář úpravy podle uložené sezóny. */
@@ -23,7 +27,8 @@ export const seasonPayload = (formData, isNew) => ({
 });
 
 /** „XX.“ z čísla ročníku, prázdný ročník „—“. */
-export const editionPreview = (edition) => (edition === '' || edition == null ? '—' : `${toRoman(edition)}.`);
+export const editionPreview = (edition) =>
+  edition === '' || edition == null ? '—' : `${toRoman(edition)}.`;
 
 /** „1. 8. 2026 – 31. 7. 2027“ */
 export const seasonRange = (yearStart) => `1. 8. ${yearStart} – 31. 7. ${Number(yearStart) + 1}`;
@@ -32,9 +37,8 @@ export const seasonRange = (yearStart) => `1. 8. ${yearStart} – 31. 7. ${Numbe
  * Aktuální sezóna seznamu: ta, kterou správce označil; dokud žádná označená
  * není, `fallbackId` (useCurrentSeason – podle data).
  */
-export const currentSeasonOf = (seasons, fallbackId) => (
-  seasons.find((season) => season.is_current)?.year_start ?? fallbackId
-);
+export const currentSeasonOf = (seasons, fallbackId) =>
+  seasons.find((season) => season.is_current)?.year_start ?? fallbackId;
 
 /** Běžící a připravené (od aktuální dál) a archiv (starší). */
 export const splitSeasons = (seasons, currentSeasonId) => ({
@@ -49,10 +53,11 @@ export const seasonState = (season, currentSeasonId) => {
 };
 
 /** „2 závody · 0 dokumentů“ */
-export const seasonCounts = (season) => [
-  `${season.races_count} ${czechPlural(season.races_count, ['závod', 'závody', 'závodů'])}`,
-  `${season.documents_count} ${czechPlural(season.documents_count, ['dokument', 'dokumenty', 'dokumentů'])}`,
-].join(' · ');
+export const seasonCounts = (season) =>
+  [
+    `${season.races_count} ${czechPlural(season.races_count, ['závod', 'závody', 'závodů'])}`,
+    `${season.documents_count} ${czechPlural(season.documents_count, ['dokument', 'dokumenty', 'dokumentů'])}`,
+  ].join(' · ');
 
 /** Text vedle H1: „16 ročníků v databázi · XX. ročník právě běží“. */
 export const seasonsMeta = (seasons, currentSeasonId) => {

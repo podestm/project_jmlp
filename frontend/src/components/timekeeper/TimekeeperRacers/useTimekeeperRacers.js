@@ -9,14 +9,24 @@ import {
   resolveCategoryPreview,
   sortStartListEntries,
 } from '../startListHelpers.js';
-import { buildLocalEntry, loadRacerRegistry, searchRacers } from '../../../offline/racerRegistry.js';
+import {
+  buildLocalEntry,
+  loadRacerRegistry,
+  searchRacers,
+} from '../../../offline/racerRegistry.js';
 import {
   addLocalEntry,
   ENTRY_REMAPPED_EVENT,
   newTempEntryId,
   remapEntriesInState,
 } from '../../../offline/offlineEntries.js';
-import { EMPTY_FILTERS, categoryOptionsOf, clubOptionsOf, filterEntries, racerSearchQuery } from './racers.js';
+import {
+  EMPTY_FILTERS,
+  categoryOptionsOf,
+  clubOptionsOf,
+  filterEntries,
+  racerSearchQuery,
+} from './racers.js';
 
 /**
  * Závodníci jednoho závodu – přidání a inline oprava bez zápisu do registrací.
@@ -70,8 +80,8 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   // Nabídka čísel je seřazená podle sady a dresu, stejně jako na serveru.
   const getNextAvailableRaceNumberDisplay = (entries = startList) => {
     const assigned = entries
-      .map(entry => entry.race_number_display)
-      .filter(value => value !== null && value !== undefined && value !== '')
+      .map((entry) => entry.race_number_display)
+      .filter((value) => value !== null && value !== undefined && value !== '')
       .sort(compareRaceNumberCodes);
 
     if (assigned.length === 0) {
@@ -79,9 +89,13 @@ export const useTimekeeperRacers = (selectedRaceId) => {
     }
 
     const last = assigned[assigned.length - 1];
-    const next = raceNumberOptions.find(option => compareRaceNumberCodes(option.display_number, last) > 0);
+    const next = raceNumberOptions.find(
+      (option) => compareRaceNumberCodes(option.display_number, last) > 0,
+    );
     const taken = new Set(assigned.map(normalizeRaceNumberCode));
-    return next && !taken.has(normalizeRaceNumberCode(next.display_number)) ? String(next.display_number) : '';
+    return next && !taken.has(normalizeRaceNumberCode(next.display_number))
+      ? String(next.display_number)
+      : '';
   };
 
   const resetForm = (entries = startList) => {
@@ -94,7 +108,9 @@ export const useTimekeeperRacers = (selectedRaceId) => {
     loadClubs();
     loadCategories();
     loadRaceNumberOptions();
-    loadRacerRegistry().then(setRegistry).catch(() => setRegistry([]));
+    loadRacerRegistry()
+      .then(setRegistry)
+      .catch(() => setRegistry([]));
   }, []);
 
   // Offline přidaný závodník dostal od serveru skutečné id (nebo byl
@@ -104,7 +120,9 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       const detail = event?.detail;
       if (!detail) return;
       setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, detail)));
-      setEditingId((current) => (current != null && Number(current) === Number(detail.tempId) ? detail.serverId : current));
+      setEditingId((current) =>
+        current != null && Number(current) === Number(detail.tempId) ? detail.serverId : current,
+      );
     };
     window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
     return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
@@ -119,12 +137,20 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   useEffect(() => {
     if (!selectedRaceId || selectedRacer) return;
     if (formData.race_number_display) return;
-    if (formData.name || formData.surname || formData.year || formData.sex || formData.club || formData.slcr_id) return;
+    if (
+      formData.name ||
+      formData.surname ||
+      formData.year ||
+      formData.sex ||
+      formData.club ||
+      formData.slcr_id
+    )
+      return;
 
     const proposal = getNextAvailableRaceNumberDisplay();
     if (!proposal) return;
 
-    setFormData(prev => ({ ...prev, race_number_display: proposal }));
+    setFormData((prev) => ({ ...prev, race_number_display: proposal }));
   }, [selectedRaceId, raceNumberOptions, startList]);
 
   useEffect(() => {
@@ -204,7 +230,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   };
 
   const updateField = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (field === 'name' || field === 'surname' || field === 'slcr_id') {
       setSelectedRacer(null);
     }
@@ -213,7 +239,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
 
   const selectExistingRacer = (racer) => {
     setSelectedRacer(racer);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       name: racer.name || '',
       surname: racer.surname || '',
@@ -229,17 +255,18 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   // Stabilní identita callbacku, aby memoizované řádky nepřekreslovala každá
   // změna formuláře nahoře. `excludeEntryId` je editovaný záznam - vlastní
   // číslo si sám sobě konfliktovat nesmí.
-  const validateRaceNumber = useCallback((displayNumber, excludeEntryId = null) => (
-    getRaceNumberValidationError(displayNumber, {
-      options: raceNumberOptions,
-      entries: startList,
-      excludeEntryId,
-    })
-  ), [raceNumberOptions, startList]);
-
-  const categoryPreview = (year, sex) => (
-    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT)
+  const validateRaceNumber = useCallback(
+    (displayNumber, excludeEntryId = null) =>
+      getRaceNumberValidationError(displayNumber, {
+        options: raceNumberOptions,
+        entries: startList,
+        excludeEntryId,
+      }),
+    [raceNumberOptions, startList],
   );
+
+  const categoryPreview = (year, sex) =>
+    resolveCategoryPreview(categories, year, sex, CATEGORY_PENDING_TEXT);
 
   // --- Inline editing ---
   const startEditing = useCallback((entry) => {
@@ -262,7 +289,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   };
 
   const updateEditField = (field, value) => {
-    setEditForm(prev => ({ ...prev, [field]: value }));
+    setEditForm((prev) => ({ ...prev, [field]: value }));
     if (field === 'race_number_display') setEditValidationError('');
   };
 
@@ -280,26 +307,38 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       body.racer_name = editForm.racer_name?.trim() || null;
       body.racer_surname = editForm.racer_surname?.trim() || null;
       body.club_name = editForm.club_name?.trim() || null;
-      body.racer_year = editForm.racer_year !== '' && editForm.racer_year != null
-        ? parseInt(editForm.racer_year) : null;
-      body.racer_sex = editForm.racer_sex !== '' && editForm.racer_sex != null
-        ? parseInt(editForm.racer_sex) : null;
-      body.race_number_display = editForm.race_number_display !== '' && editForm.race_number_display != null
-        ? normalizeRaceNumberCode(editForm.race_number_display) : null;
+      body.racer_year =
+        editForm.racer_year !== '' && editForm.racer_year != null
+          ? parseInt(editForm.racer_year)
+          : null;
+      body.racer_sex =
+        editForm.racer_sex !== '' && editForm.racer_sex != null
+          ? parseInt(editForm.racer_sex)
+          : null;
+      body.race_number_display =
+        editForm.race_number_display !== '' && editForm.race_number_display != null
+          ? normalizeRaceNumberCode(editForm.race_number_display)
+          : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
 
       if (result?.entry) {
-        setStartList(prev => sortStartListEntries(prev.map(entry => (
-          entry.id === editingId ? result.entry : entry
-        ))));
+        setStartList((prev) =>
+          sortStartListEntries(
+            prev.map((entry) => (entry.id === editingId ? result.entry : entry)),
+          ),
+        );
         setMessage({ type: 'success', text: 'Závodník upraven' });
       } else {
         // Offline: server žádný `entry` nevrátil, změna leží ve frontě. Řádek
         // proto přepíšeme odeslanými hodnotami, ať rozhodčí vidí, co zapsal.
-        setStartList(prev => sortStartListEntries(prev.map(entry => (
-          entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry
-        ))));
+        setStartList((prev) =>
+          sortStartListEntries(
+            prev.map((entry) =>
+              entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry,
+            ),
+          ),
+        );
         setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
       }
 
@@ -314,8 +353,17 @@ export const useTimekeeperRacers = (selectedRaceId) => {
   const addRacer = async () => {
     if (!selectedRaceId) return;
 
-    if (!formData.name.trim() || !formData.surname.trim() || !formData.year || !formData.sex || !formData.club.trim()) {
-      setMessage({ type: 'danger', text: 'Vyplňte jméno, příjmení, rok narození, pohlaví a oddíl' });
+    if (
+      !formData.name.trim() ||
+      !formData.surname.trim() ||
+      !formData.year ||
+      !formData.sex ||
+      !formData.club.trim()
+    ) {
+      setMessage({
+        type: 'danger',
+        text: 'Vyplňte jméno, příjmení, rok narození, pohlaví a oddíl',
+      });
       return;
     }
 
@@ -343,11 +391,12 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       if (formData.telefon.trim()) payload.racer_telefon = formData.telefon.trim();
       if (formData.email.trim()) payload.racer_email = formData.email.trim();
       if (formData.slcr_id.trim()) payload.racer_slcr_id = formData.slcr_id.trim();
-      if (formData.race_number_display) payload.race_number_display = normalizeRaceNumberCode(formData.race_number_display);
+      if (formData.race_number_display)
+        payload.race_number_display = normalizeRaceNumberCode(formData.race_number_display);
 
       const result = await TimekeeperAPI.post(
         `/api/timekeeper/races/${selectedRaceId}/start-list/entry`,
-        payload
+        payload,
       );
 
       // Offline (zápis čeká ve frontě): závodník se hned objeví ve startovce
@@ -355,7 +404,12 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       // navrhneme lokálně, po synchronizaci je potvrdí server.
       if (!result?.entry) {
         const localEntry = buildLocalEntry({
-          tempId, raceId: selectedRaceId, payload, startList, categories, raceNumberOptions,
+          tempId,
+          raceId: selectedRaceId,
+          payload,
+          startList,
+          categories,
+          raceNumberOptions,
         });
         await addLocalEntry(selectedRaceId, localEntry);
         const withLocal = sortStartListEntries([...startList, localEntry]);
@@ -380,7 +434,10 @@ export const useTimekeeperRacers = (selectedRaceId) => {
       // Server říká česky, co je špatně (např. že závodník už na startovce je,
       // jen vyřazený, a má se vrátit v Listině) - to je užitečnější než kód chyby.
       const detail = typeof err?.detail === 'string' ? err.detail : null;
-      setMessage({ type: 'danger', text: detail || err.message || 'Nepodařilo se přidat závodníka do závodu' });
+      setMessage({
+        type: 'danger',
+        text: detail || err.message || 'Nepodařilo se přidat závodníka do závodu',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -392,15 +449,15 @@ export const useTimekeeperRacers = (selectedRaceId) => {
 
   const liveRaceNumberError = useMemo(
     () => validateRaceNumber(formData.race_number_display),
-    [validateRaceNumber, formData.race_number_display]
+    [validateRaceNumber, formData.race_number_display],
   );
   const selectedRaceNumberOption = useMemo(
     () => findRaceNumberOption(raceNumberOptions, formData.race_number_display),
-    [raceNumberOptions, formData.race_number_display]
+    [raceNumberOptions, formData.race_number_display],
   );
   const liveEditRaceNumberError = useMemo(
     () => (editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''),
-    [validateRaceNumber, editingId, editForm.race_number_display]
+    [validateRaceNumber, editingId, editForm.race_number_display],
   );
 
   return {
@@ -425,7 +482,7 @@ export const useTimekeeperRacers = (selectedRaceId) => {
     categoryPreview,
     // filtry
     filters,
-    setFilter: (field, value) => setFilters(prev => ({ ...prev, [field]: value })),
+    setFilter: (field, value) => setFilters((prev) => ({ ...prev, [field]: value })),
     resetFilters: () => setFilters(EMPTY_FILTERS),
     clubOptions,
     categoryOptions,

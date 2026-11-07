@@ -92,7 +92,7 @@ export const revisionsFromResponse = (result) => ({
   serverRevisions:
     result && typeof result.revisions === 'object' && result.revisions !== null
       ? result.revisions
-      : null
+      : null,
 });
 
 /**
@@ -113,7 +113,7 @@ export const applyLocalMutation = async (
   method,
   endpoint,
   payload = null,
-  { syncedRemote = false, serverRevision = null, serverRevisions = null, serverEntry = null } = {}
+  { syncedRemote = false, serverRevision = null, serverRevisions = null, serverEntry = null } = {},
 ) => {
   const localOnly = !syncedRemote;
 
@@ -135,7 +135,7 @@ export const applyLocalMutation = async (
       ...changes,
       updated_at: revisionOf(entry, entryId, options),
       updated_local_at: nowIso(),
-      updated_local_only: localOnly
+      updated_local_only: localOnly,
     }));
     if (updated) {
       await writeThroughStartListCache(updated.race_id, new Map([[entryId, updated]]));
@@ -194,7 +194,7 @@ export const applyLocalMutation = async (
         dsq: Boolean(item.dsq),
         updated_at: revisionOf(entry, entryId, { batch: true }),
         updated_local_at: timestamp,
-        updated_local_only: localOnly
+        updated_local_only: localOnly,
       }));
       if (updated) patches.set(entryId, updated);
     }
@@ -234,7 +234,7 @@ export const applySyncedRevisions = async (queueItem, response) => {
       const updated = await updateStartListEntry(entryId, (entry) => ({
         ...entry,
         updated_at: revision,
-        updated_local_only: false
+        updated_local_only: false,
       }));
       if (!updated) continue;
 
@@ -248,9 +248,11 @@ export const applySyncedRevisions = async (queueItem, response) => {
     }
 
     if (typeof window !== 'undefined' && Object.keys(appliedRevisions).length) {
-      window.dispatchEvent(new CustomEvent(START_LIST_REVISION_EVENT, {
-        detail: { revisions: appliedRevisions }
-      }));
+      window.dispatchEvent(
+        new CustomEvent(START_LIST_REVISION_EVENT, {
+          detail: { revisions: appliedRevisions },
+        }),
+      );
     }
   } catch {
     // viz komentář výše

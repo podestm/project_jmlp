@@ -11,47 +11,47 @@
  */
 :root {
   /* ── Barvy značky ── */
-  --ms-navy: #003F60;          /* bílá na ní 11,17:1 · primární akce, aktivní stav, odkazy */
-  --ms-navy-deep: #00293E;     /* bílá 15,14:1 · postranní panel, tmavé plochy */
-  --ms-ice: #9FC4D3;           /* jen podklad nebo text na navy (6,02:1); bílá na ní 1,86:1 = zakázáno */
-  --ms-sun: #F28C28;           /* teplý akcent, střídmě: výplň (accent, 1. místo), linka (páska, navigace), text jen na navy / navy-deep */
-  --ms-sun-ink: #A84A00;       /* akcent jako text na světlé ploše (5,4:1 na stránce) · eyebrow, popisky v BibDate */
-  --ms-red: #B33639;           /* bílá 5,99:1 · jen vločka, ŽIVĚ, uzavřeno */
-  --ms-open: #17654C;          /* bílá 6,99:1 · registrace otevřena, potvrzení */
-  --ms-on-dark: #FFFFFF;       /* text a ikony na navy, navy-deep, red, open */
+  --ms-navy: #003f60; /* bílá na ní 11,17:1 · primární akce, aktivní stav, odkazy */
+  --ms-navy-deep: #00293e; /* bílá 15,14:1 · postranní panel, tmavé plochy */
+  --ms-ice: #9fc4d3; /* jen podklad nebo text na navy (6,02:1); bílá na ní 1,86:1 = zakázáno */
+  --ms-sun: #f28c28; /* teplý akcent, střídmě: výplň (accent, 1. místo), linka (páska, navigace), text jen na navy / navy-deep */
+  --ms-sun-ink: #a84a00; /* akcent jako text na světlé ploše (5,4:1 na stránce) · eyebrow, popisky v BibDate */
+  --ms-red: #b33639; /* bílá 5,99:1 · jen vločka, ŽIVĚ, uzavřeno */
+  --ms-open: #17654c; /* bílá 6,99:1 · registrace otevřena, potvrzení */
+  --ms-on-dark: #ffffff; /* text a ikony na navy, navy-deep, red, open */
 
   /* ── Plochy ── */
-  --ms-surface-page: #F4F8FB;
-  --ms-surface-card: #FFFFFF;
-  --ms-surface-sunken: #E7F0F5;
+  --ms-surface-page: #f4f8fb;
+  --ms-surface-card: #ffffff;
+  --ms-surface-sunken: #e7f0f5;
 
   /* ── Text ── */
-  --ms-ink: #0E1D26;           /* 16,09:1 na ploše stránky · nadpisy, hlavní text */
-  --ms-ink-body: #3C4E59;      /* 8,11:1 na ploše stránky · doprovodný text */
-  --ms-ink-muted: #5A6E79;     /* 5,33:1 na kartě · jen neaktivní prvky */
+  --ms-ink: #0e1d26; /* 16,09:1 na ploše stránky · nadpisy, hlavní text */
+  --ms-ink-body: #3c4e59; /* 8,11:1 na ploše stránky · doprovodný text */
+  --ms-ink-muted: #5a6e79; /* 5,33:1 na kartě · jen neaktivní prvky */
 
   /* ── Linky ── */
-  --ms-line: #D9E5EC;          /* dekorativní oddělovače */
-  --ms-line-control: #6E8494;  /* 3,90:1 na kartě · rámeček ovládacích prvků (WCAG 1.4.11) */
+  --ms-line: #d9e5ec; /* dekorativní oddělovače */
+  --ms-line-control: #6e8494; /* 3,90:1 na kartě · rámeček ovládacích prvků (WCAG 1.4.11) */
 
   /* ── Stavy ── */
-  --ms-live-ink: #A32E31;      /* 7,02:1 na kartě · chyby ve formulářích, nebezpečné akce */
-  --ms-dry-bg: #FFF4E2;
-  --ms-dry-ink: #7A4E00;       /* 6,61:1 na dry-bg · upozornění, odpočet */
-  --ms-amber: #C08A00;
-  --ms-amber-ink: #1A1400;     /* 6,01:1 na amber · počty, pozor */
+  --ms-live-ink: #a32e31; /* 7,02:1 na kartě · chyby ve formulářích, nebezpečné akce */
+  --ms-dry-bg: #fff4e2;
+  --ms-dry-ink: #7a4e00; /* 6,61:1 na dry-bg · upozornění, odpočet */
+  --ms-amber: #c08a00;
+  --ms-amber-ink: #1a1400; /* 6,01:1 na amber · počty, pozor */
 
   /* ── Odvozené z navy-deep: závoj a dva jediné stíny systému ── */
-  --ms-overlay: rgb(0 41 62 / 0.6);                    /* pod dialogem a mobilním menu */
+  --ms-overlay: rgb(0 41 62 / 0.6); /* pod dialogem a mobilním menu */
   --ms-shadow-dialog: 0 24px 64px rgb(0 41 62 / 0.45); /* dialog, popover */
-  --ms-shadow-raised: 0 8px 24px rgb(0 41 62 / 0.12);  /* jen karta „Nejbližší závod“ */
+  --ms-shadow-raised: 0 8px 24px rgb(0 41 62 / 0.12); /* jen karta „Nejbližší závod“ */
 
   /* ── Sady startovních čísel: skutečné barvy dresů, bílý text (hodnoty ze starého admin.css) ── */
-  --ms-bib-rose: #BE123C;      /* bílá 6,29:1 */
-  --ms-bib-blue: #2563EB;      /* bílá 5,17:1 */
-  --ms-bib-emerald: #047857;   /* bílá 5,48:1 */
-  --ms-bib-amber: #B45309;     /* bílá 5,02:1 */
-  --ms-bib-violet: #7C3AED;    /* bílá 5,70:1 */
+  --ms-bib-rose: #be123c; /* bílá 6,29:1 */
+  --ms-bib-blue: #2563eb; /* bílá 5,17:1 */
+  --ms-bib-emerald: #047857; /* bílá 5,48:1 */
+  --ms-bib-amber: #b45309; /* bílá 5,02:1 */
+  --ms-bib-violet: #7c3aed; /* bílá 5,70:1 */
 
   /* ── Fokus ── */
   --ms-focus-color: var(--ms-navy);
@@ -59,23 +59,23 @@
   --ms-focus-offset: 2px;
 
   /* ── Písma ── */
-  --ms-font-display: 'Archivo', 'Segoe UI', sans-serif;      /* nadpisy, navigace, tlačítka, zkratky dnů */
-  --ms-font-text: 'Source Sans 3', 'Segoe UI', sans-serif;   /* běžný text */
-  --ms-font-mono: 'IBM Plex Mono', ui-monospace, monospace;  /* jen číslice, časy, oddělovače */
+  --ms-font-display: 'Archivo', 'Segoe UI', sans-serif; /* nadpisy, navigace, tlačítka, zkratky dnů */
+  --ms-font-text: 'Source Sans 3', 'Segoe UI', sans-serif; /* běžný text */
+  --ms-font-mono: 'IBM Plex Mono', ui-monospace, monospace; /* jen číslice, časy, oddělovače */
 
-  --ms-fs-2xs: 11px;   /* verzálkové popisky, hlavičky tabulek */
+  --ms-fs-2xs: 11px; /* verzálkové popisky, hlavičky tabulek */
   --ms-fs-xs: 12px;
   --ms-fs-sm: 13px;
   --ms-fs-md: 14px;
-  --ms-fs-base: 15px;  /* běžný text administrace a časomíry */
-  --ms-fs-lg: 16px;    /* běžný text veřejného webu, tlačítka */
-  --ms-fs-xl: 19px;    /* primární řádek DataRow */
-  --ms-fs-2xl: 22px;   /* nadpis dialogu */
-  --ms-fs-3xl: 27px;   /* H1 administrace a časomíry */
-  --ms-fs-4xl: 42px;   /* H1 veřejného webu */
+  --ms-fs-base: 15px; /* běžný text administrace a časomíry */
+  --ms-fs-lg: 16px; /* běžný text veřejného webu, tlačítka */
+  --ms-fs-xl: 19px; /* primární řádek DataRow */
+  --ms-fs-2xl: 22px; /* nadpis dialogu */
+  --ms-fs-3xl: 27px; /* H1 administrace a časomíry */
+  --ms-fs-4xl: 42px; /* H1 veřejného webu */
 
-  --ms-tracking-caps: 0.09em;   /* malé verzálky (11–12 px) */
-  --ms-tracking-paska: 0.11em;  /* Páska 16 px */
+  --ms-tracking-caps: 0.09em; /* malé verzálky (11–12 px) */
+  --ms-tracking-paska: 0.11em; /* Páska 16 px */
 
   /* ── Mezery: --ms-space-N = N × 4 px ── */
   --ms-space-1: 4px;
@@ -91,14 +91,14 @@
   --ms-space-14: 56px;
 
   /* ── Poloměry ── */
-  --ms-radius-inner: 2px;    /* vnitřek segmentů */
-  --ms-radius-control: 3px;  /* tlačítka, pole, odznaky */
-  --ms-radius-card: 4px;     /* panely, tabulky */
+  --ms-radius-inner: 2px; /* vnitřek segmentů */
+  --ms-radius-control: 3px; /* tlačítka, pole, odznaky */
+  --ms-radius-card: 4px; /* panely, tabulky */
   --ms-radius-dialog: 6px;
   --ms-radius-pill: 999px;
 
   /* ── Rozměry ── */
-  --ms-target: 44px;         /* nejmenší dotykový cíl */
+  --ms-target: 44px; /* nejmenší dotykový cíl */
   --ms-container: 1240px;
 
   /* ── Vrstvení (dialogy jsou v top layer nad vším) ── */

@@ -11,17 +11,46 @@ const now = new Date().toISOString();
 beforeEach(async () => {
   await resetTimekeeperDb();
   await timekeeperDb.syncQueue.bulkAdd([
-    { op_id: 'a', method: 'PUT', endpoint: '/api/timekeeper/start-list/7/time', payload: { time1: '34.07' }, status: 'dead', retry_count: 8, created_at: now, last_error: 'Server neodpovídá' },
-    { op_id: 'b', method: 'PUT', endpoint: '/api/timekeeper/start-list/8/time', payload: { dnf: true }, status: 'pending', retry_count: 0, created_at: now },
+    {
+      op_id: 'a',
+      method: 'PUT',
+      endpoint: '/api/timekeeper/start-list/7/time',
+      payload: { time1: '34.07' },
+      status: 'dead',
+      retry_count: 8,
+      created_at: now,
+      last_error: 'Server neodpovídá',
+    },
+    {
+      op_id: 'b',
+      method: 'PUT',
+      endpoint: '/api/timekeeper/start-list/8/time',
+      payload: { dnf: true },
+      status: 'pending',
+      retry_count: 0,
+      created_at: now,
+    },
   ]);
   await timekeeperDb.conflicts.add({
-    queue_item_id: 99, op_id: 'c', endpoint: '/api/timekeeper/start-list/9/time', method: 'PUT',
-    payload: { time1: '35.90' }, status_code: 409, error_message: 'Záznam se mezitím změnil',
-    conflict_detail: { code: 'stale_revision', entry_id: 9 }, created_at: now, resolved: 0,
+    queue_item_id: 99,
+    op_id: 'c',
+    endpoint: '/api/timekeeper/start-list/9/time',
+    method: 'PUT',
+    payload: { time1: '35.90' },
+    status_code: 409,
+    error_message: 'Záznam se mezitím změnil',
+    conflict_detail: { code: 'stale_revision', entry_id: 9 },
+    created_at: now,
+    resolved: 0,
   });
 });
 
-const renderScreen = () => render(<MemoryRouter><SyncCenter /></MemoryRouter>);
+const renderScreen = () =>
+  render(
+    <MemoryRouter>
+      <SyncCenter />
+    </MemoryRouter>,
+  );
 
 describe('Synchronizace', () => {
   it('fronta říká stav slovy a neodeslaný zápis jde poslat znovu', async () => {

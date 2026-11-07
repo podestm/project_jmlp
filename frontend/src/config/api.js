@@ -11,11 +11,11 @@ export const API_CONFIG = {
     POSTS: '/posts/',
     CLUBS: '/clubs/',
     RACERS: '/racers/',
-    REGISTRATIONS: '/registrations/'
+    REGISTRATIONS: '/registrations/',
   },
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
-  }
+  },
 };
 
 // Helper to build URL with query params
@@ -26,15 +26,15 @@ export const buildUrl = (endpoint, params = {}) => {
   // If BASE_URL is empty, use relative URL
   if (!API_CONFIG.BASE_URL) {
     const paramStr = Object.keys(params)
-      .filter(key => params[key] !== undefined && params[key] !== null)
-      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+      .filter((key) => params[key] !== undefined && params[key] !== null)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
       .join('&');
     return paramStr ? `${normalized}?${paramStr}` : normalized;
   }
 
   // Otherwise use absolute URL with URL constructor
   const url = new URL(`${API_CONFIG.BASE_URL}${normalized}`);
-  Object.keys(params).forEach(key => {
+  Object.keys(params).forEach((key) => {
     if (params[key] !== undefined && params[key] !== null) {
       url.searchParams.append(key, params[key]);
     }
@@ -50,7 +50,7 @@ const STATUS_MESSAGES = {
   404: 'Požadovaná data nebyla nalezena.',
   409: 'Data byla mezitím změněna jinde.',
   413: 'Soubor je příliš velký.',
-  422: 'Zadaná data nejsou platná.'
+  422: 'Zadaná data nejsou platná.',
 };
 
 const statusMessage = (status, statusText) => {
@@ -97,7 +97,7 @@ const createHttpClient = ({ getAuthHeaders, onError, redirect } = {}) => {
     const mergedHeaders = {
       ...(isForm ? {} : API_CONFIG.DEFAULT_HEADERS),
       ...(getAuthHeaders ? getAuthHeaders() : {}),
-      ...headers
+      ...headers,
     };
     // The browser must set Content-Type itself so the multipart boundary is correct.
     if (isForm) delete mergedHeaders['Content-Type'];
@@ -106,7 +106,7 @@ const createHttpClient = ({ getAuthHeaders, onError, redirect } = {}) => {
       method,
       headers: mergedHeaders,
       ...(body != null ? { body: isForm ? body : JSON.stringify(body) } : {}),
-      ...(redirect ? { redirect } : {})
+      ...(redirect ? { redirect } : {}),
     });
 
     if (!response.ok) {
@@ -122,8 +122,10 @@ const createHttpClient = ({ getAuthHeaders, onError, redirect } = {}) => {
     get: (endpoint, params = {}, headers = {}) => request('GET', endpoint, { params, headers }),
     post: (endpoint, data = {}, headers = {}) => request('POST', endpoint, { body: data, headers }),
     put: (endpoint, data = {}, headers = {}) => request('PUT', endpoint, { body: data, headers }),
-    delete: (endpoint, headers = {}, params = {}) => request('DELETE', endpoint, { headers, params }),
-    upload: (endpoint, formData, headers = {}) => request('POST', endpoint, { body: formData, headers })
+    delete: (endpoint, headers = {}, params = {}) =>
+      request('DELETE', endpoint, { headers, params }),
+    upload: (endpoint, formData, headers = {}) =>
+      request('POST', endpoint, { body: formData, headers }),
   };
 };
 
@@ -161,7 +163,7 @@ export const API = {
     return buildUrl(`/posts/${postId}/image`, { v: timestamp });
   },
 
-  getDocumentUrl: (postId) => buildUrl(`/posts/${postId}/document/download`)
+  getDocumentUrl: (postId) => buildUrl(`/posts/${postId}/document/download`),
 };
 
 /**
@@ -196,7 +198,8 @@ const emitAuthExpired = (section, tokenCleared) => {
  *   jen se ohlásí událostí, aby UI mohlo nabídnout nové přihlášení. Token se
  *   schválně NEMAŽE: fronta se s ním po novém přihlášení dosynchronizuje.
  */
-const createAuthErrorHandler = (tokenKey, sectionPath, { inPlace = false } = {}) =>
+const createAuthErrorHandler =
+  (tokenKey, sectionPath, { inPlace = false } = {}) =>
   (status, { background = false } = {}) => {
     if (status !== 401) return;
 
@@ -219,7 +222,9 @@ const createAuthErrorHandler = (tokenKey, sectionPath, { inPlace = false } = {})
 
 // Administrace i časomíra mají jedno společné přihlášení (config/session.js).
 export const handleAdminAuthError = createAuthErrorHandler(SESSION_TOKEN_KEY, '/admin');
-export const handleTimekeeperAuthError = createAuthErrorHandler(SESSION_TOKEN_KEY, '/timekeeper', { inPlace: true });
+export const handleTimekeeperAuthError = createAuthErrorHandler(SESSION_TOKEN_KEY, '/timekeeper', {
+  inPlace: true,
+});
 
 const bearer = (tokenKey) => () => {
   const token = localStorage.getItem(tokenKey);
@@ -233,7 +238,7 @@ export const timekeeperAuthHeaders = bearer(SESSION_TOKEN_KEY);
 export const AdminAPI = createHttpClient({
   getAuthHeaders: adminAuthHeaders,
   onError: handleAdminAuthError,
-  redirect: 'follow'
+  redirect: 'follow',
 });
 
 export default API;

@@ -14,7 +14,15 @@ function Messages({ error, success, setError, setSuccess }) {
   return (
     <>
       {error && <Alert type="danger" compact title={error} onDismiss={() => setError(null)} />}
-      {success && <Alert key={success} type="success" compact title={success} onDismiss={() => setSuccess(null)} />}
+      {success && (
+        <Alert
+          key={success}
+          type="success"
+          compact
+          title={success}
+          onDismiss={() => setSuccess(null)}
+        />
+      )}
     </>
   );
 }
@@ -29,7 +37,14 @@ export default function RaceManagement() {
   // a `confirm` posílá dolů (viz komentář v useConfirm.jsx).
   const { confirm, confirmElement } = useConfirm();
   const rm = useRaceManagement({ confirm });
-  const messages = <Messages error={rm.error} success={rm.success} setError={rm.setError} setSuccess={rm.setSuccess} />;
+  const messages = (
+    <Messages
+      error={rm.error}
+      success={rm.success}
+      setError={rm.setError}
+      setSuccess={rm.setSuccess}
+    />
+  );
 
   const closeForm = () => {
     rm.setShowForm(false);
@@ -44,13 +59,23 @@ export default function RaceManagement() {
     return (
       <AdminPage
         title={race ? 'Upravit závod' : 'Nový závod'}
-        meta={race ? [race.race_nr, race.areal_name].filter(Boolean).join(' · ') : seasonMeta(rm.seasonFilter)}
-        actions={(
+        meta={
+          race
+            ? [race.race_nr, race.areal_name].filter(Boolean).join(' · ')
+            : seasonMeta(rm.seasonFilter)
+        }
+        actions={
           <>
-            {race && <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">Přihlášky závodu</ButtonLink>}
-            <Button size="sm" icon="arrow-left" onClick={closeForm}>Zpět na seznam</Button>
+            {race && (
+              <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">
+                Přihlášky závodu
+              </ButtonLink>
+            )}
+            <Button size="sm" icon="arrow-left" onClick={closeForm}>
+              Zpět na seznam
+            </Button>
           </>
-        )}
+        }
       >
         {messages}
         <RaceForm
@@ -88,7 +113,17 @@ export default function RaceManagement() {
     <AdminPage
       title="Závody"
       meta={seasonMeta(rm.seasonFilter)}
-      actions={<Button variant="primary" size="sm" icon="plus" onClick={() => rm.setShowForm(true)} className={styles.add}>Nový závod</Button>}
+      actions={
+        <Button
+          variant="primary"
+          size="sm"
+          icon="plus"
+          onClick={() => rm.setShowForm(true)}
+          className={styles.add}
+        >
+          Nový závod
+        </Button>
+      }
     >
       <RaceFilters
         seasonFilter={rm.seasonFilter}
@@ -103,7 +138,9 @@ export default function RaceManagement() {
         <>
           <RaceTable races={rm.races} {...rowProps} />
           <div className={styles.cards}>
-            {rm.races.map((race) => <RaceCard key={race.id} race={race} {...rowProps} />)}
+            {rm.races.map((race) => (
+              <RaceCard key={race.id} race={race} {...rowProps} />
+            ))}
           </div>
         </>
       )}

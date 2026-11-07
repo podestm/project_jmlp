@@ -37,7 +37,9 @@ export default function AdminLayout({ children }) {
         counts={counts}
         onLogout={logout}
       />
-      <main id="obsah" className={styles.main}>{children}</main>
+      <main id="obsah" className={styles.main}>
+        {children}
+      </main>
     </div>
   );
 }

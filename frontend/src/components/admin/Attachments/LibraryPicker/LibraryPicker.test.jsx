@@ -10,8 +10,20 @@ vi.mock('../../../../config/attachmentsApi.js', async (importOriginal) => ({
 }));
 
 const SOUBORY = [
-  { id: 1, original_filename: 'propozice-kohoutovice.pdf', file_size: 2048, uploaded_at: '2026-09-01T10:00:00', usage_info: [] },
-  { id: 2, original_filename: 'foto-start.jpg', file_size: 4096, uploaded_at: '2026-09-02T10:00:00', usage_info: [] },
+  {
+    id: 1,
+    original_filename: 'propozice-kohoutovice.pdf',
+    file_size: 2048,
+    uploaded_at: '2026-09-01T10:00:00',
+    usage_info: [],
+  },
+  {
+    id: 2,
+    original_filename: 'foto-start.jpg',
+    file_size: 4096,
+    uploaded_at: '2026-09-02T10:00:00',
+    usage_info: [],
+  },
 ];
 
 beforeEach(() => {
@@ -25,7 +37,9 @@ describe('LibraryPicker', () => {
 
     expect(screen.getByRole('dialog', { name: 'Vybrat z knihovny' })).toBeInTheDocument();
     expect(screen.getByLabelText('Hledat podle názvu')).toHaveFocus();
-    await userEvent.click(await screen.findByRole('button', { name: /propozice-kohoutovice\.pdf/ }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: /propozice-kohoutovice\.pdf/ }),
+    );
     expect(onSelect).toHaveBeenCalledWith(SOUBORY[0]);
     expect(screen.queryByText('foto-start.jpg')).toBeNull();
   });

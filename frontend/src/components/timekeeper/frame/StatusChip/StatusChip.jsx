@@ -20,7 +20,9 @@ export default function StatusChip({ chip, to }) {
         {detail.length > 0 && (
           <span className={styles.detail}>
             {detail.map((part) => (
-              <span key={part.text} className={part.mono ? styles.detailMono : undefined}>{part.text}</span>
+              <span key={part.text} className={part.mono ? styles.detailMono : undefined}>
+                {part.text}
+              </span>
             ))}
           </span>
         )}
@@ -28,7 +30,11 @@ export default function StatusChip({ chip, to }) {
     </>
   );
 
-  return to
-    ? <Link to={to} className={className}>{content}</Link>
-    : <span className={className}>{content}</span>;
+  return to ? (
+    <Link to={to} className={className}>
+      {content}
+    </Link>
+  ) : (
+    <span className={className}>{content}</span>
+  );
 }

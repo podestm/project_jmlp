@@ -32,12 +32,15 @@ describe('withTimeout', () => {
 
   it('po limitu odmítne s vlastní hláškou', async () => {
     const nikdy = new Promise(() => {});
-    await expect(withTimeout(nikdy, 10, 'časomíra neodpověděla')).rejects.toThrow('časomíra neodpověděla');
+    await expect(withTimeout(nikdy, 10, 'časomíra neodpověděla')).rejects.toThrow(
+      'časomíra neodpověděla',
+    );
   });
 
   it('chybu původního slibu propustí beze změny', async () => {
-    await expect(withTimeout(Promise.reject(new Error('port zavřen')), 1000, 'pozdě'))
-      .rejects.toThrow('port zavřen');
+    await expect(
+      withTimeout(Promise.reject(new Error('port zavřen')), 1000, 'pozdě'),
+    ).rejects.toThrow('port zavřen');
   });
 });
 
@@ -74,7 +77,9 @@ describe('readTargetRound', () => {
   });
 
   it('nedostupné úložiště nesmí shodit časomíru', () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('anonymní režim'); });
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('anonymní režim');
+    });
     expect(readTargetRound()).toBe('1');
   });
 });

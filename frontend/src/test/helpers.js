@@ -33,5 +33,5 @@ export const startListEntry = (overrides = {}) => ({
   dsq: false,
   status: null,
   updated_at: '2026-01-01T10:00:00.000Z',
-  ...overrides
+  ...overrides,
 });

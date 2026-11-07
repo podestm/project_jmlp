@@ -12,7 +12,10 @@ export default function DeleteRacerMessage({ racer }) {
     <div className={styles.body}>
       <RacerInfo racer={racer} />
       <p className={styles.text}>Závodníka s přihláškami smazat nejde.</p>
-      <p className={styles.warning}><Icon name="warning" size={18} />Smazání nejde vrátit.</p>
+      <p className={styles.warning}>
+        <Icon name="warning" size={18} />
+        Smazání nejde vrátit.
+      </p>
     </div>
   );
 }

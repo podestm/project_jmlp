@@ -8,8 +8,13 @@ describe('sady čísel', () => {
   });
 
   it('náhled nové sady', () => {
-    expect(newSetPreview({ set_number: '2', actual_from: '1', actual_to: '200' }))
-      .toEqual({ actualFrom: '1', actualTo: '200', displayFrom: 'B1', displayTo: 'B200', count: 200 });
+    expect(newSetPreview({ set_number: '2', actual_from: '1', actual_to: '200' })).toEqual({
+      actualFrom: '1',
+      actualTo: '200',
+      displayFrom: 'B1',
+      displayTo: 'B200',
+      count: 200,
+    });
     expect(newSetPreview({ set_number: '1', actual_from: '1', actual_to: '' })).toBeNull();
   });
 

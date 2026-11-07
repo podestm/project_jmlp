@@ -12,19 +12,29 @@ const RacerItem = memo(function RacerItem({ racer, onEdit, onDelete }) {
     sexLabel(racer.sex),
     racer.category_name,
     racer.idSlcr && `SLČR ${racer.idSlcr}`,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <li className={styles.row}>
       <span className={styles.year}>
-        <VisuallyHidden>ročník </VisuallyHidden>{racer.birthYear}
+        <VisuallyHidden>ročník </VisuallyHidden>
+        {racer.birthYear}
       </span>
       <span className={styles.text}>
-        <span className={styles.name}><SlcrName racer={racer}>{name}</SlcrName></span>
+        <span className={styles.name}>
+          <SlcrName racer={racer}>{name}</SlcrName>
+        </span>
         <span className={styles.details}>{details}</span>
       </span>
       <IconButton icon="pencil" label={`Upravit závodníka ${name}`} onClick={() => onEdit(racer)} />
-      <IconButton icon="trash" variant="quiet" label={`Smazat závodníka ${name}`} onClick={() => onDelete(racer)} />
+      <IconButton
+        icon="trash"
+        variant="quiet"
+        label={`Smazat závodníka ${name}`}
+        onClick={() => onDelete(racer)}
+      />
     </li>
   );
 });
@@ -33,7 +43,9 @@ const RacerItem = memo(function RacerItem({ racer, onEdit, onDelete }) {
 export default function RacerList({ racers, onEdit, onDelete }) {
   return (
     <ul className={styles.list} aria-label="Závodníci">
-      {racers.map((racer) => <RacerItem key={racer.id} racer={racer} onEdit={onEdit} onDelete={onDelete} />)}
+      {racers.map((racer) => (
+        <RacerItem key={racer.id} racer={racer} onEdit={onEdit} onDelete={onDelete} />
+      ))}
     </ul>
   );
 }

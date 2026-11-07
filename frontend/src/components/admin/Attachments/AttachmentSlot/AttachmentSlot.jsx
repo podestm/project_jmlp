@@ -43,7 +43,6 @@ export default function AttachmentSlot({
 
   return (
     <SlotCard label={label} hint={hint}>
-
       {roleOptions && (
         <Field label="Typ dokumentu">
           <Select
@@ -56,7 +55,11 @@ export default function AttachmentSlot({
               if (attachment) onRoleChange(role);
             }}
           >
-            {roleOptions.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}
+            {roleOptions.map((role) => (
+              <option key={role} value={role}>
+                {ROLE_LABELS[role]}
+              </option>
+            ))}
           </Select>
         </Field>
       )}
@@ -64,7 +67,11 @@ export default function AttachmentSlot({
       {attachment ? (
         <>
           <FileInfo file={attachment} link>
-            {attachment.is_generated && <Badge size="sm" tone="navy">vygenerováno</Badge>}
+            {attachment.is_generated && (
+              <Badge size="sm" tone="navy">
+                vygenerováno
+              </Badge>
+            )}
           </FileInfo>
           <div className={styles.actions}>
             <Switch
@@ -74,21 +81,38 @@ export default function AttachmentSlot({
               onChange={(e) => onTogglePublished(e.target.checked)}
             />
             <span className={styles.buttons}>
-              <Button size="sm" disabled={busy} onClick={() => setPickerOpen(true)}>Z knihovny</Button>
-              <Button size="sm" variant="danger" disabled={busy} onClick={onRemove} aria-label={`Odpojit dokument ${attachment.original_filename}`}>
+              <Button size="sm" disabled={busy} onClick={() => setPickerOpen(true)}>
+                Z knihovny
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={busy}
+                onClick={onRemove}
+                aria-label={`Odpojit dokument ${attachment.original_filename}`}
+              >
                 Odpojit
               </Button>
             </span>
           </div>
         </>
       ) : (
-        <DropZone accept={accept} busy={busy} uploading={uploading} onFiles={handleFiles} onPickFromLibrary={() => setPickerOpen(true)} />
+        <DropZone
+          accept={accept}
+          busy={busy}
+          uploading={uploading}
+          onFiles={handleFiles}
+          onPickFromLibrary={() => setPickerOpen(true)}
+        />
       )}
 
       {pickerOpen && (
         <LibraryPicker
           accept={accept}
-          onSelect={(file) => { setPickerOpen(false); onPickFromLibrary(file, uploadRole); }}
+          onSelect={(file) => {
+            setPickerOpen(false);
+            onPickFromLibrary(file, uploadRole);
+          }}
           onClose={() => setPickerOpen(false)}
         />
       )}

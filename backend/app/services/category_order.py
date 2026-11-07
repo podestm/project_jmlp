@@ -5,8 +5,8 @@
 výsledky ne - tištěná listina by tak měla jiné pořadí než obrazovka. Proto je
 logika tady a používají ji obě strany.
 """
+
 import json
-from typing import Dict, List
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from .. import models
 
 
-def default_category_order(db: Session) -> List[int]:
+def default_category_order(db: Session) -> list[int]:
     """Výchozí pořadí: nejmladší první, ženy před muži."""
     query = text("""
         SELECT id
@@ -25,7 +25,7 @@ def default_category_order(db: Session) -> List[int]:
     return [int(row.id) for row in db.execute(query).fetchall()]
 
 
-def effective_category_order(race: models.Race, db: Session) -> List[int]:
+def effective_category_order(race: models.Race, db: Session) -> list[int]:
     """Pořadí nastavené u závodu, doplněné o kategorie, které v něm chybí."""
     if race is not None and race.timekeeper_category_order:
         try:
@@ -48,6 +48,6 @@ def effective_category_order(race: models.Race, db: Session) -> List[int]:
     return default_category_order(db)
 
 
-def category_rank_map(race: models.Race, db: Session) -> Dict[int, int]:
+def category_rank_map(race: models.Race, db: Session) -> dict[int, int]:
     """Mapa category_id -> pozice v pořadí."""
     return {cat_id: index for index, cat_id in enumerate(effective_category_order(race, db))}

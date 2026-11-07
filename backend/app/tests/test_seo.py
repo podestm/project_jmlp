@@ -5,6 +5,7 @@ a Open Graph značky závodu jim musí poskládat server. Adresy v robots.txt,
 sitemapě i značkách se berou z hlavičky Host - stejný kód běží na
 jmlp.cz i na testovacím podm12.com.
 """
+
 from datetime import date, datetime, timedelta
 from xml.etree import ElementTree
 
@@ -26,8 +27,16 @@ def _zavod(db, *, datum, race_nr="JMLP2026-01", season_id=2026, areal=None, orga
         db.add(o)
         db.commit()
         organizer_id = o.id
-    zavod = models.Race(race_nr=race_nr, datum=datum, season_id=season_id, areal_id=areal_id,
-                        organizer_id=organizer_id, closed=False, registration=True, race_method_id=1)
+    zavod = models.Race(
+        race_nr=race_nr,
+        datum=datum,
+        season_id=season_id,
+        areal_id=areal_id,
+        organizer_id=organizer_id,
+        closed=False,
+        registration=True,
+        race_method_id=1,
+    )
     db.add(zavod)
     db.commit()
     db.refresh(zavod)
@@ -35,13 +44,28 @@ def _zavod(db, *, datum, race_nr="JMLP2026-01", season_id=2026, areal=None, orga
 
 
 def _vysledky(db, race_id, uploaded_at, published=True):
-    soubor = models.File(filename="x.pdf", original_filename="Výsledky.pdf", file_path="/tmp/x.pdf",
-                         file_size=1, mime_type="application/pdf",
-                         file_type=models.FileTypeEnum.vysledky, uploaded_at=uploaded_at)
+    soubor = models.File(
+        filename="x.pdf",
+        original_filename="Výsledky.pdf",
+        file_path="/tmp/x.pdf",
+        file_size=1,
+        mime_type="application/pdf",
+        file_type=models.FileTypeEnum.vysledky,
+        uploaded_at=uploaded_at,
+    )
     db.add(soubor)
     db.commit()
-    db.add(models.Attachment(file_id=soubor.id, owner_type="race", owner_id=race_id, role="vysledky",
-                             sort_order=0, published=published, is_generated=False))
+    db.add(
+        models.Attachment(
+            file_id=soubor.id,
+            owner_type="race",
+            owner_id=race_id,
+            role="vysledky",
+            sort_order=0,
+            published=published,
+            is_generated=False,
+        )
+    )
     db.commit()
 
 
@@ -50,8 +74,13 @@ def test_robots_txt_bere_domenu_z_pozadavku(client):
     assert odpoved.status_code == 200
     assert odpoved.headers["content-type"].startswith("text/plain")
     text = odpoved.text
-    for radek in ("User-agent: *", "Disallow: /admin", "Disallow: /timekeeper", "Disallow: /api/",
-                  "Sitemap: https://podm12.com/sitemap.xml"):
+    for radek in (
+        "User-agent: *",
+        "Disallow: /admin",
+        "Disallow: /timekeeper",
+        "Disallow: /api/",
+        "Sitemap: https://podm12.com/sitemap.xml",
+    ):
         assert radek in text
 
 
@@ -67,7 +96,9 @@ def test_sitemap_stranky_a_zavody_s_lastmod(client, db):
     _vysledky(db, odjety.id, datetime.combine(dnes - timedelta(days=28), datetime.min.time()))
     budouci = _zavod(db, datum=dnes + timedelta(days=30), race_nr="JMLP2026-02", season_id=2026)
     bez_cisla = _zavod(db, datum=dnes, race_nr=None)
-    db.add(models.Season(year_start=2026, year_end=2027, edition=21, name="2026/2027", is_current=True))
+    db.add(
+        models.Season(year_start=2026, year_end=2027, edition=21, name="2026/2027", is_current=True)
+    )
     db.commit()
 
     odpoved = client.get("/sitemap.xml", headers={"Host": "jmlp.cz"})
@@ -78,8 +109,16 @@ def test_sitemap_stranky_a_zavody_s_lastmod(client, db):
         for u in ElementTree.fromstring(odpoved.content).findall("s:url", NS)
     }
 
-    for cesta in ("/", "/zavody", "/vysledky", "/aktuality", "/dokumenty", "/kontakty", "/zive",
-                  "/ochrana-osobnich-udaju"):
+    for cesta in (
+        "/",
+        "/zavody",
+        "/vysledky",
+        "/aktuality",
+        "/dokumenty",
+        "/kontakty",
+        "/zive",
+        "/ochrana-osobnich-udaju",
+    ):
         assert f"https://jmlp.cz{cesta}" in urls
     assert not any("/admin" in u or "/timekeeper" in u for u in urls)
     # Odjetý závod: novější z data konání a nahrání výsledků.
@@ -100,8 +139,10 @@ def test_nahled_zavodu_pro_bota(client, db):
     html = odpoved.text
     assert "<title>Kraličák, 17. 1. 2027 · JMLP</title>" in html
     assert '<meta property="og:title" content="Kraličák, 17. 1. 2027 · JMLP">' in html
-    assert ("Závod Jihomoravského lyžařského poháru v areálu Kraličák dne 17. 1. 2027, "
-            "pořádá SKI KLUB JUNIOR BRNO. Propozice, přihlášky a výsledky.") in html
+    assert (
+        "Závod Jihomoravského lyžařského poháru v areálu Kraličák dne 17. 1. 2027, "
+        "pořádá SKI KLUB JUNIOR BRNO. Propozice, přihlášky a výsledky."
+    ) in html
     assert f'<meta property="og:url" content="https://podm12.com/zavod/{zavod.id}">' in html
     assert '<meta property="og:image" content="https://podm12.com/og-image.jpg">' in html
     assert '<meta property="og:locale" content="cs_CZ">' in html

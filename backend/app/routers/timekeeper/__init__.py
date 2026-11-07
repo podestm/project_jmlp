@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends
 
 from ...auth import require_role
 from .auth import router as auth_router
+from .race_numbers import router as race_numbers_router
 from .races import router as races_router
+from .results import router as results_router
+from .slcr import router as slcr_router
+from .standings import router as standings_router
 from .start_list import router as start_list_router
 from .timing import router as timing_router
-from .results import router as results_router
-from .race_numbers import router as race_numbers_router
-from .standings import router as standings_router
-from .slcr import router as slcr_router
 
 # Main timekeeper router
 router = APIRouter(prefix="/api/timekeeper")

@@ -1,4 +1,13 @@
-from app.services.naming import slugify, role_suffix, ROLE_SUFFIX
+import pytest
+
+from app.services.naming import (
+    ROLE_SUFFIX,
+    owner_stem,
+    role_suffix,
+    sanitize_manual_name,
+    slugify,
+    unique_name,
+)
 
 
 def test_slugify_removes_diacritics():
@@ -23,11 +32,9 @@ def test_role_suffix_is_ascii_and_known():
 
 def test_every_known_role_has_suffix():
     from app.models import AttachmentRole
+
     for role in AttachmentRole:
         assert role in ROLE_SUFFIX
-
-
-from app.services.naming import owner_stem
 
 
 class FakeRace:
@@ -71,9 +78,6 @@ def test_owner_stem_library_has_no_systematic_name():
     assert owner_stem("library", None, None) is None
 
 
-from app.services.naming import unique_name
-
-
 def test_unique_name_returns_stem_when_free():
     assert unique_name("JMLP2025-05_propozice", ".pdf", taken=set()) == "JMLP2025-05_propozice.pdf"
 
@@ -89,7 +93,9 @@ def test_unique_name_skips_multiple_collisions():
         "sezona-2025-2026_dokument-2.pdf",
         "sezona-2025-2026_dokument-3.pdf",
     }
-    assert unique_name("sezona-2025-2026_dokument", ".pdf", taken) == "sezona-2025-2026_dokument-4.pdf"
+    assert (
+        unique_name("sezona-2025-2026_dokument", ".pdf", taken) == "sezona-2025-2026_dokument-4.pdf"
+    )
 
 
 def test_unique_name_is_case_insensitive():
@@ -97,12 +103,10 @@ def test_unique_name_is_case_insensitive():
     assert unique_name("JMLP2025-05_propozice", ".pdf", taken) == "JMLP2025-05_propozice-2.pdf"
 
 
-import pytest
-from app.services.naming import sanitize_manual_name
-
-
 def test_sanitize_keeps_diacritics():
-    assert sanitize_manual_name("Soutěžní řád XIX. ročník", ".pdf") == "Soutěžní řád XIX. ročník.pdf"
+    assert (
+        sanitize_manual_name("Soutěžní řád XIX. ročník", ".pdf") == "Soutěžní řád XIX. ročník.pdf"
+    )
 
 
 def test_sanitize_keeps_numbered_czech_names():

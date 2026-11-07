@@ -7,13 +7,23 @@ import Tooltip from './Tooltip.jsx';
 
 describe('Tooltip', () => {
   it('poznámka je popisem tlačítka i když je skrytá', () => {
-    render(<Tooltip text="Vyžaduje připojení"><Button>Publikovat</Button></Tooltip>);
-    expect(screen.getByRole('button', { name: 'Publikovat' })).toHaveAccessibleDescription('Vyžaduje připojení');
+    render(
+      <Tooltip text="Vyžaduje připojení">
+        <Button>Publikovat</Button>
+      </Tooltip>,
+    );
+    expect(screen.getByRole('button', { name: 'Publikovat' })).toHaveAccessibleDescription(
+      'Vyžaduje připojení',
+    );
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
   it('ukáže se při fokusu a zmizí při Escape a ztrátě fokusu', async () => {
-    render(<Tooltip text="Vyžaduje připojení"><Button>Publikovat</Button></Tooltip>);
+    render(
+      <Tooltip text="Vyžaduje připojení">
+        <Button>Publikovat</Button>
+      </Tooltip>,
+    );
     await userEvent.tab();
     expect(screen.getByRole('tooltip')).toHaveTextContent('Vyžaduje připojení');
     await userEvent.keyboard('{Escape}');
@@ -26,7 +36,11 @@ describe('Tooltip', () => {
   });
 
   it('najetí myší funguje i u zakázaného tlačítka', () => {
-    render(<Tooltip text="Vyžaduje připojení"><Button disabled>Publikovat</Button></Tooltip>);
+    render(
+      <Tooltip text="Vyžaduje připojení">
+        <Button disabled>Publikovat</Button>
+      </Tooltip>,
+    );
     const trigger = screen.getByRole('button', { name: 'Publikovat' }).parentElement;
     fireEvent.mouseEnter(trigger);
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
@@ -43,11 +57,17 @@ describe('Tooltip', () => {
         </Tooltip>
       </>,
     );
-    expect(screen.getByRole('button', { name: 'Smazat' })).toHaveAccessibleDescription('Jiný popis Smaže i časy');
+    expect(screen.getByRole('button', { name: 'Smazat' })).toHaveAccessibleDescription(
+      'Jiný popis Smaže i časy',
+    );
   });
 
   it('bez textu vrátí dítě beze změny', () => {
-    render(<Tooltip text=""><Button>Tisk</Button></Tooltip>);
+    render(
+      <Tooltip text="">
+        <Button>Tisk</Button>
+      </Tooltip>,
+    );
     expect(screen.getByRole('button', { name: 'Tisk' }).parentElement.tagName).not.toBe('SPAN');
   });
 });

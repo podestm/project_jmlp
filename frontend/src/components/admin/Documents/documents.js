@@ -32,18 +32,26 @@ export const usageLabel = (item) => `${item.type} · ${item.published ? 'zveřej
 export const usageText = (item) => `${item.type} – ${item.title}`;
 
 /** Volby sezón k zveřejnění: čtyři nejnovější, „2026/2027 · XX. ročník“. */
-export const seasonChoices = (seasons, currentSeasonId) => seasons.slice(0, OFFERED_SEASONS).map((season) => ({
-  value: season.year_start,
-  seasonLabel: season.season_label,
-  label: [season.season_label, season.edition_label && `${season.edition_label} ročník`].filter(Boolean).join(' · '),
-  description: [
-    season.year_start === currentSeasonId && 'aktuální sezóna',
-    `teď ${season.documents_count ?? 0} ${czechPlural(season.documents_count ?? 0, ['dokument', 'dokumenty', 'dokumentů'])}`,
-  ].filter(Boolean).join(' · '),
-}));
+export const seasonChoices = (seasons, currentSeasonId) =>
+  seasons.slice(0, OFFERED_SEASONS).map((season) => ({
+    value: season.year_start,
+    seasonLabel: season.season_label,
+    label: [season.season_label, season.edition_label && `${season.edition_label} ročník`]
+      .filter(Boolean)
+      .join(' · '),
+    description: [
+      season.year_start === currentSeasonId && 'aktuální sezóna',
+      `teď ${season.documents_count ?? 0} ${czechPlural(season.documents_count ?? 0, ['dokument', 'dokumenty', 'dokumentů'])}`,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  }));
 
 /** Výchozí volba: aktuální sezóna, jinak nejnovější nabízená. */
 export const defaultSeason = (seasons, currentSeasonId) => {
   const offered = seasons.slice(0, OFFERED_SEASONS);
-  return (offered.find((season) => season.year_start === currentSeasonId) ?? offered[0])?.year_start ?? null;
+  return (
+    (offered.find((season) => season.year_start === currentSeasonId) ?? offered[0])?.year_start ??
+    null
+  );
 };

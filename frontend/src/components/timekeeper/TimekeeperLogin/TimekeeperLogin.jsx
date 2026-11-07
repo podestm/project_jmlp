@@ -3,7 +3,16 @@ import { Link } from 'react-router-dom';
 import { useTimekeeperAuth } from '../../../config/timekeeperAuth.jsx';
 import { useOnline } from '../../../hooks/useOnline.js';
 import trat from '../../../assets/images/trat.jpg';
-import { Alert, Button, Field, Icon, Input, Paska, PasswordInput, Tooltip } from '../../ms/index.js';
+import {
+  Alert,
+  Button,
+  Field,
+  Icon,
+  Input,
+  Paska,
+  PasswordInput,
+  Tooltip,
+} from '../../ms/index.js';
 import { cx } from '../../ms/cx.js';
 import { CUP_NAME, useSeasonInfo } from '../../site/siteInfo.js';
 import styles from './TimekeeperLogin.module.css';
@@ -50,12 +59,18 @@ export default function TimekeeperLogin() {
           <div className={styles.brand}>
             <span className={styles.brandText}>
               <span className={styles.brandName}>JMLP · Časomíra</span>
-              <span className={styles.brandSeason}>{CUP_NAME} · {edition} ročník {season}</span>
+              <span className={styles.brandSeason}>
+                {CUP_NAME} · {edition} ročník {season}
+              </span>
             </span>
           </div>
 
           <div className={styles.claim}>
-            <h1 className={styles.title}>Nářadí k trati,<br />ne kancelář.</h1>
+            <h1 className={styles.title}>
+              Nářadí k trati,
+              <br />
+              ne kancelář.
+            </h1>
           </div>
 
           <ul className={styles.features}>
@@ -79,13 +94,23 @@ export default function TimekeeperLogin() {
           <Paska>Přihlášení do časomíry</Paska>
 
           <div className={styles.card}>
-            <p className={cx(styles.connection, online ? styles.online : styles.offline)} role="status">
+            <p
+              className={cx(styles.connection, online ? styles.online : styles.offline)}
+              role="status"
+            >
               <Icon name={online ? 'wifi' : 'wifi-off'} size={20} />
-              <span>{online ? 'Jste online' : 'Jste offline – první přihlášení potřebuje internet'}</span>
+              <span>
+                {online ? 'Jste online' : 'Jste offline – první přihlášení potřebuje internet'}
+              </span>
             </p>
 
             {error && (
-              <Alert type="danger" compact title="Přihlášení se nezdařilo" onDismiss={() => setError('')}>
+              <Alert
+                type="danger"
+                compact
+                title="Přihlášení se nezdařilo"
+                onDismiss={() => setError('')}
+              >
                 {error}
               </Alert>
             )}
@@ -113,7 +138,15 @@ export default function TimekeeperLogin() {
             </Field>
 
             <Tooltip text="Poprvé se přihlaste ještě doma">
-              <Button type="submit" variant="primary" size="lg" block iconEnd="arrow-right" busy={loading} className={styles.submit}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                block
+                iconEnd="arrow-right"
+                busy={loading}
+                className={styles.submit}
+              >
                 {loading ? 'Přihlašování…' : 'Přihlásit se k časomíře'}
               </Button>
             </Tooltip>

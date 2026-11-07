@@ -4,10 +4,17 @@ const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 's
 
 // Tón štítku přípony – vzhled k němu dodá FileBadge (admin/shared).
 const EXTENSION_TONES = {
-  xlsx: 'sheet', xls: 'sheet', xlsm: 'sheet', csv: 'sheet',
+  xlsx: 'sheet',
+  xls: 'sheet',
+  xlsm: 'sheet',
+  csv: 'sheet',
   pdf: 'pdf',
-  doc: 'doc', docx: 'doc', docm: 'doc',
-  zip: 'archive', rar: 'archive', '7z': 'archive'
+  doc: 'doc',
+  docx: 'doc',
+  docm: 'doc',
+  zip: 'archive',
+  rar: 'archive',
+  '7z': 'archive',
 };
 
 /** Lowercase extension without the dot, '' when there is none. */

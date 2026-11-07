@@ -32,7 +32,9 @@ export const useRaceHeader = (raceId) => {
     }
   }, [raceId]);
 
-  useEffect(() => { loadDetail(); }, [loadDetail]);
+  useEffect(() => {
+    loadDetail();
+  }, [loadDetail]);
   useEffect(() => {
     if (!unavailable) return undefined;
     return onBackOnline(loadDetail);
@@ -43,14 +45,19 @@ export const useRaceHeader = (raceId) => {
   const setRunField = (runNumber, field, value) => {
     setForm((prev) => ({
       ...prev,
-      runs: prev.runs.map((run) => (run.run_number === runNumber ? { ...run, [field]: value } : run)),
+      runs: prev.runs.map((run) =>
+        run.run_number === runNumber ? { ...run, [field]: value } : run,
+      ),
     }));
   };
 
   const save = async () => {
     try {
       setSaving(true);
-      const updated = await TimekeeperAPI.put(`/api/timekeeper/races/${raceId}/detail`, toPayload(form));
+      const updated = await TimekeeperAPI.put(
+        `/api/timekeeper/races/${raceId}/detail`,
+        toPayload(form),
+      );
       setDetail(updated);
       setMessage({ type: 'success', text: 'Údaje závodu uloženy' });
     } catch (err) {
@@ -61,7 +68,16 @@ export const useRaceHeader = (raceId) => {
   };
 
   return {
-    detail, form, loading, saving, message, clearMessage: () => setMessage(null),
-    unavailable, reload: loadDetail, setField, setRunField, save,
+    detail,
+    form,
+    loading,
+    saving,
+    message,
+    clearMessage: () => setMessage(null),
+    unavailable,
+    reload: loadDetail,
+    setField,
+    setRunField,
+    save,
   };
 };

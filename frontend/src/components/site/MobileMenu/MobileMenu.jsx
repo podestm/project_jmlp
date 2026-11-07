@@ -36,15 +36,27 @@ export default function MobileMenu({ id, open, onClose }) {
           <div className={styles.top}>
             <span className={styles.brandText}>
               <span className={styles.name}>JMLP</span>
-              <span className={styles.season}>{edition} ročník · {season}</span>
+              <span className={styles.season}>
+                {edition} ročník · {season}
+              </span>
             </span>
-            <button type="button" data-cancel aria-label="Zavřít menu" className={styles.close} onClick={() => onClose('button')}>
+            <button
+              type="button"
+              data-cancel
+              aria-label="Zavřít menu"
+              className={styles.close}
+              onClick={() => onClose('button')}
+            >
               <Icon name="close" size={24} strokeWidth={2.2} />
             </button>
           </div>
 
           <div className={styles.liveWrap}>
-            <Link to={publicLiveNav.to} className={cx(styles.live, liveRace && styles.liveOn)} onClick={close}>
+            <Link
+              to={publicLiveNav.to}
+              className={cx(styles.live, liveRace && styles.liveOn)}
+              onClick={close}
+            >
               <span className={styles.liveDot} aria-hidden="true" />
               <span className={styles.liveText}>
                 <span className={styles.liveTitle}>

@@ -1,18 +1,18 @@
 from fastapi import APIRouter, Depends
 
 from ...auth import require_role
+from .attachments import router as attachments_router
 from .auth import router as auth_router
-from .posts import router as posts_router  
+from .categories import router as categories_router
+from .clubs import router as clubs_router
+from .dashboard import router as dashboard_router
+from .documents import router as documents_router
+from .library import router as library_router
+from .posts import router as posts_router
 from .racers import router as racers_router
 from .races import router as races_router
-from .documents import router as documents_router
-from .attachments import router as attachments_router
-from .library import router as library_router
 from .registrations import router as registrations_router
-from .categories import router as categories_router
 from .seasons import router as seasons_router
-from .dashboard import router as dashboard_router
-from .clubs import router as clubs_router
 
 # Main admin router that includes all sub-routers
 router = APIRouter(prefix="/api/admin")

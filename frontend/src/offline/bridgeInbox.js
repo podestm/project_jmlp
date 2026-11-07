@@ -32,11 +32,10 @@ export const SAVING_STALE_MS = 60000;
 
 const nowIso = () => new Date().toISOString();
 
-const randomId = () => (
+const randomId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-);
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 /**
  * Races are positive numeric ids; `null` means "not attributed to a race yet".
@@ -69,7 +68,7 @@ export const INBOX_STATUS = Object.freeze({
   QUEUED: 'queued',
   SAVED: 'saved',
   SAVE_FAILED: 'save_failed',
-  REJECTED: 'rejected'
+  REJECTED: 'rejected',
 });
 
 /**
@@ -171,7 +170,7 @@ export const appendInboxEvent = async (event = {}) => {
       sync_queue_id: null,
       ts: event.ts || timestamp,
       created_at: timestamp,
-      updated_at: timestamp
+      updated_at: timestamp,
     };
 
     const id = await timekeeperDb.bridgeInbox.add(draft);
@@ -203,9 +202,8 @@ export const listInboxEvents = async (raceId) => {
 };
 
 /** How many stored rows are not attributed to any race yet. */
-export const countUnassignedInboxEvents = async () => (
-  timekeeperDb.bridgeInbox.filter((row) => row.race_id == null).count()
-);
+export const countUnassignedInboxEvents = async () =>
+  timekeeperDb.bridgeInbox.filter((row) => row.race_id == null).count();
 
 /** Patch one row (status, chosen candidate, race stamp, ...). Returns the merged row. */
 export const updateInboxEvent = async (id, patch = {}) => {
@@ -286,7 +284,10 @@ export const applyMatchPatches = async (patches = []) => {
  *   writer is only ever recovered by the plain age cutoff.
  * @returns {Promise<number>} how many rows were unfrozen
  */
-export const recoverStaleSavingEvents = async ({ orphanBefore = null, liveWriters = null } = {}) => {
+export const recoverStaleSavingEvents = async ({
+  orphanBefore = null,
+  liveWriters = null,
+} = {}) => {
   const rows = await timekeeperDb.bridgeInbox.where('status').equals(INBOX_STATUS.SAVING).toArray();
   const cutoff = Date.now() - SAVING_STALE_MS;
   const orphanCutoff = Number.isFinite(Number(orphanBefore)) ? Number(orphanBefore) : null;
@@ -319,7 +320,7 @@ export const recoverStaleSavingEvents = async ({ orphanBefore = null, liveWriter
         reason: 'saving_interrupted',
         saving_started_at: null,
         saving_writer_id: null,
-        updated_at: nowIso()
+        updated_at: nowIso(),
       });
       unfrozen += 1;
     }
@@ -343,16 +344,19 @@ export const recoverStaleSavingEvents = async ({ orphanBefore = null, liveWriter
  * @returns {Promise<{ok: boolean, reason: string|null, row: Object|null}>}
  *   reason 'taken' means another tab (or this one) is already writing it.
  */
-export const beginInboxEventSave = async (id, { raceId = null, selectedEntryId = null, writerId = null } = {}) => {
+export const beginInboxEventSave = async (
+  id,
+  { raceId = null, selectedEntryId = null, writerId = null } = {},
+) => {
   const stamp = normalizeRaceId(raceId);
 
   const outcome = await timekeeperDb.transaction('rw', timekeeperDb.bridgeInbox, async () => {
     const row = await timekeeperDb.bridgeInbox.get(id);
     if (!row) return { ok: false, reason: 'missing', row: null };
     if (
-      row.status === INBOX_STATUS.SAVING
-      || row.status === INBOX_STATUS.QUEUED
-      || row.status === INBOX_STATUS.SAVED
+      row.status === INBOX_STATUS.SAVING ||
+      row.status === INBOX_STATUS.QUEUED ||
+      row.status === INBOX_STATUS.SAVED
     ) {
       return { ok: false, reason: 'taken', row };
     }
@@ -371,7 +375,7 @@ export const beginInboxEventSave = async (id, { raceId = null, selectedEntryId =
       // Which tab is doing the writing. A recovery pass in another tab uses it
       // to tell "abandoned by a dead tab" from "in flight somewhere else".
       saving_writer_id: writerId ?? null,
-      updated_at: timestamp
+      updated_at: timestamp,
     };
     await timekeeperDb.bridgeInbox.put(merged);
     return { ok: true, reason: null, row: merged };
@@ -380,7 +384,6 @@ export const beginInboxEventSave = async (id, { raceId = null, selectedEntryId =
   if (outcome.ok) notifyInboxChanged();
   return outcome;
 };
-
 
 const QUEUE_FAILED_STATUSES = new Set(['dead', 'conflict', 'dropped']);
 // The operator wrote this entry again and that write landed, so this op was
@@ -403,7 +406,7 @@ const deriveFromQueueOp = (row, op) => {
       level: 'danger',
       reason: 'sync_unknown',
       sync_op_id: null,
-      sync_queue_id: null
+      sync_queue_id: null,
     };
   }
   if (op.status === 'done') {
@@ -412,7 +415,7 @@ const deriveFromQueueOp = (row, op) => {
       level: 'success',
       reason: null,
       sync_op_id: null,
-      sync_queue_id: null
+      sync_queue_id: null,
     };
   }
   if (op.status === QUEUE_SUPERSEDED) {
@@ -421,14 +424,14 @@ const deriveFromQueueOp = (row, op) => {
       level: 'warning',
       reason: 'sync_superseded',
       sync_op_id: null,
-      sync_queue_id: null
+      sync_queue_id: null,
     };
   }
   if (QUEUE_FAILED_STATUSES.has(op.status)) {
     return {
       status: INBOX_STATUS.SAVE_FAILED,
       level: 'danger',
-      reason: op.status === 'conflict' ? 'sync_conflict' : 'sync_failed'
+      reason: op.status === 'conflict' ? 'sync_conflict' : 'sync_failed',
     };
   }
   // pending / processing / failed-with-retries-left: still on its way. This is
@@ -437,7 +440,7 @@ const deriveFromQueueOp = (row, op) => {
   return {
     status: INBOX_STATUS.QUEUED,
     level: 'info',
-    reason: 'queued_offline'
+    reason: 'queued_offline',
   };
 };
 
@@ -470,7 +473,8 @@ export const reconcileQueuedInboxEvents = async () => {
   let touched = 0;
 
   for (const row of tracked) {
-    const op = row.sync_queue_id != null ? await timekeeperDb.syncQueue.get(row.sync_queue_id) : null;
+    const op =
+      row.sync_queue_id != null ? await timekeeperDb.syncQueue.get(row.sync_queue_id) : null;
     const patch = deriveFromQueueOp(row, op);
     if (!patch) continue;
 
@@ -478,7 +482,8 @@ export const reconcileQueuedInboxEvents = async () => {
     if (!changed) continue;
 
     if (patch.status === INBOX_STATUS.SAVED && row.status !== INBOX_STATUS.SAVED) promoted += 1;
-    if (patch.status === INBOX_STATUS.SAVE_FAILED && row.status !== INBOX_STATUS.SAVE_FAILED) failed += 1;
+    if (patch.status === INBOX_STATUS.SAVE_FAILED && row.status !== INBOX_STATUS.SAVE_FAILED)
+      failed += 1;
 
     await timekeeperDb.bridgeInbox.put({ ...row, ...patch, updated_at: nowIso() });
     touched += 1;
@@ -501,7 +506,9 @@ export const reconcileQueuedInboxEvents = async () => {
  */
 export const rejectUnparsedInboxEvents = async (raceId) => {
   const rows = await listInboxEvents(raceId);
-  const doomed = rows.filter((row) => row.reason === 'unparsed' && row.status === INBOX_STATUS.WARNING);
+  const doomed = rows.filter(
+    (row) => row.reason === 'unparsed' && row.status === INBOX_STATUS.WARNING,
+  );
   if (doomed.length === 0) return 0;
 
   await timekeeperDb.transaction('rw', timekeeperDb.bridgeInbox, async () => {
@@ -511,7 +518,7 @@ export const rejectUnparsedInboxEvents = async (raceId) => {
         status: INBOX_STATUS.REJECTED,
         level: 'secondary',
         race_id: normalizeRaceId(raceId) ?? row.race_id ?? null,
-        updated_at: nowIso()
+        updated_at: nowIso(),
       });
     }
   });

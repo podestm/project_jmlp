@@ -4,8 +4,15 @@ import SlcrPlanTable from './SlcrPlanTable.jsx';
 
 const ITEMS = [
   {
-    category_id: 12, name: 'Předžáci', action: 'create', slcr_race_id: null,
-    input: { codex: '12', category: { manual: { sex: 'Male', yearFrom: 2014, yearTo: 2015 } }, startTime: '09:30:00' },
+    category_id: 12,
+    name: 'Předžáci',
+    action: 'create',
+    slcr_race_id: null,
+    input: {
+      codex: '12',
+      category: { manual: { sex: 'Male', yearFrom: 2014, yearTo: 2015 } },
+      startTime: '09:30:00',
+    },
   },
   { category_id: 13, name: 'Žačky', action: 'codex', slcr_race_id: 7, slcr_name: 'Žačky U14' },
   { category_id: 14, name: 'Žáci', action: 'keep', slcr_race_id: 8, slcr_name: 'Žáci' },
@@ -31,7 +38,18 @@ describe('SlcrPlanTable', () => {
   });
 
   it('prázdnou kategorii ukáže jako nezaloženou i s důvodem', () => {
-    render(<SlcrPlanTable items={[{ category_id: 15, name: 'Myšáci', action: 'skip', reason: 'Na startovní listině nikdo není' }]} />);
+    render(
+      <SlcrPlanTable
+        items={[
+          {
+            category_id: 15,
+            name: 'Myšáci',
+            action: 'skip',
+            reason: 'Na startovní listině nikdo není',
+          },
+        ]}
+      />,
+    );
     const row = screen.getAllByRole('row')[1];
     expect(within(row).getByText('Nezaloží se')).toBeInTheDocument();
     expect(within(row).getByText('Na startovní listině nikdo není')).toBeInTheDocument();

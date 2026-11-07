@@ -9,18 +9,16 @@ import { SEASON_CONFIG } from '../config/constants.js';
  * @param {Date} [referenceDate]
  * @returns {number}
  */
-export const seasonIdForDate = (referenceDate = new Date()) => (
-  SEASON_CONFIG.seasonIdForDate(referenceDate)
-);
+export const seasonIdForDate = (referenceDate = new Date()) =>
+  SEASON_CONFIG.seasonIdForDate(referenceDate);
 
 /**
  * Season id a race on the given date belongs to.
  * @param {string|Date} raceDate
  * @returns {number}
  */
-export const getSeasonIdForRace = (raceDate) => (
-  seasonIdForDate(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
-);
+export const getSeasonIdForRace = (raceDate) =>
+  seasonIdForDate(typeof raceDate === 'string' ? new Date(raceDate) : raceDate);
 
 /**
  * Display form of a season - "2025/2026".
@@ -34,12 +32,28 @@ export const EDITION_BASE_YEAR = 2006;
 
 /** Římské číslo (1 → 'I', 20 → 'XX'); pro nulu a záporná čísla prázdný řetězec. */
 export const toRoman = (value) => {
-  const numerals = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
-    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  const numerals = [
+    [1000, 'M'],
+    [900, 'CM'],
+    [500, 'D'],
+    [400, 'CD'],
+    [100, 'C'],
+    [90, 'XC'],
+    [50, 'L'],
+    [40, 'XL'],
+    [10, 'X'],
+    [9, 'IX'],
+    [5, 'V'],
+    [4, 'IV'],
+    [1, 'I'],
+  ];
   let remaining = Number(value);
   if (!remaining || remaining <= 0) return '';
   return numerals.reduce((acc, [num, sym]) => {
-    while (remaining >= num) { acc += sym; remaining -= num; }
+    while (remaining >= num) {
+      acc += sym;
+      remaining -= num;
+    }
     return acc;
   }, '');
 };
@@ -74,5 +88,5 @@ export default {
   formatSeasonShort,
   getSeasonIdForRace,
   formatSeason,
-  generateRaceNumber
+  generateRaceNumber,
 };

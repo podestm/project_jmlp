@@ -6,7 +6,14 @@ import styles from './SeasonDialog.module.css';
  * AdminDialogSezona: nová sezóna, nebo úprava existující. Počáteční rok jde
  * zadat jen u nové – váží se na něj závody i dokumenty.
  */
-export default function SeasonDialog({ editing, formData, setFormData, saving, onSubmit, onClose }) {
+export default function SeasonDialog({
+  editing,
+  formData,
+  setFormData,
+  saving,
+  onSubmit,
+  onClose,
+}) {
   const set = (name, value) => setFormData({ ...formData, [name]: value });
   const formId = 'sezona-formular';
 
@@ -16,14 +23,16 @@ export default function SeasonDialog({ editing, formData, setFormData, saving, o
       size="sm"
       title={editing ? `Upravit sezónu ${editing.season_label}` : 'Nová sezóna'}
       onClose={onClose}
-      footer={(
+      footer={
         <>
-          <Button data-cancel onClick={onClose}>Zrušit</Button>
+          <Button data-cancel onClick={onClose}>
+            Zrušit
+          </Button>
           <Button type="submit" form={formId} variant="primary" icon="check" busy={saving}>
             {editing ? 'Uložit změny' : 'Založit sezónu'}
           </Button>
         </>
-      )}
+      }
     >
       <form id={formId} className={styles.form} onSubmit={onSubmit}>
         <Field
@@ -31,13 +40,30 @@ export default function SeasonDialog({ editing, formData, setFormData, saving, o
           required
           hint={`${editing ? 'Nelze změnit · ' : ''}${seasonRange(formData.year_start)}`}
         >
-          <Input type="number" size="sm" mono value={formData.year_start} disabled={Boolean(editing)} onChange={(e) => set('year_start', e.target.value)} />
+          <Input
+            type="number"
+            size="sm"
+            mono
+            value={formData.year_start}
+            disabled={Boolean(editing)}
+            onChange={(e) => set('year_start', e.target.value)}
+          />
         </Field>
         <Field label="Ročník">
           {(props) => (
             <span className={styles.edition}>
-              <Input {...props} type="number" size="sm" mono min="1" value={formData.edition} onChange={(e) => set('edition', e.target.value)} />
-              <span className={styles.roman} aria-hidden="true">{editionPreview(formData.edition)}</span>
+              <Input
+                {...props}
+                type="number"
+                size="sm"
+                mono
+                min="1"
+                value={formData.edition}
+                onChange={(e) => set('edition', e.target.value)}
+              />
+              <span className={styles.roman} aria-hidden="true">
+                {editionPreview(formData.edition)}
+              </span>
             </span>
           )}
         </Field>

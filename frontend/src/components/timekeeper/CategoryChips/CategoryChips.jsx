@@ -20,7 +20,9 @@ export default function CategoryChips({ options, value, onChange, className }) {
   const labelId = useId();
   return (
     <div className={cx(styles.row, className)}>
-      <span className={styles.caps} id={labelId}>Kategorie</span>
+      <span className={styles.caps} id={labelId}>
+        Kategorie
+      </span>
       <div role="group" aria-labelledby={labelId} className={styles.chips}>
         {options.map((option) => (
           <button

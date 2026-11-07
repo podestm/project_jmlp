@@ -1,0 +1,6 @@
+# Formatting-only and mechanical lint commits, skipped by `git blame`.
+# Enable locally: git config blame.ignoreRevsFile .git-blame-ignore-revs (GitHub uses it automatically).
+# style: one-off reformat with Prettier and Ruff
+54385279011372887b7bfd16e8b0ce54a7f83412
+# refactor(backend): apply Ruff's safe automatic fixes
+9e0bbd34af4539638a14f309dce6cee1b4401799

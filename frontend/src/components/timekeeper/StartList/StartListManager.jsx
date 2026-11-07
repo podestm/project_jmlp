@@ -35,12 +35,7 @@ export default function StartListManager() {
   const content = () => {
     if (list.loading) return <LoadingState label="Načítám startovní listinu…" />;
     if (!hasEntries) {
-      return setup.open ? null : (
-        <EmptyState
-          icon="list"
-          title="Startovní listina je prázdná"
-        />
-      );
+      return setup.open ? null : <EmptyState icon="list" title="Startovní listina je prázdná" />;
     }
     return (
       <>
@@ -68,10 +63,17 @@ export default function StartListManager() {
 
       {raceId ? (
         <>
-          <StartListToolbar hasEntries={hasEntries} setup={setup} print={print} onClear={list.clearStartList} />
+          <StartListToolbar
+            hasEntries={hasEntries}
+            setup={setup}
+            print={print}
+            onClear={list.clearStartList}
+          />
           <TimekeeperMessage message={message} onDismiss={() => setMessage(null)} />
           <div className={setup.open ? styles.withPanel : styles.single}>
-            <section className={styles.list} aria-label="Listina po kategoriích">{content()}</section>
+            <section className={styles.list} aria-label="Listina po kategoriích">
+              {content()}
+            </section>
             {setup.open && <GenerateSetupPanel setup={setup} />}
           </div>
         </>

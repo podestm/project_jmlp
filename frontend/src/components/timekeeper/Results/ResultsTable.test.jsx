@@ -15,7 +15,7 @@ const entry = (overrides) => ({
   time_sum: null,
   racer_name: 'Jan',
   racer_surname: 'Novák',
-  ...overrides
+  ...overrides,
 });
 
 describe('rankEntriesByTime - pořadí', () => {
@@ -23,7 +23,7 @@ describe('rankEntriesByTime - pořadí', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, time_sum: 62.0 }),
       entry({ id: 2, time_sum: 60.5 }),
-      entry({ id: 3, time_sum: 61.2 })
+      entry({ id: 3, time_sum: 61.2 }),
     ]);
 
     expect(ranked.map((e) => e.id)).toEqual([2, 3, 1]);
@@ -33,7 +33,7 @@ describe('rankEntriesByTime - pořadí', () => {
   it('závodníci bez času jdou za ty s časem', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, status: 'DNF' }),
-      entry({ id: 2, time_sum: 60.5 })
+      entry({ id: 2, time_sum: 60.5 }),
     ]);
 
     expect(ranked[0].id).toBe(2);
@@ -44,7 +44,7 @@ describe('rankEntriesByTime - pořadí', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, status: 'DNS' }),
       entry({ id: 2, status: 'DNF' }),
-      entry({ id: 3, status: 'DSQ' })
+      entry({ id: 3, status: 'DSQ' }),
     ]);
 
     expect(ranked.map((e) => e.status)).toEqual(['DSQ', 'DNF', 'DNS']);
@@ -53,7 +53,7 @@ describe('rankEntriesByTime - pořadí', () => {
   it('při shodě času rozhoduje startovní číslo, pak id', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 9, start_number: 5, time_sum: 60 }),
-      entry({ id: 2, start_number: 3, time_sum: 60 })
+      entry({ id: 2, start_number: 3, time_sum: 60 }),
     ]);
 
     expect(ranked.map((e) => e.id)).toEqual([2, 9]);
@@ -65,7 +65,7 @@ describe('rankEntriesByTime - shodný čas', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, start_number: 1, time_sum: 60 }),
       entry({ id: 2, start_number: 2, time_sum: 60 }),
-      entry({ id: 3, start_number: 3, time_sum: 61 })
+      entry({ id: 3, start_number: 3, time_sum: 61 }),
     ]);
 
     expect(ranked.map((e) => e.display_rank)).toEqual([1, 1, 3]);
@@ -80,7 +80,7 @@ describe('rankEntriesByTime - body a ztráta', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, time_sum: 60 }),
       entry({ id: 2, start_number: 2, time_sum: 61 }),
-      entry({ id: 3, start_number: 3, status: 'DNF' })
+      entry({ id: 3, start_number: 3, status: 'DNF' }),
     ]);
 
     expect(ranked.map((e) => e.display_points)).toEqual([100, 80, 0]);
@@ -89,7 +89,7 @@ describe('rankEntriesByTime - body a ztráta', () => {
   it('ztráta se počítá na vítěze a u vítěze je prázdná', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, time_sum: 60 }),
-      entry({ id: 2, start_number: 2, time_sum: 62.5 })
+      entry({ id: 2, start_number: 2, time_sum: 62.5 }),
     ]);
 
     expect(ranked[0].display_diff).toBeNull();
@@ -103,10 +103,13 @@ describe('rankEntriesByTime - body a ztráta', () => {
 
 describe('rankEntriesByTime - pořadí jednoho kola', () => {
   it('podle 1. kola se řadí jinak než podle součtu', () => {
-    const ranked = rankEntriesByTime([
-      entry({ id: 1, start_number: 1, time1: 62, time2: 58, time_sum: 120 }),
-      entry({ id: 2, start_number: 2, time1: 60, time2: 65, time_sum: 125 })
-    ], { timeField: 'time1' });
+    const ranked = rankEntriesByTime(
+      [
+        entry({ id: 1, start_number: 1, time1: 62, time2: 58, time_sum: 120 }),
+        entry({ id: 2, start_number: 2, time1: 60, time2: 65, time_sum: 125 }),
+      ],
+      { timeField: 'time1' },
+    );
 
     expect(ranked.map((e) => e.id)).toEqual([2, 1]);
     expect(ranked[0].display_points).toBe(100);
@@ -114,10 +117,13 @@ describe('rankEntriesByTime - pořadí jednoho kola', () => {
   });
 
   it('kdo druhé kolo nejel, je v jeho listině bez pořadí', () => {
-    const ranked = rankEntriesByTime([
-      entry({ id: 1, start_number: 1, time1: 60, time2: null, time_sum: 60 }),
-      entry({ id: 2, start_number: 2, time1: 61, time2: 59, time_sum: 120 })
-    ], { timeField: 'time2' });
+    const ranked = rankEntriesByTime(
+      [
+        entry({ id: 1, start_number: 1, time1: 60, time2: null, time_sum: 60 }),
+        entry({ id: 2, start_number: 2, time1: 61, time2: 59, time_sum: 120 }),
+      ],
+      { timeField: 'time2' },
+    );
 
     expect(ranked.map((e) => e.id)).toEqual([2, 1]);
     expect(ranked[0].display_rank).toBe(1);
@@ -130,7 +136,7 @@ describe('rankEntriesByTime - vyřazení ze startky', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, start_number: 1, time_sum: 58, excluded: true }),
       entry({ id: 2, start_number: 2, time_sum: 60 }),
-      entry({ id: 3, start_number: 3, time_sum: 61 })
+      entry({ id: 3, start_number: 3, time_sum: 61 }),
     ]);
 
     expect(ranked.map((e) => e.id)).toEqual([2, 3]);
@@ -140,7 +146,7 @@ describe('rankEntriesByTime - vyřazení ze startky', () => {
     const ranked = rankEntriesByTime([
       entry({ id: 1, start_number: 1, time_sum: 58, excluded: true }),
       entry({ id: 2, start_number: 2, time_sum: 60 }),
-      entry({ id: 3, start_number: 3, time_sum: 61.5 })
+      entry({ id: 3, start_number: 3, time_sum: 61.5 }),
     ]);
 
     expect(ranked.map((e) => e.display_rank)).toEqual([1, 2]);
@@ -150,10 +156,13 @@ describe('rankEntriesByTime - vyřazení ze startky', () => {
   });
 
   it('platí i pro pořadí jednoho kola', () => {
-    const ranked = rankEntriesByTime([
-      entry({ id: 1, start_number: 1, time1: 29, excluded: true }),
-      entry({ id: 2, start_number: 2, time1: 30 })
-    ], { timeField: 'time1' });
+    const ranked = rankEntriesByTime(
+      [
+        entry({ id: 1, start_number: 1, time1: 29, excluded: true }),
+        entry({ id: 2, start_number: 2, time1: 30 }),
+      ],
+      { timeField: 'time1' },
+    );
 
     expect(ranked.map((e) => e.id)).toEqual([2]);
     expect(ranked[0].display_rank).toBe(1);
@@ -173,7 +182,7 @@ describe('resultStatus', () => {
   it('řádek startovky se dá seřadit bez převodu na výsledek', () => {
     const ranked = rankEntriesByTime([
       { id: 1, start_number: 1, time_sum: 60, dnf: true, dns: false, dsq: false },
-      { id: 2, start_number: 2, time_sum: 61, dnf: false, dns: false, dsq: false }
+      { id: 2, start_number: 2, time_sum: 61, dnf: false, dns: false, dsq: false },
     ]);
 
     expect(ranked.map((e) => e.id)).toEqual([2, 1]);
@@ -196,10 +205,14 @@ describe('formatResultTime', () => {
 
 describe('ResultsTable', () => {
   it('vykreslí závodníky v pořadí podle času', () => {
-    render(<ResultsTable entries={[
-      entry({ id: 1, start_number: 1, time_sum: 62, racer_surname: 'Druhý' }),
-      entry({ id: 2, start_number: 2, time_sum: 60, racer_surname: 'První' })
-    ]} />);
+    render(
+      <ResultsTable
+        entries={[
+          entry({ id: 1, start_number: 1, time_sum: 62, racer_surname: 'Druhý' }),
+          entry({ id: 2, start_number: 2, time_sum: 60, racer_surname: 'První' }),
+        ]}
+      />,
+    );
 
     const rows = screen.getAllByRole('row').slice(1); // bez hlavičky
     expect(rows[0]).toHaveTextContent('První');
@@ -218,10 +231,21 @@ describe('ResultsTable', () => {
   });
 
   it('vyřazeného ze startky nevykreslí', () => {
-    render(<ResultsTable entries={[
-      entry({ id: 1, start_number: 1, time_sum: 58, racer_surname: 'Vyřazený', excluded: true }),
-      entry({ id: 2, start_number: 2, time_sum: 60, racer_surname: 'Startující' })
-    ]} showPoints />);
+    render(
+      <ResultsTable
+        entries={[
+          entry({
+            id: 1,
+            start_number: 1,
+            time_sum: 58,
+            racer_surname: 'Vyřazený',
+            excluded: true,
+          }),
+          entry({ id: 2, start_number: 2, time_sum: 60, racer_surname: 'Startující' }),
+        ]}
+        showPoints
+      />,
+    );
 
     expect(screen.queryByText(/Vyřazený/)).not.toBeInTheDocument();
     const rows = screen.getAllByRole('row').slice(1);

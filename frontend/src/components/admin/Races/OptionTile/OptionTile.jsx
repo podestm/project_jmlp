@@ -8,7 +8,11 @@ import styles from './OptionTile.module.css';
  */
 export default function OptionTile({ tone, className, ...checkboxProps }) {
   return (
-    <div className={cx(styles.tile, className)} data-tone={tone} data-checked={checkboxProps.checked || undefined}>
+    <div
+      className={cx(styles.tile, className)}
+      data-tone={tone}
+      data-checked={checkboxProps.checked || undefined}
+    >
       <Checkbox {...checkboxProps} />
     </div>
   );

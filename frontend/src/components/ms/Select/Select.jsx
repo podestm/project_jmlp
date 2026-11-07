@@ -7,7 +7,9 @@ import styles from './Select.module.css';
 const Select = forwardRef(function Select({ size = 'md', className, children, ...rest }, ref) {
   return (
     <span className={cx(styles.wrap, className)}>
-      <select ref={ref} className={cx(styles.select, styles[size])} {...rest}>{children}</select>
+      <select ref={ref} className={cx(styles.select, styles[size])} {...rest}>
+        {children}
+      </select>
       <Icon name="chevron-down" size={18} className={styles.arrow} />
     </span>
   );

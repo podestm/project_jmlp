@@ -3,7 +3,12 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CurrentRace from './CurrentRace.jsx';
 
-const renderIn = (race) => render(<MemoryRouter><CurrentRace race={race} /></MemoryRouter>);
+const renderIn = (race) =>
+  render(
+    <MemoryRouter>
+      <CurrentRace race={race} />
+    </MemoryRouter>,
+  );
 
 describe('CurrentRace', () => {
   it('vybraný závod je jen popisek – přepínat se nedá', () => {

@@ -7,7 +7,7 @@ import {
   isSameDraft,
   mergeRestoredDrafts,
   normalizeDraft,
-  parseStoredTime
+  parseStoredTime,
 } from './timingRules.js';
 
 describe('parseStoredTime', () => {
@@ -48,12 +48,17 @@ describe('buildTimeUpdate', () => {
       time2: null,
       dnf: false,
       dns: false,
-      dsq: false
+      dsq: false,
     });
   });
 
   it('předá revizi i vynucení zápisu', () => {
-    const update = buildTimeUpdate({ time1: '1', time2: '', base_revision: 'r1', force_apply: true });
+    const update = buildTimeUpdate({
+      time1: '1',
+      time2: '',
+      base_revision: 'r1',
+      force_apply: true,
+    });
     expect(update.base_revision).toBe('r1');
     expect(update.force_apply).toBe(true);
   });
@@ -76,8 +81,13 @@ describe('isSameDraft', () => {
 
 describe('normalizeDraft', () => {
   it('doplní chybějící příznaky na false', () => {
-    expect(normalizeDraft({ time1: '1' }))
-      .toEqual({ time1: 1, time2: null, dnf: false, dns: false, dsq: false });
+    expect(normalizeDraft({ time1: '1' })).toEqual({
+      time1: 1,
+      time2: null,
+      dnf: false,
+      dns: false,
+      dsq: false,
+    });
   });
 });
 
@@ -158,7 +168,10 @@ describe('findRowInDirection - šipky mezi řádky', () => {
 describe('nulový čas', () => {
   it('0, 0.0 i 0.00 je nezměřeno (null) - při čtení i v požadavku', () => {
     ['0', '0.0', '0.00', 0].forEach((value) => expect(parseStoredTime(value)).toBeNull());
-    expect(buildTimeUpdate({ time1: '0.00', time2: '31.5' })).toMatchObject({ time1: null, time2: 31.5 });
+    expect(buildTimeUpdate({ time1: '0.00', time2: '31.5' })).toMatchObject({
+      time1: null,
+      time2: 31.5,
+    });
     expect(normalizeDraft({ time1: 0, time2: '' })).toMatchObject({ time1: null, time2: null });
   });
 });

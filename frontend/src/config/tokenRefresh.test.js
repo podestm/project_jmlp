@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { decodeTokenTimes, needsRefresh, startTokenRefresh } from './tokenRefresh.js';
 
 const NOW = 1_800_000_000_000;
-const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+const b64 = (obj) =>
+  btoa(JSON.stringify(obj)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 const jwt = (claims) => `${b64({ alg: 'HS256' })}.${b64(claims)}.sig`;
 const sec = (ms) => Math.floor(ms / 1000);
 
@@ -27,13 +28,20 @@ describe('klouzavé prodlužování přihlášení', () => {
 
   describe('hlídač', () => {
     let saved;
-    const store = (token) => ({ getToken: () => token, save: vi.fn((t, e) => { saved = [t, e]; }) });
+    const store = (token) => ({
+      getToken: () => token,
+      save: vi.fn((t, e) => {
+        saved = [t, e];
+      }),
+    });
 
     beforeEach(() => {
       saved = null;
       vi.useFakeTimers({ now: NOW, toFake: ['Date'] });
       global.fetch = vi.fn(async () => ({
-        ok: true, status: 200, json: async () => ({ access_token: 'novy', expires_in: 43200 })
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: 'novy', expires_in: 43200 }),
       }));
     });
     afterEach(() => {
@@ -44,7 +52,11 @@ describe('klouzavé prodlužování přihlášení', () => {
     it('online a za půlkou platnosti obnoví a uloží nový token', async () => {
       const old = jwt({ iat: sec(NOW) - 8 * 3600, exp: sec(NOW) + 4 * 3600 });
       const onRefreshed = vi.fn();
-      const refresher = startTokenRefresh({ endpoint: '/api/timekeeper/auth/refresh', store: store(old), onRefreshed });
+      const refresher = startTokenRefresh({
+        endpoint: '/api/timekeeper/auth/refresh',
+        store: store(old),
+        onRefreshed,
+      });
       await vi.waitFor(() => expect(onRefreshed).toHaveBeenCalledWith('novy'));
       refresher.stop();
       expect(saved).toEqual(['novy', 43200]);
@@ -55,14 +67,22 @@ describe('klouzavé prodlužování přihlášení', () => {
 
     it('offline nic neposílá', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
-      const refresher = startTokenRefresh({ endpoint: '/x', store: store(jwt({ iat: 0, exp: sec(NOW) + 60 })) });
+      const refresher = startTokenRefresh({
+        endpoint: '/x',
+        store: store(jwt({ iat: 0, exp: sec(NOW) + 60 })),
+      });
       expect(await refresher.check()).toBe(false);
       refresher.stop();
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('nepovedená obnova token nemaže', async () => {
-      global.fetch = vi.fn(async () => ({ ok: false, status: 401, statusText: 'Unauthorized', json: async () => ({}) }));
+      global.fetch = vi.fn(async () => ({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({}),
+      }));
       const s = store(jwt({ iat: sec(NOW) - 8 * 3600, exp: sec(NOW) + 3600 }));
       const refresher = startTokenRefresh({ endpoint: '/x', store: s });
       expect(await refresher.check()).toBe(false);

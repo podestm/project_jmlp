@@ -3,10 +3,10 @@
 Jediné místo, které zapisuje do uploads/documents/. Používá ho jak ruční upload
 z administrace, tak publikace vygenerovaného PDF.
 """
+
 import logging
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -21,7 +21,16 @@ DOCUMENTS_DIR = Path("uploads/documents")
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOWED_EXTENSIONS = {
-    ".pdf", ".doc", ".docx", ".txt", ".jpg", ".jpeg", ".png", ".xlsx", ".xls", ".csv",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".txt",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".xlsx",
+    ".xls",
+    ".csv",
 }
 
 _MIME_BY_EXTENSION = {
@@ -34,7 +43,7 @@ _MIME_BY_EXTENSION = {
 }
 
 
-def guess_mime_type(filename: str, fallback: Optional[str] = None) -> str:
+def guess_mime_type(filename: str, fallback: str | None = None) -> str:
     """MIME podle přípony. Content-Type z prohlížeče je jen záložní zdroj."""
     extension = Path(filename).suffix.lower()
     return _MIME_BY_EXTENSION.get(extension) or fallback or "application/octet-stream"
@@ -57,8 +66,8 @@ def store_document_bytes(
     content: bytes,
     original_filename: str,
     file_type: FileTypeEnum = FileTypeEnum.neprirazene,
-    mime_type: Optional[str] = None,
-    uploaded_by: Optional[int] = None,
+    mime_type: str | None = None,
+    uploaded_by: int | None = None,
 ) -> models.File:
     """Zapíše bajty na disk pod UUID názvem a založí řádek ve fuj_jmlp_files."""
     extension = validate_extension(original_filename)
@@ -76,7 +85,7 @@ def store_document_bytes(
         file_path.write_bytes(content)
     except OSError:
         logger.exception("Nepodařilo se uložit soubor %s", file_path)
-        raise HTTPException(status_code=500, detail="Chyba při ukládání souboru")
+        raise HTTPException(status_code=500, detail="Chyba při ukládání souboru") from None
 
     file_record = models.File(
         original_filename=original_filename,
@@ -98,7 +107,7 @@ async def store_upload(
     upload: UploadFile,
     *,
     file_type: FileTypeEnum = FileTypeEnum.neprirazene,
-    uploaded_by: Optional[int] = None,
+    uploaded_by: int | None = None,
 ) -> models.File:
     """Načte UploadFile a uloží ho.
 

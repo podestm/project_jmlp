@@ -19,9 +19,7 @@ const renderBar = (props = {}) => {
     onAutoWriteChange: vi.fn(),
     onOpenDevice: vi.fn(),
   };
-  render(
-    <DeviceBar serial={serial()} bridgeTargetRound="1" autoWrite {...handlers} {...props} />
-  );
+  render(<DeviceBar serial={serial()} bridgeTargetRound="1" autoWrite {...handlers} {...props} />);
   return handlers;
 };
 
@@ -62,7 +60,9 @@ describe('DeviceBar', () => {
 
   it('stav připojení je klidný – žádné „Připojení…“ ani odkaz na schránku', () => {
     renderBar({ serial: serial({ connected: true }) });
-    expect(screen.getByRole('button', { name: 'Připojení časomíry: Připojeno' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Připojení časomíry: Připojeno' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Připojení…/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });

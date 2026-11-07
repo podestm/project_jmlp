@@ -3,7 +3,9 @@ import { listSummary, orderLabel, seasonMeta, seasonOptionLabel } from './raceLi
 
 describe('texty obrazovky Závody', () => {
   it('souhrn nad seznamem skloňuje', () => {
-    expect(listSummary([{ registration: true }, { registration: false }])).toBe('2 závody · 1 s otevřenou registrací');
+    expect(listSummary([{ registration: true }, { registration: false }])).toBe(
+      '2 závody · 1 s otevřenou registrací',
+    );
     expect(listSummary([])).toBe('0 závodů · 0 s otevřenou registrací');
     expect(listSummary([{ registration: false }])).toBe('1 závod · 0 s otevřenou registrací');
   });

@@ -25,35 +25,37 @@ const loadPdfMake = () => {
     pdfMakePromise = Promise.all([
       import('pdfmake/build/pdfmake'),
       import('pdfmake/build/vfs_fonts'),
-      loadLizaVfs()
-    ]).then(([pdfMakeModule, vfsModule, lizaVfs]) => {
-      const pdfMake = pdfMakeModule.default || pdfMakeModule;
-      const vfs = vfsModule.default || vfsModule;
-      // pdfmake mění tvar exportu mezi verzemi, proto tolerantní rozbalení.
-      const builtIn = vfs.pdfMake?.vfs || vfs.vfs || vfs;
-      const files = { ...builtIn, ...lizaVfs };
-      const fonts = {
-        Roboto: {
-          normal: 'Roboto-Regular.ttf',
-          bold: 'Roboto-Medium.ttf',
-          italics: 'Roboto-Italic.ttf',
-          bolditalics: 'Roboto-MediumItalic.ttf'
-        },
-        ...lizaFonts
-      };
-      // vfs_fonts se při načtení sám zaregistruje přes addVirtualFileSystem
-      // (jen s Robotem) a ta registrace má v createPdf přednost před
-      // pdfMake.vfs. Proto se písma registrují stejnou cestou - jinak by
-      // createPdf hlásil "not found in virtual file system".
-      pdfMake.vfs = files;
-      pdfMake.fonts = fonts;
-      pdfMake.addVirtualFileSystem?.(files);
-      pdfMake.setFonts?.(fonts);
-      return pdfMake;
-    }).catch((err) => {
-      pdfMakePromise = null;   // ať jde zkusit znovu
-      throw err;
-    });
+      loadLizaVfs(),
+    ])
+      .then(([pdfMakeModule, vfsModule, lizaVfs]) => {
+        const pdfMake = pdfMakeModule.default || pdfMakeModule;
+        const vfs = vfsModule.default || vfsModule;
+        // pdfmake mění tvar exportu mezi verzemi, proto tolerantní rozbalení.
+        const builtIn = vfs.pdfMake?.vfs || vfs.vfs || vfs;
+        const files = { ...builtIn, ...lizaVfs };
+        const fonts = {
+          Roboto: {
+            normal: 'Roboto-Regular.ttf',
+            bold: 'Roboto-Medium.ttf',
+            italics: 'Roboto-Italic.ttf',
+            bolditalics: 'Roboto-MediumItalic.ttf',
+          },
+          ...lizaFonts,
+        };
+        // vfs_fonts se při načtení sám zaregistruje přes addVirtualFileSystem
+        // (jen s Robotem) a ta registrace má v createPdf přednost před
+        // pdfMake.vfs. Proto se písma registrují stejnou cestou - jinak by
+        // createPdf hlásil "not found in virtual file system".
+        pdfMake.vfs = files;
+        pdfMake.fonts = fonts;
+        pdfMake.addVirtualFileSystem?.(files);
+        pdfMake.setFonts?.(fonts);
+        return pdfMake;
+      })
+      .catch((err) => {
+        pdfMakePromise = null; // ať jde zkusit znovu
+        throw err;
+      });
   }
   return pdfMakePromise;
 };
@@ -66,7 +68,10 @@ const loadPdfMake = () => {
  * jen spolkne - tisk si načtení zkusí znovu sám.
  */
 export function preloadPdfMake() {
-  return loadPdfMake().then(() => true, () => false);
+  return loadPdfMake().then(
+    () => true,
+    () => false,
+  );
 }
 
 /** Vytvoří PDF a vrátí ho jako Blob. */

@@ -11,6 +11,7 @@ Tabulky jsou MyISAM, takže žádný rollback neexistuje - několik testů drž�
 současné (chybné) chování, kdy po odmítnuté přihlášce zůstane v databázi
 osiřelý řádek. Jsou označené slovem CHYBA.
 """
+
 from datetime import date, datetime
 
 import pytest
@@ -31,7 +32,9 @@ def klient_jako_v_provozu():
     utnul výjimkou místo aby ukázal, co dostane uživatel.
     """
     from fastapi.testclient import TestClient
+
     from app.main import app
+
     with TestClient(app, raise_server_exceptions=False) as test_client:
         yield test_client
 
@@ -39,6 +42,7 @@ def klient_jako_v_provozu():
 # --------------------------------------------------------------------------
 # Pomocníci pro testovací data
 # --------------------------------------------------------------------------
+
 
 def _klub(db, name, valid=True):
     klub = models.Club(name=name, valid=valid)
@@ -64,11 +68,28 @@ def _zavod(db, race_nr="JMLP2026-01", registration=True, datum=None, season_id=N
     return zavod
 
 
-def _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1, club_id=None,
-              telefon=None, email=None, slcr_id=None, category_id=None):
+def _zavodnik(
+    db,
+    name="Jan",
+    surname="Novak",
+    year=2010,
+    sex=1,
+    club_id=None,
+    telefon=None,
+    email=None,
+    slcr_id=None,
+    category_id=None,
+):
     zavodnik = models.Racer(
-        name=name, surname=surname, year=year, sex=sex, club_id=club_id,
-        telefon=telefon, email=email, slcr_id=slcr_id, category_id=category_id,
+        name=name,
+        surname=surname,
+        year=year,
+        sex=sex,
+        club_id=club_id,
+        telefon=telefon,
+        email=email,
+        slcr_id=slcr_id,
+        category_id=category_id,
     )
     db.add(zavodnik)
     db.commit()
@@ -131,16 +152,25 @@ def _pocet_registraci(db, zavod_id=None):
 # Veřejná přihláška - úspěšný průchod
 # ==========================================================================
 
+
 def test_novy_zavodnik_se_prihlasi_a_zalozi_se_i_zavodnik(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Motolodě Pardubice")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="  Jan  ", racer_surname="  Novak  ",
-        racer_year=2010, racer_sex=1, racer_telefon=" 777123456 ",
-        racer_email=" jan@example.cz ", racer_slcr_id=" AB12 ",
-        club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="  Jan  ",
+            racer_surname="  Novak  ",
+            racer_year=2010,
+            racer_sex=1,
+            racer_telefon=" 777123456 ",
+            racer_email=" jan@example.cz ",
+            racer_slcr_id=" AB12 ",
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     telo = odpoved.json()
@@ -166,19 +196,26 @@ def test_prihlaska_priradi_kategorii_podle_rocniku_a_pohlavi(client, db):
     zaci = _kategorie(db, "Žáci", 2008, 2012, sex=1)
     zakyne = _kategorie(db, "Žákyně", 2008, 2012, sex=2)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Eva", racer_surname="Mala",
-        racer_year=2010, racer_sex=2, club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Eva",
+            racer_surname="Mala",
+            racer_year=2010,
+            racer_sex=2,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one()
+    registrace = (
+        db.query(models.Registration).filter(models.Registration.id == odpoved.json()["id"]).one()
+    )
     assert registrace.category_id == zakyne.id
     assert registrace.category_id != zaci.id
 
-    zavodnik = db.query(models.Racer).filter(
-        models.Racer.id == odpoved.json()["racer_id"]).one()
+    zavodnik = db.query(models.Racer).filter(models.Racer.id == odpoved.json()["racer_id"]).one()
     assert zavodnik.category_id == zakyne.id
 
 
@@ -188,14 +225,22 @@ def test_kategorie_pro_dane_pohlavi_prebiji_smisenou(client, db):
     _kategorie(db, "Open", 2008, 2012, sex=0)
     muzska = _kategorie(db, "Žáci", 2008, 2012, sex=1)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Petr", racer_surname="Maly",
-        racer_year=2010, racer_sex=1, club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Petr",
+            racer_surname="Maly",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one()
+    registrace = (
+        db.query(models.Registration).filter(models.Registration.id == odpoved.json()["id"]).one()
+    )
     assert registrace.category_id == muzska.id
 
 
@@ -204,14 +249,22 @@ def test_neaktivni_kategorie_se_neprirazuje(client, db):
     klub = _klub(db, "Klub A")
     _kategorie(db, "Zrušená", 2008, 2012, sex=1, active=False)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Petr", racer_surname="Maly",
-        racer_year=2010, racer_sex=1, club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Petr",
+            racer_surname="Maly",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one()
+    registrace = (
+        db.query(models.Registration).filter(models.Registration.id == odpoved.json()["id"]).one()
+    )
     assert registrace.category_id is None
 
 
@@ -220,9 +273,14 @@ def test_existujici_zavodnik_se_prihlasi_bez_zalozeni_duplikatu(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["racer_id"] == zavodnik.id
@@ -237,10 +295,17 @@ def test_zavodnik_zadany_znovu_jmenem_se_neduplikuje(client, db):
     zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1)
     _registrace(db, zavod_prvni.id, zavodnik.id)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod_druhy.id, racer_name="Jan", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=klub.id,
-    ))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod_druhy.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["racer_id"] == zavodnik.id
@@ -254,8 +319,9 @@ def test_stejny_zavodnik_se_muze_prihlasit_na_dva_zavody(client, db):
     zavodnik = _zavodnik(db)
 
     for zavod in (prvni, druhy):
-        odpoved = client.post("/registrations/", json=_telo(
-            zavod.id, racer_id=zavodnik.id, club_id=klub.id))
+        odpoved = client.post(
+            "/registrations/", json=_telo(zavod.id, racer_id=zavodnik.id, club_id=klub.id)
+        )
         assert odpoved.status_code == 200, odpoved.text
 
     assert _pocet_registraci(db, prvni.id) == 1
@@ -269,8 +335,9 @@ def test_prihlaska_pres_endpoint_zavodu_pouzije_id_z_url(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db)
 
-    odpoved = client.post(f"/races/{cilovy.id}/register", json=_telo(
-        jiny.id, racer_id=zavodnik.id, club_id=klub.id))
+    odpoved = client.post(
+        f"/races/{cilovy.id}/register", json=_telo(jiny.id, racer_id=zavodnik.id, club_id=klub.id)
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["race_id"] == cilovy.id
@@ -284,9 +351,17 @@ def test_pocet_prihlasenych_neni_nicim_omezeny(client, db):
     klub = _klub(db, "Klub A")
 
     for poradi in range(5):
-        odpoved = client.post("/registrations/", json=_telo(
-            zavod.id, racer_name=f"Jezdec{poradi}", racer_surname="Testovaci",
-            racer_year=2000 + poradi, racer_sex=1, club_id=klub.id))
+        odpoved = client.post(
+            "/registrations/",
+            json=_telo(
+                zavod.id,
+                racer_name=f"Jezdec{poradi}",
+                racer_surname="Testovaci",
+                racer_year=2000 + poradi,
+                racer_sex=1,
+                club_id=klub.id,
+            ),
+        )
         assert odpoved.status_code == 200, odpoved.text
 
     assert _pocet_registraci(db, zavod.id) == 5
@@ -296,12 +371,21 @@ def test_pocet_prihlasenych_neni_nicim_omezeny(client, db):
 # Veřejná přihláška - co se musí nepovést
 # ==========================================================================
 
+
 def test_prihlaska_na_neexistujici_zavod_vrati_404(client, db):
     klub = _klub(db, "Klub A")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        9999, racer_name="Jan", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            9999,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Race not found"
@@ -312,9 +396,17 @@ def test_prihlaska_na_uzavrenou_registraci_se_odmitne(client, db):
     zavod = _zavod(db, registration=False)
     klub = _klub(db, "Klub A")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Jan", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Registration is closed for this race"
@@ -328,8 +420,9 @@ def test_druha_prihlaska_stejneho_zavodnika_se_odmitne(client, db):
     zavodnik = _zavodnik(db)
     _registrace(db, zavod.id, zavodnik.id)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/", json=_telo(zavod.id, racer_id=zavodnik.id, club_id=klub.id)
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Jezdec je již zaregistrován na tento závod"
@@ -342,9 +435,17 @@ def test_duplicitu_odhali_i_prihlaska_zadana_znovu_jmenem(client, db):
     zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1)
     _registrace(db, zavod.id, zavodnik.id)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Jan", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Jezdec je již zaregistrován na tento závod"
@@ -356,8 +457,7 @@ def test_prihlaska_s_neexistujicim_zavodnikem_vrati_404(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=9999, club_id=klub.id))
+    odpoved = client.post("/registrations/", json=_telo(zavod.id, racer_id=9999, club_id=klub.id))
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Racer not found"
@@ -368,8 +468,10 @@ def test_novy_zavodnik_bez_prijmeni_se_neulozi(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Jan", racer_year=2010, racer_sex=1, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(zavod.id, racer_name="Jan", racer_year=2010, racer_sex=1, club_id=klub.id),
+    )
 
     assert odpoved.status_code == 400
     assert "Missing required racer fields" in odpoved.json()["detail"]
@@ -381,9 +483,10 @@ def test_novy_zavodnik_bez_rocniku_se_neulozi(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Jan", racer_surname="Novak",
-        racer_sex=1, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(zavod.id, racer_name="Jan", racer_surname="Novak", racer_sex=1, club_id=klub.id),
+    )
 
     assert odpoved.status_code == 400
     assert "Missing required racer fields" in odpoved.json()["detail"]
@@ -396,10 +499,16 @@ def test_prihlaska_bez_klubu_i_bez_poznamky_se_neulozi(client, db, klient_jako_v
     z vlastního validátoru."""
     zavod = _zavod(db)
 
-    odpoved = klient_jako_v_provozu.post("/registrations/", json={
-        "race_id": zavod.id, "racer_name": "Jan", "racer_surname": "Novak",
-        "racer_year": 2010, "racer_sex": 1,
-    })
+    odpoved = klient_jako_v_provozu.post(
+        "/registrations/",
+        json={
+            "race_id": zavod.id,
+            "racer_name": "Jan",
+            "racer_surname": "Novak",
+            "racer_year": 2010,
+            "racer_sex": 1,
+        },
+    )
 
     assert odpoved.status_code == 422
     assert odpoved.json()["detail"][0]["msg"] == "Musíte vybrat klub nebo uvést poznámku"
@@ -410,10 +519,17 @@ def test_prihlaska_bez_klubu_i_bez_poznamky_se_neulozi(client, db, klient_jako_v
 def test_prazdna_poznamka_o_klubu_se_bere_jako_nevyplnena(client, db, klient_jako_v_provozu):
     zavod = _zavod(db)
 
-    odpoved = klient_jako_v_provozu.post("/registrations/", json={
-        "race_id": zavod.id, "racer_name": "Jan", "racer_surname": "Novak",
-        "racer_year": 2010, "racer_sex": 1, "club_request_note": "   ",
-    })
+    odpoved = klient_jako_v_provozu.post(
+        "/registrations/",
+        json={
+            "race_id": zavod.id,
+            "racer_name": "Jan",
+            "racer_surname": "Novak",
+            "racer_year": 2010,
+            "racer_sex": 1,
+            "club_request_note": "   ",
+        },
+    )
 
     assert odpoved.status_code == 422
     assert db.query(models.Racer).count() == 0
@@ -433,9 +549,17 @@ def test_chybejici_race_id_vrati_ctitelnou_validacni_chybu(client, db):
 def test_prihlaska_do_neexistujiciho_klubu_se_odmitne(client, db):
     zavod = _zavod(db)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Jan", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=9999))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=9999,
+        ),
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Klub nenalezen"
@@ -447,8 +571,9 @@ def test_prihlaska_do_zruseneho_klubu_se_odmitne(client, db):
     zruseny = _klub(db, "Zaniklý klub", valid=False)
     zavodnik = _zavodnik(db)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_id=zruseny.id))
+    odpoved = client.post(
+        "/registrations/", json=_telo(zavod.id, racer_id=zavodnik.id, club_id=zruseny.id)
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Klub nenalezen"
@@ -463,9 +588,17 @@ def test_jmeno_zacinajici_rovnitkem_se_neulozi(client, db, klient_jako_v_provozu
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
 
-    odpoved = klient_jako_v_provozu.post("/registrations/", json=_telo(
-        zavod.id, racer_name="=SUM(A1:A9)", racer_surname="Novak",
-        racer_year=2010, racer_sex=1, club_id=klub.id))
+    odpoved = klient_jako_v_provozu.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="=SUM(A1:A9)",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 422
     assert db.query(models.Racer).count() == 0
@@ -478,9 +611,17 @@ def test_odmitnuta_prihlaska_do_neexistujiciho_klubu_nechava_zavodnika(client, d
     bez jediné registrace. Test drží současné chování."""
     zavod = _zavod(db)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Osirely", racer_surname="Zavodnik",
-        racer_year=2010, racer_sex=1, club_id=9999))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Osirely",
+            racer_surname="Zavodnik",
+            racer_year=2010,
+            racer_sex=1,
+            club_id=9999,
+        ),
+    )
 
     assert odpoved.status_code == 404
     _obnov(db)
@@ -493,18 +634,36 @@ def test_odmitnuta_prihlaska_do_neexistujiciho_klubu_nechava_zavodnika(client, d
 # Přepis kontaktních údajů cizího závodníka
 # ==========================================================================
 
+
 def test_kontakty_se_prepisou_jen_pri_shode_identity(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
-    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1,
-                         telefon="111111111", email="stary@example.cz")
+    zavodnik = _zavodnik(
+        db,
+        name="Jan",
+        surname="Novak",
+        year=2010,
+        sex=1,
+        telefon="111111111",
+        email="stary@example.cz",
+    )
 
     # Jméno záměrně jinou velikostí písmen a s mezerami - porovnání to má snést.
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="  jan ", racer_surname="NOVAK", racer_year=2010, racer_sex=1,
-        racer_telefon="777123456", racer_email="novy@example.cz",
-        racer_slcr_id="XY99", club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="  jan ",
+            racer_surname="NOVAK",
+            racer_year=2010,
+            racer_sex=1,
+            racer_telefon="777123456",
+            racer_email="novy@example.cz",
+            racer_slcr_id="XY99",
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
@@ -519,38 +678,56 @@ def test_kontakty_se_prepisou_jen_pri_shode_identity(client, db):
 def test_nesouhlasici_identita_kontakty_neprepise_a_prihlasku_odmitne(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
-    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1,
-                         telefon="111111111")
+    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1, telefon="111111111")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="Jan", racer_surname="Uplne Jiny", racer_year=2010, racer_sex=1,
-        racer_telefon="777123456", club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="Jan",
+            racer_surname="Uplne Jiny",
+            racer_year=2010,
+            racer_sex=1,
+            racer_telefon="777123456",
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Údaje závodníka nesouhlasí"
     _obnov(db)
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    )
     assert _pocet_registraci(db, zavod.id) == 0
 
 
 def test_nesouhlasici_rocnik_kontakty_neprepise(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
-    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1,
-                         telefon="111111111")
+    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1, telefon="111111111")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="Jan", racer_surname="Novak", racer_year=1999, racer_sex=1,
-        racer_telefon="777123456", club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=1999,
+            racer_sex=1,
+            racer_telefon="777123456",
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Údaje závodníka nesouhlasí"
     _obnov(db)
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    )
 
 
 def test_bez_uvedene_identity_se_telefon_potichu_neulozi(client, db):
@@ -560,25 +737,37 @@ def test_bez_uvedene_identity_se_telefon_potichu_neulozi(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, telefon="111111111")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, racer_telefon="777123456", club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(zavod.id, racer_id=zavodnik.id, racer_telefon="777123456", club_id=klub.id),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().telefon == "111111111"
+    )
 
 
 def test_prazdny_telefon_puvodni_cislo_nesmaze(client, db):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
-    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1,
-                         telefon="111111111")
+    zavodnik = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1, telefon="111111111")
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="Jan", racer_surname="Novak", racer_year=2010, racer_sex=1,
-        racer_telefon="   ", racer_email="novy@example.cz", club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="Jan",
+            racer_surname="Novak",
+            racer_year=2010,
+            racer_sex=1,
+            racer_telefon="   ",
+            racer_email="novy@example.cz",
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
@@ -591,21 +780,24 @@ def test_prazdny_telefon_puvodni_cislo_nesmaze(client, db):
 # Klub na přihlášce
 # ==========================================================================
 
+
 def test_poznamka_o_klubu_se_ulozi_a_klub_zavodnika_nemeni(client, db):
     zavod = _zavod(db)
     puvodni = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, club_id=puvodni.id)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_request_note="  Jsem z Kanoe Brno  "))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(zavod.id, racer_id=zavodnik.id, club_request_note="  Jsem z Kanoe Brno  "),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one()
+    registrace = (
+        db.query(models.Registration).filter(models.Registration.id == odpoved.json()["id"]).one()
+    )
     assert registrace.club_request_note == "Jsem z Kanoe Brno"
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().club_id == puvodni.id
+    assert db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().club_id == puvodni.id
 
 
 def test_vyber_klubu_prepise_zavodnikovi_puvodni_klub(client, db):
@@ -614,15 +806,20 @@ def test_vyber_klubu_prepise_zavodnikovi_puvodni_klub(client, db):
     novy = _klub(db, "Klub B")
     zavodnik = _zavodnik(db, club_id=stary.id)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_id=novy.id))
+    odpoved = client.post(
+        "/registrations/", json=_telo(zavod.id, racer_id=zavodnik.id, club_id=novy.id)
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().club_id == novy.id
-    assert db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one().club_request_note is None
+    assert db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().club_id == novy.id
+    assert (
+        db.query(models.Registration)
+        .filter(models.Registration.id == odpoved.json()["id"])
+        .one()
+        .club_request_note
+        is None
+    )
 
 
 def test_vybrany_klub_ma_prednost_pred_poznamkou(client, db):
@@ -630,22 +827,26 @@ def test_vybrany_klub_ma_prednost_pred_poznamkou(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id, club_id=klub.id,
-        club_request_note="Tohle se má zahodit"))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id, racer_id=zavodnik.id, club_id=klub.id, club_request_note="Tohle se má zahodit"
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == odpoved.json()["id"]).one()
+    registrace = (
+        db.query(models.Registration).filter(models.Registration.id == odpoved.json()["id"]).one()
+    )
     assert registrace.club_request_note is None
-    assert db.query(models.Racer).filter(
-        models.Racer.id == zavodnik.id).one().club_id == klub.id
+    assert db.query(models.Racer).filter(models.Racer.id == zavodnik.id).one().club_id == klub.id
 
 
 # ==========================================================================
 # Správce: seznam přihlášených
 # ==========================================================================
+
 
 def test_seznam_prihlasenych_bez_tokenu_neni_pristupny(client, db):
     zavod = _zavod(db)
@@ -659,8 +860,9 @@ def test_seznam_prihlasenych_bez_tokenu_neni_pristupny(client, db):
 def test_seznam_prihlasenych_s_podvrzenym_tokenem_neni_pristupny(client, db):
     zavod = _zavod(db)
 
-    odpoved = client.get(f"/api/admin/races/{zavod.id}/registrations",
-                         headers={"Authorization": "Bearer nesmysl"})
+    odpoved = client.get(
+        f"/api/admin/races/{zavod.id}/registrations", headers={"Authorization": "Bearer nesmysl"}
+    )
 
     assert odpoved.status_code == 401
     assert odpoved.json()["detail"] == "Could not validate credentials"
@@ -671,8 +873,7 @@ def test_casomeric_na_seznam_prihlasenych_nedosahne(client, db, timekeeper_heade
     zavodnik = _zavodnik(db)
     _registrace(db, zavod.id, zavodnik.id)
 
-    odpoved = client.get(f"/api/admin/races/{zavod.id}/registrations",
-                         headers=timekeeper_headers)
+    odpoved = client.get(f"/api/admin/races/{zavod.id}/registrations", headers=timekeeper_headers)
 
     assert odpoved.status_code == 403
     assert odpoved.json()["detail"] == "Nemáte oprávnění k této akci"
@@ -688,10 +889,10 @@ def test_seznam_prihlasenych_neexistujiciho_zavodu_vrati_404(client, db, admin_h
 def test_seznam_prihlasenych_vraci_udaje_serazene_podle_prijmeni(client, db, admin_headers):
     zavod = _zavod(db)
     klub = _klub(db, "Klub A")
-    novak = _zavodnik(db, name="Jan", surname="Novak", year=2010, sex=1,
-                      club_id=klub.id, slcr_id="AB12")
-    adamova = _zavodnik(db, name="Eva", surname="Adamova", year=2011, sex=2,
-                        club_id=klub.id)
+    novak = _zavodnik(
+        db, name="Jan", surname="Novak", year=2010, sex=1, club_id=klub.id, slcr_id="AB12"
+    )
+    adamova = _zavodnik(db, name="Eva", surname="Adamova", year=2011, sex=2, club_id=klub.id)
     _registrace(db, zavod.id, novak.id)
     _registrace(db, zavod.id, adamova.id)
 
@@ -750,6 +951,7 @@ def test_zavod_bez_prihlasek_vrati_prazdny_seznam(client, db, admin_headers):
 # Správce: export CSV
 # ==========================================================================
 
+
 def _csv_radky(odpoved):
     """CSV se posílá ve Windows-1250, ne v UTF-8.
 
@@ -765,10 +967,14 @@ def _csv_radky(odpoved):
 def test_export_csv_obsahuje_hlavicku_a_radky_prihlasenych(client, db, admin_headers):
     zavod = _zavod(db, race_nr="JMLP2026-03")
     klub = _klub(db, "Klub A")
-    _registrace(db, zavod.id, _zavodnik(db, name="Jan", surname="Novak", year=2010,
-                                        sex=1, club_id=klub.id, slcr_id="AB12").id)
-    _registrace(db, zavod.id, _zavodnik(db, name="Eva", surname="Adamova", year=2011,
-                                        sex=2).id)
+    _registrace(
+        db,
+        zavod.id,
+        _zavodnik(
+            db, name="Jan", surname="Novak", year=2010, sex=1, club_id=klub.id, slcr_id="AB12"
+        ).id,
+    )
+    _registrace(db, zavod.id, _zavodnik(db, name="Eva", surname="Adamova", year=2011, sex=2).id)
 
     odpoved = client.get(f"/api/admin/races/{zavod.id}/export-csv", headers=admin_headers)
 
@@ -784,7 +990,7 @@ def test_export_csv_neutralizuje_vzorec_v_nazvu_klubu(client, db, admin_headers)
     """Do názvu klubu se dá vzorec dostat starým importem - v CSV musí být
     odzobáčkovaný, jinak ho Excel vyhodnotí."""
     zavod = _zavod(db)
-    klub = _klub(db, "=HYPERLINK(\"http://zlo\")")
+    klub = _klub(db, '=HYPERLINK("http://zlo")')
     _registrace(db, zavod.id, _zavodnik(db, club_id=klub.id).id)
 
     odpoved = client.get(f"/api/admin/races/{zavod.id}/export-csv", headers=admin_headers)
@@ -840,8 +1046,16 @@ def test_registrace_bez_zavodnika_je_v_seznamu_ale_v_csv_chybi(client, db, admin
 # Správce: žádosti o klub
 # ==========================================================================
 
-def _zadost(db, zavod, jmeno="Ivan", prijmeni="Zadatel", note="Jsem z Kanoe Brno",
-            club_id=None, registered_at=None):
+
+def _zadost(
+    db,
+    zavod,
+    jmeno="Ivan",
+    prijmeni="Zadatel",
+    note="Jsem z Kanoe Brno",
+    club_id=None,
+    registered_at=None,
+):
     zavodnik = _zavodnik(db, name=jmeno, surname=prijmeni, club_id=club_id)
     return _registrace(db, zavod.id, zavodnik.id, note=note, registered_at=registered_at)
 
@@ -890,38 +1104,47 @@ def test_schvaleni_zadosti_priradi_existujici_klub(client, db, admin_headers):
     klub = _klub(db, "Kanoe Brno")
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"club_id": klub.id}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": klub.id},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json() == {"ok": True, "club_id": klub.id, "club_name": "Kanoe Brno"}
     _obnov(db)
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one()
+    registrace = db.query(models.Registration).filter(models.Registration.id == zadost.id).one()
     assert registrace.club_request_note is None
-    assert db.query(models.Racer).filter(
-        models.Racer.id == registrace.racer_id).one().club_id == klub.id
-    assert client.get("/api/admin/clubs/requests/count",
-                      headers=admin_headers).json() == {"count": 0}
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == registrace.racer_id).one().club_id
+        == klub.id
+    )
+    assert client.get("/api/admin/clubs/requests/count", headers=admin_headers).json() == {
+        "count": 0
+    }
 
 
 def test_schvaleni_zadosti_zalozi_novy_klub(client, db, admin_headers):
     zavod = _zavod(db)
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"new_club_name": "  Kanoe Brno  "}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"new_club_name": "  Kanoe Brno  "},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
     novy = db.query(models.Club).filter(models.Club.name == "Kanoe Brno").one()
     assert bool(novy.valid) is True
     assert odpoved.json()["club_id"] == novy.id
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one()
+    registrace = db.query(models.Registration).filter(models.Registration.id == zadost.id).one()
     assert registrace.club_request_note is None
-    assert db.query(models.Racer).filter(
-        models.Racer.id == registrace.racer_id).one().club_id == novy.id
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == registrace.racer_id).one().club_id
+        == novy.id
+    )
 
 
 def test_schvaleni_podle_nazvu_nezaklada_druhy_stejny_klub(client, db, admin_headers):
@@ -929,8 +1152,11 @@ def test_schvaleni_podle_nazvu_nezaklada_druhy_stejny_klub(client, db, admin_hea
     stavajici = _klub(db, "Kanoe Brno")
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"new_club_name": "Kanoe Brno"}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"new_club_name": "Kanoe Brno"},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["club_id"] == stavajici.id
@@ -945,16 +1171,20 @@ def test_schvaleni_podle_nazvu_ozivi_i_zruseny_klub(client, db, admin_headers):
     zruseny = _klub(db, "Zaniklý klub", valid=False)
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"new_club_name": "Zaniklý klub"}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"new_club_name": "Zaniklý klub"},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     assert odpoved.json()["club_id"] == zruseny.id
     _obnov(db)
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one()
-    assert db.query(models.Racer).filter(
-        models.Racer.id == registrace.racer_id).one().club_id == zruseny.id
+    registrace = db.query(models.Registration).filter(models.Registration.id == zadost.id).one()
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == registrace.racer_id).one().club_id
+        == zruseny.id
+    )
 
 
 def test_zadost_nelze_vyridit_dvakrat(client, db, admin_headers):
@@ -963,26 +1193,34 @@ def test_zadost_nelze_vyridit_dvakrat(client, db, admin_headers):
     druhy_klub = _klub(db, "Klub B")
     zadost = _zadost(db, zavod)
 
-    prvni = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                        json={"club_id": prvni_klub.id}, headers=admin_headers)
-    druhy = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                        json={"club_id": druhy_klub.id}, headers=admin_headers)
+    prvni = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": prvni_klub.id},
+        headers=admin_headers,
+    )
+    druhy = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": druhy_klub.id},
+        headers=admin_headers,
+    )
 
     assert prvni.status_code == 200, prvni.text
     assert druhy.status_code == 404
     assert druhy.json()["detail"] == "Žádost nenalezena nebo již vyřízena"
     _obnov(db)
-    registrace = db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one()
-    assert db.query(models.Racer).filter(
-        models.Racer.id == registrace.racer_id).one().club_id == prvni_klub.id
+    registrace = db.query(models.Registration).filter(models.Registration.id == zadost.id).one()
+    assert (
+        db.query(models.Racer).filter(models.Racer.id == registrace.racer_id).one().club_id
+        == prvni_klub.id
+    )
 
 
 def test_vyrizeni_neexistujici_zadosti_vrati_404(client, db, admin_headers):
     klub = _klub(db, "Kanoe Brno")
 
-    odpoved = client.post("/api/admin/clubs/requests/9999/resolve",
-                          json={"club_id": klub.id}, headers=admin_headers)
+    odpoved = client.post(
+        "/api/admin/clubs/requests/9999/resolve", json={"club_id": klub.id}, headers=admin_headers
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Žádost nenalezena nebo již vyřízena"
@@ -992,14 +1230,22 @@ def test_zadost_nelze_vyridit_neexistujicim_klubem(client, db, admin_headers):
     zavod = _zavod(db)
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"club_id": 9999}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": 9999},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Klub nenalezen"
     _obnov(db)
-    assert db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one().club_request_note == "Jsem z Kanoe Brno"
+    assert (
+        db.query(models.Registration)
+        .filter(models.Registration.id == zadost.id)
+        .one()
+        .club_request_note
+        == "Jsem z Kanoe Brno"
+    )
 
 
 def test_zadost_nelze_vyridit_zrusenym_klubem(client, db, admin_headers):
@@ -1007,28 +1253,40 @@ def test_zadost_nelze_vyridit_zrusenym_klubem(client, db, admin_headers):
     zruseny = _klub(db, "Zaniklý klub", valid=False)
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"club_id": zruseny.id}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": zruseny.id},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Klub nenalezen"
 
 
-def test_vyrizeni_bez_klubu_i_bez_nazvu_zadost_nezmeni(client, db, admin_headers,
-                                                       klient_jako_v_provozu):
+def test_vyrizeni_bez_klubu_i_bez_nazvu_zadost_nezmeni(
+    client, db, admin_headers, klient_jako_v_provozu
+):
     """Vlastní validátor skončí 422 s českou hláškou a žádost zůstane
     nevyřízená."""
     zavod = _zavod(db)
     zadost = _zadost(db, zavod)
 
-    odpoved = klient_jako_v_provozu.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                                         json={"new_club_name": "   "}, headers=admin_headers)
+    odpoved = klient_jako_v_provozu.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"new_club_name": "   "},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 422
     assert db.query(models.Club).count() == 0
     _obnov(db)
-    assert db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one().club_request_note is not None
+    assert (
+        db.query(models.Registration)
+        .filter(models.Registration.id == zadost.id)
+        .one()
+        .club_request_note
+        is not None
+    )
 
 
 def test_casomeric_zadost_o_klub_vyridit_nemuze(client, db, timekeeper_headers):
@@ -1036,14 +1294,22 @@ def test_casomeric_zadost_o_klub_vyridit_nemuze(client, db, timekeeper_headers):
     klub = _klub(db, "Kanoe Brno")
     zadost = _zadost(db, zavod)
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"club_id": klub.id}, headers=timekeeper_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"club_id": klub.id},
+        headers=timekeeper_headers,
+    )
 
     assert odpoved.status_code == 403
     assert odpoved.json()["detail"] == "Nemáte oprávnění k této akci"
     _obnov(db)
-    assert db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one().club_request_note is not None
+    assert (
+        db.query(models.Registration)
+        .filter(models.Registration.id == zadost.id)
+        .one()
+        .club_request_note
+        is not None
+    )
 
 
 def test_prehled_zadosti_bez_tokenu_neni_pristupny(client, db):
@@ -1060,15 +1326,23 @@ def test_zadost_smazaneho_zavodnika_zalozi_klub_a_pak_selze(client, db, admin_he
     zavod = _zavod(db)
     zadost = _registrace(db, zavod.id, 9999, note="Jsem z Kanoe Brno")
 
-    odpoved = client.post(f"/api/admin/clubs/requests/{zadost.id}/resolve",
-                          json={"new_club_name": "Klub Duchů"}, headers=admin_headers)
+    odpoved = client.post(
+        f"/api/admin/clubs/requests/{zadost.id}/resolve",
+        json={"new_club_name": "Klub Duchů"},
+        headers=admin_headers,
+    )
 
     assert odpoved.status_code == 404
     assert odpoved.json()["detail"] == "Závodník nenalezen"
     _obnov(db)
     assert db.query(models.Club).filter(models.Club.name == "Klub Duchů").count() == 1
-    assert db.query(models.Registration).filter(
-        models.Registration.id == zadost.id).one().club_request_note is not None
+    assert (
+        db.query(models.Registration)
+        .filter(models.Registration.id == zadost.id)
+        .one()
+        .club_request_note
+        is not None
+    )
 
 
 def test_prihlaska_s_poznamkou_projde_celou_cestu_az_k_priradenemu_klubu(client, db, admin_headers):
@@ -1077,9 +1351,17 @@ def test_prihlaska_s_poznamkou_projde_celou_cestu_az_k_priradenemu_klubu(client,
     zavod = _zavod(db, race_nr="JMLP2026-09")
     klub = _klub(db, "Kanoe Brno")
 
-    prihlaska = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Ivan", racer_surname="Zadatel",
-        racer_year=2010, racer_sex=1, club_request_note="Jsem z Kanoe Brno"))
+    prihlaska = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Ivan",
+            racer_surname="Zadatel",
+            racer_year=2010,
+            racer_sex=1,
+            club_request_note="Jsem z Kanoe Brno",
+        ),
+    )
     assert prihlaska.status_code == 200, prihlaska.text
 
     zadosti = client.get("/api/admin/clubs/requests", headers=admin_headers).json()
@@ -1087,19 +1369,22 @@ def test_prihlaska_s_poznamkou_projde_celou_cestu_az_k_priradenemu_klubu(client,
     registration_id = zadosti[0]["registration_id"]
     assert zadosti[0]["current_club_name"] is None
 
-    vyrizeni = client.post(f"/api/admin/clubs/requests/{registration_id}/resolve",
-                           json={"club_id": klub.id}, headers=admin_headers)
+    vyrizeni = client.post(
+        f"/api/admin/clubs/requests/{registration_id}/resolve",
+        json={"club_id": klub.id},
+        headers=admin_headers,
+    )
     assert vyrizeni.status_code == 200, vyrizeni.text
 
     assert client.get("/api/admin/clubs/requests", headers=admin_headers).json() == []
-    seznam = client.get(f"/api/admin/races/{zavod.id}/registrations",
-                        headers=admin_headers).json()
+    seznam = client.get(f"/api/admin/races/{zavod.id}/registrations", headers=admin_headers).json()
     assert [(r["lastName"], r["club_name"]) for r in seznam] == [("Zadatel", "Kanoe Brno")]
 
 
 # ==========================================================================
 # Oprava pohlaví přihláškou - identitu tvoří jméno, příjmení a ročník
 # ==========================================================================
+
 
 def test_prihlaska_opravi_pohlavi_existujiciho_zavodnika(client, db):
     """Kdo u existujícího závodníka opraví pohlaví, opraví evidenci i kategorii.
@@ -1108,10 +1393,18 @@ def test_prihlaska_opravi_pohlavi_existujiciho_zavodnika(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, name="Edita", surname="Kelblova", year=2016, sex=1)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="Edita", racer_surname="Kelblova", racer_year=2016, racer_sex=2,
-        club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="Edita",
+            racer_surname="Kelblova",
+            racer_year=2016,
+            racer_sex=2,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
@@ -1124,10 +1417,18 @@ def test_oprava_pohlavi_bez_shody_identity_neprojde(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, name="Edita", surname="Kelblova", year=2016, sex=1)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_id=zavodnik.id,
-        racer_name="Edita", racer_surname="Kelblova", racer_year=2015, racer_sex=2,
-        club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_id=zavodnik.id,
+            racer_name="Edita",
+            racer_surname="Kelblova",
+            racer_year=2015,
+            racer_sex=2,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 400
     assert odpoved.json()["detail"] == "Údaje závodníka nesouhlasí"
@@ -1142,9 +1443,17 @@ def test_nova_prihlaska_s_jinym_pohlavim_nezalozi_duplicitu(client, db):
     klub = _klub(db, "Klub A")
     zavodnik = _zavodnik(db, name="Mariana", surname="Junova", year=2016, sex=1)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Mariana", racer_surname="Junova", racer_year=2016,
-        racer_sex=2, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Mariana",
+            racer_surname="Junova",
+            racer_year=2016,
+            racer_sex=2,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
@@ -1158,21 +1467,39 @@ def test_jiny_rocnik_zalozi_noveho_zavodnika(client, db):
     klub = _klub(db, "Klub A")
     _zavodnik(db, name="Mariana", surname="Junova", year=2022, sex=2)
 
-    odpoved = client.post("/registrations/", json=_telo(
-        zavod.id, racer_name="Mariana", racer_surname="Junova", racer_year=2016,
-        racer_sex=2, club_id=klub.id))
+    odpoved = client.post(
+        "/registrations/",
+        json=_telo(
+            zavod.id,
+            racer_name="Mariana",
+            racer_surname="Junova",
+            racer_year=2016,
+            racer_sex=2,
+            club_id=klub.id,
+        ),
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     _obnov(db)
-    assert sorted(z.year for z in db.query(models.Racer).filter(models.Racer.surname == "Junova")) == [2016, 2022]
+    assert sorted(
+        z.year for z in db.query(models.Racer).filter(models.Racer.surname == "Junova")
+    ) == [2016, 2022]
 
 
 def test_seznam_prihlasenych_ma_kategorii_zeny_a_muzi_zvlast(client, db, admin_headers):
     """Kategorie pro filtr v administraci - podle ročníku a pohlaví."""
     zavod = _zavod(db)
     for name, sex in (("Přípravka dívky", 2), ("Přípravka chlapci", 1)):
-        db.add(models.Category(name="U10", display_name=name, min_birth_year=2017,
-                               max_birth_year=2018, sex=sex, active=True))
+        db.add(
+            models.Category(
+                name="U10",
+                display_name=name,
+                min_birth_year=2017,
+                max_birth_year=2018,
+                sex=sex,
+                active=True,
+            )
+        )
     db.commit()
     divka = _zavodnik(db, name="Anna", surname="A", year=2017, sex=2)
     chlapec = _zavodnik(db, name="Petr", surname="B", year=2018, sex=1)

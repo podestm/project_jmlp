@@ -19,7 +19,7 @@ const jsonResponse = (body, status = 200) => ({
   ok: status >= 200 && status < 300,
   status,
   statusText: 'Test',
-  json: async () => body
+  json: async () => body,
 });
 
 let fetchMock;
@@ -110,16 +110,18 @@ describe('zápis při potížích serveru', () => {
   it('konflikt 409 do fronty NEPATŘÍ - server řekl ne schválně', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ detail: { entry_id: 1 } }, 409));
 
-    await expect(TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 }))
-      .rejects.toThrow(/409/);
+    await expect(
+      TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 }),
+    ).rejects.toThrow(/409/);
     expect(await timekeeperDb.syncQueue.count()).toBe(0);
   });
 
   it('vypršené přihlášení se propíše volajícímu, ne do fronty', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ detail: 'expired' }, 401));
 
-    await expect(TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 }))
-      .rejects.toThrow(/401/);
+    await expect(
+      TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 1 }),
+    ).rejects.toThrow(/401/);
     expect(await timekeeperDb.syncQueue.count()).toBe(0);
   });
 });
@@ -199,8 +201,9 @@ describe('mazání, které se nesmí odložit', () => {
   it('offline se ani nepokusí odeslat a chybu řekne volajícímu', async () => {
     setOnline(false);
 
-    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/results'))
-      .rejects.toThrow(/připojení/);
+    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/results')).rejects.toThrow(
+      /připojení/,
+    );
     expect(fetchMock).not.toHaveBeenCalled();
     expect(await timekeeperDb.syncQueue.count()).toBe(0);
   });
@@ -215,7 +218,9 @@ describe('mazání, které se nesmí odložit', () => {
   it('chyba 5xx se nevydává za "uloženo lokálně"', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ detail: 'Server error' }, 500));
 
-    await expect(TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/start-list')).rejects.toThrow();
+    await expect(
+      TimekeeperAPI.deleteOnline('/api/timekeeper/races/1/start-list'),
+    ).rejects.toThrow();
     expect(await timekeeperDb.syncQueue.count()).toBe(0);
   });
 });
@@ -227,7 +232,10 @@ describe('mazání, které se nesmí odložit', () => {
  * obrazovky.
  */
 describe('kluby pro časoměřiče', () => {
-  const KLUBY = [{ id: 1, name: 'SK Olešnice' }, { id: 2, name: 'Ski Klub Brno' }];
+  const KLUBY = [
+    { id: 1, name: 'SK Olešnice' },
+    { id: 2, name: 'Ski Klub Brno' },
+  ];
 
   it('kluby načtené online jsou k dispozici i offline', async () => {
     fetchMock.mockResolvedValue(jsonResponse(KLUBY));
@@ -385,9 +393,16 @@ describe('skutečné spojení se serverem', () => {
   it('požadavek, který visí, vyprší: zápis do fronty a server nedostupný', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
-      fetchMock.mockImplementation((url, { signal }) => new Promise((resolve, reject) => {
-        signal.addEventListener('abort', () => reject(Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' })));
-      }));
+      fetchMock.mockImplementation(
+        (url, { signal }) =>
+          new Promise((resolve, reject) => {
+            signal.addEventListener('abort', () =>
+              reject(
+                Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' }),
+              ),
+            );
+          }),
+      );
 
       const pending = TimekeeperAPI.put('/api/timekeeper/start-list/1/time', { time1: 25.5 });
       await vi.advanceTimersByTimeAsync(15000);

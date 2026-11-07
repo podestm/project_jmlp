@@ -7,10 +7,12 @@ export const WAITING_CLUB = 'Nový Klub';
 export const isWaitingForClub = (registration) => registration.club_name === WAITING_CLUB;
 
 /** Název skupiny v seznamu (místo zástupného „Nový Klub“ věta). */
-export const clubLabel = (clubName) => (clubName === WAITING_CLUB ? 'Čeká na přiřazení klubu' : clubName);
+export const clubLabel = (clubName) =>
+  clubName === WAITING_CLUB ? 'Čeká na přiřazení klubu' : clubName;
 
 /** „Novák Matyáš“ – příjmení první jako ve startovní listině. */
-export const racerName = (registration) => [registration.lastName, registration.firstName].filter(Boolean).join(' ');
+export const racerName = (registration) =>
+  [registration.lastName, registration.firstName].filter(Boolean).join(' ');
 
 /** Dlaždice nad seznamem. Pohlaví: M = muž, Z = žena (jak ho posílá backend). */
 export const registrationStats = (registrations) => ({
@@ -23,17 +25,22 @@ export const registrationStats = (registrations) => ({
 });
 
 const collator = new Intl.Collator('cs');
-const byName = (a, b) => collator.compare(a.lastName ?? '', b.lastName ?? '') || collator.compare(a.firstName ?? '', b.firstName ?? '');
+const byName = (a, b) =>
+  collator.compare(a.lastName ?? '', b.lastName ?? '') ||
+  collator.compare(a.firstName ?? '', b.firstName ?? '');
 
 /** Kluby do filtru, abecedně; čekající na klub na konci. */
 export const clubOptions = (registrations) => {
   const names = [...new Set(registrations.map((r) => r.club_name))];
-  return names.sort((a, b) => (a === WAITING_CLUB) - (b === WAITING_CLUB) || collator.compare(a ?? '', b ?? ''));
+  return names.sort(
+    (a, b) => (a === WAITING_CLUB) - (b === WAITING_CLUB) || collator.compare(a ?? '', b ?? ''),
+  );
 };
 
 /** Klíč kategorie do filtru; závodník bez kategorie má 'none'. */
 export const NO_CATEGORY = 'none';
-export const categoryKey = (registration) => (registration.category_id == null ? NO_CATEGORY : String(registration.category_id));
+export const categoryKey = (registration) =>
+  registration.category_id == null ? NO_CATEGORY : String(registration.category_id);
 
 /**
  * Kategorie do filtru z přihlášených, v pořadí závodu (category_order:
@@ -44,18 +51,29 @@ export const categoryOptions = (registrations) => {
   registrations.forEach((r) => {
     const value = categoryKey(r);
     if (!byKey.has(value)) {
-      byKey.set(value, { value, label: r.category_name || 'Bez kategorie', order: r.category_order ?? Number.MAX_SAFE_INTEGER });
+      byKey.set(value, {
+        value,
+        label: r.category_name || 'Bez kategorie',
+        order: r.category_order ?? Number.MAX_SAFE_INTEGER,
+      });
     }
   });
-  return [...byKey.values()].sort((a, b) => a.order - b.order).map(({ value, label }) => ({ value, label }));
+  return [...byKey.values()]
+    .sort((a, b) => a.order - b.order)
+    .map(({ value, label }) => ({ value, label }));
 };
 
 /** Hledání bez ohledu na velikost písmen a diakritiku. */
-const fold = (text) => String(text ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+const fold = (text) =>
+  String(text ?? '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 
 export const EMPTY_FILTER = { query: '', club: '', category: '' };
 
-export const isFiltered = (filter) => Boolean(filter.query.trim() || filter.club || filter.category);
+export const isFiltered = (filter) =>
+  Boolean(filter.query.trim() || filter.club || filter.category);
 
 export const filterRegistrations = (registrations, { query, club, category }) => {
   const words = fold(query).split(/\s+/).filter(Boolean);
@@ -101,4 +119,4 @@ export const raceMeta = (race, raceId) => {
 export const racersWord = (count) => czechPlural(count, ['závodník', 'závodníci', 'závodníků']);
 
 /** M = muž, Z = žena; bez údaje prázdné. */
-export const sexLabel = (sex) => ({ M: 'Muž', Z: 'Žena' }[sex] ?? '');
+export const sexLabel = (sex) => ({ M: 'Muž', Z: 'Žena' })[sex] ?? '';

@@ -1,4 +1,4 @@
-from app.services.library_export import zip_folder_for, zip_entry_names
+from app.services.library_export import zip_entry_names, zip_folder_for
 
 
 def test_zip_folder_per_owner_type():
@@ -12,8 +12,11 @@ def test_zip_folder_per_owner_type():
 
 def test_entry_names_use_first_owner():
     files = [
-        {"id": 1, "original_filename": "JMLP2025-05_propozice.pdf",
-         "usage_info": [{"owner_type": "race"}, {"owner_type": "season"}]},
+        {
+            "id": 1,
+            "original_filename": "JMLP2025-05_propozice.pdf",
+            "usage_info": [{"owner_type": "race"}, {"owner_type": "season"}],
+        },
     ]
     assert zip_entry_names(files) == {1: "zavody/JMLP2025-05_propozice.pdf"}
 

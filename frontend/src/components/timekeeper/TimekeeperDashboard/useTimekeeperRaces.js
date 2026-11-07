@@ -24,17 +24,22 @@ export const useTimekeeperRaces = () => {
     }
   }, []);
 
-  useEffect(() => { loadRaces(); }, [loadRaces]);
-
-  const toggleLive = useCallback(async (raceId) => {
-    try {
-      await TimekeeperAPI.put(`/api/timekeeper/races/${raceId}/live`, {});
-      await loadRaces();
-    } catch (err) {
-      console.error('Nepodařilo se změnit live stav:', err);
-      setError(`Nepodařilo se změnit live stav: ${err.detail || err.message || 'Neznámá chyba'}`);
-    }
+  useEffect(() => {
+    loadRaces();
   }, [loadRaces]);
+
+  const toggleLive = useCallback(
+    async (raceId) => {
+      try {
+        await TimekeeperAPI.put(`/api/timekeeper/races/${raceId}/live`, {});
+        await loadRaces();
+      } catch (err) {
+        console.error('Nepodařilo se změnit live stav:', err);
+        setError(`Nepodařilo se změnit live stav: ${err.detail || err.message || 'Neznámá chyba'}`);
+      }
+    },
+    [loadRaces],
+  );
 
   return { races, loading, error, clearError: () => setError(''), loadRaces, toggleLive };
 };

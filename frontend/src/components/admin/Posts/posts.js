@@ -13,11 +13,12 @@ export const IMAGE_POSITIONS = [
 export const postsMeta = (posts) => {
   const published = posts.filter((post) => post.published).length;
   const drafts = posts.length - published;
-  return `${published} ${czechPlural(published, ['publikovaný', 'publikované', 'publikovaných'])} · `
-    + `${drafts} ${czechPlural(drafts, ['koncept', 'koncepty', 'konceptů'])}`;
+  return (
+    `${published} ${czechPlural(published, ['publikovaný', 'publikované', 'publikovaných'])} · ` +
+    `${drafts} ${czechPlural(drafts, ['koncept', 'koncepty', 'konceptů'])}`
+  );
 };
 
 /** „Zobrazeno 7 ze 7 příspěvků“ */
-export const shownSummary = (shown, total) => (
-  `Zobrazeno ${shown} z ${total} ${czechPlural(total, ['příspěvku', 'příspěvků', 'příspěvků'])}`
-);
+export const shownSummary = (shown, total) =>
+  `Zobrazeno ${shown} z ${total} ${czechPlural(total, ['příspěvku', 'příspěvků', 'příspěvků'])}`;

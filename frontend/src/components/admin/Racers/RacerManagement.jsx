@@ -18,7 +18,11 @@ function RacerResults({ rm }) {
       <EmptyState
         icon="search-x"
         title="Žádní závodníci neodpovídají filtru"
-        action={<Button size="sm" onClick={rm.resetFilters}>Zrušit filtry</Button>}
+        action={
+          <Button size="sm" onClick={rm.resetFilters}>
+            Zrušit filtry
+          </Button>
+        }
       />
     );
   }
@@ -26,7 +30,11 @@ function RacerResults({ rm }) {
     <>
       <RacerTable racers={rm.visibleRacers} onEdit={rm.openEdit} onDelete={rm.deleteRacer} />
       <RacerList racers={rm.visibleRacers} onEdit={rm.openEdit} onDelete={rm.deleteRacer} />
-      <ShowMore shown={rm.visibleRacers.length} total={rm.filteredRacers.length} onMore={rm.showMore} />
+      <ShowMore
+        shown={rm.visibleRacers.length}
+        total={rm.filteredRacers.length}
+        onMore={rm.showMore}
+      />
     </>
   );
 }
@@ -43,14 +51,13 @@ export default function RacerManagement() {
   const rm = useRacerManagement({ confirm });
 
   const actions = (
-    <Button variant="primary" size="sm" icon="plus" onClick={rm.openNew} className={styles.action}>Nový závodník</Button>
+    <Button variant="primary" size="sm" icon="plus" onClick={rm.openNew} className={styles.action}>
+      Nový závodník
+    </Button>
   );
 
   return (
-    <AdminPage
-      title="Závodníci"
-      actions={actions}
-    >
+    <AdminPage title="Závodníci" actions={actions}>
       {rm.loading ? (
         <LoadingState label="Načítám závodníky…" />
       ) : (

@@ -34,7 +34,9 @@ export default function CurrentRace({ race, className }) {
       <span className={styles.text}>
         <span className={styles.caps}>Měříme závod</span>
         <span className={styles.line}>
-          <span className={styles.name}>{race.areal_name || `Závod ${race.race_nr || race.id}`}</span>
+          <span className={styles.name}>
+            {race.areal_name || `Závod ${race.race_nr || race.id}`}
+          </span>
           {race.datum && (
             <span className={styles.date}>
               <span className={styles.weekday}>{czechDateParts(race.datum).weekdayShort}</span>

@@ -12,19 +12,28 @@ function Harness({ onClose = () => {}, dismissible, footer, initiallyOpen = fals
   const [open, setOpen] = useState(initiallyOpen);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)}>Otevřít</button>
+      <button type="button" onClick={() => setOpen(true)}>
+        Otevřít
+      </button>
       <Modal
         open={open}
         dismissible={dismissible}
         eyebrow="Nebezpečná akce"
         title="Odebrat Kučeru Štěpána ze startovní listiny?"
-        onClose={(reason) => { onClose(reason); setOpen(false); }}
-        footer={footer ?? (
-          <>
-            <Button data-cancel onClick={() => setOpen(false)}>Zrušit</Button>
-            <Button variant="danger">Odebrat Kučeru Štěpána</Button>
-          </>
-        )}
+        onClose={(reason) => {
+          onClose(reason);
+          setOpen(false);
+        }}
+        footer={
+          footer ?? (
+            <>
+              <Button data-cancel onClick={() => setOpen(false)}>
+                Zrušit
+              </Button>
+              <Button variant="danger">Odebrat Kučeru Štěpána</Button>
+            </>
+          )
+        }
       >
         <p>Zmizí řádek i příznak DNS.</p>
       </Modal>
@@ -38,7 +47,9 @@ describe('Modal', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Otevřít' }));
     const dialog = dialogOf();
     expect(dialog).toHaveAttribute('open');
-    expect(screen.getByRole('dialog', { name: 'Odebrat Kučeru Štěpána ze startovní listiny?' })).toBe(dialog);
+    expect(
+      screen.getByRole('dialog', { name: 'Odebrat Kučeru Štěpána ze startovní listiny?' }),
+    ).toBe(dialog);
   });
 
   it('fokus jde na Zrušit, ne na nebezpečnou volbu', async () => {
@@ -49,13 +60,17 @@ describe('Modal', () => {
 
   it('volba označená data-autofocus dostane fokus přednostně', async () => {
     render(
-      <Harness footer={(
-        <>
-          <Button variant="danger">Přepsat na 35,90</Button>
-          <Button data-cancel>Zrušit</Button>
-          <Button variant="primary" data-autofocus>Ponechat 35,87</Button>
-        </>
-      )} />
+      <Harness
+        footer={
+          <>
+            <Button variant="danger">Přepsat na 35,90</Button>
+            <Button data-cancel>Zrušit</Button>
+            <Button variant="primary" data-autofocus>
+              Ponechat 35,87
+            </Button>
+          </>
+        }
+      />,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Otevřít' }));
     expect(screen.getByRole('button', { name: 'Ponechat 35,87' })).toHaveFocus();

@@ -46,7 +46,7 @@ export const CONNECT_SETTLE_TIMEOUT_MS = 2500;
  * brand-new reader's port - reported as a plain expected "Odpojeno", with no
  * error, no retry and no way back but a reload.
  */
-export const TEARDOWN_WAIT_MS = CONNECT_SETTLE_TIMEOUT_MS + (TEARDOWN_TIMEOUT_MS * 3);
+export const TEARDOWN_WAIT_MS = CONNECT_SETTLE_TIMEOUT_MS + TEARDOWN_TIMEOUT_MS * 3;
 /**
  * port.open() on a half-dead adapter can stay pending for the life of the page.
  * It was the ONLY hardware hop here without a deadline, and the in-flight-connect
@@ -64,8 +64,12 @@ export const READER_START_TIMEOUT_MS = 5000;
  * Derived from the deadlines above, so it is always at least as long as a
  * healthy connect can legitimately take - and always finite.
  */
-export const CONNECT_DEDUP_TIMEOUT_MS = TEARDOWN_WAIT_MS
-  + OPEN_TIMEOUT_MS + SIGNALS_TIMEOUT_MS + READER_START_TIMEOUT_MS + TEARDOWN_TIMEOUT_MS;
+export const CONNECT_DEDUP_TIMEOUT_MS =
+  TEARDOWN_WAIT_MS +
+  OPEN_TIMEOUT_MS +
+  SIGNALS_TIMEOUT_MS +
+  READER_START_TIMEOUT_MS +
+  TEARDOWN_TIMEOUT_MS;
 /** Coalesce diagnostics counters so one device line is not one re-render. */
 export const HEALTH_FLUSH_MS = 300;
 
@@ -78,19 +82,25 @@ export const openTimeoutError = () => {
   return error;
 };
 
-export const randomTabId = () => (
+export const randomTabId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-);
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export const withTimeout = (promise, ms, messageText) => new Promise((resolve, reject) => {
-  const handle = setTimeout(() => reject(new Error(messageText)), ms);
-  Promise.resolve(promise).then(
-    (value) => { clearTimeout(handle); resolve(value); },
-    (error) => { clearTimeout(handle); reject(error); }
-  );
-});
+export const withTimeout = (promise, ms, messageText) =>
+  new Promise((resolve, reject) => {
+    const handle = setTimeout(() => reject(new Error(messageText)), ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        clearTimeout(handle);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(handle);
+        reject(error);
+      },
+    );
+  });
 
 /**
  * Await something that is allowed to fail or to hang, with a deadline.
@@ -135,7 +145,8 @@ export const readOwnerLease = () => {
   }
 };
 
-export const ownerLeaseIsFresh = (lease) => Boolean(lease?.ts) && (Date.now() - Number(lease.ts)) < OWNER_TTL_MS;
+export const ownerLeaseIsFresh = (lease) =>
+  Boolean(lease?.ts) && Date.now() - Number(lease.ts) < OWNER_TTL_MS;
 
 /**
  * Which granted port may be opened without asking.

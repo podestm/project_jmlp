@@ -51,16 +51,14 @@ export default function TimekeeperReauthModal() {
       eyebrow="Časomíra"
       title="Přihlášení vypršelo"
       initialFocusRef={passwordRef}
-      footer={(
+      footer={
         <Button type="submit" form={formId} variant="primary" icon="login" busy={busy}>
           Přihlásit a pokračovat
         </Button>
-      )}
+      }
     >
       <form id={formId} className={styles.form} onSubmit={submit}>
-        <p className={styles.lead}>
-          Nic se neztratilo, data zůstávají v zařízení.
-        </p>
+        <p className={styles.lead}>Nic se neztratilo, data zůstávají v zařízení.</p>
         {error && <Alert type="danger" compact title={error} />}
         <Field label="E-mail" id="tk-reauth-email">
           <Input

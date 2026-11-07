@@ -55,10 +55,20 @@ export default function SeasonManagement() {
     <AdminPage
       title="Sezóny"
       meta={seasonsMeta(sm.seasons, currentSeasonId)}
-      actions={<Button variant="primary" size="sm" icon="plus" onClick={sm.openCreate}>Nová sezóna</Button>}
+      actions={
+        <Button variant="primary" size="sm" icon="plus" onClick={sm.openCreate}>
+          Nová sezóna
+        </Button>
+      }
     >
       {sm.message && (
-        <Alert key={sm.message.text} type={sm.message.type} compact title={sm.message.text} onDismiss={() => sm.setMessage(null)} />
+        <Alert
+          key={sm.message.text}
+          type={sm.message.type}
+          compact
+          title={sm.message.text}
+          onDismiss={() => sm.setMessage(null)}
+        />
       )}
       {/* Spinner jen při prvním načtení – obnova po změně dokumentů nesmí
           odpojit rozbalený AttachmentManager (blikal by v nekonečné smyčce). */}

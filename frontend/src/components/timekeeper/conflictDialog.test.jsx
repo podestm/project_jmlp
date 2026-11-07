@@ -17,7 +17,7 @@ describe('dialog konfliktu při zápisu času', () => {
         message="Srovnání hodnot"
         choices={CONFLICT_CHOICES}
         onResolve={onResolve}
-      />
+      />,
     );
     return onResolve;
   };

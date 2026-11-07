@@ -18,7 +18,11 @@ describe('správce příloh', () => {
   });
 
   it('knihovna se filtruje podle přípony i názvu', () => {
-    const files = [{ original_filename: 'propozice.pdf' }, { original_filename: 'foto.jpg' }, { original_filename: 'pokyny.PDF' }];
+    const files = [
+      { original_filename: 'propozice.pdf' },
+      { original_filename: 'foto.jpg' },
+      { original_filename: 'pokyny.PDF' },
+    ];
     expect(filterLibrary(files, '.pdf', '')).toHaveLength(2);
     expect(filterLibrary(files, '.pdf', 'POK')).toEqual([{ original_filename: 'pokyny.PDF' }]);
     expect(filterLibrary(files, undefined, '')).toHaveLength(3);

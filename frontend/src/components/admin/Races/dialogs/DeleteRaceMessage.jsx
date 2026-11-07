@@ -18,26 +18,38 @@ export default function DeleteRaceMessage({ race }) {
       <RaceInfo
         race={race}
         meta={`${raceSubtitle(race)} · registrace ${race.registration ? 'otevřená' : 'uzavřená'}`}
-        aside={(
+        aside={
           <>
             <span className={styles.number}>{count}</span>
             <span className={styles.caps}>{registrationsWord(count)}</span>
           </>
-        )}
+        }
       />
 
       <p className={styles.caps}>Se závodem zmizí</p>
       <ul className={styles.list}>
         {count > 0 && (
-          <li><Icon name="trash" size={18} className={styles.danger} />Všech {count} {registrationsWord(count)} i startovní listina.</li>
+          <li>
+            <Icon name="trash" size={18} className={styles.danger} />
+            Všech {count} {registrationsWord(count)} i startovní listina.
+          </li>
         )}
-        <li><Icon name="globe" size={18} />Závod v kalendáři webu.</li>
+        <li>
+          <Icon name="globe" size={18} />
+          Závod v kalendáři webu.
+        </li>
         {hasDocuments && (
-          <li><Icon name="unlink" size={18} />Dokumenty se odpojí, v knihovně zůstanou.</li>
+          <li>
+            <Icon name="unlink" size={18} />
+            Dokumenty se odpojí, v knihovně zůstanou.
+          </li>
         )}
       </ul>
 
-      <p className={styles.warning}><Icon name="warning" size={18} />Smazání nejde vrátit.</p>
+      <p className={styles.warning}>
+        <Icon name="warning" size={18} />
+        Smazání nejde vrátit.
+      </p>
     </div>
   );
 }

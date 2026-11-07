@@ -41,6 +41,7 @@ FastAPI app in `app/`. Read the root [AGENTS.md](../AGENTS.md) first; this file 
 
 - Run: `harness/lib/backend-tests.sh` (all) or with pytest args, e.g. `-k start_list -x`.
 - The fixture refuses to run unless the database name starts with `jmlpcz_test` — do not change that guard.
-- Test names and docstrings are Czech by convention; keep the style of the file you edit.
+- Test names are English sentences, docstrings Czech (`.claude/rules/tests.md`); existing Czech test names
+  stay until the test changes for another reason.
 - New endpoint → at least: happy path, auth (401/403), validation (422), and the not-found case.
   Use the `client`, `db`, `admin_headers` and `timekeeper_headers` fixtures from `conftest.py`.

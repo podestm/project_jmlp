@@ -11,7 +11,12 @@ export default function RaceDocuments({ race }) {
     race.results_file_id && { href: `/races/${race.id}/results`, label: 'Výsledky' },
   ].filter(Boolean);
 
-  if (links.length === 0) return <span className={styles.none}>—<VisuallyHidden> bez dokumentů</VisuallyHidden></span>;
+  if (links.length === 0)
+    return (
+      <span className={styles.none}>
+        —<VisuallyHidden> bez dokumentů</VisuallyHidden>
+      </span>
+    );
 
   return (
     <span className={styles.links}>

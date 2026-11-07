@@ -7,7 +7,9 @@ describe('RenameInput', () => {
   it('Enter uloží, Escape zruší', async () => {
     const onCommit = vi.fn();
     const onCancel = vi.fn();
-    render(<RenameInput value="a.pdf" onChange={vi.fn()} onCommit={onCommit} onCancel={onCancel} />);
+    render(
+      <RenameInput value="a.pdf" onChange={vi.fn()} onCommit={onCommit} onCancel={onCancel} />,
+    );
     const input = screen.getByRole('textbox', { name: 'Nový název souboru' });
     expect(input).toHaveFocus();
     await userEvent.keyboard('{Enter}');

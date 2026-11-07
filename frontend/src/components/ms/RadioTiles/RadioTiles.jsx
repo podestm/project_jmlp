@@ -9,14 +9,32 @@ import styles from './RadioTiles.module.css';
  * Chyba se vykreslí pod skupinou a skupina dostane aria-invalid.
  * options: [{ value, label }]; onChange dostane value vybrané volby.
  */
-export default function RadioTiles({ label, name, options, value, onChange, error, required = false, className }) {
+export default function RadioTiles({
+  label,
+  name,
+  options,
+  value,
+  onChange,
+  error,
+  required = false,
+  className,
+}) {
   const autoId = useId();
   const errorId = error ? `${autoId}-chyba` : undefined;
   return (
-    <fieldset className={cx(styles.group, className)} aria-describedby={errorId} aria-invalid={error ? true : undefined}>
+    <fieldset
+      className={cx(styles.group, className)}
+      aria-describedby={errorId}
+      aria-invalid={error ? true : undefined}
+    >
       <legend className={styles.legend}>
         {label}
-        {required && <span className={styles.required} aria-hidden="true"> *</span>}
+        {required && (
+          <span className={styles.required} aria-hidden="true">
+            {' '}
+            *
+          </span>
+        )}
       </legend>
       <div className={styles.tiles}>
         {options.map((option) => (

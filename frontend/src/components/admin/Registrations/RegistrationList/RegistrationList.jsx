@@ -1,5 +1,11 @@
 import { Badge, VisuallyHidden } from '../../../ms/index.js';
-import { clubLabel, formatRegisteredAt, isWaitingForClub, racerName, sexLabel } from '../registrations.js';
+import {
+  clubLabel,
+  formatRegisteredAt,
+  isWaitingForClub,
+  racerName,
+  sexLabel,
+} from '../registrations.js';
 import styles from './RegistrationList.module.css';
 
 /** Řádek závodníka: ročník v boxu, jméno a pod ním údaje přihlášky. */
@@ -11,18 +17,25 @@ function RegistrationRow({ registration, showClub }) {
     registration.category_name,
     registration.idSlcr && `SLČR ${registration.idSlcr}`,
     formatRegisteredAt(registration.registration_date),
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <li className={styles.row} data-waiting={waiting || undefined}>
       <span className={styles.year}>
-        <VisuallyHidden>ročník </VisuallyHidden>{registration.birthYear}
+        <VisuallyHidden>ročník </VisuallyHidden>
+        {registration.birthYear}
       </span>
       <span className={styles.text}>
         <span className={styles.name}>{racerName(registration)}</span>
         <span className={styles.details}>{details}</span>
       </span>
-      {waiting && <Badge tone="dry" size="sm">Čeká na klub</Badge>}
+      {waiting && (
+        <Badge tone="dry" size="sm">
+          Čeká na klub
+        </Badge>
+      )}
       {!waiting && !registration.idSlcr && <Badge size="sm">Bez SLČR</Badge>}
     </li>
   );
@@ -42,7 +55,11 @@ export default function RegistrationList({ groups }) {
           )}
           <ul className={styles.rows}>
             {group.items.map((registration) => (
-              <RegistrationRow key={registration.registration_id} registration={registration} showClub={!group.label} />
+              <RegistrationRow
+                key={registration.registration_id}
+                registration={registration}
+                showClub={!group.label}
+              />
             ))}
           </ul>
         </section>

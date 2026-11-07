@@ -14,10 +14,22 @@ const STATUS = {
 /** Dokument závodu ke stažení, nebo přerušovaný zástupce, proč tu ještě není. */
 function DocumentButton({ href, label, missing, missingIcon, primary = false }) {
   if (!href) {
-    return <span className={styles.missing}><Icon name={missingIcon} size={18} />{missing}</span>;
+    return (
+      <span className={styles.missing}>
+        <Icon name={missingIcon} size={18} />
+        {missing}
+      </span>
+    );
   }
   return (
-    <ButtonLink href={href} target="_blank" rel="noopener noreferrer" variant={primary ? 'inverse' : 'on-dark'} icon="download" block>
+    <ButtonLink
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      variant={primary ? 'inverse' : 'on-dark'}
+      icon="download"
+      block
+    >
       {label}
     </ButtonLink>
   );
@@ -48,21 +60,47 @@ export default function RaceHero({ race, state }) {
             <p className={styles.eyebrow}>{raceEyebrow(race)}</p>
             <h1 className={styles.title}>{raceTitle(race)}</h1>
             <ul className={styles.meta}>
-              <li><Icon name={method.icon} size={16} />{method.key === 'snow' ? 'Závod na sněhu' : 'Suchý závod'}</li>
-              {organizer && <li><Icon name="building" size={16} />Pořádá {organizer}</li>}
+              <li>
+                <Icon name={method.icon} size={16} />
+                {method.key === 'snow' ? 'Závod na sněhu' : 'Suchý závod'}
+              </li>
+              {organizer && (
+                <li>
+                  <Icon name="building" size={16} />
+                  Pořádá {organizer}
+                </li>
+              )}
             </ul>
           </div>
           <div className={styles.aside}>
-            <Badge tone={status.tone} icon={status.icon} className={styles.status}>{status.label}</Badge>
+            <Badge tone={status.tone} icon={status.icon} className={styles.status}>
+              {status.label}
+            </Badge>
             {state === 'past' ? (
               <>
-                <DocumentButton href={results} primary label="Výsledky závodu (PDF)" missing="Výsledky se připravují" missingIcon="clock" />
+                <DocumentButton
+                  href={results}
+                  primary
+                  label="Výsledky závodu (PDF)"
+                  missing="Výsledky se připravují"
+                  missingIcon="clock"
+                />
                 {proposition && <DocumentButton href={proposition} label="Propozice (PDF)" />}
               </>
             ) : (
               <>
-                <DocumentButton href={proposition} label="Propozice (PDF)" missing="Propozice zatím nejsou" missingIcon="file" />
-                <DocumentButton href={results} label="Výsledky závodu (PDF)" missing="Výsledky až po závodě" missingIcon="trophy" />
+                <DocumentButton
+                  href={proposition}
+                  label="Propozice (PDF)"
+                  missing="Propozice zatím nejsou"
+                  missingIcon="file"
+                />
+                <DocumentButton
+                  href={results}
+                  label="Výsledky závodu (PDF)"
+                  missing="Výsledky až po závodě"
+                  missingIcon="trophy"
+                />
               </>
             )}
           </div>

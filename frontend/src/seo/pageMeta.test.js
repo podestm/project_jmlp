@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { adminTitle, applyPageMeta, PAGE_META, publicTitle, raceMeta, timekeeperTitle } from './pageMeta.js';
+import {
+  adminTitle,
+  applyPageMeta,
+  PAGE_META,
+  publicTitle,
+  raceMeta,
+  timekeeperTitle,
+} from './pageMeta.js';
 
 const LOCATION = { origin: 'https://jmlp.cz', pathname: '/kontakty' };
-const meta = (selector) => document.head.querySelector(`meta[${selector}]`)?.getAttribute('content');
+const meta = (selector) =>
+  document.head.querySelector(`meta[${selector}]`)?.getAttribute('content');
 
 afterEach(() => {
   document.head.innerHTML = '';
@@ -17,9 +25,16 @@ describe('pageMeta', () => {
   });
 
   it('závod: areál a datum, bez areálu obecně', () => {
-    expect(raceMeta({ areal_name: 'Kraličák', datum: '2027-01-17', organizer_name: 'Neznámý organizátor' })).toEqual({
+    expect(
+      raceMeta({
+        areal_name: 'Kraličák',
+        datum: '2027-01-17',
+        organizer_name: 'Neznámý organizátor',
+      }),
+    ).toEqual({
       title: 'Kraličák, 17. 1. 2027 · JMLP',
-      description: 'Závod Jihomoravského lyžařského poháru v areálu Kraličák dne 17. 1. 2027. Propozice, přihlášky a výsledky.',
+      description:
+        'Závod Jihomoravského lyžařského poháru v areálu Kraličák dne 17. 1. 2027. Propozice, přihlášky a výsledky.',
     });
     expect(raceMeta({ areal_name: 'Bez areálu', datum: null }).title).toBe('Závod · JMLP');
   });

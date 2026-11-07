@@ -42,13 +42,16 @@ export const isOnline = () => browserOnline() && reachable;
 
 const emit = () => {
   if (!hasWindow()) return;
-  window.dispatchEvent(new CustomEvent(CONNECTIVITY_EVENT, { detail: { online: isOnline(), reachable } }));
+  window.dispatchEvent(
+    new CustomEvent(CONNECTIVITY_EVENT, { detail: { online: isOnline(), reachable } }),
+  );
 };
 
 // Chyby fetch bez HTTP odpovědi napříč prohlížeči (Chrome, Firefox, Safari)
 // a vlastní hláška vypršení. „API Error: 504 …“ sem nepatří - to server
 // odpověděl, jen chybou.
-const NETWORK_MESSAGE = /Failed to fetch|NetworkError|Load failed|Network request failed|network connection was lost|Server neodpověděl včas/i;
+const NETWORK_MESSAGE =
+  /Failed to fetch|NetworkError|Load failed|Network request failed|network connection was lost|Server neodpověděl včas/i;
 
 /** Je text chyby (třeba last_error ve frontě) síťová chyba bez odpovědi serveru? */
 export const isNetworkErrorMessage = (message) => {
@@ -83,7 +86,7 @@ const pingServer = async () => {
     const response = await fetch(buildUrl(PROBE_PATH, { ts: Date.now() }), {
       method: 'GET',
       cache: 'no-store',
-      ...(controller ? { signal: controller.signal } : {})
+      ...(controller ? { signal: controller.signal } : {}),
     });
     return Boolean(response?.ok) && !response.redirected;
   } catch {

@@ -10,22 +10,23 @@ import { INBOX_RENDER_LIMIT } from '../../useInboxEvents.js';
  */
 const stored = (count) => Array.from({ length: count }, (_, i) => ({ id: i + 1 }));
 
-const renderPanel = (props) => render(
-  <SerialInboxPanel
-    visibleEvents={[]}
-    resolutions={new Map()}
-    targetRound="1"
-    unparsedCount={0}
-    resolvedCount={0}
-    onCycle={vi.fn()}
-    onConfirm={vi.fn()}
-    onReject={vi.fn()}
-    onDismissUnparsed={vi.fn()}
-    onClearResolved={vi.fn()}
-    onClearAll={vi.fn()}
-    {...props}
-  />
-);
+const renderPanel = (props) =>
+  render(
+    <SerialInboxPanel
+      visibleEvents={[]}
+      resolutions={new Map()}
+      targetRound="1"
+      unparsedCount={0}
+      resolvedCount={0}
+      onCycle={vi.fn()}
+      onConfirm={vi.fn()}
+      onReject={vi.fn()}
+      onDismissUnparsed={vi.fn()}
+      onClearResolved={vi.fn()}
+      onClearAll={vi.fn()}
+      {...props}
+    />,
+  );
 
 describe('SerialInboxPanel - celý log', () => {
   it('nabídne zobrazení všech uložených událostí, když jsou některé skryté', async () => {
@@ -42,7 +43,9 @@ describe('SerialInboxPanel - celý log', () => {
     renderPanel({ events: stored(130), hiddenCount: 0, showAll: true, onShowAllChange });
 
     expect(screen.getByText('Zobrazeny všechny uložené události (130).')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: `Jen posledních ${INBOX_RENDER_LIMIT}` }));
+    await userEvent.click(
+      screen.getByRole('button', { name: `Jen posledních ${INBOX_RENDER_LIMIT}` }),
+    );
 
     expect(onShowAllChange).toHaveBeenCalledWith(false);
   });

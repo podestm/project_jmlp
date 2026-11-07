@@ -4,6 +4,7 @@
 vypadnout. Klient si token obnoví sám, když je online a zbývá méně než půlka
 platnosti (frontend config/tokenRefresh.js).
 """
+
 from datetime import timedelta
 
 from jose import jwt
@@ -16,15 +17,20 @@ def _claims(token):
 
 
 def test_token_nese_cas_vydani(timekeeper_user):
-    claims = _claims(auth.create_access_token({"sub": str(timekeeper_user.id), "role": "timekeeper"}))
+    claims = _claims(
+        auth.create_access_token({"sub": str(timekeeper_user.id), "role": "timekeeper"})
+    )
     assert claims["exp"] - claims["iat"] == auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
 
 def test_casomira_obnovi_platny_token(client, timekeeper_user):
-    stary = auth.create_access_token({"sub": str(timekeeper_user.id), "role": "timekeeper"},
-                                     expires_delta=timedelta(minutes=5))
+    stary = auth.create_access_token(
+        {"sub": str(timekeeper_user.id), "role": "timekeeper"}, expires_delta=timedelta(minutes=5)
+    )
 
-    odpoved = client.post("/api/timekeeper/auth/refresh", headers={"Authorization": f"Bearer {stary}"})
+    odpoved = client.post(
+        "/api/timekeeper/auth/refresh", headers={"Authorization": f"Bearer {stary}"}
+    )
 
     assert odpoved.status_code == 200, odpoved.text
     novy = odpoved.json()
@@ -34,9 +40,12 @@ def test_casomira_obnovi_platny_token(client, timekeeper_user):
 
 
 def test_vyprsely_token_obnovit_nejde(client, timekeeper_user):
-    vyprsely = auth.create_access_token({"sub": str(timekeeper_user.id), "role": "timekeeper"},
-                                        expires_delta=timedelta(minutes=-1))
-    odpoved = client.post("/api/timekeeper/auth/refresh", headers={"Authorization": f"Bearer {vyprsely}"})
+    vyprsely = auth.create_access_token(
+        {"sub": str(timekeeper_user.id), "role": "timekeeper"}, expires_delta=timedelta(minutes=-1)
+    )
+    odpoved = client.post(
+        "/api/timekeeper/auth/refresh", headers={"Authorization": f"Bearer {vyprsely}"}
+    )
     assert odpoved.status_code == 401
 
 

@@ -17,6 +17,47 @@ Template:
 
 ---
 
+## 2026-11-07 — Formatters enforced (code-style rules)
+- Done: Prettier 3.3.3 + Ruff 0.6.9 configured as in .claude/rules; one-off reformat (5438527) and Ruff safe
+  fixes (9e0bbd3), both in .git-blame-ignore-revs; remaining 25 findings fixed by hand (exception chaining,
+  unused variables, imports). PostToolUse hook now formats each written file (ruff format / prettier --write)
+  and replaces py_compile (which left root-owned __pycache__) with ruff check. verify.sh fast/full and CI
+  check formatting. harness/lib/ruff.sh: local ruff or the pinned image, writes as the backend/ owner.
+- Verified: verify full after the reformat (frontend 1249, backend 810, build); backend suite after each
+  lint commit; `prettier --check .`, `ruff format --check .`, `ruff check .` clean; hook tried on a backend
+  and a frontend file; verify fast PASS.
+- Next: HAR-04 Playwright e2e suite.
+- Blocked / decisions needed: none.
+
+## 2026-11-07 — Live timing cache (PERF-01)
+- Done: GET /races/live served from a per-worker 2 s cache of the encoded JSON (services/live_cache.py);
+  one caller refreshes, others get the previous payload but never older than 4 s; failures not cached.
+  Payload building moved from the router to services/live.py.
+- Verified: harness/load/run.sh live — 1000 viewers p95 4 ms (was failing at 600), 1600 viewers p95 144 ms;
+  backend suite 810 passed; code-reviewer: approve, its major finding (unbounded stale fallback) fixed.
+- Next: finish the formatter work (Ruff manual fixes, enforcement in hook/verify/CI); HAR-04.
+- Blocked / decisions needed: none.
+
+## 2026-11-07 — Load test harness and first capacity run (PERF-01, PERF-02)
+- Done: `harness/load/` — disposable copy of the production stack with synthetic data, k6 step search,
+  production watchdog, results in .harness/state/load and harness/load/results/.
+- Verified: run on the production host in a quiet period: live timing 400 viewers OK, 600 fails (p95 4 s,
+  backend CPU-bound) → PERF-01 failing; registrations ≥ 32/s, all stored once → PERF-02 passing.
+  Production backend ≤ 4 % CPU during the run, watchdog never triggered.
+- Next: PERF-01 — cache the /races/live payload for a few seconds, re-run `harness/load/run.sh live`.
+- Blocked / decisions needed: none.
+
+## 2026-11-07 — CI/CD live; weekend block removed (HAR-05)
+- Done: first production deployment 08befe1 -> 721a036 (manual run of deploy-main.sh), GitHub deploy job
+  connected and re-ran green. Owner removed the weekend block: only the owner merges to main and decides when
+  to deploy. Deploy lock moved from /tmp to the state dir (a root-owned /tmp lock from the agent's dry-runs
+  had blocked the first run). Calendar empty-state fix (fd39eac) went through dev -> test.
+- Verified: shellcheck clean; dry-run on a Saturday without flag deploys, unhealthy -> rollback; production
+  /health 200, season API reports the migrated is_current flag.
+- Next: HAR-04 Playwright e2e suite; mount the repo root in harness/lib/backend-tests.sh so the API contract
+  test also runs locally (ask first, harness/lib).
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — Production deployment triggered by merge to main (HAR-05)
 - Done: owner's decision — no timer; merging PR dev -> main deploys. CI job `deploy` (needs frontend, backend,
   harness; environment `production`, optional required reviewers) connects with a key whose authorized_keys

@@ -7,20 +7,18 @@ import { Alert, LoadingState, Select } from '../../ms/index.js';
 import { readSelectedRaceId, storeSelectedRaceId } from '../frame/selectedRace.js';
 import { useSerialSession } from '../SerialSessionProvider.jsx';
 import { START_LIST_REVISION_EVENT } from '../../../offline/localEdits.js';
-import { ENTRY_REMAPPED_EVENT, remapEntriesInState, renameKey } from '../../../offline/offlineEntries.js';
+import {
+  ENTRY_REMAPPED_EVENT,
+  remapEntriesInState,
+  renameKey,
+} from '../../../offline/offlineEntries.js';
 import { loadTimingDrafts } from '../../../offline/timingDrafts.js';
 import { useTimingDrafts } from '../useTimingDrafts.js';
 import { useInboxEvents } from '../useInboxEvents.js';
 import { useTabWriteLock } from '../useTabWriteLock.js';
 import { useTimeSaving } from '../useTimeSaving.jsx';
-import {
-  mergeRestoredDrafts,
-} from '../timingRules.js';
-import {
-  forgetWriter,
-  markWriterAlive,
-  WRITER_HEARTBEAT_MS,
-} from '../writerPresence.js';
+import { mergeRestoredDrafts } from '../timingRules.js';
+import { forgetWriter, markWriterAlive, WRITER_HEARTBEAT_MS } from '../writerPresence.js';
 import { activeEntries, groupEntriesByCategory } from '../startListHelpers.js';
 import { formatDateLong } from '../../../utils/date.js';
 import PdfPreviewModal from '../PdfPreviewModal.jsx';
@@ -75,7 +73,7 @@ export default function TimingEntry() {
   const [activeRound, setActiveRound] = useState('both'); // 'both', '1', '2'
   const [selectedCategory, setSelectedCategory] = useState('all'); // 'all' nebo category_name
   const [bridgeTargetRound, setBridgeTargetRound] = useState(
-    localStorage.getItem('timekeeper_bridge_target_round') || '1'
+    localStorage.getItem('timekeeper_bridge_target_round') || '1',
   );
   const [inboxEvents, setInboxEvents] = useState([]);
   const [deviceOpen, setDeviceOpen] = useState(false);
@@ -104,15 +102,19 @@ export default function TimingEntry() {
   // pro něj - prázdná sada po neúspěšném načtení vypadá stejně jako "nic
   // rozepsaného" a smazala by uložené časy.
   const draftsRaceRef = useRef(null);
-  const tabIdRef = useRef(typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const tabIdRef = useRef(
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
 
   // Až za tabIdRef: hook si ho bere, takže dřív by to bylo použití
   // před inicializací a celá sekce časoměřiče by spadla.
   const hasWriteLock = useTabWriteLock(selectedRaceId, tabIdRef);
 
-  useEffect(() => { loadRaces(); }, []);
+  useEffect(() => {
+    loadRaces();
+  }, []);
 
   useEffect(() => {
     selectedRaceIdRef.current = selectedRaceId;
@@ -122,11 +124,21 @@ export default function TimingEntry() {
     }
   }, [selectedRaceId]);
 
-  useEffect(() => { editedTimesRef.current = editedTimes; }, [editedTimes]);
-  useEffect(() => { startListRef.current = startList; }, [startList]);
-  useEffect(() => { inboxEventsRef.current = inboxEvents; }, [inboxEvents]);
-  useEffect(() => { activeRoundRef.current = activeRound; }, [activeRound]);
-  useEffect(() => { hasWriteLockRef.current = hasWriteLock; }, [hasWriteLock]);
+  useEffect(() => {
+    editedTimesRef.current = editedTimes;
+  }, [editedTimes]);
+  useEffect(() => {
+    startListRef.current = startList;
+  }, [startList]);
+  useEffect(() => {
+    inboxEventsRef.current = inboxEvents;
+  }, [inboxEvents]);
+  useEffect(() => {
+    activeRoundRef.current = activeRound;
+  }, [activeRound]);
+  useEffect(() => {
+    hasWriteLockRef.current = hasWriteLock;
+  }, [hasWriteLock]);
 
   useEffect(() => {
     bridgeTargetRoundRef.current = bridgeTargetRound;
@@ -207,7 +219,6 @@ export default function TimingEntry() {
     onError: reportDraftError,
   });
 
-
   const loadRaces = async () => {
     try {
       const data = await TimekeeperAPI.get('/api/timekeeper/races');
@@ -228,7 +239,8 @@ export default function TimingEntry() {
 
     const token = loadTokenRef.current + 1;
     loadTokenRef.current = token;
-    const isCurrent = () => loadTokenRef.current === token && String(selectedRaceIdRef.current) === String(target);
+    const isCurrent = () =>
+      loadTokenRef.current === token && String(selectedRaceIdRef.current) === String(target);
 
     try {
       setLoading(true);
@@ -262,7 +274,10 @@ export default function TimingEntry() {
       if (restored > 0 || dropped > 0) {
         const parts = [];
         if (restored > 0) parts.push(`Obnoveno ${restored} rozepsaných časů z tohoto zařízení.`);
-        if (dropped > 0) parts.push(`${dropped} rozepsaných časů bylo zahozeno – záznam se mezitím změnil na serveru.`);
+        if (dropped > 0)
+          parts.push(
+            `${dropped} rozepsaných časů bylo zahozeno – záznam se mezitím změnil na serveru.`,
+          );
         setMessage({ type: dropped > 0 ? 'warning' : 'info', text: parts.join(' ') });
       }
     } catch {
@@ -274,7 +289,7 @@ export default function TimingEntry() {
       draftsRaceRef.current = null;
       setMessage({
         type: 'danger',
-        text: 'Nepodařilo se načíst startovní listinu. Rozepsané časy zůstávají uložené v zařízení.'
+        text: 'Nepodařilo se načíst startovní listinu. Rozepsané časy zůstávají uložené v zařízení.',
       });
     } finally {
       if (loadTokenRef.current === token) setLoading(false);
@@ -338,27 +353,37 @@ export default function TimingEntry() {
     return byId;
   }, [startList]);
 
-  useEffect(() => { startListByIdRef.current = startListById; }, [startListById]);
+  useEffect(() => {
+    startListByIdRef.current = startListById;
+  }, [startListById]);
 
-  const categoryFiltered = useMemo(() => (
-    selectedCategory === 'all'
-      ? activeStartList
-      : activeStartList.filter((e) => (e.category_name || 'Bez kategorie') === selectedCategory)
-  ), [activeStartList, selectedCategory]);
+  const categoryFiltered = useMemo(
+    () =>
+      selectedCategory === 'all'
+        ? activeStartList
+        : activeStartList.filter((e) => (e.category_name || 'Bez kategorie') === selectedCategory),
+    [activeStartList, selectedCategory],
+  );
 
-  const filteredList = useMemo(() => (
-    categoryFiltered.filter((entry) => {
-      if (filter === 'pending') {
-        return entry.time1 == null && entry.time2 == null && !entry.dnf && !entry.dns && !entry.dsq;
-      }
-      if (filter === 'completed') {
-        return entry.time1 != null || entry.time2 != null || entry.dnf || entry.dns || entry.dsq;
-      }
-      return true;
-    })
-  ), [categoryFiltered, filter]);
+  const filteredList = useMemo(
+    () =>
+      categoryFiltered.filter((entry) => {
+        if (filter === 'pending') {
+          return (
+            entry.time1 == null && entry.time2 == null && !entry.dnf && !entry.dns && !entry.dsq
+          );
+        }
+        if (filter === 'completed') {
+          return entry.time1 != null || entry.time2 != null || entry.dnf || entry.dns || entry.dsq;
+        }
+        return true;
+      }),
+    [categoryFiltered, filter],
+  );
 
-  useEffect(() => { filteredListRef.current = filteredList; }, [filteredList]);
+  useEffect(() => {
+    filteredListRef.current = filteredList;
+  }, [filteredList]);
 
   /**
    * Tisk listiny kola rovnou od časomíry.
@@ -371,29 +396,35 @@ export default function TimingEntry() {
    *
    * @param {string} runMode '1' | '2' (2. kolo = oba časy a součet)
    */
-  const printResults = useCallback(async (runMode) => {
-    const categories = groupEntriesByCategory(categoryFiltered);
-    if (categories.length === 0) {
-      setMessage({ type: 'warning', text: 'Není co tisknout - startovní listina je prázdná.' });
-      return;
-    }
-    try {
-      await pdf.generate({
-        categories,
-        interim: true,
-        runMode,
-        // Tisk vybrané kategorie má kategorii i v názvu souboru.
-        categoryName: selectedCategory !== 'all' ? selectedCategory : null
-      });
-    } catch (err) {
-      console.error('PDF se nepodařilo vytvořit:', err);
-      setMessage({ type: 'danger', text: pdfErrorMessage(err) });
-    }
-  }, [categoryFiltered, pdf, selectedCategory]);
+  const printResults = useCallback(
+    async (runMode) => {
+      const categories = groupEntriesByCategory(categoryFiltered);
+      if (categories.length === 0) {
+        setMessage({ type: 'warning', text: 'Není co tisknout - startovní listina je prázdná.' });
+        return;
+      }
+      try {
+        await pdf.generate({
+          categories,
+          interim: true,
+          runMode,
+          // Tisk vybrané kategorie má kategorii i v názvu souboru.
+          categoryName: selectedCategory !== 'all' ? selectedCategory : null,
+        });
+      } catch (err) {
+        console.error('PDF se nepodařilo vytvořit:', err);
+        setMessage({ type: 'danger', text: pdfErrorMessage(err) });
+      }
+    },
+    [categoryFiltered, pdf, selectedCategory],
+  );
 
-  const completedCount = useMemo(() => (
-    categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq).length
-  ), [categoryFiltered]);
+  const completedCount = useMemo(
+    () =>
+      categoryFiltered.filter((e) => e.time1 != null || e.time2 != null || e.dnf || e.dns || e.dsq)
+        .length,
+    [categoryFiltered],
+  );
   const selectedRace = races.find((r) => String(r.id) === String(selectedRaceId));
 
   const {
@@ -556,17 +587,28 @@ export default function TimingEntry() {
       {!selectedRaceId && (
         <section className={styles.noRace} aria-label="Bez vybraného závodu">
           <Alert type="info" compact title="Vyberte závod pro zadávání časů" />
-          <label className={styles.caps} htmlFor="tk-timing-race">Závod</label>
-          <Select id="tk-timing-race" value={selectedRaceId} onChange={(e) => setSelectedRaceId(e.target.value)}>
+          <label className={styles.caps} htmlFor="tk-timing-race">
+            Závod
+          </label>
+          <Select
+            id="tk-timing-race"
+            value={selectedRaceId}
+            onChange={(e) => setSelectedRaceId(e.target.value)}
+          >
             <option value="">— Vyberte závod —</option>
             {races.map((race) => (
               <option key={race.id} value={race.id}>
-                {race.race_nr || `#${race.id}`} — {race.areal_name || '?'} ({formatDateLong(race.datum)})
+                {race.race_nr || `#${race.id}`} — {race.areal_name || '?'} (
+                {formatDateLong(race.datum)})
               </option>
             ))}
           </Select>
           {inboxEvents.length > 0 && (
-            <Alert type="info" compact title={`Časomíra už poslala ${inboxEvents.length} událostí, které zatím nepatří k žádnému závodu`}>
+            <Alert
+              type="info"
+              compact
+              title={`Časomíra už poslala ${inboxEvents.length} událostí, které zatím nepatří k žádnému závodu`}
+            >
               Přiřadí se po výběru závodu.
             </Alert>
           )}

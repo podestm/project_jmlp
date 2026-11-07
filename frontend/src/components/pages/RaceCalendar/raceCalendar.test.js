@@ -12,7 +12,10 @@ describe('raceCalendar', () => {
 
   it('rozdělí závody na nadcházející a odjeté', () => {
     const today = new Date(2026, 9, 5);
-    const { upcoming, past } = splitByDate([race('a', '2026-10-10'), race('b', '2026-10-03'), race('c', '2026-10-05')], today);
+    const { upcoming, past } = splitByDate(
+      [race('a', '2026-10-10'), race('b', '2026-10-03'), race('c', '2026-10-05')],
+      today,
+    );
     expect(upcoming.map((r) => r.race_nr)).toEqual(['c', 'a']);
     expect(past.map((r) => r.race_nr)).toEqual(['b']);
   });

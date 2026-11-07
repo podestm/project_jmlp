@@ -3,21 +3,22 @@
 Řazení, pořadí i body počítá services/results.py, aby se obrazovka časoměřiče,
 uložené body i tištěná listina nemohly rozejít.
 """
-from typing import Any, Dict, List, Optional
+
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
 from ...services import category_order as category_order_service
 from ...services import files as file_service
-from ...services import naming
-from ...services import fis_xml
+from ...services import fis_xml, naming
 from ...services import results as results_service
+from ...services.start_list import _slcr_id
 from ...utils import (
     StandardExceptions,
     category_display_sql,
@@ -25,12 +26,11 @@ from ...utils import (
     fix_encoding,
 )
 from .idempotency import store_idempotent_response, try_get_idempotent_response
-from ...services.start_list import _slcr_id
 
 router = APIRouter(tags=["timekeeper-results"])
 
 
-def _load_entries(db: Session, race_id: int) -> List[Any]:
+def _load_entries(db: Session, race_id: int) -> list[Any]:
     """Řádky startovní listiny závodu i s údaji potřebnými pro listinu.
 
     Bez vyřazených ze startky: do výsledků nepatří a pořadí i body ostatních
@@ -75,13 +75,11 @@ def _clear_points_of_excluded(db: Session, race_id: int) -> None:
     ).update({"points": None}, synchronize_session=False)
 
 
-def _group_by_category(
-    entries: List[Any], race: models.Race, db: Session
-) -> List[Dict[str, Any]]:
+def _group_by_category(entries: list[Any], race: models.Race, db: Session) -> list[dict[str, Any]]:
     """Seskupí řádky po kategoriích v pořadí nastaveném u závodu."""
     rank_map = category_order_service.category_rank_map(race, db)
 
-    groups: Dict[int, Dict[str, Any]] = {}
+    groups: dict[int, dict[str, Any]] = {}
     for row in entries:
         cat_id = row.cat_id or 0
         if cat_id not in groups:
@@ -97,10 +95,10 @@ def _group_by_category(
             }
         groups[cat_id]["rows"].append(row)
 
-    return sorted(groups.values(), key=lambda g: rank_map.get(g["category_id"], 10 ** 6))
+    return sorted(groups.values(), key=lambda g: rank_map.get(g["category_id"], 10**6))
 
 
-def _format_entry(ranked: results_service.RankedEntry) -> Dict[str, Any]:
+def _format_entry(ranked: results_service.RankedEntry) -> dict[str, Any]:
     row = ranked.row
     return {
         "id": row.id,
@@ -137,18 +135,22 @@ def _race_or_404(db: Session, race_id: int) -> models.Race:
     return race
 
 
-def _areal_name(db: Session, race: models.Race) -> Optional[str]:
+def _areal_name(db: Session, race: models.Race) -> str | None:
     if not race.areal_id:
         return None
-    row = db.execute(text(f"""
+    row = db.execute(
+        text(f"""
         SELECT {convert_utf8_field('name')} as name
         FROM fuj_jmlp_areal WHERE id = :areal_id
-    """), {"areal_id": race.areal_id}).first()
+    """),
+        {"areal_id": race.areal_id},
+    ).first()
     return fix_encoding(row.name) if row else None
 
 
-def build_fis_dataset(db: Session, race_id: int, discipline: str = "",
-                      category_id: Optional[int] = None) -> tuple[bytes, int, str]:
+def build_fis_dataset(
+    db: Session, race_id: int, discipline: str = "", category_id: int | None = None
+) -> tuple[bytes, int, str]:
     """FIS XML Dataset závodu pro evidenci SLČR (routers/timekeeper/slcr.py):
     (obsah, počet startujících bez výsledku, název souboru). Všechny kategorie
     v jednom souboru, každá jako vlastní závod s kodexem = id kategorie;
@@ -175,17 +177,25 @@ def build_fis_dataset(db: Session, race_id: int, discipline: str = "",
             continue
         rows = group["rows"]
         sex = next((row.category_sex for row in rows if row.category_sex is not None), None)
-        categories.append(fis_xml.CategoryResults(
-            name=group["category_name"], sex=sex, ranked=results_service.rank_category(rows),
-            # Kodex = id kategorie u nás: stálé číslo, stejné každý závod.
-            codex=str(group["category_id"]) if group["category_id"] else None,
-        ))
+        categories.append(
+            fis_xml.CategoryResults(
+                name=group["category_name"],
+                sex=sex,
+                ranked=results_service.rank_category(rows),
+                # Kodex = id kategorie u nás: stálé číslo, stejné každý závod.
+                codex=str(group["category_id"]) if group["category_id"] else None,
+            )
+        )
     if not categories:
         raise HTTPException(status_code=400, detail="Závod nemá žádné výsledky")
 
     stem = "_".join(part for part in (str(race.datum), race.race_nr or f"zavod-{race_id}") if part)
     filename = f"{stem}_vysledky-slcr.xml"
-    return fis_xml.build_dataset_xml(header, categories), fis_xml.unfinished_count(categories), filename
+    return (
+        fis_xml.build_dataset_xml(header, categories),
+        fis_xml.unfinished_count(categories),
+        filename,
+    )
 
 
 @router.get("/races/{race_id}/results")
@@ -193,8 +203,8 @@ def get_race_results(
     race_id: int,
     group_by_category: bool = Query(default=True, description="Group results by category"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Výsledky závodu seřazené podle času, volitelně po kategoriích."""
     race = _race_or_404(db, race_id)
     entries = _load_entries(db, race_id)
@@ -211,11 +221,13 @@ def get_race_results(
         categories = []
         for group in _group_by_category(entries, race, db):
             ranked = results_service.rank_category(group["rows"])
-            categories.append({
-                "category_id": group["category_id"],
-                "category_name": group["category_name"],
-                "entries": [_format_entry(item) for item in ranked],
-            })
+            categories.append(
+                {
+                    "category_id": group["category_id"],
+                    "category_name": group["category_name"],
+                    "entries": [_format_entry(item) for item in ranked],
+                }
+            )
         return {**base, "grouped": True, "categories": categories}
 
     # Plochý seznam - pořadí se stejně počítá po kategoriích, jen se nerozděluje
@@ -231,11 +243,15 @@ def _remove_published_results(db: Session, race_id: int) -> bool:
     Ručně nahranou listinu z knihovny nemažeme - to je vždycky vědomá akce
     v knihovně dokumentů, ne vedlejší efekt mazání výsledků.
     """
-    attachment = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == AttachmentOwner.race.value,
-        models.Attachment.owner_id == race_id,
-        models.Attachment.role == AttachmentRole.vysledky.value,
-    ).first()
+    attachment = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.owner_type == AttachmentOwner.race.value,
+            models.Attachment.owner_id == race_id,
+            models.Attachment.role == AttachmentRole.vysledky.value,
+        )
+        .first()
+    )
     if not attachment:
         return False
 
@@ -251,9 +267,9 @@ def _remove_published_results(db: Session, race_id: int) -> bool:
     )
 
     if file_id and was_generated:
-        still_used = db.query(models.Attachment).filter(
-            models.Attachment.file_id == file_id
-        ).count()
+        still_used = (
+            db.query(models.Attachment).filter(models.Attachment.file_id == file_id).count()
+        )
         if still_used == 0:
             file_record = db.query(models.File).filter(models.File.id == file_id).first()
             if file_record:
@@ -273,8 +289,8 @@ def clear_race_results(
     ),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Smaže naměřené výsledky závodu - časy, příznaky i body.
 
     Startovní listina zůstává, maže se jen to, co se naměřilo: závod se dá
@@ -296,17 +312,22 @@ def clear_race_results(
 
     _race_or_404(db, race_id)
 
-    cleared = db.query(models.StartListEntry).filter(
-        models.StartListEntry.race_id == race_id
-    ).update({
-        "time1": None,
-        "time2": None,
-        "time_sum": None,
-        "dnf": False,
-        "dns": False,
-        "dsq": False,
-        "points": None,
-    }, synchronize_session=False)
+    cleared = (
+        db.query(models.StartListEntry)
+        .filter(models.StartListEntry.race_id == race_id)
+        .update(
+            {
+                "time1": None,
+                "time2": None,
+                "time_sum": None,
+                "dnf": False,
+                "dns": False,
+                "dsq": False,
+                "points": None,
+            },
+            synchronize_session=False,
+        )
+    )
     db.commit()
 
     published_removed = _remove_published_results(db, race_id) if published else False
@@ -336,8 +357,8 @@ def clear_race_results(
 def calculate_points(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Přepočítá a uloží body podle pořadí v kategoriích."""
     race = _race_or_404(db, race_id)
     entries = _load_entries(db, race_id)
@@ -346,9 +367,9 @@ def calculate_points(
     categories = _group_by_category(entries, race, db)
     for group in categories:
         for item in results_service.rank_category(group["rows"]):
-            db.query(models.StartListEntry).filter(
-                models.StartListEntry.id == item.row.id
-            ).update({"points": item.points}, synchronize_session=False)
+            db.query(models.StartListEntry).filter(models.StartListEntry.id == item.row.id).update(
+                {"points": item.points}, synchronize_session=False
+            )
             updated += 1
     _clear_points_of_excluded(db, race_id)
 
@@ -365,8 +386,8 @@ async def publish_results(
     race_id: int,
     file: UploadFile = File(...),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Publikuje vygenerovanou výsledkovou listinu jako dokument závodu.
 
     PDF vzniká v prohlížeči, aby tisk fungoval i offline; sem se posílá hotový
@@ -382,9 +403,9 @@ async def publish_results(
     entries = _load_entries(db, race_id)
     for group in _group_by_category(entries, race, db):
         for item in results_service.rank_category(group["rows"]):
-            db.query(models.StartListEntry).filter(
-                models.StartListEntry.id == item.row.id
-            ).update({"points": item.points}, synchronize_session=False)
+            db.query(models.StartListEntry).filter(models.StartListEntry.id == item.row.id).update(
+                {"points": item.points}, synchronize_session=False
+            )
     _clear_points_of_excluded(db, race_id)
     db.commit()
 
@@ -397,11 +418,15 @@ async def publish_results(
     )
 
     # 3) Nahradit dosavadní listinu
-    previous = db.query(models.Attachment).filter(
-        models.Attachment.owner_type == AttachmentOwner.race.value,
-        models.Attachment.owner_id == race_id,
-        models.Attachment.role == AttachmentRole.vysledky.value,
-    ).first()
+    previous = (
+        db.query(models.Attachment)
+        .filter(
+            models.Attachment.owner_type == AttachmentOwner.race.value,
+            models.Attachment.owner_id == race_id,
+            models.Attachment.role == AttachmentRole.vysledky.value,
+        )
+        .first()
+    )
     previous_file_id = previous.file_id if previous else None
     previous_was_generated = bool(previous.is_generated) if previous else False
 
@@ -418,9 +443,11 @@ async def publish_results(
     # Dřívější VYGENEROVANOU listinu smažeme, ať se nehromadí. Ručně nahranou
     # nikdy nemažeme - jen se odpojila v attach() výše.
     if previous_file_id and previous_was_generated:
-        still_used = db.query(models.Attachment).filter(
-            models.Attachment.file_id == previous_file_id
-        ).count()
+        still_used = (
+            db.query(models.Attachment)
+            .filter(models.Attachment.file_id == previous_file_id)
+            .count()
+        )
         if still_used == 0:
             old_file = db.query(models.File).filter(models.File.id == previous_file_id).first()
             if old_file:

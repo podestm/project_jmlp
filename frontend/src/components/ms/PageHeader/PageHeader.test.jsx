@@ -4,7 +4,14 @@ import PageHeader from './PageHeader.jsx';
 
 describe('PageHeader', () => {
   it('má jediný H1 a nadtitulek i akce', () => {
-    render(<PageHeader eyebrow="Archiv zpráv" title="Aktuality" description="Zprávy od pořadatelů" actions={<button type="button">Kalendář</button>} />);
+    render(
+      <PageHeader
+        eyebrow="Archiv zpráv"
+        title="Aktuality"
+        description="Zprávy od pořadatelů"
+        actions={<button type="button">Kalendář</button>}
+      />,
+    );
     expect(screen.getByRole('heading', { level: 1, name: 'Aktuality' })).toBeInTheDocument();
     expect(screen.getByText('Archiv zpráv')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Kalendář' })).toBeInTheDocument();

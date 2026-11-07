@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { czechPlural, defaultSeasonId, raceDate, raceMethod, raceOrder, raceSeasonId, registrationState, startOfToday } from './races.js';
+import {
+  czechPlural,
+  defaultSeasonId,
+  raceDate,
+  raceMethod,
+  raceOrder,
+  raceSeasonId,
+  registrationState,
+  startOfToday,
+} from './races.js';
 
 const today = startOfToday(new Date('2026-10-03T15:00:00'));
 

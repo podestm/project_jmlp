@@ -1,9 +1,10 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 
 router = APIRouter(prefix="/auth", tags=["admin-auth"])
 
@@ -25,8 +26,7 @@ def login(login_data: schemas.AdminLogin, request: Request, db: Session = Depend
     if admin.role != "admin":
         auth.register_failed_login(login_data.email, request)
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Nemáte oprávnění pro administraci"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Nemáte oprávnění pro administraci"
         )
 
     auth.reset_login_attempts(login_data.email, request)
@@ -43,31 +43,34 @@ def login(login_data: schemas.AdminLogin, request: Request, db: Session = Depend
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "expires_in": auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "expires_in": auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
 
 @router.post("/register", response_model=schemas.AdminUser)
-def register_admin(admin_data: schemas.AdminUserCreate, db: Session = Depends(get_db), current_admin: models.AdminUser = Depends(auth.require_role("admin"))):
+def register_admin(
+    admin_data: schemas.AdminUserCreate,
+    db: Session = Depends(get_db),
+    current_admin: models.AdminUser = Depends(auth.require_role("admin")),
+):
     """Register new admin user. Only existing admins can create new admins."""
 
     if admin_data.role not in ("admin", "timekeeper"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Neplatná role. Použijte 'admin' nebo 'timekeeper'"
+            detail="Neplatná role. Použijte 'admin' nebo 'timekeeper'",
         )
-    
+
     # Check if email already exists
-    existing_admin = db.query(models.AdminUser).filter(models.AdminUser.email == admin_data.email).first()
+    existing_admin = (
+        db.query(models.AdminUser).filter(models.AdminUser.email == admin_data.email).first()
+    )
     if existing_admin:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email je již používán"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email je již používán")
+
     # Hash the password
     hashed_password = auth.get_password_hash(admin_data.password)
-    
+
     # Create new admin user
     new_admin = models.AdminUser(
         email=admin_data.email,
@@ -76,13 +79,13 @@ def register_admin(admin_data: schemas.AdminUserCreate, db: Session = Depends(ge
         is_active=admin_data.is_active,
         role=admin_data.role,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
-    
+
     db.add(new_admin)
     db.commit()
     db.refresh(new_admin)
-    
+
     return new_admin
 
 
@@ -103,6 +106,7 @@ def refresh_token(current_admin: models.AdminUser = Depends(auth.get_current_adm
     z databáze, ne z původního tokenu.
     """
     if current_admin.role not in ("admin",):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Nemáte oprávnění pro administrace")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Nemáte oprávnění pro administrace"
+        )
     return auth.issue_token(current_admin)
-

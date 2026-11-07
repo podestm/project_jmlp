@@ -33,7 +33,9 @@ export default function RacerSearchResults({ racers, isSearching, hasQuery = fal
         {racers.slice(0, MAX_SHOWN).map((racer) => (
           <li key={racer.id}>
             <button type="button" className={styles.racer} onClick={() => onSelect(racer)}>
-              <span className={styles.name}>{racer.surname} {racer.name}</span>
+              <span className={styles.name}>
+                {racer.surname} {racer.name}
+              </span>
               <span className={styles.meta}>
                 {racer.year} · {getSexLabel(racer.sex)}
                 {racer.club_name && ` · ${racer.club_name}`}
@@ -45,7 +47,9 @@ export default function RacerSearchResults({ racers, isSearching, hasQuery = fal
         ))}
       </ul>
       {racers.length > MAX_SHOWN && (
-        <p className={styles.more}>… a dalších {racers.length - MAX_SHOWN} závodníků – upřesněte hledání</p>
+        <p className={styles.more}>
+          … a dalších {racers.length - MAX_SHOWN} závodníků – upřesněte hledání
+        </p>
       )}
     </div>
   );

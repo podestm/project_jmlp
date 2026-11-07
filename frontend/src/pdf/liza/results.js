@@ -23,7 +23,7 @@ import {
   drawLogo,
   formatDiff,
   formatShortDate,
-  formatTime
+  formatTime,
 } from './common.js';
 
 /** runMode celkové listiny (vedle '1' a '2' pro jednotlivá kola). */
@@ -59,22 +59,38 @@ const LABELS = {
   BRANEK: { width: 33.88, right: 158.44 },
   PODMÍNKY: { width: 43.36, right: 158.44 },
   'ČAS STARTU': { width: 50.18, right: 158.42 },
-  'DÉLKA TRATI': { width: 51.69, right: 158.37 }
+  'DÉLKA TRATI': { width: 51.69, right: 158.37 },
 };
 
-function headerRow(canvas, { label, labelBase, boxTop, boxBottom, valueBase, values, wide = false }) {
+function headerRow(
+  canvas,
+  { label, labelBase, boxTop, boxBottom, valueBase, values, wide = false },
+) {
   const measured = LABELS[label] || { right: LABEL_RIGHT };
-  canvas.text(label, measured.right, labelBase, { ...BOLD8, align: 'right', fitWidth: measured.width });
+  canvas.text(label, measured.right, labelBase, {
+    ...BOLD8,
+    align: 'right',
+    fitWidth: measured.width,
+  });
   if (wide) {
     canvas.rect(LEFT_BOX[0], boxTop, RIGHT_BOX[1], boxBottom, { fill: '#FFFFFF' });
-    canvas.text(values[0] || '', (LEFT_BOX[0] + RIGHT_BOX[1]) / 2, valueBase, { ...VALUE, maxWidth: 316 });
+    canvas.text(values[0] || '', (LEFT_BOX[0] + RIGHT_BOX[1]) / 2, valueBase, {
+      ...VALUE,
+      maxWidth: 316,
+    });
     return;
   }
   canvas.rect(LEFT_BOX[0], boxTop, LEFT_BOX[1], boxBottom, { fill: '#FFFFFF' });
-  canvas.text(values[0] || '', (LEFT_BOX[0] + LEFT_BOX[1]) / 2, valueBase, { ...VALUE, maxWidth: 148 });
+  canvas.text(values[0] || '', (LEFT_BOX[0] + LEFT_BOX[1]) / 2, valueBase, {
+    ...VALUE,
+    maxWidth: 148,
+  });
   if (values.length > 1) {
     canvas.rect(RIGHT_BOX[0], boxTop, RIGHT_BOX[1], boxBottom, { fill: '#FFFFFF' });
-    canvas.text(values[1] || '', (RIGHT_BOX[0] + RIGHT_BOX[1]) / 2, valueBase, { ...VALUE, maxWidth: 148 });
+    canvas.text(values[1] || '', (RIGHT_BOX[0] + RIGHT_BOX[1]) / 2, valueBase, {
+      ...VALUE,
+      maxWidth: 148,
+    });
   }
 }
 
@@ -92,38 +108,107 @@ function drawRaceHeader(canvas, header, runCount) {
 
   canvas.text('ČÍSLO ZÁVODU:', 315.26, 89.52, { ...BOLD8, align: 'right', fitWidth: 63.02 });
   canvas.rect(333.36, 77.76, 458.64, 97.2, { fill: '#FFFFFF' });
-  canvas.text(header.raceNumberLabel || '', 396.0, 92.4, { size: 14.04, bold: true, align: 'center', maxWidth: 124 });
+  canvas.text(header.raceNumberLabel || '', 396.0, 92.4, {
+    size: 14.04,
+    bold: true,
+    align: 'center',
+    maxWidth: 124,
+  });
 
   canvas.rect(333.36, 102.24, 531.36, 121.68, { fill: '#FFFFFF' });
-  canvas.text(header.organizerName || '', 432.36, 116.88, { size: 14.04, bold: true, align: 'center', maxWidth: 196 });
+  canvas.text(header.organizerName || '', 432.36, 116.88, {
+    size: 14.04,
+    bold: true,
+    align: 'center',
+    maxWidth: 196,
+  });
   canvas.rect(333.36, 127.44, 531.36, 146.88, { fill: '#FFFFFF' });
   const datePlace = [formatShortDate(header.raceDate), header.arealName].filter(Boolean).join(' ');
   canvas.text(datePlace, 432.36, 141.36, { size: 12, bold: true, align: 'center', maxWidth: 196 });
 
-  headerRow(canvas, { label: 'ŘEDITEL ZÁVODU', labelBase: 111.12, boxTop: 102.24, boxBottom: 114.48, valueBase: 111.84, values: [header.raceDirector] });
-  headerRow(canvas, { label: 'TD', labelBase: 126.96, boxTop: 118.08, boxBottom: 130.32, valueBase: 127.68, values: [header.technicalDelegate] });
-  headerRow(canvas, { label: 'HLAVNÍ ČASOMĚŘIČ', labelBase: 142.8, boxTop: 133.92, boxBottom: 146.16, valueBase: 143.52, values: [header.chiefTimekeeper] });
+  headerRow(canvas, {
+    label: 'ŘEDITEL ZÁVODU',
+    labelBase: 111.12,
+    boxTop: 102.24,
+    boxBottom: 114.48,
+    valueBase: 111.84,
+    values: [header.raceDirector],
+  });
+  headerRow(canvas, {
+    label: 'TD',
+    labelBase: 126.96,
+    boxTop: 118.08,
+    boxBottom: 130.32,
+    valueBase: 127.68,
+    values: [header.technicalDelegate],
+  });
+  headerRow(canvas, {
+    label: 'HLAVNÍ ČASOMĚŘIČ',
+    labelBase: 142.8,
+    boxTop: 133.92,
+    boxBottom: 146.16,
+    valueBase: 143.52,
+    values: [header.chiefTimekeeper],
+  });
 
-  const runs = [1, 2].slice(0, runCount).map((number) => (
-    (header.runs || []).find((run) => Number(run.run_number) === number) || {}
-  ));
+  const runs = [1, 2]
+    .slice(0, runCount)
+    .map((number) => (header.runs || []).find((run) => Number(run.run_number) === number) || {});
   canvas.text('1.KOLO', 243.71, 162.24, { ...BOLD10, align: 'center' });
   if (runCount > 1) canvas.text('2.KOLO', 411.47, 163.68, { ...BOLD10, align: 'center' });
 
-  const perRun = (key, suffix = '') => runs.map((run) => {
-    const value = runValue(run, key);
-    return value ? `${value}${suffix}` : '';
+  const perRun = (key, suffix = '') =>
+    runs.map((run) => {
+      const value = runValue(run, key);
+      return value ? `${value}${suffix}` : '';
+    });
+  headerRow(canvas, {
+    label: 'STAVITEL TRATI',
+    labelBase: 175.92,
+    boxTop: 165.6,
+    boxBottom: 177.84,
+    valueBase: 175.2,
+    values: perRun('course_setter'),
   });
-  headerRow(canvas, { label: 'STAVITEL TRATI', labelBase: 175.92, boxTop: 165.6, boxBottom: 177.84, valueBase: 175.2, values: perRun('course_setter') });
-  headerRow(canvas, { label: 'BRANEK', labelBase: 191.76, boxTop: 182.16, boxBottom: 194.4, valueBase: 191.76, values: perRun('gates_count') });
-  headerRow(canvas, { label: 'PODMÍNKY', labelBase: 207.6, boxTop: 199.44, boxBottom: 211.68, valueBase: 209.04, values: perRun('conditions') });
-  headerRow(canvas, { label: 'ČAS STARTU', labelBase: 223.44, boxTop: 216.0, boxBottom: 228.24, valueBase: 225.6, values: perRun('start_time') });
+  headerRow(canvas, {
+    label: 'BRANEK',
+    labelBase: 191.76,
+    boxTop: 182.16,
+    boxBottom: 194.4,
+    valueBase: 191.76,
+    values: perRun('gates_count'),
+  });
+  headerRow(canvas, {
+    label: 'PODMÍNKY',
+    labelBase: 207.6,
+    boxTop: 199.44,
+    boxBottom: 211.68,
+    valueBase: 209.04,
+    values: perRun('conditions'),
+  });
+  headerRow(canvas, {
+    label: 'ČAS STARTU',
+    labelBase: 223.44,
+    boxTop: 216.0,
+    boxBottom: 228.24,
+    valueBase: 225.6,
+    values: perRun('start_time'),
+  });
   // Délka trati je v LiZe jedna pro celý závod. Samotné číslo jsou metry
   // ("120" -> "120m"), jinak volný text jako v LiZe ("400m, 7 stanovišť").
-  const length = perRun('course_length_m')
-    .map((value) => (/^\d+$/.test(String(value).trim()) ? `${String(value).trim()}m` : value))
-    .find(Boolean) || '';
-  headerRow(canvas, { label: 'DÉLKA TRATI', labelBase: 239.28, boxTop: 232.56, boxBottom: 244.8, valueBase: 242.16, values: [length], wide: true });
+  const length =
+    perRun('course_length_m')
+      .map((value) => (/^\d+$/.test(String(value).trim()) ? `${String(value).trim()}m` : value))
+      .find(Boolean) || '';
+  headerRow(canvas, {
+    label: 'DÉLKA TRATI',
+    labelBase: 239.28,
+    boxTop: 232.56,
+    boxBottom: 244.8,
+    valueBase: 242.16,
+    values: [length],
+    wide: true,
+  });
 }
 
 function drawTitleBand(canvas, top, title, { runCount, showPoints, mode, run }) {
@@ -187,7 +272,8 @@ function drawEntry(canvas, entry, bottom, { runCount, mode, run }) {
 
   canvas.text(entry.surname || '', 52.56, bottom - 10.92, { ...BOLD10, maxWidth: 136 });
   canvas.text(entry.firstName || '', 51.12, bottom - 2.04, { ...REGULAR8, maxWidth: 95 });
-  if (entry.bib != null) canvas.text(String(entry.bib), 157.0, bottom - 0.6, { ...REGULAR8, align: 'right' });
+  if (entry.bib != null)
+    canvas.text(String(entry.bib), 157.0, bottom - 0.6, { ...REGULAR8, align: 'right' });
   if (entry.year != null) canvas.text(String(entry.year), 163.68, bottom - 0.6, REGULAR8);
   canvas.text(entry.slcrId || '', 189.36, bottom - 0.6, { ...REGULAR8, maxWidth: 100 });
   canvas.text(entry.club || '', 190.08, bottom - 11.76, { ...REGULAR8, maxWidth: 118 });
@@ -204,14 +290,17 @@ function drawEntry(canvas, entry, bottom, { runCount, mode, run }) {
   // i sečtená (oba časy, součet, ztráta) - jen bez bodů, ty patří celkové.
   const firstRunOnly = mode === 'run' && run === 1;
   canvas.text(formatTime(entry.time1), 384.52, bottom - 8.4, { ...REGULAR8, align: 'right' });
-  if (runCount > 1 && !firstRunOnly) canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
+  if (runCount > 1 && !firstRunOnly)
+    canvas.text(formatTime(entry.time2), 427.0, bottom - 8.16, { ...REGULAR8, align: 'right' });
 
   if (entry.rank == null) return;
   // Ztráta na vítěze se tiskne vždy - u listiny 1. kola na vítěze 1. kola.
-  if (entry.diff != null && entry.rank !== 1) canvas.text(formatDiff(entry.diff), 493.92, bottom - 8.16, REGULAR8);
+  if (entry.diff != null && entry.rank !== 1)
+    canvas.text(formatDiff(entry.diff), 493.92, bottom - 8.16, REGULAR8);
   if (firstRunOnly) return;
   canvas.text(formatTime(entry.total), 481.66, bottom - 7.32, { ...BOLD10, align: 'right' });
-  if (entry.points && mode !== 'run') canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
+  if (entry.points && mode !== 'run')
+    canvas.text(String(entry.points), 547.92, bottom - 8.52, { ...REGULAR8, align: 'right' });
 }
 
 /** Pruh sponzorů pod posledním řádkem - mezi dvěma linkami, jako v LiZe. */
@@ -221,7 +310,8 @@ function drawSponsors(canvas, sponsors, lastRowBottom) {
   if (sponsors?.dataUrl) {
     const maxWidth = 540.72;
     const maxHeight = 77.76;
-    const ratio = sponsors.width && sponsors.height ? sponsors.width / sponsors.height : maxWidth / maxHeight;
+    const ratio =
+      sponsors.width && sponsors.height ? sponsors.width / sponsors.height : maxWidth / maxHeight;
     let width = maxWidth;
     let height = width / ratio;
     if (height > maxHeight) {
@@ -245,10 +335,18 @@ function drawSponsors(canvas, sponsors, lastRowBottom) {
  *                                       total, diff, points }] }] už seřazené
  * @param {string} [options.posted]     čas vyvěšení ("10:44") - tiskne se ve spodní liště listiny kola
  */
-export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', run = 1, categories = [], posted = null }) {
+export function buildResultsDoc({
+  header = null,
+  runCount = 1,
+  mode = 'final',
+  run = 1,
+  categories = [],
+  posted = null,
+}) {
   const canvas = new PdfCanvas(A4_PORTRAIT);
   const runs = Math.min(Math.max(Number(runCount) || 1, 1), 2);
-  const title = mode === 'run' ? titleForRun(run) : (mode === 'interim' ? TITLE_INTERIM : TITLE_FINAL);
+  const title =
+    mode === 'run' ? titleForRun(run) : mode === 'interim' ? TITLE_INTERIM : TITLE_FINAL;
   const options = { runCount: runs, showPoints: mode !== 'run', mode, run: Number(run) };
 
   let y;
@@ -289,4 +387,3 @@ export function buildResultsDoc({ header = null, runCount = 1, mode = 'final', r
 
   return canvas.toDocDefinition({ title });
 }
-

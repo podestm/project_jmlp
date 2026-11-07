@@ -9,15 +9,44 @@ Protějšek na klientovi je rankEntriesByTime v
 frontend/src/components/timekeeper/ResultsTable.jsx - musí zůstat v souladu,
 protože offline se pořadí i body počítají tam.
 """
+
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, List, Optional, Sequence
+from typing import Any
 
 # Bodová tabulka Světového poháru FIS pro 1.-30. místo, od 31. místa 0 bodů.
 POINTS_TABLE = (
-    100, 80, 60, 50, 45, 40, 36, 32, 29, 26,
-    24, 22, 20, 18, 16, 15, 14, 13, 12, 11,
-    10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+    100,
+    80,
+    60,
+    50,
+    45,
+    40,
+    36,
+    32,
+    29,
+    26,
+    24,
+    22,
+    20,
+    18,
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
 )
 
 # Nedokončivší se řadí na konec kategorie v tomhle pořadí.
@@ -25,20 +54,21 @@ POINTS_TABLE = (
 STATUS_ORDER = {"DSQ": 1, "DNF": 2, "DNS": 3}
 
 _NO_STATUS = 99
-_NO_START_NUMBER = 10 ** 9
+_NO_START_NUMBER = 10**9
 
 
 @dataclass(frozen=True)
 class RankedEntry:
     """Řádek startovní listiny s dopočítaným pořadím, body a ztrátou."""
+
     row: Any
-    rank: Optional[int]          # None u DNF/DNS/DSQ
-    points: int                  # 0 u DNF/DNS/DSQ i od 31. místa
-    diff: Optional[Decimal]      # ztráta na vítěze kategorie; None u 1. místa
-    status: Optional[str]        # 'DNF' | 'DNS' | 'DSQ' | None
+    rank: int | None  # None u DNF/DNS/DSQ
+    points: int  # 0 u DNF/DNS/DSQ i od 31. místa
+    diff: Decimal | None  # ztráta na vítěze kategorie; None u 1. místa
+    status: str | None  # 'DNF' | 'DNS' | 'DSQ' | None
 
 
-def entry_status(row: Any) -> Optional[str]:
+def entry_status(row: Any) -> str | None:
     if getattr(row, "dsq", False):
         return "DSQ"
     if getattr(row, "dnf", False):
@@ -48,7 +78,7 @@ def entry_status(row: Any) -> Optional[str]:
     return None
 
 
-def compute_time_sum(time1, time2, dnf: bool, dns: bool, dsq: bool) -> Optional[Decimal]:
+def compute_time_sum(time1, time2, dnf: bool, dns: bool, dsq: bool) -> Decimal | None:
     """Celkový čas. Nedokončený závod nemá součet, jedno kolo se bere jak je."""
     if dnf or dns or dsq:
         return None
@@ -61,7 +91,7 @@ def compute_time_sum(time1, time2, dnf: bool, dns: bool, dsq: bool) -> Optional[
     return None
 
 
-def points_for_rank(rank: Optional[int]) -> int:
+def points_for_rank(rank: int | None) -> int:
     """Body za umístění. Soutěžní řád: od 30. místa za každé umístění po 1 bodu."""
     if not rank or rank < 1:
         return 0
@@ -89,7 +119,7 @@ def entry_sort_key(row: Any) -> tuple:
     )
 
 
-def rank_category(rows: Sequence[Any]) -> List[RankedEntry]:
+def rank_category(rows: Sequence[Any]) -> list[RankedEntry]:
     """Přidělí pořadí, body a ztrátu v rámci jedné kategorie.
 
     Shodný čas znamená shodné pořadí i shodné body a následující místo se
@@ -97,11 +127,11 @@ def rank_category(rows: Sequence[Any]) -> List[RankedEntry]:
     """
     ordered = sorted(rows, key=entry_sort_key)
 
-    ranked: List[RankedEntry] = []
+    ranked: list[RankedEntry] = []
     finished = 0
-    previous_time: Optional[Decimal] = None
+    previous_time: Decimal | None = None
     previous_rank = 0
-    winner_time: Optional[Decimal] = None
+    winner_time: Decimal | None = None
 
     for row in ordered:
         status = entry_status(row)
@@ -115,30 +145,32 @@ def rank_category(rows: Sequence[Any]) -> List[RankedEntry]:
         finished += 1
 
         if previous_time is not None and current_time == previous_time:
-            rank = previous_rank          # shoda - stejné pořadí
+            rank = previous_rank  # shoda - stejné pořadí
         else:
-            rank = finished               # další odlišný čas bere průběžný počet
+            rank = finished  # další odlišný čas bere průběžný počet
 
         if winner_time is None:
             winner_time = current_time
 
         previous_time, previous_rank = current_time, rank
-        ranked.append(RankedEntry(
-            row=row,
-            rank=rank,
-            points=points_for_rank(rank),
-            diff=None if rank == 1 else current_time - winner_time,
-            status=None,
-        ))
+        ranked.append(
+            RankedEntry(
+                row=row,
+                rank=rank,
+                points=points_for_rank(rank),
+                diff=None if rank == 1 else current_time - winner_time,
+                status=None,
+            )
+        )
 
     return ranked
 
 
-def format_time(value: Optional[Decimal]) -> str:
+def format_time(value: Decimal | None) -> str:
     """Čas s desetinnou čárkou: 30,27"""
     return "" if value is None else f"{value:.2f}".replace(".", ",")
 
 
-def format_diff(value: Optional[Decimal]) -> str:
+def format_diff(value: Decimal | None) -> str:
     """Ztráta na vítěze: +2,10"""
     return "" if value is None else f"+{value:.2f}".replace(".", ",")

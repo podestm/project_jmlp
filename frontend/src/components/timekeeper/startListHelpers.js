@@ -27,20 +27,22 @@ export const activeEntries = (entries) => (entries || []).filter((entry) => !isE
  *
  * @param {Array} categories [{ ..., entries }]
  */
-export const withoutExcluded = (categories) => (categories || [])
-  .map((category) => ({ ...category, entries: activeEntries(category.entries) }))
-  .filter((category) => category.entries.length > 0);
+export const withoutExcluded = (categories) =>
+  (categories || [])
+    .map((category) => ({ ...category, entries: activeEntries(category.entries) }))
+    .filter((category) => category.entries.length > 0);
 
 /** Start-list order: category rank, then start number, then id. */
-export const sortStartListEntries = (entries) => [...entries].sort((a, b) => {
-  const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
-  const bRank = b.category_rank ?? Number.MAX_SAFE_INTEGER;
-  if (aRank !== bRank) return aRank - bRank;
-  const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
-  const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
-  if (aStart !== bStart) return aStart - bStart;
-  return a.id - b.id;
-});
+export const sortStartListEntries = (entries) =>
+  [...entries].sort((a, b) => {
+    const aRank = a.category_rank ?? Number.MAX_SAFE_INTEGER;
+    const bRank = b.category_rank ?? Number.MAX_SAFE_INTEGER;
+    if (aRank !== bRank) return aRank - bRank;
+    const aStart = a.start_number ?? Number.MAX_SAFE_INTEGER;
+    const bStart = b.start_number ?? Number.MAX_SAFE_INTEGER;
+    if (aStart !== bStart) return aStart - bStart;
+    return a.id - b.id;
+  });
 
 const isBlank = (value) => value === '' || value === null || value === undefined;
 
@@ -62,29 +64,33 @@ export const findRaceNumberOption = (options, displayNumber) => {
  *   `null` is the add-a-racer path: nothing to exempt, every entry conflicts.
  * @returns {string} Czech error message, or '' when the number is usable
  */
-export const getRaceNumberValidationError = (rawNumber, { options = [], entries = [], excludeEntryId = null } = {}) => {
+export const getRaceNumberValidationError = (
+  rawNumber,
+  { options = [], entries = [], excludeEntryId = null } = {},
+) => {
   if (isBlank(rawNumber)) return '';
   if (!isRaceNumberCode(rawNumber)) {
     return 'Číslo zadejte jako písmeno sady a číslo dresu, např. A12';
   }
   const displayNumber = normalizeRaceNumberCode(rawNumber);
 
-  const currentEntry = excludeEntryId != null
-    ? entries.find((entry) => entry.id === excludeEntryId) || null
-    : null;
-  const isCurrentEntryNumber = currentEntry
-    && currentEntry.race_number_display != null
-    && normalizeRaceNumberCode(currentEntry.race_number_display) === displayNumber;
+  const currentEntry =
+    excludeEntryId != null ? entries.find((entry) => entry.id === excludeEntryId) || null : null;
+  const isCurrentEntryNumber =
+    currentEntry &&
+    currentEntry.race_number_display != null &&
+    normalizeRaceNumberCode(currentEntry.race_number_display) === displayNumber;
 
   if (!findRaceNumberOption(options, displayNumber) && !isCurrentEntryNumber) {
     return `St. číslo ${displayNumber} neexistuje nebo je neaktivní`;
   }
 
-  const conflict = entries.find((entry) => (
-    entry.id !== excludeEntryId
-    && entry.race_number_display != null
-    && normalizeRaceNumberCode(entry.race_number_display) === displayNumber
-  ));
+  const conflict = entries.find(
+    (entry) =>
+      entry.id !== excludeEntryId &&
+      entry.race_number_display != null &&
+      normalizeRaceNumberCode(entry.race_number_display) === displayNumber,
+  );
 
   if (conflict) {
     return `St. číslo ${displayNumber} už má ${conflict.racer_surname} ${conflict.racer_name}`;
@@ -121,18 +127,25 @@ export const categoryLabel = (category) => {
  * @param {string} [noMatchLabel] - shown when no category matches;
  *   the two screens word this differently, so it is passed in.
  */
-export const resolveCategoryPreview = (categories, year, sex, pendingLabel, noMatchLabel = pendingLabel) => {
+export const resolveCategoryPreview = (
+  categories,
+  year,
+  sex,
+  pendingLabel,
+  noMatchLabel = pendingLabel,
+) => {
   if (!year || !sex || categories.length === 0) return pendingLabel;
 
   const parsedYear = parseInt(year, 10);
   const parsedSex = parseInt(sex, 10);
   if (Number.isNaN(parsedYear) || Number.isNaN(parsedSex)) return pendingLabel;
 
-  const match = categories.find((category) => (
-    category.min_birth_year <= parsedYear
-    && category.max_birth_year >= parsedYear
-    && (category.sex === 0 || category.sex === parsedSex)
-  ));
+  const match = categories.find(
+    (category) =>
+      category.min_birth_year <= parsedYear &&
+      category.max_birth_year >= parsedYear &&
+      (category.sex === 0 || category.sex === parsedSex),
+  );
 
   if (!match) return noMatchLabel;
   return categoryLabel(match);
@@ -157,7 +170,7 @@ export const groupEntriesByCategory = (entries) => {
         category_id: entry.category_id ?? null,
         category_name: entry.category_name || 'Bez kategorie',
         rank: entry.category_rank ?? Number.MAX_SAFE_INTEGER,
-        entries: []
+        entries: [],
       });
     }
     groups[indexByKey.get(key)].entries.push(entry);

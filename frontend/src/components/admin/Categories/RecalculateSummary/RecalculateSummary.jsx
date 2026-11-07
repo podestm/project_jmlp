@@ -14,8 +14,16 @@ export default function RecalculateSummary({ result, onDismiss }) {
     <section className={styles.summary} aria-labelledby="prepocet-nadpis">
       <header className={styles.head}>
         <Icon name="check" size={22} className={styles.icon} />
-        <h3 id="prepocet-nadpis" className={styles.title}>Přepočet kategorií dokončen</h3>
-        <IconButton icon="close" variant="quiet" label="Skrýt výsledky" onClick={onDismiss} className={styles.close} />
+        <h3 id="prepocet-nadpis" className={styles.title}>
+          Přepočet kategorií dokončen
+        </h3>
+        <IconButton
+          icon="close"
+          variant="quiet"
+          label="Skrýt výsledky"
+          onClick={onDismiss}
+          className={styles.close}
+        />
       </header>
 
       {result.summary && (
@@ -28,7 +36,11 @@ export default function RecalculateSummary({ result, onDismiss }) {
 
       {result.updates?.length > 0 && (
         <TableScroll label="Aktualizovaní závodníci" className={styles.updates}>
-          <Table caption={`Aktualizováno ${result.updates.length} závodníků`} density="compact" stickyHeader>
+          <Table
+            caption={`Aktualizováno ${result.updates.length} závodníků`}
+            density="compact"
+            stickyHeader
+          >
             <thead>
               <tr>
                 <th scope="col">Závodník</th>

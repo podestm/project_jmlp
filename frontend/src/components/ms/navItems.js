@@ -71,7 +71,13 @@ export const timekeeperNav = [
   { to: '/timekeeper/timing', label: 'Zadávání časů', short: 'Časy', icon: 'stopwatch' },
   { to: '/timekeeper/results', label: 'Výsledky', icon: 'trophy' },
   { to: '/timekeeper/race-numbers', label: 'Čísla', icon: 'numbers', group: 'settings' },
-  { to: '/timekeeper/sync', label: 'Synchronizace', short: 'Synchr.', icon: 'sync', group: 'settings' },
+  {
+    to: '/timekeeper/sync',
+    label: 'Synchronizace',
+    short: 'Synchr.',
+    icon: 'sync',
+    group: 'settings',
+  },
   { to: '/timekeeper/device', label: 'Zařízení', icon: 'plug', group: 'settings' },
 ];
 
@@ -79,6 +85,8 @@ export const timekeeperNav = [
 export const isNavActive = (item, pathname) => {
   if (pathname === item.to) return true;
   if (item.end) return false;
-  return pathname.startsWith(`${item.to}/`)
-    || (item.alsoActive || []).some((prefix) => pathname.startsWith(prefix));
+  return (
+    pathname.startsWith(`${item.to}/`) ||
+    (item.alsoActive || []).some((prefix) => pathname.startsWith(prefix))
+  );
 };

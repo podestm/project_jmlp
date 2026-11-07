@@ -8,11 +8,12 @@ pageMeta.js; při změně upravit obojí.
 
 Tady je i obsah /robots.txt a /sitemap.xml.
 """
+
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from html import escape
-from typing import Iterable, List, Optional
 from xml.sax.saxutils import escape as xml_escape
 
 from sqlalchemy import text
@@ -36,7 +37,7 @@ class PageMeta:
     description: str = DEFAULT_DESCRIPTION
 
 
-def public_title(name: Optional[str] = None) -> str:
+def public_title(name: str | None = None) -> str:
     return f"{name} · {CUP_NAME}" if name else CUP_NAME
 
 
@@ -80,7 +81,7 @@ _HOST_RE = re.compile(r"^[a-z0-9.-]+(:\d{1,5})?$")
 _LOCAL_HOSTS = ("localhost", "127.0.0.1", "backend")
 
 
-def site_origin(host: Optional[str]) -> str:
+def site_origin(host: str | None) -> str:
     """Kořen webu podle hlavičky Host („https://podm12.com“).
 
     TLS končí na proxy před kontejnery, takže schéma z požadavku je http -
@@ -100,14 +101,14 @@ def site_origin(host: Optional[str]) -> str:
 @dataclass(frozen=True)
 class RaceInfo:
     id: int
-    datum: Optional[date]
+    datum: date | None
     season_id: int
-    areal: Optional[str]
-    organizer: Optional[str]
-    lastmod: Optional[date]
+    areal: str | None
+    organizer: str | None
+    lastmod: date | None
 
 
-def _date_label(value: Optional[date]) -> Optional[str]:
+def _date_label(value: date | None) -> str | None:
     return f"{value.day}. {value.month}. {value.year}" if value else None
 
 
@@ -115,10 +116,14 @@ def race_meta(race: RaceInfo) -> PageMeta:
     """„Kraličák, 17. 1. 2027 · JMLP“ - stejně jako raceMeta ve frontendu."""
     date_label = _date_label(race.datum)
     name = ", ".join(part for part in (race.areal or "Závod", date_label) if part)
-    where = " ".join(part for part in (
-        race.areal and f"v areálu {race.areal}",
-        date_label and f"dne {date_label}",
-    ) if part)
+    where = " ".join(
+        part
+        for part in (
+            race.areal and f"v areálu {race.areal}",
+            date_label and f"dne {date_label}",
+        )
+        if part
+    )
     description = (
         f"Závod Jihomoravského lyžařského poháru{f' {where}' if where else ''}"
         f"{f', pořádá {race.organizer}' if race.organizer else ''}. Propozice, přihlášky a výsledky."
@@ -126,13 +131,13 @@ def race_meta(race: RaceInfo) -> PageMeta:
     return PageMeta(f"{name} · {SHORT_NAME}", description)
 
 
-def _as_date(value) -> Optional[date]:
+def _as_date(value) -> date | None:
     if isinstance(value, datetime):
         return value.date()
     return value
 
 
-def _lastmod(datum: Optional[date], *uploads, today: date) -> Optional[date]:
+def _lastmod(datum: date | None, *uploads, today: date) -> date | None:
     """Poslední změna stránky závodu: odjetý závod (den konání) nebo
     nahrání propozic či výsledků - podle toho, co je novější. Budoucí
     datum se nepočítá, závod bez obojího lastmod nemá."""
@@ -157,7 +162,7 @@ _RACE_SQL = f"""
 """
 
 
-def _known(value: Optional[str]) -> Optional[str]:
+def _known(value: str | None) -> str | None:
     value = fix_encoding(value) if value else None
     return value or None
 
@@ -169,18 +174,20 @@ def _race_info(row, today: date) -> RaceInfo:
         season_id=row.season_id,
         areal=_known(row.areal_name),
         organizer=_known(row.organizer_name),
-        lastmod=_lastmod(row.datum, row.proposition_uploaded_at, row.results_uploaded_at, today=today),
+        lastmod=_lastmod(
+            row.datum, row.proposition_uploaded_at, row.results_uploaded_at, today=today
+        ),
     )
 
 
-def public_races(db: Session, today: Optional[date] = None) -> List[RaceInfo]:
+def public_races(db: Session, today: date | None = None) -> list[RaceInfo]:
     """Závody, které web ukazuje (s číslem závodu, jako GET /races/)."""
     today = today or date.today()
     rows = db.execute(text(_RACE_SQL + " ORDER BY r.datum DESC, r.id DESC")).fetchall()
     return [_race_info(row, today) for row in rows]
 
 
-def public_race(db: Session, race_id: int, today: Optional[date] = None) -> Optional[RaceInfo]:
+def public_race(db: Session, race_id: int, today: date | None = None) -> RaceInfo | None:
     row = db.execute(text(_RACE_SQL + " AND r.id = :race_id"), {"race_id": race_id}).fetchone()
     return _race_info(row, today or date.today()) if row else None
 
@@ -191,7 +198,7 @@ def public_race(db: Session, race_id: int, today: Optional[date] = None) -> Opti
 _RACE_PATH = re.compile(r"^/zavod/(\d+)/?$")
 
 
-def preview_meta(db: Session, path: str) -> Optional[PageMeta]:
+def preview_meta(db: Session, path: str) -> PageMeta | None:
     """Metadata veřejné stránky, nebo None, když stránka neexistuje."""
     path = "/" + path.strip("/")
     if path in PAGES:
@@ -256,7 +263,7 @@ def robots_txt(origin: str) -> str:
     )
 
 
-def _url_entry(loc: str, lastmod: Optional[date]) -> str:
+def _url_entry(loc: str, lastmod: date | None) -> str:
     lastmod_tag = f"<lastmod>{lastmod.isoformat()}</lastmod>" if lastmod else ""
     return f"  <url><loc>{xml_escape(loc)}</loc>{lastmod_tag}</url>"
 

@@ -4,8 +4,13 @@ import userEvent from '@testing-library/user-event';
 import RegisteredRacers from './RegisteredRacers.jsx';
 
 const racer = (lastName, sex, category) => ({
-  firstName: 'X', lastName, sex, birthYear: 2017, idSlcr: null,
-  category_id: category?.id ?? null, category_name: category?.name ?? null,
+  firstName: 'X',
+  lastName,
+  sex,
+  birthYear: 2017,
+  idSlcr: null,
+  category_id: category?.id ?? null,
+  category_name: category?.name ?? null,
 });
 const DIVKY = { id: 8, name: 'Přípravka dívky' };
 const CHLAPCI = { id: 7, name: 'Přípravka chlapci' };
@@ -19,8 +24,12 @@ const REGISTRATIONS = {
   ],
 };
 
-const renderList = (registrations = REGISTRATIONS) => render(<RegisteredRacers registrations={registrations} status="ready" />);
-const surnames = () => screen.queryAllByRole('listitem').map((item) => item.querySelector('span span').textContent.split(' ')[0]);
+const renderList = (registrations = REGISTRATIONS) =>
+  render(<RegisteredRacers registrations={registrations} status="ready" />);
+const surnames = () =>
+  screen
+    .queryAllByRole('listitem')
+    .map((item) => item.querySelector('span span').textContent.split(' ')[0]);
 
 describe('filtr přihlášených na webu', () => {
   it('filtruje podle klubu i kategorie a jde zrušit', async () => {
@@ -44,8 +53,15 @@ describe('filtr přihlášených na webu', () => {
 
   it('kategorie v pořadí ze serveru, závodníci bez kategorie mají vlastní volbu', async () => {
     renderList();
-    const options = [...screen.getByLabelText('Kategorie').options].map((option) => option.textContent);
-    expect(options).toEqual(['Všechny kategorie', 'Přípravka dívky', 'Přípravka chlapci', 'Bez kategorie']);
+    const options = [...screen.getByLabelText('Kategorie').options].map(
+      (option) => option.textContent,
+    );
+    expect(options).toEqual([
+      'Všechny kategorie',
+      'Přípravka dívky',
+      'Přípravka chlapci',
+      'Bez kategorie',
+    ]);
     await userEvent.selectOptions(screen.getByLabelText('Kategorie'), 'none');
     expect(surnames()).toEqual(['Bez']);
   });

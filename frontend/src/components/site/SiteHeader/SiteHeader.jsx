@@ -27,7 +27,9 @@ export default function SiteHeader() {
           <span className={styles.brandText}>
             <span className={styles.nameFull}>{CUP_NAME}</span>
             <span className={styles.nameShort}>JMLP</span>
-            <span className={styles.seasonFull}>{edition} ročník · sezóna {season}</span>
+            <span className={styles.seasonFull}>
+              {edition} ročník · sezóna {season}
+            </span>
             <span className={styles.seasonShort}>Sezóna {season}</span>
           </span>
         </Link>

@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { AdminAPI } from '../../../config/api.js';
 import { useAuth } from '../../../config/auth.jsx';
 import { categoryForm, emptyCategoryForm, mirrorSex, sortCategories } from './categories.js';
-import { deleteCategoryConfirm, mirrorCategoryConfirm, recalculateConfirm } from './dialogs/categoryConfirms.js';
+import {
+  deleteCategoryConfirm,
+  mirrorCategoryConfirm,
+  recalculateConfirm,
+} from './dialogs/categoryConfirms.js';
 
 /**
  * Data a akce správy kategorií: seznam, formulář, zrcadlení, přepnutí
@@ -95,7 +99,7 @@ export function useCategoryManagement({ confirm }) {
   };
 
   const handleDelete = async (category) => {
-    if (!await confirm(deleteCategoryConfirm(category))) return;
+    if (!(await confirm(deleteCategoryConfirm(category)))) return;
     try {
       await AdminAPI.delete(`/api/admin/categories/${category.id}`);
       setSuccess('Kategorie úspěšně smazána');
@@ -113,7 +117,7 @@ export function useCategoryManagement({ confirm }) {
       return;
     }
     const sexName = newSex === 1 ? 'mužskou' : 'ženskou';
-    if (!await confirm(mirrorCategoryConfirm(category, sexName))) return;
+    if (!(await confirm(mirrorCategoryConfirm(category, sexName)))) return;
     try {
       await AdminAPI.post('/api/admin/categories', {
         name: category.name,
@@ -136,7 +140,9 @@ export function useCategoryManagement({ confirm }) {
       await AdminAPI.put(`/api/admin/categories/${id}`, { active: !currentActive });
       // Přepnutí je jednořádková změna - přepsat ji ve stavu je levnější
       // a bez probliknutí než znovu stahovat celý seznam.
-      setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, active: !currentActive } : cat)));
+      setCategories((prev) =>
+        prev.map((cat) => (cat.id === id ? { ...cat, active: !currentActive } : cat)),
+      );
     } catch (err) {
       console.error('Error toggling category active status:', err);
       setError(err.message || 'Nepodařilo se změnit status kategorie');
@@ -160,7 +166,7 @@ export function useCategoryManagement({ confirm }) {
   };
 
   const handleRecalculate = async () => {
-    if (!await confirm(recalculateConfirm())) return;
+    if (!(await confirm(recalculateConfirm()))) return;
     try {
       setRecalculating(true);
       setRecalculateResult(null);
@@ -179,7 +185,9 @@ export function useCategoryManagement({ confirm }) {
       setError(null);
       // Pokud jsou nějaké problémy, zobraz je jako varování
       if (data.stats.no_category > 0) {
-        setError(`Varování: ${data.stats.no_category} závodníků nemá vhodnou kategorii podle roku narození a pohlaví. Zkontrolujte pokrytí kategorií.`);
+        setError(
+          `Varování: ${data.stats.no_category} závodníků nemá vhodnou kategorii podle roku narození a pohlaví. Zkontrolujte pokrytí kategorií.`,
+        );
       }
     } catch (err) {
       console.error('Error recalculating:', err);
@@ -191,13 +199,36 @@ export function useCategoryManagement({ confirm }) {
   };
 
   return {
-    authLoading, isAuthenticated, loading, categories, sortedCategories,
-    error, setError, success, setSuccess,
-    showForm, editingCategory, formData, setField, openCreate, resetForm, handleEdit, handleSubmit,
-    handleDelete, handleCreateMirror, handleToggleActive,
-    coverageReport, showCoverageReport, closeCoverageReport: () => setShowCoverageReport(false),
-    showCoverageDetails, toggleCoverageDetails: () => setShowCoverageDetails((prev) => !prev),
-    checkingCoverage, handleCheckCoverage,
-    recalculating, recalculateResult, dismissRecalculate: () => setRecalculateResult(null), handleRecalculate,
+    authLoading,
+    isAuthenticated,
+    loading,
+    categories,
+    sortedCategories,
+    error,
+    setError,
+    success,
+    setSuccess,
+    showForm,
+    editingCategory,
+    formData,
+    setField,
+    openCreate,
+    resetForm,
+    handleEdit,
+    handleSubmit,
+    handleDelete,
+    handleCreateMirror,
+    handleToggleActive,
+    coverageReport,
+    showCoverageReport,
+    closeCoverageReport: () => setShowCoverageReport(false),
+    showCoverageDetails,
+    toggleCoverageDetails: () => setShowCoverageDetails((prev) => !prev),
+    checkingCoverage,
+    handleCheckCoverage,
+    recalculating,
+    recalculateResult,
+    dismissRecalculate: () => setRecalculateResult(null),
+    handleRecalculate,
   };
 }

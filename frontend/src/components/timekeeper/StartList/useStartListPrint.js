@@ -13,10 +13,11 @@ export const useStartListPrint = (selectedRaceId, startList, setMessage) => {
   /** Kategorie k tisku v pořadí startu - bez vyřazených závodníků. */
   const printableCategories = () => groupEntriesByCategory(activeEntries(startList));
 
-  const warnNobodyLeft = () => setMessage({
-    type: 'warning',
-    text: 'Na startovní listině nikdo není - všichni závodníci jsou vyřazení.'
-  });
+  const warnNobodyLeft = () =>
+    setMessage({
+      type: 'warning',
+      text: 'Na startovní listině nikdo není - všichni závodníci jsou vyřazení.',
+    });
 
   const run = async (generateFn) => {
     const categories = printableCategories();
@@ -37,9 +38,8 @@ export const useStartListPrint = (selectedRaceId, startList, setMessage) => {
    * vyřazených. Do 2. kola jdou jen ti, kdo 1. kolo dokončili; pořadí buď
    * stejné jako v 1. kole, nebo podle výsledků 1. kola (nejrychlejší první).
    */
-  const printStartList = (round = 1, order = SECOND_RUN_SAME) => (
-    run((categories) => pdf.generateStartList({ categories, round, order }))
-  );
+  const printStartList = (round = 1, order = SECOND_RUN_SAME) =>
+    run((categories) => pdf.generateStartList({ categories, round, order }));
 
   /** Rozpis startujících po klubech - podklad pro vedoucí oddílů, bez vyřazených. */
   const printClubList = () => run((categories) => pdf.generateClubList({ categories }));

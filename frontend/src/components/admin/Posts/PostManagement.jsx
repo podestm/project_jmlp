@@ -11,8 +11,18 @@ import { postsMeta } from './posts.js';
 function Messages({ pm }) {
   return (
     <>
-      {pm.error && <Alert type="danger" compact title={pm.error} onDismiss={() => pm.setError('')} />}
-      {pm.success && <Alert key={pm.success} type="success" compact title={pm.success} onDismiss={() => pm.setSuccess('')} />}
+      {pm.error && (
+        <Alert type="danger" compact title={pm.error} onDismiss={() => pm.setError('')} />
+      )}
+      {pm.success && (
+        <Alert
+          key={pm.success}
+          type="success"
+          compact
+          title={pm.success}
+          onDismiss={() => pm.setSuccess('')}
+        />
+      )}
     </>
   );
 }
@@ -33,14 +43,23 @@ export default function PostManagement() {
       <AdminPage
         title={post ? 'Upravit příspěvek' : 'Nový příspěvek'}
         meta="Aktuality"
-        actions={(
+        actions={
           <>
-            {post && (post.published
-              ? <Badge size="sm" tone="open" icon="check">Publikován</Badge>
-              : <Badge size="sm" icon="pencil">Koncept</Badge>)}
-            <Button size="sm" icon="arrow-left" onClick={pm.closeForm}>Zpět na seznam</Button>
+            {post &&
+              (post.published ? (
+                <Badge size="sm" tone="open" icon="check">
+                  Publikován
+                </Badge>
+              ) : (
+                <Badge size="sm" icon="pencil">
+                  Koncept
+                </Badge>
+              ))}
+            <Button size="sm" icon="arrow-left" onClick={pm.closeForm}>
+              Zpět na seznam
+            </Button>
           </>
-        )}
+        }
       >
         <PostForm {...pm} />
         {confirmElement}
@@ -52,17 +71,18 @@ export default function PostManagement() {
     <AdminPage
       title="Aktuality"
       meta={postsMeta(pm.posts)}
-      actions={<Button variant="primary" size="sm" icon="plus" onClick={pm.handleAdd}>Nový příspěvek</Button>}
+      actions={
+        <Button variant="primary" size="sm" icon="plus" onClick={pm.handleAdd}>
+          Nový příspěvek
+        </Button>
+      }
     >
       <Messages pm={pm} />
       <PostFilters {...pm} shown={pm.filteredPosts.length} total={pm.posts.length} />
       {pm.loading ? (
         <LoadingState label="Načítám příspěvky…" />
       ) : pm.filteredPosts.length === 0 ? (
-        <EmptyState
-          icon="inbox"
-          title="Žádné příspěvky k zobrazení"
-        />
+        <EmptyState icon="inbox" title="Žádné příspěvky k zobrazení" />
       ) : (
         <PostTable
           posts={pm.filteredPosts}

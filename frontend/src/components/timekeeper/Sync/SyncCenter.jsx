@@ -24,7 +24,11 @@ export default function SyncCenter() {
       <PageHeader
         variant="app"
         title="Synchronizace"
-        actions={<Button size="sm" icon="refresh" onClick={api.loadData}>Obnovit přehled</Button>}
+        actions={
+          <Button size="sm" icon="refresh" onClick={api.loadData}>
+            Obnovit přehled
+          </Button>
+        }
       />
 
       {api.authExpired && (
@@ -44,7 +48,9 @@ export default function SyncCenter() {
 
       <div className={styles.columns}>
         <section className={styles.queue} aria-labelledby="fronta-zmen">
-          <Paska id="fronta-zmen" aside="Od nejnovějšího">Fronta změn</Paska>
+          <Paska id="fronta-zmen" aside="Od nejnovějšího">
+            Fronta změn
+          </Paska>
           <QueueTable items={api.queueItems} busy={api.busy} onRetry={api.retryItem} />
         </section>
 

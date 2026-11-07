@@ -13,7 +13,7 @@ export const OWNER = {
   post: 'post',
   season: 'season',
   club: 'club',
-  library: 'library'
+  library: 'library',
 };
 
 /** Role příloh - musí odpovídat AttachmentRole v backend/app/models.py */
@@ -25,7 +25,7 @@ export const ROLE = {
   document: 'document',
   logo: 'logo',
   sponzori: 'sponzori',
-  other: 'other'
+  other: 'other',
 };
 
 /**
@@ -40,7 +40,7 @@ export const ROLES_BY_OWNER = {
   [OWNER.post]: [ROLE.image, ROLE.document],
   [OWNER.season]: [ROLE.vysledky, ROLE.prubezne, ROLE.document],
   [OWNER.club]: [ROLE.logo],
-  [OWNER.library]: [ROLE.document, ROLE.image, ROLE.other]
+  [OWNER.library]: [ROLE.document, ROLE.image, ROLE.other],
 };
 
 /**
@@ -55,7 +55,7 @@ export const EXCLUSIVE_GROUPS = {
   [OWNER.race]: [[ROLE.propozice], [ROLE.vysledky], [ROLE.sponzori]],
   [OWNER.post]: [[ROLE.image], [ROLE.document]],
   [OWNER.season]: [[ROLE.vysledky, ROLE.prubezne]],
-  [OWNER.club]: [[ROLE.logo]]
+  [OWNER.club]: [[ROLE.logo]],
 };
 
 export const ROLE_LABELS = {
@@ -66,7 +66,7 @@ export const ROLE_LABELS = {
   [ROLE.document]: 'Dokument',
   [ROLE.logo]: 'Logo',
   [ROLE.sponzori]: 'Sponzoři',
-  [ROLE.other]: 'Ostatní'
+  [ROLE.other]: 'Ostatní',
 };
 
 /**
@@ -81,7 +81,7 @@ export const AttachmentsAPI = {
     AdminAPI.get('/api/admin/attachments', {
       owner_type: ownerType,
       owner_id: ownerId,
-      ...(role ? { role } : {})
+      ...(role ? { role } : {}),
     }),
 
   /** Nahraje soubor a rovnou ho připojí - jeden request, bez mezikroku v knihovně. */
@@ -100,7 +100,7 @@ export const AttachmentsAPI = {
       file_id: fileId,
       owner_type: ownerType,
       owner_id: ownerId,
-      role
+      role,
     }),
 
   update: (attachmentId, changes) =>
@@ -114,5 +114,5 @@ export const AttachmentsAPI = {
     AdminAPI.delete(`/api/admin/attachments/${attachmentId}`, {}, { delete_file: deleteFile }),
 
   /** Knihovna souborů pro výběr už nahraného dokumentu. */
-  library: () => AdminAPI.get('/api/admin/files')
+  library: () => AdminAPI.get('/api/admin/files'),
 };

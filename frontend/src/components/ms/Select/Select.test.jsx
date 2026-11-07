@@ -10,7 +10,7 @@ describe('Select', () => {
       <Select aria-label="Sezóna" defaultValue="2026" onChange={onChange}>
         <option value="2026">2026/27</option>
         <option value="2025">2025/26</option>
-      </Select>
+      </Select>,
     );
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Sezóna' }), '2025');
     expect(onChange).toHaveBeenCalled();

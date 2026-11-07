@@ -15,6 +15,7 @@ namapované jen backend/app, takže na frontend nevidí. Spouští se s celým r
     -w /repo/backend -e DATABASE_URL="$DATABASE_URL" -e SECRET_KEY="$SECRET_KEY" \\
     jmlp_web_v1-backend python -m pytest app/tests/test_api_contract.py
 """
+
 import re
 from pathlib import Path
 
@@ -45,7 +46,10 @@ def _shape(path: str) -> str:
 
 
 def test_tvar_cesty_bere_koncovou_interpolaci_jako_dotaz():
-    assert _shape("/api/timekeeper/seasons/${id}/standings${query}") == "/api/timekeeper/seasons/{}/standings"
+    assert (
+        _shape("/api/timekeeper/seasons/${id}/standings${query}")
+        == "/api/timekeeper/seasons/{}/standings"
+    )
     assert _shape("/api/races/${id}") == "/api/races/{}"
     assert _shape("/api/races/${id}/") == "/api/races/{}"
 

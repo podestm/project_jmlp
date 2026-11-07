@@ -4,7 +4,14 @@ import { clearTimingDrafts, loadTimingDrafts, saveTimingDrafts } from './timingD
 import { resetTimekeeperDb } from '../test/helpers.js';
 
 const draft = {
-  1: { time1: '25.5', time2: '', dnf: false, dns: false, dsq: false, base: { time1: null, time2: null } }
+  1: {
+    time1: '25.5',
+    time2: '',
+    dnf: false,
+    dns: false,
+    dsq: false,
+    base: { time1: null, time2: null },
+  },
 };
 
 beforeEach(resetTimekeeperDb);

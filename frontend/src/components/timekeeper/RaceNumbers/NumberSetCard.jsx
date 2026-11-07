@@ -11,8 +11,19 @@ import styles from './NumberSetCard.module.css';
  */
 export default function NumberSetCard({ set, numbersApi }) {
   const {
-    expandedSet, toggleExpand, deleteSet, updateSetColor, numbers, loadingNumbers,
-    updatingNumberId, toggleNumberActive, showAddNumber, setShowAddNumber, addNumberData, updateAddNumber, addNumber,
+    expandedSet,
+    toggleExpand,
+    deleteSet,
+    updateSetColor,
+    numbers,
+    loadingNumbers,
+    updatingNumberId,
+    toggleNumberActive,
+    showAddNumber,
+    setShowAddNumber,
+    addNumberData,
+    updateAddNumber,
+    addNumber,
   } = numbersApi;
   const expanded = expandedSet === set.set_number;
   const active = activeCountOf(set);
@@ -23,17 +34,31 @@ export default function NumberSetCard({ set, numbersApi }) {
   return (
     <section className={styles.card} aria-labelledby={titleId}>
       <header className={styles.head}>
-        <span className={styles.color} style={{ '--set-color': setColorVar(set.set_color) }} aria-hidden="true" />
-        <h3 id={titleId} className={styles.title}>Sada {letter}</h3>
+        <span
+          className={styles.color}
+          style={{ '--set-color': setColorVar(set.set_color) }}
+          aria-hidden="true"
+        />
+        <h3 id={titleId} className={styles.title}>
+          Sada {letter}
+        </h3>
         <span className={styles.range}>
           dresy {set.min_actual}–{set.max_actual} → {set.min_display}–{set.max_display}
         </span>
         <span className={styles.badges}>
-          <Badge tone="open" size="sm">{active} aktivních</Badge>
-          {inactive > 0 && <Badge tone="navy" size="sm">{inactive} neaktivní</Badge>}
+          <Badge tone="open" size="sm">
+            {active} aktivních
+          </Badge>
+          {inactive > 0 && (
+            <Badge tone="navy" size="sm">
+              {inactive} neaktivní
+            </Badge>
+          )}
         </span>
         <span className={styles.actions}>
-          <Button size="sm" variant="danger" onClick={() => deleteSet(set.set_number)}>Smazat sadu</Button>
+          <Button size="sm" variant="danger" onClick={() => deleteSet(set.set_number)}>
+            Smazat sadu
+          </Button>
           <Button size="sm" aria-expanded={expanded} onClick={() => toggleExpand(set.set_number)}>
             {expanded ? 'Sbalit sadu' : 'Rozbalit sadu'}
           </Button>
@@ -52,24 +77,46 @@ export default function NumberSetCard({ set, numbersApi }) {
           </div>
 
           <div className={styles.addRow}>
-            <Button size="sm" icon={showAddNumber ? 'close' : 'plus'} onClick={() => setShowAddNumber(!showAddNumber)}>
+            <Button
+              size="sm"
+              icon={showAddNumber ? 'close' : 'plus'}
+              onClick={() => setShowAddNumber(!showAddNumber)}
+            >
               {showAddNumber ? 'Zrušit' : 'Přidat číslo do sady'}
             </Button>
             {showAddNumber && (
               <form className={styles.addForm} onSubmit={addNumber}>
                 <Field label="Dres" id={`sada-${set.set_number}-actual`}>
-                  <Input size="sm" type="number" mono min="1" required value={addNumberData.actual_number}
-                    onChange={(e) => updateAddNumber('actual_number', e.target.value)} />
+                  <Input
+                    size="sm"
+                    type="number"
+                    mono
+                    min="1"
+                    required
+                    value={addNumberData.actual_number}
+                    onChange={(e) => updateAddNumber('actual_number', e.target.value)}
+                  />
                 </Field>
-                <span className={styles.addCode} aria-live="polite">→ {letter}{addNumberData.actual_number || '…'}</span>
-                <Button type="submit" size="sm" variant="primary" icon="plus">Přidat</Button>
+                <span className={styles.addCode} aria-live="polite">
+                  → {letter}
+                  {addNumberData.actual_number || '…'}
+                </span>
+                <Button type="submit" size="sm" variant="primary" icon="plus">
+                  Přidat
+                </Button>
               </form>
             )}
           </div>
 
-          {loadingNumbers
-            ? <LoadingState variant="inline" label="Načítám čísla…" />
-            : <NumberGrid numbers={numbers} updatingNumberId={updatingNumberId} onToggle={toggleNumberActive} />}
+          {loadingNumbers ? (
+            <LoadingState variant="inline" label="Načítám čísla…" />
+          ) : (
+            <NumberGrid
+              numbers={numbers}
+              updatingNumberId={updatingNumberId}
+              onToggle={toggleNumberActive}
+            />
+          )}
         </div>
       )}
     </section>

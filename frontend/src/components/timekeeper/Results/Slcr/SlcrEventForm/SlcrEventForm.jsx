@@ -2,13 +2,17 @@ import { Button, Field, Icon, Input, Select } from '../../../../ms/index.js';
 import { FALLBACK_DISCIPLINES, formatSlcrDate } from '../slcr.js';
 import styles from './SlcrEventForm.module.css';
 
-const eventLabel = (ev) => `${formatSlcrDate(ev.date)} – ${ev.name}${ev.place ? `, ${ev.place}` : ''} (#${ev.id})`;
+const eventLabel = (ev) =>
+  `${formatSlcrDate(ev.date)} – ${ev.name}${ev.place ? `, ${ev.place}` : ''} (#${ev.id})`;
 
 /** Stav seznamu akcí, když z něj nejde vybírat. */
 function EventsNote({ status, events, eventsError }) {
-  if (eventsError) return <p className={styles.note}>{`Akce se nepodařilo načíst: ${eventsError}`}</p>;
-  if (events && events.length === 0) return <p className={styles.note}>Kolem data závodu v evidenci žádná akce není.</p>;
-  if (status && !status.token) return <p className={styles.note}>Seznam akcí se načte, až bude na serveru token časomíry.</p>;
+  if (eventsError)
+    return <p className={styles.note}>{`Akce se nepodařilo načíst: ${eventsError}`}</p>;
+  if (events && events.length === 0)
+    return <p className={styles.note}>Kolem data závodu v evidenci žádná akce není.</p>;
+  if (status && !status.token)
+    return <p className={styles.note}>Seznam akcí se načte, až bude na serveru token časomíry.</p>;
   return <p className={styles.note}>Načítám akce…</p>;
 }
 
@@ -27,9 +31,18 @@ export default function SlcrEventForm({ slcr, primary }) {
     <div className={styles.form}>
       {events?.length > 0 ? (
         <Field label="Akce v evidenci">
-          <Select size="sm" value={listed ? eventId : ''} disabled={disabled} onChange={(e) => slcr.setEventId(e.target.value)}>
+          <Select
+            size="sm"
+            value={listed ? eventId : ''}
+            disabled={disabled}
+            onChange={(e) => slcr.setEventId(e.target.value)}
+          >
             <option value="">Vyberte akci…</option>
-            {events.map((ev) => <option key={ev.id} value={ev.id}>{eventLabel(ev)}</option>)}
+            {events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {eventLabel(ev)}
+              </option>
+            ))}
           </Select>
         </Field>
       ) : (
@@ -51,9 +64,16 @@ export default function SlcrEventForm({ slcr, primary }) {
           />
         </Field>
         <Field label="Disciplína">
-          <Select size="sm" value={slcr.discipline} disabled={disabled} onChange={(e) => slcr.setDiscipline(e.target.value)}>
+          <Select
+            size="sm"
+            value={slcr.discipline}
+            disabled={disabled}
+            onChange={(e) => slcr.setDiscipline(e.target.value)}
+          >
             {(slcr.disciplines || FALLBACK_DISCIPLINES).map((item) => (
-              <option key={item.id} value={item.id}>{item.name}</option>
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
             ))}
           </Select>
         </Field>

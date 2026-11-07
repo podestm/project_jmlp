@@ -9,9 +9,8 @@ const LOCKED_STATUSES = new Set(['saved', 'saving', 'queued', 'rejected']);
 export const isLockedEvent = (event) => LOCKED_STATUSES.has(event.status);
 
 /** Automaticky zapsaná událost má jedinou akci – Zamítnout, která vrátí kolo. */
-export const isAutoWrittenEvent = (event) => (
-  Boolean(event.auto_written) && (event.status === 'saved' || event.status === 'queued')
-);
+export const isAutoWrittenEvent = (event) =>
+  Boolean(event.auto_written) && (event.status === 'saved' || event.status === 'queued');
 
 /**
  * Stav řádku slovy (barva ho jen podtrhuje).
@@ -38,7 +37,10 @@ export const eventStatus = (event, { candidateCount = 0, candidateIndex = -1 } =
   if (event.reason === 'round_occupied') return { tone: 'amber', text: 'Kolo obsazené' };
   if (candidateCount > 1) {
     const shody = czechPlural(candidateCount, ['shoda', 'shody', 'shod']);
-    return { tone: 'amber', text: `${candidateCount} ${shody} · ${Math.max(candidateIndex, 0) + 1}/${candidateCount}` };
+    return {
+      tone: 'amber',
+      text: `${candidateCount} ${shody} · ${Math.max(candidateIndex, 0) + 1}/${candidateCount}`,
+    };
   }
   return { tone: 'amber', text: 'Čeká na potvrzení' };
 };
@@ -62,9 +64,13 @@ export const groupInboxEvents = (events) => {
 };
 
 /** Souhrn pod přepínačem automatického zápisu: zapsáno samo · k rozhodnutí · zamítnuto. */
-export const autoWriteSummary = (events) => events.reduce((acc, event) => {
-  if (isAutoWrittenEvent(event)) acc.autoWritten += 1;
-  else if (event.reason === 'auto_rejected') acc.rejected += 1;
-  if (!isLockedEvent(event)) acc.toDecide += 1;
-  return acc;
-}, { autoWritten: 0, toDecide: 0, rejected: 0 });
+export const autoWriteSummary = (events) =>
+  events.reduce(
+    (acc, event) => {
+      if (isAutoWrittenEvent(event)) acc.autoWritten += 1;
+      else if (event.reason === 'auto_rejected') acc.rejected += 1;
+      if (!isLockedEvent(event)) acc.toDecide += 1;
+      return acc;
+    },
+    { autoWritten: 0, toDecide: 0, rejected: 0 },
+  );

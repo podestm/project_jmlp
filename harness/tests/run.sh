@@ -73,8 +73,9 @@ sys.exit(1 if missing else 0)
 EOF
 
 # 5. No server IP addresses in agent-facing docs and config (the repo is public; deploy/ keeps real paths).
+#    Vendored upstream skill content (.claude/skills/security) holds example IPs only and is excluded.
 pat='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b'
-hits="$(git grep --untracked -nE "$pat" -- '*.md' '.claude/' 'harness/' '.mcp.json' '.playwright/*.json' | grep -vE '127\.0\.0\.1|0\.0\.0\.0|[^0-9.]1\.0\.0' || true)"
+hits="$(git grep --untracked -nE "$pat" -- '*.md' '.claude/' 'harness/' '.mcp.json' '.playwright/*.json' ':!.claude/skills/security/' | grep -vE '127\.0\.0\.1|0\.0\.0\.0|[^0-9.]1\.0\.0' || true)"
 if [ -n "$hits" ]; then bad "IP addresses in agent docs/config:"; echo "$hits" | head; else ok "no server IP addresses in docs and agent config"; fi
 
 [ $fail = 0 ] && echo "harness self-test: PASS" || { echo "harness self-test: FAIL"; exit 1; }

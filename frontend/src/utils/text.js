@@ -44,12 +44,13 @@ export const fixEncoding = (text) => {
 
 // Uživatelský text se před markdown úpravami escapuje, aby byl výstup bezpečný
 // pro dangerouslySetInnerHTML.
-const escapeHtml = (text) => text
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#x27;');
+const escapeHtml = (text) =>
+  text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 
 /**
  * Jednoduché formátování textu příspěvků.
@@ -70,8 +71,9 @@ export const formatText = (text) => {
  * Text pro hledání: malá písmena bez diakritiky („Brno“ najde i „BRNO“,
  * „hlubocky“ i „Hlubočky“).
  */
-export const normalizeForSearch = (text) => String(text ?? '')
-  .normalize('NFD')
-  .replace(/[̀-ͯ]/g, '')
-  .toLowerCase()
-  .trim();
+export const normalizeForSearch = (text) =>
+  String(text ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();

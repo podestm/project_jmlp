@@ -16,21 +16,32 @@ export default function TimingHeader({ race, startListLength, hasWriteLock, savi
       variant="app"
       title="Zadávání časů"
       meta={meta}
-      actions={race && (
-        <>
-          <span className={styles.lock}>
-            <span className={cx(styles.dot, hasWriteLock && styles.dotOn)} aria-hidden="true" />
-            {hasWriteLock ? 'Právo zápisu drží tato karta' : 'Jen pro čtení – zápis drží jiná karta'}
-          </span>
-          {startListLength > 0 && (
-            <Tooltip text="Pole se ukládá i při opuštění">
-              <Button variant="primary" size="lg" icon="save" busy={saving} disabled={!hasWriteLock} onClick={onSaveAll}>
-                {saving ? 'Ukládám…' : 'Uložit vše'}
-              </Button>
-            </Tooltip>
-          )}
-        </>
-      )}
+      actions={
+        race && (
+          <>
+            <span className={styles.lock}>
+              <span className={cx(styles.dot, hasWriteLock && styles.dotOn)} aria-hidden="true" />
+              {hasWriteLock
+                ? 'Právo zápisu drží tato karta'
+                : 'Jen pro čtení – zápis drží jiná karta'}
+            </span>
+            {startListLength > 0 && (
+              <Tooltip text="Pole se ukládá i při opuštění">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon="save"
+                  busy={saving}
+                  disabled={!hasWriteLock}
+                  onClick={onSaveAll}
+                >
+                  {saving ? 'Ukládám…' : 'Uložit vše'}
+                </Button>
+              </Tooltip>
+            )}
+          </>
+        )
+      }
     />
   );
 }

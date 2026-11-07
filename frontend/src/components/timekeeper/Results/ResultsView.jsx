@@ -31,19 +31,34 @@ export default function ResultsView() {
   const [slcrOpen, setSlcrOpen] = useState(false);
   // Po zavření dialogu se znovu načte akce vybraná v něm (slcr_event_{raceId}).
   const [slcrVersion, setSlcrVersion] = useState(0);
-  const slcr = useSlcrCategories({ raceId: selectedRaceId, isOnline: api.isOnline, confirm, version: slcrVersion });
-  const closeSlcr = () => { setSlcrOpen(false); setSlcrVersion((value) => value + 1); };
+  const slcr = useSlcrCategories({
+    raceId: selectedRaceId,
+    isOnline: api.isOnline,
+    confirm,
+    version: slcrVersion,
+  });
+  const closeSlcr = () => {
+    setSlcrOpen(false);
+    setSlcrVersion((value) => value + 1);
+  };
 
   const header = (
     <PageHeader
       variant="app"
       title="Výsledky závodu"
-      actions={api.selectedRace && <SlcrEntry isOnline={api.isOnline} onOpen={() => setSlcrOpen(true)} />}
+      actions={
+        api.selectedRace && <SlcrEntry isOnline={api.isOnline} onOpen={() => setSlcrOpen(true)} />
+      }
     />
   );
 
   if (!selectedRaceId) {
-    return <TkPage>{header}<NoRaceSelected /></TkPage>;
+    return (
+      <TkPage>
+        {header}
+        <NoRaceSelected />
+      </TkPage>
+    );
   }
 
   const hasEntries = results && results.total_entries > 0;
@@ -60,8 +75,8 @@ export default function ResultsView() {
       {hasEntries && <ResultsToolbar api={api} />}
       {hasEntries && api.queueStats.total > 0 && (
         <Alert type="warning" compact>
-          Než budete publikovat, odešlete frontu – {api.queueStats.total} změn je zatím jen v tomhle zařízení.
-          {' '}<Link to="/timekeeper/sync">Otevřít synchronizaci</Link>
+          Než budete publikovat, odešlete frontu – {api.queueStats.total} změn je zatím jen v tomhle
+          zařízení. <Link to="/timekeeper/sync">Otevřít synchronizaci</Link>
         </Alert>
       )}
       <TimekeeperMessage message={message} onDismiss={api.clearMessage} />
@@ -72,15 +87,25 @@ export default function ResultsView() {
         <EmptyState
           icon="trophy"
           title="Závod zatím nemá žádné výsledky"
-          action={<ButtonLink to="/timekeeper/timing" size="sm" iconEnd="arrow-right">Zadat časy</ButtonLink>}
+          action={
+            <ButtonLink to="/timekeeper/timing" size="sm" iconEnd="arrow-right">
+              Zadat časy
+            </ButtonLink>
+          }
         />
       )}
 
       {!loading && hasEntries && (
         <section className={styles.ranking} aria-labelledby="poradi-v-kategorii">
-          <Paska id="poradi-v-kategorii" aside={`${results.total_entries} záznamů celkem`}>Pořadí v kategorii</Paska>
+          <Paska id="poradi-v-kategorii" aside={`${results.total_entries} záznamů celkem`}>
+            Pořadí v kategorii
+          </Paska>
           {categoryOptions.length > 0 && (
-            <CategoryChips options={categoryOptions} value={api.selectedCategoryId} onChange={api.setSelectedCategoryId} />
+            <CategoryChips
+              options={categoryOptions}
+              value={api.selectedCategoryId}
+              onChange={api.setSelectedCategoryId}
+            />
           )}
           {selectedCategory && (
             <SlcrCategoryPanel
@@ -94,17 +119,24 @@ export default function ResultsView() {
             <EmptyState
               icon="stopwatch"
               title={`V kategorii ${selectedCategory.category_name} zatím nikdo nemá čas`}
-              action={(
+              action={
                 <>
-                  <ButtonLink to="/timekeeper/start-list" size="sm">Startovní listina</ButtonLink>
-                  <ButtonLink to="/timekeeper/timing" size="sm" variant="primary" iconEnd="arrow-right">Zadávání časů</ButtonLink>
+                  <ButtonLink to="/timekeeper/start-list" size="sm">
+                    Startovní listina
+                  </ButtonLink>
+                  <ButtonLink
+                    to="/timekeeper/timing"
+                    size="sm"
+                    variant="primary"
+                    iconEnd="arrow-right"
+                  >
+                    Zadávání časů
+                  </ButtonLink>
                 </>
-              )}
+              }
             />
           )}
-          {selectedCategory && (
-            <ResultsTable entries={selectedCategory.entries} showPoints />
-          )}
+          {selectedCategory && <ResultsTable entries={selectedCategory.entries} showPoints />}
         </section>
       )}
 
@@ -113,7 +145,9 @@ export default function ResultsView() {
           objectUrl={pdf.objectUrl}
           title={pdf.previewTitle}
           canPublish={pdf.canPublish}
-          publishLabel={pdf.publishTarget?.kind === 'standings' ? 'Zveřejnit u sezóny' : 'Publikovat k závodu'}
+          publishLabel={
+            pdf.publishTarget?.kind === 'standings' ? 'Zveřejnit u sezóny' : 'Publikovat k závodu'
+          }
           publishing={pdf.publishing}
           onPublish={api.publishResults}
           onClose={pdf.closePreview}

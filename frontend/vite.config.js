@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import fontPreload from './vite/fontPreload.js'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import fontPreload from './vite/fontPreload.js';
 
 export default defineConfig({
   plugins: [react(), fontPreload()],
@@ -10,50 +10,50 @@ export default defineConfig({
     proxy: {
       '/races': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/racers': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/clubs': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/registrations': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/posts': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/season-results': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       // API se seznamem dokumentů; SPA route je /dokumenty (česky)
       '/documents': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/visitor-log': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/uploads': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/api': {
         target: 'http://backend:8000',
-        changeOrigin: true
+        changeOrigin: true,
       },
       '/health': {
         target: 'http://backend:8000',
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     rollupOptions: {
@@ -66,9 +66,9 @@ export default defineConfig({
           dexie: ['dexie'],
           // pdfmake i s fonty je velký; načte se až při prvním generování
           // výsledkové listiny, ne s celou timekeeper sekcí.
-          pdf: ['pdfmake']
-        }
-      }
-    }
-  }
-})
+          pdf: ['pdfmake'],
+        },
+      },
+    },
+  },
+});

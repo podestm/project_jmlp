@@ -18,9 +18,18 @@ describe('Icon', () => {
 
   it('tloušťka tahu: výchozí, nakreslená pro velikost, výslovná', () => {
     const icon = { ...ICONS['arrow-right'] };
-    expect(svgOf(<Icon name="arrow-right" />)).toHaveAttribute('stroke-width', String(icon.strokeWidth));
-    expect(svgOf(<Icon name="arrow-right" size={20} />)).toHaveAttribute('stroke-width', String(icon.sizes[20]));
-    expect(svgOf(<Icon name="arrow-right" size={20} strokeWidth={1.5} />)).toHaveAttribute('stroke-width', '1.5');
+    expect(svgOf(<Icon name="arrow-right" />)).toHaveAttribute(
+      'stroke-width',
+      String(icon.strokeWidth),
+    );
+    expect(svgOf(<Icon name="arrow-right" size={20} />)).toHaveAttribute(
+      'stroke-width',
+      String(icon.sizes[20]),
+    );
+    expect(svgOf(<Icon name="arrow-right" size={20} strokeWidth={1.5} />)).toHaveAttribute(
+      'stroke-width',
+      '1.5',
+    );
   });
 
   it('vykreslí kruhy i obdélníky', () => {
@@ -38,6 +47,9 @@ describe('Icon', () => {
     const icon = ICONS[name];
     expect(icon.strokeWidth).toBeGreaterThan(0);
     expect(icon.paths.length).toBeGreaterThan(0);
-    for (const shape of icon.paths) expect(['path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse']).toContain(shape.tag);
+    for (const shape of icon.paths)
+      expect(['path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse']).toContain(
+        shape.tag,
+      );
   });
 });

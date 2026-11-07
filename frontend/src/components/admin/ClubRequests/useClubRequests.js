@@ -35,13 +35,21 @@ export function useClubRequests() {
   }, []);
 
   const stateOf = (id) => resolveState[id] || EMPTY_RESOLVE;
-  const update = (id, patch) => setResolveState((prev) => ({ ...prev, [id]: { ...(prev[id] || EMPTY_RESOLVE), ...patch } }));
+  const update = (id, patch) =>
+    setResolveState((prev) => ({ ...prev, [id]: { ...(prev[id] || EMPTY_RESOLVE), ...patch } }));
 
   const resolve = async (registrationId) => {
     try {
-      await AdminAPI.post(`/api/admin/clubs/requests/${registrationId}/resolve`, resolvePayload(stateOf(registrationId)));
+      await AdminAPI.post(
+        `/api/admin/clubs/requests/${registrationId}/resolve`,
+        resolvePayload(stateOf(registrationId)),
+      );
       setRequests((prev) => prev.filter((r) => r.registration_id !== registrationId));
-      setResolveState((prev) => { const next = { ...prev }; delete next[registrationId]; return next; });
+      setResolveState((prev) => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
       window.dispatchEvent(new CustomEvent('club-request-resolved'));
     } catch (err) {
       setError(`Žádost se nepodařilo vyřídit: ${err.message}`);

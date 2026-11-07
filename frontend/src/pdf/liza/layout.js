@@ -134,7 +134,8 @@ export class PdfCanvas {
     const face = metrics[faceKey(style)];
     const natural = textWidth(text, style);
     const chars = [...text].length;
-    const characterSpacing = style.fitWidth && chars > 1 ? (style.fitWidth - natural) / (chars - 1) : 0;
+    const characterSpacing =
+      style.fitWidth && chars > 1 ? (style.fitWidth - natural) / (chars - 1) : 0;
     const width = natural + characterSpacing * Math.max(chars - 1, 0);
     let left = x;
     if (style.align === 'right') left = x - width;
@@ -151,7 +152,7 @@ export class PdfCanvas {
       lineHeight: 1,
       preserveLeadingSpaces: true,
       noWrap: true,
-      absolutePosition: { x: left, y: baseline - face.ascender * style.size + this.offsetY }
+      absolutePosition: { x: left, y: baseline - face.ascender * style.size + this.offsetY },
     });
   }
 
@@ -162,12 +163,20 @@ export class PdfCanvas {
   line(x1, y1, x2, y2, { width = 0.72, color = '#000000', dash = null, cap = null } = {}) {
     const dy = this.offsetY;
     this.items.push({
-      canvas: [{
-        type: 'line', x1, y1: y1 + dy, x2, y2: y2 + dy, lineWidth: width, lineColor: color,
-        ...(dash ? { dash } : {}),
-        ...(cap ? { lineCap: cap } : {})
-      }],
-      absolutePosition: { x: 0, y: 0 }
+      canvas: [
+        {
+          type: 'line',
+          x1,
+          y1: y1 + dy,
+          x2,
+          y2: y2 + dy,
+          lineWidth: width,
+          lineColor: color,
+          ...(dash ? { dash } : {}),
+          ...(cap ? { lineCap: cap } : {}),
+        },
+      ],
+      absolutePosition: { x: 0, y: 0 },
     });
   }
 
@@ -208,8 +217,8 @@ export class PdfCanvas {
       content: this.pages.flatMap((items, index) => [
         // Prázdný tokový prvek drží stránku; zbytek je umístěný absolutně.
         index === 0 ? { text: '' } : { text: '', pageBreak: 'before' },
-        ...items
-      ])
+        ...items,
+      ]),
     };
   }
 }

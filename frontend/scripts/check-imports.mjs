@@ -17,11 +17,12 @@ import { fileURLToPath } from 'node:url';
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const EXTENSIONS = ['', '.js', '.jsx', '/index.js', '/index.jsx'];
 
-const walk = (dir) => readdirSync(dir).flatMap((name) => {
-  const full = join(dir, name);
-  if (statSync(full).isDirectory()) return walk(full);
-  return /\.jsx?$/.test(name) ? [full] : [];
-});
+const walk = (dir) =>
+  readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return walk(full);
+    return /\.jsx?$/.test(name) ? [full] : [];
+  });
 
 const resolveImport = (fromFile, spec) => {
   // Vite query suffixes (`?url`, `?raw`) are not part of the file name.
@@ -30,7 +31,9 @@ const resolveImport = (fromFile, spec) => {
     const candidate = base + ext;
     try {
       if (statSync(candidate).isFile()) return candidate;
-    } catch { /* zkoušíme další příponu */ }
+    } catch {
+      /* zkoušíme další příponu */
+    }
   }
   return null;
 };
@@ -42,7 +45,9 @@ const exportsOf = (file, seen = new Set()) => {
   const src = readFileSync(file, 'utf8');
   const names = new Set();
 
-  for (const m of src.matchAll(/^export\s+(?:async\s+)?(?:const|let|var|function|class)\s+([A-Za-z0-9_$]+)/gm)) {
+  for (const m of src.matchAll(
+    /^export\s+(?:async\s+)?(?:const|let|var|function|class)\s+([A-Za-z0-9_$]+)/gm,
+  )) {
     names.add(m[1]);
   }
   for (const m of src.matchAll(/^export\s*\{([^}]*)\}/gm)) {
@@ -84,7 +89,10 @@ for (const file of files) {
 
     const available = exportsOf(target);
     for (const part of named[1].split(',')) {
-      const name = part.trim().split(/\s+as\s+/)[0].trim();
+      const name = part
+        .trim()
+        .split(/\s+as\s+/)[0]
+        .trim();
       if (name && !available.has(name)) {
         problems.push(`${where}: '${name}' neexistuje v ${spec}`);
       }

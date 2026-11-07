@@ -20,7 +20,10 @@ describe('Pagination', () => {
   it('pojmenovaná navigace, aktuální strana má aria-current', () => {
     render(<Pagination page={1} pageCount={3} onChange={() => {}} label="Stránkování aktualit" />);
     expect(screen.getByRole('navigation', { name: 'Stránkování aktualit' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Strana 1' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Strana 1' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(screen.queryByRole('button', { name: /Předchozí/ })).toBeNull();
   });
 

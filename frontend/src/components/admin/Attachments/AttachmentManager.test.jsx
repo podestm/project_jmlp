@@ -21,8 +21,14 @@ vi.mock('../../../config/libraryApi.js', () => ({ LibraryAPI: { rename: vi.fn() 
 const { default: AttachmentManager } = await import('./AttachmentManager.jsx');
 
 const PROPOZICE = {
-  id: 11, file_id: 5, role: 'propozice', original_filename: 'Propozice_Kohoutovice.pdf', file_size: 188416,
-  uploaded_at: '2026-09-14T10:00:00', download_url: '/uploads/documents/p.pdf', published: true,
+  id: 11,
+  file_id: 5,
+  role: 'propozice',
+  original_filename: 'Propozice_Kohoutovice.pdf',
+  file_size: 188416,
+  uploaded_at: '2026-09-14T10:00:00',
+  download_url: '/uploads/documents/p.pdf',
+  published: true,
 };
 
 describe('správce příloh', () => {
@@ -41,7 +47,9 @@ describe('správce příloh', () => {
   it('obsazený slot ukáže soubor a přepínač, prázdný místo pro soubor', async () => {
     render(<AttachmentManager ownerType="race" ownerId={7} roles={['propozice', 'vysledky']} />);
     const propozice = await screen.findByRole('region', { name: 'Propozice' });
-    expect(within(propozice).getByRole('link', { name: 'Propozice_Kohoutovice.pdf' })).toBeInTheDocument();
+    expect(
+      within(propozice).getByRole('link', { name: 'Propozice_Kohoutovice.pdf' }),
+    ).toBeInTheDocument();
     expect(within(propozice).getByRole('switch', { name: 'Zveřejněno' })).toBeChecked();
     const vysledky = screen.getByRole('region', { name: 'Výsledky' });
     expect(within(vysledky).getByRole('button', { name: 'Vybrat z počítače' })).toBeInTheDocument();
@@ -49,7 +57,9 @@ describe('správce příloh', () => {
 
   it('odpojení nabídne ponechání souboru jako bezpečnou volbu', async () => {
     render(<AttachmentManager ownerType="race" ownerId={7} roles={['propozice']} />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Odpojit dokument Propozice_Kohoutovice.pdf' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Odpojit dokument Propozice_Kohoutovice.pdf' }),
+    );
     const dialog = screen.getByRole('dialog', { name: 'Odpojit propozice?' });
     expect(within(dialog).getByRole('button', { name: 'Odpojit, soubor ponechat' })).toHaveFocus();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Odpojit, soubor ponechat' }));

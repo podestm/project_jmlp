@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""PostToolUse hook for Edit/Write: immediate, per-file feedback while the agent works.
+"""PostToolUse hook for Edit/Write: format the file just written, then give immediate feedback.
 
-Runs only the cheap checks for the file that was just written (seconds, not minutes):
-  *.py under backend/       -> syntax check
-  *.js / *.jsx in frontend/ -> eslint on that file
-  frontend style sources    -> project style rules (check-styles) when a module/CSS changed
-Exit 2 puts the findings in front of the agent so it fixes them in the next step.
-Exit 0 is silent. Whole-suite checks belong to harness/verify.sh, not here.
+Only the file that was written, only cheap tools (seconds, not minutes):
+  backend/**/*.py            -> ruff format, then ruff check (also catches syntax errors)
+  frontend/** (js, jsx, css, json, html)
+                             -> prettier --write, then eslint (js/jsx) and the style rules (css/jsx)
+Formatting is silent; exit 2 puts remaining findings in front of the agent so it fixes them next.
+Whole-suite checks belong to harness/verify.sh, not here.
 """
+
 import json
 import subprocess
 import sys
@@ -15,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TIMEOUT = 90
+PRETTIER_SUFFIXES = {".js", ".jsx", ".mjs", ".css", ".json", ".html"}
 
 
 def run(cmd, cwd):
@@ -41,12 +43,18 @@ def main():
     problems = []
 
     if parts[0] == "backend" and path.suffix == ".py":
-        code, out = run([sys.executable, "-m", "py_compile", str(path)], ROOT)
+        sub = str(Path(*parts[1:]))
+        ruff = str(ROOT / "harness/lib/ruff.sh")
+        run([ruff, "format", "--quiet", sub], ROOT)
+        code, out = run([ruff, "check", "--output-format", "concise", sub], ROOT)
         if code:
             problems.append(out)
 
     if parts[0] == "frontend" and (ROOT / "frontend/node_modules").exists():
         sub = str(Path(*parts[1:]))
+        if path.suffix in PRETTIER_SUFFIXES:
+            # Respects .prettierignore (generated files stay as their generator wrote them).
+            run(["npx", "prettier", "--write", "--log-level", "warn", "--ignore-unknown", sub], ROOT / "frontend")
         if path.suffix in (".js", ".jsx", ".mjs"):
             code, out = run(["npx", "eslint", "--quiet", sub], ROOT / "frontend")
             if code:

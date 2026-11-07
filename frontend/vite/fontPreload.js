@@ -6,17 +6,25 @@
 // odkazu v HTML by se písma do keše dostala až při prvním vykreslení textu
 // v daném řezu – a offline start by pak běžel se systémovým písmem.
 
-const FONT_FILE = /(?:^|\/)(?:archivo|source-sans-3|ibm-plex-mono)-latin(?:-ext)?-\d{3}-normal-[\w-]+\.woff2$/;
+const FONT_FILE =
+  /(?:^|\/)(?:archivo|source-sans-3|ibm-plex-mono)-latin(?:-ext)?-\d{3}-normal-[\w-]+\.woff2$/;
 
 /** Tagy pro všechna písma Modré stopy v bundlu (seřazené kvůli stabilnímu HTML). */
-export const fontPreloadTags = (bundle, base = '/') => Object.keys(bundle)
-  .filter((fileName) => FONT_FILE.test(fileName))
-  .sort()
-  .map((fileName) => ({
-    tag: 'link',
-    attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: `${base}${fileName}` },
-    injectTo: 'head',
-  }));
+export const fontPreloadTags = (bundle, base = '/') =>
+  Object.keys(bundle)
+    .filter((fileName) => FONT_FILE.test(fileName))
+    .sort()
+    .map((fileName) => ({
+      tag: 'link',
+      attrs: {
+        rel: 'preload',
+        as: 'font',
+        type: 'font/woff2',
+        crossorigin: '',
+        href: `${base}${fileName}`,
+      },
+      injectTo: 'head',
+    }));
 
 export default function fontPreload() {
   let base = '/';

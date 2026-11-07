@@ -11,17 +11,18 @@ Vedle něj může mít sezóna obecné dokumenty (soutěžní řád, pokyny). Ty
 nepatří - dřív se bral první zveřejněný dokument jakékoli role a kalendář pak
 nabízel soutěžní řád pod tlačítkem "Průběžné výsledky".
 """
-from typing import Any, Dict, List, Optional
+
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from ..database import get_db
 from .. import models
+from ..database import get_db
 from ..models import AttachmentOwner, AttachmentRole
 from ..services import attachments as attachment_service
-from ..services import standings as standings_service
 from ..services import seasons as season_service
+from ..services import standings as standings_service
 from ..utils import to_roman
 
 router = APIRouter(prefix="/season-results", tags=["season-results"])
@@ -29,10 +30,13 @@ router = APIRouter(prefix="/season-results", tags=["season-results"])
 RESULT_ROLES = (AttachmentRole.vysledky.value, AttachmentRole.prubezne.value)
 
 
-def _season_payload(season: models.Season, db: Session) -> Optional[Dict[str, Any]]:
+def _season_payload(season: models.Season, db: Session) -> dict[str, Any] | None:
     documents = attachment_service.list_for_owner(
-        db, AttachmentOwner.season.value, season.year_start,
-        roles=RESULT_ROLES, published_only=True,
+        db,
+        AttachmentOwner.season.value,
+        season.year_start,
+        roles=RESULT_ROLES,
+        published_only=True,
     )
     if not documents:
         return None
@@ -56,7 +60,7 @@ def _season_payload(season: models.Season, db: Session) -> Optional[Dict[str, An
 
 
 @router.get("/")
-def get_all_season_results(db: Session = Depends(get_db)) -> List[Dict[str, Any]]:
+def get_all_season_results(db: Session = Depends(get_db)) -> list[dict[str, Any]]:
     """Sezóny, které mají zveřejněné výsledky (průběžné nebo celkové)."""
     seasons = db.query(models.Season).order_by(models.Season.year_start.desc()).all()
     payloads = (_season_payload(season, db) for season in seasons)
@@ -64,7 +68,7 @@ def get_all_season_results(db: Session = Depends(get_db)) -> List[Dict[str, Any]
 
 
 @router.get("/current")
-def get_current_season_result(db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_current_season_result(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Výsledky aktuální sezóny."""
     year_start = season_service.current_season_id(db)
     season = db.query(models.Season).filter(models.Season.year_start == year_start).first()
@@ -77,19 +81,24 @@ def get_current_season_result(db: Session = Depends(get_db)) -> Dict[str, Any]:
     return payload
 
 
-def _public_cell(cell: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def _public_cell(cell: dict[str, Any] | None) -> dict[str, Any] | None:
     """Buňka pořadí pro web: místo textu „2/80“ (formát listiny LIP) zvlášť
     místo a body, u DSQ/DNF jen stav."""
     if cell is None:
         return None
     rank, _, points = cell["text"].partition("/")
     if points:
-        return {"rank": int(rank), "points": int(points), "status": None, "counted": cell["counted"]}
+        return {
+            "rank": int(rank),
+            "points": int(points),
+            "status": None,
+            "counted": cell["counted"],
+        }
     return {"rank": None, "points": 0, "status": cell["text"] or None, "counted": cell["counted"]}
 
 
 @router.get("/{season_id}/standings")
-def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> dict[str, Any]:
     """Pořadí poháru pro veřejnou stránku Výsledky (jen čtení).
 
     Počítá stejná služba jako náhled časomíry (services/standings.py), takže
@@ -113,7 +122,9 @@ def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> Dict[
         "document": {
             "url": f"/{document['document_file_path']}",
             "final": final,
-        } if document else None,
+        }
+        if document
+        else None,
         "races": [
             {key: race[key] for key in ("id", "kind", "datum", "race_nr", "areal_name")}
             for race in data["races"]
@@ -146,7 +157,7 @@ def get_public_standings(season_id: int, db: Session = Depends(get_db)) -> Dict[
 @router.get("/{season_year_start}/{season_year_end}")
 def get_season_result_by_years(
     season_year_start: int, season_year_end: int, db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Výsledky konkrétní sezóny."""
     season = db.query(models.Season).filter(models.Season.year_start == season_year_start).first()
     payload = _season_payload(season, db) if season else None

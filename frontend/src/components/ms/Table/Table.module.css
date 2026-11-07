@@ -67,10 +67,18 @@
   box-shadow: inset 4px 0 0 var(--row-bar, transparent);
 }
 
-.table tr[data-state='error'] { --row-bar: var(--ms-live-ink); }
-.table tr[data-state='warning'] { --row-bar: var(--ms-dry-ink); }
-.table tr[data-state='open'] { --row-bar: var(--ms-open); }
-.table tr[data-state='navy'] { --row-bar: var(--ms-navy); }
+.table tr[data-state='error'] {
+  --row-bar: var(--ms-live-ink);
+}
+.table tr[data-state='warning'] {
+  --row-bar: var(--ms-dry-ink);
+}
+.table tr[data-state='open'] {
+  --row-bar: var(--ms-open);
+}
+.table tr[data-state='navy'] {
+  --row-bar: var(--ms-navy);
+}
 
 .table tr[data-state='muted'] {
   color: var(--ms-ink-muted);

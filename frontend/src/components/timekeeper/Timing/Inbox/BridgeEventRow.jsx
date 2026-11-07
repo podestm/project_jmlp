@@ -25,7 +25,8 @@ const REASON_LABELS = {
   sync_superseded: 'Nahrazeno novějším zápisem téhož času – zkontrolujte záznam',
   invalid_json: 'Bridge poslal neplatný JSON',
   manually_rejected: 'Událost byla ručně zamítnuta',
-  round_occupied: 'Kolo je obsazené – automaticky se nepřepisuje, zkontrolujte a případně potvrďte ručně',
+  round_occupied:
+    'Kolo je obsazené – automaticky se nepřepisuje, zkontrolujte a případně potvrďte ručně',
   auto_rejected: 'Zamítnuto',
   ready: '',
 };
@@ -40,7 +41,12 @@ const SILENT_REASONS = new Set(['ready', 'multiple_matches', 'auto_rejected']);
 
 const FLAG_TYPES = new Set(['DNF', 'DNS', 'DSQ']);
 
-const clockOf = (ts) => new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const clockOf = (ts) =>
+  new Date(ts).toLocaleTimeString('cs-CZ', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
 /**
  * Jedna událost z časomíry ve schránce impulzů (TkZadavaniCasu,
@@ -98,20 +104,27 @@ const BridgeEventRow = memo(function BridgeEventRow({
   // první – při zkrácení trojtečkou zmizí jako první kategorie.
   const racerLine = selectedEntry
     ? [
-      racerLabel,
-      selectedEntry.start_number != null ? `st. č. ${selectedEntry.start_number}` : null,
-      selectedEntry.category_name,
-    ].filter(Boolean).join(' · ')
+        racerLabel,
+        selectedEntry.start_number != null ? `st. č. ${selectedEntry.start_number}` : null,
+        selectedEntry.category_name,
+      ]
+        .filter(Boolean)
+        .join(' · ')
     : '';
-  const reasonText = !SILENT_REASONS.has(reason) && reason !== 'round_occupied' ? formatBridgeReason(reason) : '';
-  const occupiedText = reason === 'round_occupied' && !isLockedRow ? formatBridgeReason(reason) : '';
+  const reasonText =
+    !SILENT_REASONS.has(reason) && reason !== 'round_occupied' ? formatBridgeReason(reason) : '';
+  const occupiedText =
+    reason === 'round_occupied' && !isLockedRow ? formatBridgeReason(reason) : '';
   // Druhý řádek: komu se čas zapíše; bez závodníka rovnou proč. Důvod
   // u přiřazeného závodníka dostane vlastní třetí řádek – jen když něco říká.
-  const deviceProblem = isUnparsed || isUnsupportedType
-    ? `${formatBridgeReason(event.reason)} – zkontrolujte nastavení časomíry.${isUnsupportedType ? ' Čas zapište ručně.' : ''}`
-    : '';
+  const deviceProblem =
+    isUnparsed || isUnsupportedType
+      ? `${formatBridgeReason(event.reason)} – zkontrolujte nastavení časomíry.${isUnsupportedType ? ' Čas zapište ručně.' : ''}`
+      : '';
   const detail = deviceProblem || racerLine || reasonText;
-  const note = [racerLine && !deviceProblem ? reasonText : '', occupiedText].filter(Boolean).join(' ');
+  const note = [racerLine && !deviceProblem ? reasonText : '', occupiedText]
+    .filter(Boolean)
+    .join(' ');
 
   const bibNumber = (
     <BibNumber
@@ -145,38 +158,55 @@ const BridgeEventRow = memo(function BridgeEventRow({
       <div className={styles.main}>
         <p className={styles.head}>
           {isUnparsed ? (
-            <code className={styles.raw} title={event.raw || ''}>{event.raw || '(prázdný řádek)'}</code>
+            <code className={styles.raw} title={event.raw || ''}>
+              {event.raw || '(prázdný řádek)'}
+            </code>
           ) : (
             <span className={styles.value}>
-              {FLAG_TYPES.has(type)
-                ? <RaceFlag flag={type.toLowerCase()} />
-                : <span className={styles.time}>{event.time ? event.time : 'bez času'}</span>}
+              {FLAG_TYPES.has(type) ? (
+                <RaceFlag flag={type.toLowerCase()} />
+              ) : (
+                <span className={styles.time}>{event.time ? event.time : 'bez času'}</span>
+              )}
               <span className={styles.round}>{`→ kolo ${round}`}</span>
             </span>
           )}
           <span className={cx(styles.status, styles[status.tone])}>{status.text}</span>
           {destination && <span className={styles.destination}>{destination}</span>}
         </p>
-        {detail && <p className={styles.detail} title={detail}>{detail}</p>}
+        {detail && (
+          <p className={styles.detail} title={detail}>
+            {detail}
+          </p>
+        )}
         {note && <p className={styles.note}>{note}</p>}
       </div>
 
       {isAutoWritten ? (
         <Tooltip text="Vrátí kolo před zápisem" placement="top" className={styles.action}>
-          <Button size="sm" icon="undo" onClick={() => onRejectAuto?.(event.id)}>Zamítnout</Button>
+          <Button size="sm" icon="undo" onClick={() => onRejectAuto?.(event.id)}>
+            Zamítnout
+          </Button>
         </Tooltip>
-      ) : !isLockedRow && (
-        <div className={styles.actions}>
-          <IconButton
-            icon="check"
-            label="Přiřadit a uložit"
-            title="Přiřadit a uložit"
-            variant={canChangeCandidate ? 'primary' : 'outline'}
-            onClick={() => onConfirm(event.id, selectedEntry ? selectedEntry.id : null)}
-            disabled={!selectedEntry || isUnparsed || isUnsupportedType}
-          />
-          <IconButton icon="close" label="Zamítnout událost" title="Zamítnout událost" onClick={() => onReject(event.id)} />
-        </div>
+      ) : (
+        !isLockedRow && (
+          <div className={styles.actions}>
+            <IconButton
+              icon="check"
+              label="Přiřadit a uložit"
+              title="Přiřadit a uložit"
+              variant={canChangeCandidate ? 'primary' : 'outline'}
+              onClick={() => onConfirm(event.id, selectedEntry ? selectedEntry.id : null)}
+              disabled={!selectedEntry || isUnparsed || isUnsupportedType}
+            />
+            <IconButton
+              icon="close"
+              label="Zamítnout událost"
+              title="Zamítnout událost"
+              onClick={() => onReject(event.id)}
+            />
+          </div>
+        )
       )}
     </div>
   );

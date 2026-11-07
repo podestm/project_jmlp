@@ -25,8 +25,12 @@ export function useStandings(seasonId) {
         setStandings(data);
         setStatus('ready');
       })
-      .catch(() => { if (!cancelled) setStatus('error'); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [seasonId, retry]);
 
   return { standings, status, reload: () => setRetry((count) => count + 1) };

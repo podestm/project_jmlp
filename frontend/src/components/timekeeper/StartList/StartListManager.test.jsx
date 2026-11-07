@@ -18,7 +18,12 @@ const CATEGORIES = [
 ];
 
 let rows;
-const renderScreen = () => render(<MemoryRouter><StartListManager /></MemoryRouter>);
+const renderScreen = () =>
+  render(
+    <MemoryRouter>
+      <StartListManager />
+    </MemoryRouter>,
+  );
 
 beforeEach(() => {
   localStorage.clear();
@@ -41,12 +46,26 @@ describe('startovní listina', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Generovat z přihlášek' }));
     const panel = await screen.findByRole('complementary', { name: 'Generování listiny' });
     await within(panel).findByText('Myšáci dívky');
-    await userEvent.click(within(panel).getByRole('button', { name: /Posunout Myšáci dívky.* dolů/ }));
+    await userEvent.click(
+      within(panel).getByRole('button', { name: /Posunout Myšáci dívky.* dolů/ }),
+    );
 
-    rows = [{ id: 1, start_number: 1, racer_name: 'Ema', racer_surname: 'Malá', category_id: 2, category_name: 'Myšáci chlapci', excluded: false }];
+    rows = [
+      {
+        id: 1,
+        start_number: 1,
+        racer_name: 'Ema',
+        racer_surname: 'Malá',
+        category_id: 2,
+        category_name: 'Myšáci chlapci',
+        excluded: false,
+      },
+    ];
     await userEvent.click(within(panel).getByRole('button', { name: 'Vygenerovat listinu' }));
 
-    expect(api.post).toHaveBeenCalledWith('/api/timekeeper/races/7/start-list/generate', { category_order: [2, 1] });
+    expect(api.post).toHaveBeenCalledWith('/api/timekeeper/races/7/start-list/generate', {
+      category_order: [2, 1],
+    });
     expect(await screen.findByText('Malá Ema')).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Tisk startovní listiny' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Generování listiny' })).toBeNull();

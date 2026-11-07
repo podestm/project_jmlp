@@ -7,7 +7,13 @@ export default function ClubFilters({ cm, counts }) {
   return (
     <div className={styles.filters}>
       <Field label="Hledat klub" className={styles.search}>
-        <Input type="search" size="sm" placeholder="Hledat klub…" value={cm.query} onChange={(e) => cm.setQuery(e.target.value)} />
+        <Input
+          type="search"
+          size="sm"
+          placeholder="Hledat klub…"
+          value={cm.query}
+          onChange={(e) => cm.setQuery(e.target.value)}
+        />
       </Field>
       <Field label="Platnost klubu" className={styles.validity}>
         <Select size="sm" value={cm.platnost} onChange={(e) => cm.setPlatnost(e.target.value)}>
@@ -24,7 +30,11 @@ export default function ClubFilters({ cm, counts }) {
       <p className={styles.summary} aria-live="polite">
         Zobrazeno {cm.visibleClubs.length} z {counts.total} {clubsWord(counts.total)}
       </p>
-      {cm.filtersActive && <Button size="sm" onClick={cm.resetFilters}>Zrušit filtry</Button>}
+      {cm.filtersActive && (
+        <Button size="sm" onClick={cm.resetFilters}>
+          Zrušit filtry
+        </Button>
+      )}
     </div>
   );
 }

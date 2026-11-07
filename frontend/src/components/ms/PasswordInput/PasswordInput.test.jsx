@@ -6,7 +6,11 @@ import PasswordInput from './PasswordInput.jsx';
 
 describe('PasswordInput', () => {
   it('pole má popisek z Field a heslo jde ukázat', async () => {
-    render(<Field label="Heslo"><PasswordInput /></Field>);
+    render(
+      <Field label="Heslo">
+        <PasswordInput />
+      </Field>,
+    );
     const input = screen.getByLabelText('Heslo');
     expect(input).toHaveAttribute('type', 'password');
 

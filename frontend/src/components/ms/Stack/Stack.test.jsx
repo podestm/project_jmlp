@@ -4,7 +4,11 @@ import Stack from './Stack.jsx';
 
 describe('Stack', () => {
   it('mezeru předá jen jako custom property', () => {
-    const { container } = render(<Stack gap={6}><span>a</span></Stack>);
+    const { container } = render(
+      <Stack gap={6}>
+        <span>a</span>
+      </Stack>,
+    );
     expect(container.firstChild.getAttribute('style')).toBe('--gap: var(--ms-space-6);');
   });
 

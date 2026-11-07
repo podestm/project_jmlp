@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isOnline as connectivityOnline, onBackOnline, onConnectivityChange } from './connectivity.js';
+import {
+  isOnline as connectivityOnline,
+  onBackOnline,
+  onConnectivityChange,
+} from './connectivity.js';
 import { getSyncQueueStats, SYNC_QUEUE_EVENT } from './syncQueue.js';
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
 
@@ -8,14 +12,13 @@ const POLL_INTERVAL_MS = 10000;
 
 const EMPTY_STATS = { pending: 0, failed: 0, processing: 0, conflict: 0, dead: 0, total: 0 };
 
-const sameStats = (a, b) => (
+const sameStats = (a, b) =>
   a.pending === b.pending &&
   a.failed === b.failed &&
   a.processing === b.processing &&
   a.conflict === b.conflict &&
   a.dead === b.dead &&
-  a.total === b.total
-);
+  a.total === b.total;
 
 export const useSyncStatus = () => {
   // Skutečné spojení se serverem (connectivity.js), ne jen navigator.onLine:
@@ -78,6 +81,6 @@ export const useSyncStatus = () => {
     isOnline,
     syncState,
     queueStats: stats,
-    refreshStats
+    refreshStats,
   };
 };

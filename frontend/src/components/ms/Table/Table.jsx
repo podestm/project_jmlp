@@ -13,10 +13,24 @@ import styles from './Table.module.css';
  * - density: md (12 px řádky) | compact (8 px, časomíra)
  * - fixed: table-layout fixed (sjednocené sloupce startovní listiny)
  */
-export default function Table({ caption, stickyHeader = false, density = 'md', fixed = false, className, children, ...rest }) {
+export default function Table({
+  caption,
+  stickyHeader = false,
+  density = 'md',
+  fixed = false,
+  className,
+  children,
+  ...rest
+}) {
   return (
     <table
-      className={cx(styles.table, styles[density], stickyHeader && styles.sticky, fixed && styles.fixed, className)}
+      className={cx(
+        styles.table,
+        styles[density],
+        stickyHeader && styles.sticky,
+        fixed && styles.fixed,
+        className,
+      )}
       {...rest}
     >
       {caption && <caption className="ms-sr-only">{caption}</caption>}

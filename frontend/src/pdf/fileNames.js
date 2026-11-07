@@ -13,12 +13,13 @@
  */
 
 /** Úsek názvu: bez diakritiky, malými písmeny, slova spojená pomlčkou. */
-export const slug = (value) => String(value ?? '')
-  .normalize('NFD')
-  .replace(/[̀-ͯ]/g, '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-+|-+$/g, '');
+export const slug = (value) =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
 const pad = (number) => String(number).padStart(2, '0');
 
@@ -30,7 +31,11 @@ const isoDay = (value) => {
 };
 
 /** Číslo závodu (JMLP2026-01) zůstává, jak je - je to kód, ne slovo. */
-const codeOf = (value) => String(value ?? '').trim().replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+const codeOf = (value) =>
+  String(value ?? '')
+    .trim()
+    .replace(/[^A-Za-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
 /**
  * @param {object} parts
@@ -52,5 +57,5 @@ export const DOCUMENT_KIND = {
     if (mode === 'run') return `vysledky-${run}-kolo`;
     return mode === 'interim' ? 'prubezne-vysledky' : 'vysledky';
   },
-  standings: (final = false) => (final ? 'celkove-vysledky-poharu' : 'prubezne-vysledky-poharu')
+  standings: (final = false) => (final ? 'celkove-vysledky-poharu' : 'prubezne-vysledky-poharu'),
 };

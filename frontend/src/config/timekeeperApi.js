@@ -1,18 +1,13 @@
 // Timekeeper API - offline-first client with its own token and sync queue.
 // Kept out of config/api.js so that public pages never pull in Dexie/IndexedDB.
-import {
-  API_CONFIG,
-  buildUrl,
-  handleTimekeeperAuthError,
-  timekeeperAuthHeaders
-} from './api.js';
+import { API_CONFIG, buildUrl, handleTimekeeperAuthError, timekeeperAuthHeaders } from './api.js';
 import { cacheGetResponse, readCachedResponse } from '../offline/startListCache.js';
 import { applyLocalMutation, revisionsFromResponse } from '../offline/localEdits.js';
 import {
   enqueueMutation,
   generateOpId,
   hasUnsyncedMutationFor,
-  supersedeParkedOpsFor
+  supersedeParkedOpsFor,
 } from '../offline/syncQueue.js';
 import { processSyncQueue, startSyncLoop } from '../offline/sync.js';
 import { resolveTempIdsStored } from '../offline/offlineEntries.js';
@@ -21,7 +16,7 @@ import {
   isOnline,
   markReachable,
   markUnreachable,
-  TIMEOUT_MESSAGE
+  TIMEOUT_MESSAGE,
 } from '../offline/connectivity.js';
 
 const extractStatusFromError = (error) => {
@@ -57,7 +52,11 @@ const SLOW_REQUEST_TIMEOUT_MS = 60000;
 
 /** Chyba bez HTTP odpovědi: označená `network`, aby ji všichni poznali stejně. */
 const networkFailure = (error, timedOut) => {
-  const failure = timedOut ? new Error(TIMEOUT_MESSAGE) : (error instanceof Error ? error : new Error(String(error)));
+  const failure = timedOut
+    ? new Error(TIMEOUT_MESSAGE)
+    : error instanceof Error
+      ? error
+      : new Error(String(error));
   if (timedOut) failure.name = 'TimeoutError';
   failure.network = true;
   return failure;
@@ -75,7 +74,7 @@ const timekeeperFetch = async (
   data = null,
   params = null,
   extraHeaders = {},
-  { background = false, timeoutMs = REQUEST_TIMEOUT_MS } = {}
+  { background = false, timeoutMs = REQUEST_TIMEOUT_MS } = {},
 ) => {
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
@@ -89,11 +88,11 @@ const timekeeperFetch = async (
         headers: {
           ...API_CONFIG.DEFAULT_HEADERS,
           ...timekeeperAuthHeaders(),
-          ...extraHeaders
+          ...extraHeaders,
         },
         ...(data != null ? { body: JSON.stringify(data) } : {}),
         ...(controller ? { signal: controller.signal } : {}),
-        redirect: 'follow'
+        redirect: 'follow',
       });
     } catch (error) {
       // Žádná odpověď - server je (aspoň teď) nedosažitelný, ať prohlížeč
@@ -137,14 +136,18 @@ const timekeeperFetch = async (
 
 const opts = (meta = {}) => ({
   background: Boolean(meta.background),
-  ...(meta.timeoutMs ? { timeoutMs: meta.timeoutMs } : {})
+  ...(meta.timeoutMs ? { timeoutMs: meta.timeoutMs } : {}),
 });
 
 const TimekeeperAPIOnline = {
-  get: async (endpoint, params = {}, meta = {}) => timekeeperFetch('GET', endpoint, null, params, {}, opts(meta)),
-  post: async (endpoint, data = {}, meta = {}) => timekeeperFetch('POST', endpoint, data, null, meta.headers || {}, opts(meta)),
-  put: async (endpoint, data = {}, meta = {}) => timekeeperFetch('PUT', endpoint, data, null, meta.headers || {}, opts(meta)),
-  delete: async (endpoint, meta = {}) => timekeeperFetch('DELETE', endpoint, null, null, meta.headers || {}, opts(meta))
+  get: async (endpoint, params = {}, meta = {}) =>
+    timekeeperFetch('GET', endpoint, null, params, {}, opts(meta)),
+  post: async (endpoint, data = {}, meta = {}) =>
+    timekeeperFetch('POST', endpoint, data, null, meta.headers || {}, opts(meta)),
+  put: async (endpoint, data = {}, meta = {}) =>
+    timekeeperFetch('PUT', endpoint, data, null, meta.headers || {}, opts(meta)),
+  delete: async (endpoint, meta = {}) =>
+    timekeeperFetch('DELETE', endpoint, null, null, meta.headers || {}, opts(meta)),
 };
 
 const queueMutationWithLocalApply = async (method, endpoint, data = null, opId = null) => {
@@ -158,7 +161,7 @@ const queueMutationWithLocalApply = async (method, endpoint, data = null, opId =
     offline: true,
     op_id: item.op_id,
     queue_id: item.id,
-    message: 'Změna byla uložena lokálně a čeká na synchronizaci.'
+    message: 'Změna byla uložena lokálně a čeká na synchronizaci.',
   };
 };
 
@@ -219,11 +222,12 @@ const mutate = async (method, rawEndpoint, rawData) => {
 
   try {
     const headers = { 'X-Idempotency-Key': opId };
-    const result = method === 'POST'
-      ? await TimekeeperAPIOnline.post(endpoint, data, { headers })
-      : method === 'PUT'
-        ? await TimekeeperAPIOnline.put(endpoint, data, { headers })
-        : await TimekeeperAPIOnline.delete(endpoint, { headers });
+    const result =
+      method === 'POST'
+        ? await TimekeeperAPIOnline.post(endpoint, data, { headers })
+        : method === 'PUT'
+          ? await TimekeeperAPIOnline.put(endpoint, data, { headers })
+          : await TimekeeperAPIOnline.delete(endpoint, { headers });
 
     // Keep the local snapshot in step with what the server just accepted, so a
     // reload (online or offline) shows the value the operator entered. The
@@ -310,7 +314,7 @@ export const TimekeeperAPI = {
       throw new Error('Mazání vyžaduje připojení k internetu.');
     }
     return TimekeeperAPIOnline.delete(endpoint, {
-      headers: { 'X-Idempotency-Key': generateOpId() }
+      headers: { 'X-Idempotency-Key': generateOpId() },
     });
   },
 
@@ -329,7 +333,7 @@ export const TimekeeperAPI = {
 
   flushQueue: async () => {
     await processSyncQueue(syncExecutor);
-  }
+  },
 };
 
 export default TimekeeperAPI;

@@ -15,7 +15,12 @@
 //  - Odhlásit jde jen ručně (tlačítko v menu, s varováním, když ve frontě
 //    něco čeká).
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { createTokenStore, fetchProfile, isNetworkError, loginWithCredentials } from './authCore.js';
+import {
+  createTokenStore,
+  fetchProfile,
+  isNetworkError,
+  loginWithCredentials,
+} from './authCore.js';
 import { AUTH_EXPIRED_EVENT } from './api.js';
 import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from './session.js';
 import { startTimekeeperSync, TimekeeperAPI } from './timekeeperApi.js';
@@ -138,7 +143,9 @@ export const TimekeeperAuthProvider = ({ children }) => {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [requireReauth]);
 
   /**
@@ -166,7 +173,11 @@ export const TimekeeperAuthProvider = ({ children }) => {
   // po obnovení připojení a periodicky).
   useEffect(() => {
     if (!user || reauthRequired) return undefined;
-    const refresher = startTokenRefresh({ endpoint: REFRESH_ENDPOINT, store, onRefreshed: setToken });
+    const refresher = startTokenRefresh({
+      endpoint: REFRESH_ENDPOINT,
+      store,
+      onRefreshed: setToken,
+    });
     return refresher.stop;
   }, [user, reauthRequired]);
 
@@ -177,7 +188,7 @@ export const TimekeeperAuthProvider = ({ children }) => {
         meEndpoint: '/api/timekeeper/auth/me',
         store,
         email,
-        password
+        password,
       });
       setToken(access_token);
       setUser(userData);
@@ -194,19 +205,18 @@ export const TimekeeperAuthProvider = ({ children }) => {
     }
   }, []);
 
-  const value = useMemo(() => ({
-    user,
-    loading,
-    login,
-    logout,
-    reauthRequired,
-    isAuthenticated: !!user,
-    token
-  }), [user, loading, login, logout, reauthRequired, token]);
-
-  return (
-    <TimekeeperAuthContext.Provider value={value}>
-      {children}
-    </TimekeeperAuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login,
+      logout,
+      reauthRequired,
+      isAuthenticated: !!user,
+      token,
+    }),
+    [user, loading, login, logout, reauthRequired, token],
   );
+
+  return <TimekeeperAuthContext.Provider value={value}>{children}</TimekeeperAuthContext.Provider>;
 };

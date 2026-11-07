@@ -31,22 +31,31 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
       {needsTarget ? (
         <>
           <p className={styles.text}>
-            Na klubu <strong>{club.name}</strong> visí <strong>{racers} {racersWord(racers)}</strong>
-            {' '}a <strong>{races} {racesWord(races)}</strong>. Musí je převzít jiný klub.
+            Na klubu <strong>{club.name}</strong> visí{' '}
+            <strong>
+              {racers} {racersWord(racers)}
+            </strong>{' '}
+            a{' '}
+            <strong>
+              {races} {racesWord(races)}
+            </strong>
+            . Musí je převzít jiný klub.
           </p>
           <Field label="Převést na klub">
             <Select size="sm" value={target} onChange={(event) => setTarget(event.target.value)}>
               <option value="">— vyberte klub —</option>
               {options.map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.name}{option.valid ? '' : ' (neplatný)'}
+                  {option.name}
+                  {option.valid ? '' : ' (neplatný)'}
                 </option>
               ))}
             </Select>
           </Field>
           {targetName && (
             <p className={styles.outcome}>
-              Klub <strong>{club.name}</strong> se smaže, závodníci i pořádané závody přejdou do klubu <strong>{targetName}</strong>.
+              Klub <strong>{club.name}</strong> se smaže, závodníci i pořádané závody přejdou do
+              klubu <strong>{targetName}</strong>.
             </p>
           )}
         </>
@@ -64,13 +73,15 @@ export default function ClubDeleteDialog({ club, clubs, onResolve }) {
     <ConfirmDialog
       title={`Smazat klub ${club.name}?`}
       message={message}
-      choices={[{
-        value: 'smazat',
-        label: 'Smazat klub',
-        danger: true,
-        icon: 'trash',
-        disabled: needsTarget && !target,
-      }]}
+      choices={[
+        {
+          value: 'smazat',
+          label: 'Smazat klub',
+          danger: true,
+          icon: 'trash',
+          disabled: needsTarget && !target,
+        },
+      ]}
       onResolve={(choice) => onResolve(choice ? (target ? Number(target) : null) : false)}
     />
   );

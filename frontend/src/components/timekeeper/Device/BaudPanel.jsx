@@ -10,7 +10,9 @@ import styles from './BaudPanel.module.css';
 export default function BaudPanel({ serial, usable, detecting, verified, onDetect }) {
   return (
     <div className={styles.panel}>
-      <span className={styles.caps} id="tk-baud-label">Rychlost přenosu (baud)</span>
+      <span className={styles.caps} id="tk-baud-label">
+        Rychlost přenosu (baud)
+      </span>
       <div className={styles.row}>
         <Select
           aria-labelledby="tk-baud-label"
@@ -19,7 +21,11 @@ export default function BaudPanel({ serial, usable, detecting, verified, onDetec
           onChange={(e) => serial.setBaud(e.target.value)}
           disabled={serial.connected || detecting}
         >
-          {BAUD_OPTIONS.map((value) => <option key={value} value={String(value)}>{value}</option>)}
+          {BAUD_OPTIONS.map((value) => (
+            <option key={value} value={String(value)}>
+              {value}
+            </option>
+          ))}
         </Select>
         <span className={cx(styles.badge, verified && styles.verified)}>
           {verified && <Icon name="check" size={16} />}
@@ -28,10 +34,17 @@ export default function BaudPanel({ serial, usable, detecting, verified, onDetec
       </div>
 
       {detecting ? (
-        <Button icon="stop" className={styles.action} onClick={() => serial.cancelDetection()}>Zastavit hledání</Button>
+        <Button icon="stop" className={styles.action} onClick={() => serial.cancelDetection()}>
+          Zastavit hledání
+        </Button>
       ) : (
         <Tooltip text="LIP TIMER vysílá 19200" className={styles.action}>
-          <Button icon="search" variant={serial.baudHint ? 'primary' : 'outline'} onClick={onDetect} disabled={!usable}>
+          <Button
+            icon="search"
+            variant={serial.baudHint ? 'primary' : 'outline'}
+            onClick={onDetect}
+            disabled={!usable}
+          >
             Zjistit rychlost
           </Button>
         </Tooltip>
@@ -39,15 +52,16 @@ export default function BaudPanel({ serial, usable, detecting, verified, onDetec
 
       {serial.baudHint && !detecting && (
         <Alert type="warning" compact>
-          Časomíra nejspíš vysílá jinou rychlostí než <span className={styles.mono}>{serial.baud}</span>.
+          Časomíra nejspíš vysílá jinou rychlostí než{' '}
+          <span className={styles.mono}>{serial.baud}</span>.
         </Alert>
       )}
 
       {detecting ? (
         <div className={styles.progressBox}>
           <p className={styles.progressTitle}>
-            Zkouším <span className={styles.mono}>{serial.detection.baud}</span> baudů
-            ({serial.detection.index + 1} z {serial.detection.total})
+            Zkouším <span className={styles.mono}>{serial.detection.baud}</span> baudů (
+            {serial.detection.index + 1} z {serial.detection.total})
           </p>
           <p className={styles.note}>Posílejte z časomíry časy.</p>
           <progress

@@ -27,18 +27,41 @@ const { resetCurrentSeason } = await import('../../../hooks/useCurrentSeason.js'
 
 const RACES = [
   {
-    id: 7, datum: '2026-10-03', race_nr: 'JMLP2026-01', season_id: 2026, areal_name: 'Brno – Kohoutovice',
-    organizer_name: 'FreeSki Academy Brno', registration: true, registrations_count: 58, race_method_id: 2,
-    proposition_file_id: 5, results_file_id: null, is_final: false,
+    id: 7,
+    datum: '2026-10-03',
+    race_nr: 'JMLP2026-01',
+    season_id: 2026,
+    areal_name: 'Brno – Kohoutovice',
+    organizer_name: 'FreeSki Academy Brno',
+    registration: true,
+    registrations_count: 58,
+    race_method_id: 2,
+    proposition_file_id: 5,
+    results_file_id: null,
+    is_final: false,
   },
   {
-    id: 8, datum: '2027-03-01', race_nr: 'JMLP2026-07', season_id: 2026, areal_name: 'Velké Meziříčí – Fajťák',
-    organizer_name: 'SKI KLUB JUNIOR BRNO', registration: false, registrations_count: 0, race_method_id: 1,
-    proposition_file_id: null, results_file_id: null, is_final: true,
+    id: 8,
+    datum: '2027-03-01',
+    race_nr: 'JMLP2026-07',
+    season_id: 2026,
+    areal_name: 'Velké Meziříčí – Fajťák',
+    organizer_name: 'SKI KLUB JUNIOR BRNO',
+    registration: false,
+    registrations_count: 0,
+    race_method_id: 1,
+    proposition_file_id: null,
+    results_file_id: null,
+    is_final: true,
   },
 ];
 
-const renderScreen = () => render(<MemoryRouter><RaceManagement /></MemoryRouter>);
+const renderScreen = () =>
+  render(
+    <MemoryRouter>
+      <RaceManagement />
+    </MemoryRouter>,
+  );
 
 describe('správa závodů', () => {
   beforeEach(() => {
@@ -59,8 +82,14 @@ describe('správa závodů', () => {
     expect(within(table).getByText('Brno – Kohoutovice')).toBeInTheDocument();
     expect(within(table).getByText('FreeSki Academy Brno · suchý slalom')).toBeInTheDocument();
     expect(within(table).getByText('Finále')).toBeInTheDocument();
-    expect(within(table).getByRole('link', { name: 'Propozice' })).toHaveAttribute('href', '/races/7/proposition');
-    expect(within(table).getAllByRole('link', { name: 'Přihlášky' })[0]).toHaveAttribute('href', '/admin/races/7/registrations');
+    expect(within(table).getByRole('link', { name: 'Propozice' })).toHaveAttribute(
+      'href',
+      '/races/7/proposition',
+    );
+    expect(within(table).getAllByRole('link', { name: 'Přihlášky' })[0]).toHaveAttribute(
+      'href',
+      '/admin/races/7/registrations',
+    );
     expect(screen.getByText('2 závody · 1 s otevřenou registrací')).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Sezóna 2026/27 — XX. ročník' })).toBeInTheDocument();
   });
@@ -70,21 +99,47 @@ describe('správa závodů', () => {
   });
 
   it('výchozí filtr je aktuální sezóna, Všechny sezóny ukáže i starší závody', async () => {
-    mockGet.mockResolvedValue([...RACES, { ...RACES[0], id: 3, datum: '2025-12-01', race_nr: 'JMLP2025-01', season_id: 2025, areal_name: 'Hlinsko' }]);
+    mockGet.mockResolvedValue([
+      ...RACES,
+      {
+        ...RACES[0],
+        id: 3,
+        datum: '2025-12-01',
+        race_nr: 'JMLP2025-01',
+        season_id: 2025,
+        areal_name: 'Hlinsko',
+      },
+    ]);
     renderScreen();
     const table = await screen.findByRole('table', { name: 'Závody' });
     expect(screen.getByRole('combobox', { name: 'Sezóna' })).toHaveValue('2026');
     expect(within(table).queryByText('Hlinsko')).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Sezóna' }), '');
-    expect(within(screen.getByRole('table', { name: 'Závody' })).getByText('Hlinsko')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table', { name: 'Závody' })).getByText('Hlinsko'),
+    ).toBeInTheDocument();
   });
 
   it('výchozí filtr je sezóna nastavená jako aktuální ve správě sezón', async () => {
     mockPublicGet.mockResolvedValue({ current_season_id: 2025, edition: 19 });
-    mockGet.mockResolvedValue([...RACES, { ...RACES[0], id: 3, datum: '2025-12-01', race_nr: 'JMLP2025-01', season_id: 2025, areal_name: 'Hlinsko' }]);
+    mockGet.mockResolvedValue([
+      ...RACES,
+      {
+        ...RACES[0],
+        id: 3,
+        datum: '2025-12-01',
+        race_nr: 'JMLP2025-01',
+        season_id: 2025,
+        areal_name: 'Hlinsko',
+      },
+    ]);
     renderScreen();
-    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Sezóna' })).toHaveValue('2025'));
-    expect(within(await screen.findByRole('table', { name: 'Závody' })).getByText('Hlinsko')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Sezóna' })).toHaveValue('2025'),
+    );
+    expect(
+      within(await screen.findByRole('table', { name: 'Závody' })).getByText('Hlinsko'),
+    ).toBeInTheDocument();
   });
 
   it('přepínač v řádku změní stav registrace', async () => {
@@ -132,8 +187,12 @@ describe('správa závodů', () => {
     await userEvent.click(within(table).getAllByRole('button', { name: 'Upravit' })[0]);
     await userEvent.click(screen.getByRole('button', { name: 'Smazat závod' }));
     const dialog = screen.getByRole('dialog', { name: 'Smazat závod Brno – Kohoutovice?' });
-    expect(within(dialog).getByRole('button', { name: 'Smazat závod i 58 přihlášek' })).toBeInTheDocument();
-    expect(within(dialog).getByText(/Dokumenty se odpojí, v knihovně zůstanou/)).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('button', { name: 'Smazat závod i 58 přihlášek' }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Dokumenty se odpojí, v knihovně zůstanou/),
+    ).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Zrušit' }));
     expect(mockDelete).not.toHaveBeenCalled();
     expect(screen.getByRole('heading', { level: 2, name: 'Upravit závod' })).toBeInTheDocument();

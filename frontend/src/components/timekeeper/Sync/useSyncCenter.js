@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { TimekeeperAPI } from '../../../config/timekeeperApi.js';
 import { downloadBackup, importBackupPayload } from '../../../offline/backup.js';
-import { getOpenConflicts, getRecentQueueItems, resolveConflict, retryQueueItem } from '../../../offline/syncQueue.js';
+import {
+  getOpenConflicts,
+  getRecentQueueItems,
+  resolveConflict,
+  retryQueueItem,
+} from '../../../offline/syncQueue.js';
 import { useSyncStatus } from '../../../offline/useSyncStatus.js';
 import { isAuthExpired } from './queueView.js';
 
@@ -25,10 +30,7 @@ export function useSyncCenter() {
   const [serverSnapshotByConflict, setServerSnapshotByConflict] = useState({});
 
   const loadData = async () => {
-    const [items, openConflicts] = await Promise.all([
-      getRecentQueueItems(80),
-      getOpenConflicts()
-    ]);
+    const [items, openConflicts] = await Promise.all([getRecentQueueItems(80), getOpenConflicts()]);
     setQueueItems(items);
     setConflicts(openConflicts);
   };
@@ -83,9 +85,10 @@ export function useSyncCenter() {
       const skipped = result.skippedTotal || 0;
       setMessage({
         type: 'success',
-        text: skipped > 0
-          ? `Import dokončen: přidáno ${added} záznamů, ${skipped} už bylo v zařízení (ponecháno beze změny).`
-          : `Import dokončen (${added} záznamů).`
+        text:
+          skipped > 0
+            ? `Import dokončen: přidáno ${added} záznamů, ${skipped} už bylo v zařízení (ponecháno beze změny).`
+            : `Import dokončen (${added} záznamů).`,
       });
     } catch (error) {
       setMessage({ type: 'danger', text: error?.message || 'Import zálohy selhal.' });

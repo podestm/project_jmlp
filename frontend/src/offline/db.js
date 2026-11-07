@@ -7,17 +7,17 @@ const TABLES_V1 = {
   startList: 'id, race_id, start_number, updated_at',
   cache: '&key, updated_at',
   syncQueue: '++id, status, created_at, next_retry_at, method, endpoint',
-  settings: '&key, updated_at'
+  settings: '&key, updated_at',
 };
 
 const TABLES_V2 = {
   ...TABLES_V1,
-  conflicts: '++id, queue_item_id, status_code, created_at, resolved'
+  conflicts: '++id, queue_item_id, status_code, created_at, resolved',
 };
 
 const TABLES_V3 = {
   ...TABLES_V2,
-  bridgeInbox: '++id, race_id, status, created_at, op_key'
+  bridgeInbox: '++id, race_id, status, created_at, op_key',
 };
 
 // Dexie potřebuje historii verzí, aby uměl upgradovat databázi, kterou už má
@@ -34,8 +34,10 @@ export const DB_STATE_EVENT = 'timekeeper-db-state-changed';
  * hlásí nahlas a doslova.
  */
 export const DB_STATE_TEXT = {
-  blocked: 'Lokální databázi blokuje jiná otevřená karta Časoměřiče. Zavřete ostatní karty a obnovte stránku – do té doby se naměřené časy NEUKLÁDAJÍ.',
-  closed: 'Lokální databáze byla uzavřena jinou kartou (nová verze aplikace). Obnovte stránku – do té doby se naměřené časy NEUKLÁDAJÍ.'
+  blocked:
+    'Lokální databázi blokuje jiná otevřená karta Časoměřiče. Zavřete ostatní karty a obnovte stránku – do té doby se naměřené časy NEUKLÁDAJÍ.',
+  closed:
+    'Lokální databáze byla uzavřena jinou kartou (nová verze aplikace). Obnovte stránku – do té doby se naměřené časy NEUKLÁDAJÍ.',
 };
 
 let dbState = 'ok';

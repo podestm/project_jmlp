@@ -31,7 +31,7 @@ export default function TimingDeviceSettings() {
         title: 'Hledat jinou rychlost?',
         message: `Na rychlosti ${serial.baud} už z časomíry přišel platný řádek. Hledejte jen tehdy, když časomíra opravdu posílá nečitelná data.`,
         confirmLabel: 'Hledat rychlost',
-        icon: 'search'
+        icon: 'search',
       });
       if (!go) return;
     }
@@ -43,7 +43,11 @@ export default function TimingDeviceSettings() {
       <PageHeader
         variant="app"
         title="Zařízení"
-        actions={<ButtonLink to="/timekeeper/timing" variant="primary" iconEnd="arrow-right">Zpět k zadávání časů</ButtonLink>}
+        actions={
+          <ButtonLink to="/timekeeper/timing" variant="primary" iconEnd="arrow-right">
+            Zpět k zadávání časů
+          </ButtonLink>
+        }
       />
 
       <div className={styles.columns}>
@@ -55,7 +59,13 @@ export default function TimingDeviceSettings() {
 
           <section className={styles.section} aria-labelledby="zarizeni-rychlost">
             <Paska id="zarizeni-rychlost">Rychlost přenosu (baud)</Paska>
-            <BaudPanel serial={serial} usable={usable} detecting={detecting} verified={verified} onDetect={startDetection} />
+            <BaudPanel
+              serial={serial}
+              usable={usable}
+              detecting={detecting}
+              verified={verified}
+              onDetect={startDetection}
+            />
           </section>
 
           {!serial.supported && (

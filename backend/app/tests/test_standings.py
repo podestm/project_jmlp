@@ -5,6 +5,7 @@ Výpočet je ověřený i proti pořadí, které pro JmLP vydával LIP (průbě�
 kdo má a nemá místo, sedí na všech řádcích. Liší se jen pořadí při shodě
 bodů, kde se teď postupuje podle soutěžního řádu (LIP to řešil jinak).
 """
+
 from datetime import date
 from pathlib import Path
 
@@ -13,7 +14,13 @@ import pytest
 from app import models
 from app.models import AttachmentOwner, AttachmentRole
 from app.services.standings import (
-    FINAL, PREP, SNOW, RaceResult, SeasonRace, StandingRow, rank_rows,
+    FINAL,
+    PREP,
+    SNOW,
+    RaceResult,
+    SeasonRace,
+    StandingRow,
+    rank_rows,
 )
 
 P1 = SeasonRace(id=1, kind=PREP, datum=date(2025, 10, 4))
@@ -30,7 +37,9 @@ def _vysledek(race, rank=None, points=0, status=None):
 
 
 def _radek(jmeno, *vysledky):
-    return StandingRow(key=jmeno, surname=jmeno, name="", year=2018, club=None, results=list(vysledky))
+    return StandingRow(
+        key=jmeno, surname=jmeno, name="", year=2018, club=None, results=list(vysledky)
+    )
 
 
 def _podle_jmena(radky):
@@ -41,11 +50,16 @@ def _podle_jmena(radky):
 # Započtené body
 # --------------------------------------------------------------------------
 
+
 def test_zapocte_nejlepsi_pripravny_a_tri_nejlepsi_na_snehu():
     radek = _radek(
         "Keznikl",
-        _vysledek(P1, 1, 100), _vysledek(P2, 1, 100),
-        _vysledek(S1, 4, 50), _vysledek(S2, 3, 60), _vysledek(S3, 2, 80), _vysledek(S4, 9, 29),
+        _vysledek(P1, 1, 100),
+        _vysledek(P2, 1, 100),
+        _vysledek(S1, 4, 50),
+        _vysledek(S2, 3, 60),
+        _vysledek(S3, 2, 80),
+        _vysledek(S4, 9, 29),
     )
     rank_rows([radek])
 
@@ -82,28 +96,50 @@ def test_celkove_vysledky_bez_bodu_nedavaji_misto():
 
     poradi = rank_rows([jen_pripravne, jen_dsq, s_body], final=True)
 
-    assert [(r.surname, r.rank) for r in poradi] == [("Kubrický", 1), ("Svoboda", None), ("Ptáčník", None)]
+    assert [(r.surname, r.rank) for r in poradi] == [
+        ("Kubrický", 1),
+        ("Svoboda", None),
+        ("Ptáčník", None),
+    ]
 
 
 # --------------------------------------------------------------------------
 # Shoda bodů - soutěžní řád, část F.2
 # --------------------------------------------------------------------------
 
+
 def test_shoda_rozhoduje_lepsi_umisteni_v_zapoctenych_zavodech_na_snehu():
     # Skutečný případ z průběžného pořadí 23. 2. 2026: obě mají 54 bodů.
     # Junová byla na sněhu 8., Matoušková nejlépe 15. -> Junová je před ní.
-    matouskova = _radek("Matoušková", _vysledek(P2, 11, 24), _vysledek(S2, 17, 14), _vysledek(S3, 15, 16))
+    matouskova = _radek(
+        "Matoušková", _vysledek(P2, 11, 24), _vysledek(S2, 17, 14), _vysledek(S3, 15, 16)
+    )
     junova = _radek("Junová", _vysledek(P1, 12, 22), _vysledek(S2, 8, 32))
 
     poradi = rank_rows([matouskova, junova])
 
-    assert [(r.surname, r.rank, r.total) for r in poradi] == [("Junová", 1, 54), ("Matoušková", 2, 54)]
+    assert [(r.surname, r.rank, r.total) for r in poradi] == [
+        ("Junová", 1, 54),
+        ("Matoušková", 2, 54),
+    ]
 
 
 def test_shoda_pak_umisteni_ve_vsech_zavodech_na_snehu():
     # Započtené výsledky stejné, rozhodne čtvrtý (nezapočtený) závod na sněhu.
-    lepsi = _radek("Lepší", _vysledek(S1, 1, 100), _vysledek(S2, 1, 100), _vysledek(S3, 1, 100), _vysledek(S4, 5, 45))
-    horsi = _radek("Horší", _vysledek(S1, 1, 100), _vysledek(S2, 1, 100), _vysledek(S3, 1, 100), _vysledek(S4, 9, 29))
+    lepsi = _radek(
+        "Lepší",
+        _vysledek(S1, 1, 100),
+        _vysledek(S2, 1, 100),
+        _vysledek(S3, 1, 100),
+        _vysledek(S4, 5, 45),
+    )
+    horsi = _radek(
+        "Horší",
+        _vysledek(S1, 1, 100),
+        _vysledek(S2, 1, 100),
+        _vysledek(S3, 1, 100),
+        _vysledek(S4, 9, 29),
+    )
 
     assert [r.surname for r in rank_rows([horsi, lepsi])] == ["Lepší", "Horší"]
 
@@ -120,7 +156,12 @@ def test_bez_poradi_se_pri_shode_radi_podle_pomocnych_kriterii_ne_abecedy():
     Při shodě započtených bodů rozhoduje součet ze všech závodů (F.2 bod 3)."""
     junova = _radek("Junová", _vysledek(P1, 1, 100), _vysledek(P2, 1, 100))
     mertova = _radek("Mertová", _vysledek(P1, 1, 100))
-    ryskova = _radek("Ryšková", _vysledek(P1, 2, 80), _vysledek(P2, 1, 100), _vysledek(SeasonRace(id=8, kind=PREP, datum=date(2025, 10, 18)), 3, 45))
+    ryskova = _radek(
+        "Ryšková",
+        _vysledek(P1, 2, 80),
+        _vysledek(P2, 1, 100),
+        _vysledek(SeasonRace(id=8, kind=PREP, datum=date(2025, 10, 18)), 3, 45),
+    )
 
     radky = rank_rows([junova, mertova, ryskova])
 
@@ -152,9 +193,12 @@ def test_uplna_shoda_deli_misto_a_dalsi_se_preskoci():
 # API časomíry
 # --------------------------------------------------------------------------
 
+
 @pytest.fixture
 def sezona(db):
-    sezona = models.Season(year_start=2031, year_end=2032, edition=25, name="Jihomoravský lyžařský pohár")
+    sezona = models.Season(
+        year_start=2031, year_end=2032, edition=25, name="Jihomoravský lyžařský pohár"
+    )
     db.add(sezona)
     db.commit()
     return sezona
@@ -163,8 +207,12 @@ def sezona(db):
 @pytest.fixture
 def kategorie(db):
     kategorie = models.Category(
-        name="U10", display_name="Přípravka dívky",
-        min_birth_year=2022, max_birth_year=2024, sex=2, active=True,
+        name="U10",
+        display_name="Přípravka dívky",
+        min_birth_year=2022,
+        max_birth_year=2024,
+        sex=2,
+        active=True,
     )
     db.add(kategorie)
     db.commit()
@@ -173,8 +221,15 @@ def kategorie(db):
 
 
 def _zavod(db, nr, datum, method):
-    zavod = models.Race(race_nr=nr, datum=datum, season_id=2031, closed=False,
-                        registration=False, race_method_id=method, is_live=False)
+    zavod = models.Race(
+        race_nr=nr,
+        datum=datum,
+        season_id=2031,
+        closed=False,
+        registration=False,
+        race_method_id=method,
+        is_live=False,
+    )
     db.add(zavod)
     db.commit()
     db.refresh(zavod)
@@ -190,12 +245,24 @@ def _zavodnik(db, name, surname):
 
 
 def _start(db, zavod, zavodnik, kategorie, number, time=None, dsq=False):
-    db.add(models.StartListEntry(
-        race_id=zavod.id, racer_id=zavodnik.id, category_id=kategorie.id, start_number=number,
-        racer_name=zavodnik.name, racer_surname=zavodnik.surname, racer_year=zavodnik.year,
-        racer_sex=2, club_name="Ski klub", category_name=kategorie.display_name, category_sex=2,
-        time1=time, time_sum=time, dsq=dsq,
-    ))
+    db.add(
+        models.StartListEntry(
+            race_id=zavod.id,
+            racer_id=zavodnik.id,
+            category_id=kategorie.id,
+            start_number=number,
+            racer_name=zavodnik.name,
+            racer_surname=zavodnik.surname,
+            racer_year=zavodnik.year,
+            racer_sex=2,
+            club_name="Ski klub",
+            category_name=kategorie.display_name,
+            category_sex=2,
+            time1=time,
+            time_sum=time,
+            dsq=dsq,
+        )
+    )
     db.commit()
 
 
@@ -203,10 +270,14 @@ def _start(db, zavod, zavodnik, kategorie, number, time=None, dsq=False):
 def sezona_s_vysledky(db, sezona, kategorie):
     pripravny = _zavod(db, "JMLP2031-01", date(2031, 10, 4), method=2)
     snih = _zavod(db, "JMLP2031-02", date(2032, 1, 17), method=1)
-    _zavod(db, "JMLP2031-03", date(2032, 1, 24), method=1)   # proběhl, výsledky jen v LiZe
-    _zavod(db, "JMLP2031-04", date(2032, 3, 1), method=1)    # teprve bude
+    _zavod(db, "JMLP2031-03", date(2032, 1, 24), method=1)  # proběhl, výsledky jen v LiZe
+    _zavod(db, "JMLP2031-04", date(2032, 3, 1), method=1)  # teprve bude
 
-    anna, bara, cilka = _zavodnik(db, "Anna", "Adamová"), _zavodnik(db, "Bára", "Bílá"), _zavodnik(db, "Cilka", "Cejpková")
+    anna, bara, cilka = (
+        _zavodnik(db, "Anna", "Adamová"),
+        _zavodnik(db, "Bára", "Bílá"),
+        _zavodnik(db, "Cilka", "Cejpková"),
+    )
     _start(db, pripravny, anna, kategorie, 1, time=30.0)
     _start(db, pripravny, bara, kategorie, 2, time=31.0)
     _start(db, pripravny, cilka, kategorie, 3, time=29.0)
@@ -215,9 +286,14 @@ def sezona_s_vysledky(db, sezona, kategorie):
     return pripravny, snih
 
 
-def test_api_vrati_poradi_po_kategoriich(client, timekeeper_headers, sezona_s_vysledky, monkeypatch):
+def test_api_vrati_poradi_po_kategoriich(
+    client, timekeeper_headers, sezona_s_vysledky, monkeypatch
+):
     import app.services.standings as standings_service
-    monkeypatch.setattr(standings_service, "date", type("D", (), {"today": staticmethod(lambda: date(2032, 2, 1))}))
+
+    monkeypatch.setattr(
+        standings_service, "date", type("D", (), {"today": staticmethod(lambda: date(2032, 2, 1))})
+    )
 
     odpoved = client.get("/api/timekeeper/seasons/2031/standings", headers=timekeeper_headers)
 
@@ -230,9 +306,9 @@ def test_api_vrati_poradi_po_kategoriich(client, timekeeper_headers, sezona_s_vy
     radky = data["categories"][0]["rows"]
     assert data["categories"][0]["name"] == "Přípravka dívky"
     assert [(r["surname"], r["rank"], r["total"]) for r in radky] == [
-        ("Adamová", 1, 180),        # 2/80 + 1/100
-        ("Bílá", 2, 60),            # 3/60 + DSQ na sněhu
-        ("Cejpková", None, 100),    # jen přípravný závod - bez místa
+        ("Adamová", 1, 180),  # 2/80 + 1/100
+        ("Bílá", 2, 60),  # 3/60 + DSQ na sněhu
+        ("Cejpková", None, 100),  # jen přípravný závod - bez místa
     ]
     assert radky[0]["cells"] == [
         {"text": "2/80", "counted": True, "kind": "P"},
@@ -241,7 +317,9 @@ def test_api_vrati_poradi_po_kategoriich(client, timekeeper_headers, sezona_s_vy
     assert radky[1]["cells"][1] == {"text": "DSQ", "counted": True, "kind": "S"}
 
 
-def test_bez_volby_je_pred_finale_prubezne_a_po_finale_celkove(client, db, timekeeper_headers, sezona_s_vysledky, kategorie):
+def test_bez_volby_je_pred_finale_prubezne_a_po_finale_celkove(
+    client, db, timekeeper_headers, sezona_s_vysledky, kategorie
+):
     url = "/api/timekeeper/seasons/2031/standings"
     assert client.get(url, headers=timekeeper_headers).json()["final"] is False
 
@@ -258,21 +336,29 @@ def test_bez_volby_je_pred_finale_prubezne_a_po_finale_celkove(client, db, timek
 
 
 def test_api_celkove_vysledky(client, timekeeper_headers, sezona_s_vysledky):
-    data = client.get("/api/timekeeper/seasons/2031/standings?final=true", headers=timekeeper_headers).json()
+    data = client.get(
+        "/api/timekeeper/seasons/2031/standings?final=true", headers=timekeeper_headers
+    ).json()
 
     assert data["final"] is True
     assert [(r["surname"], r["rank"]) for r in data["categories"][0]["rows"]] == [
-        ("Adamová", 1), ("Bílá", 2), ("Cejpková", None),
+        ("Adamová", 1),
+        ("Bílá", 2),
+        ("Cejpková", None),
     ]
 
 
 def test_neznama_sezona_vrati_404(client, timekeeper_headers):
-    assert client.get("/api/timekeeper/seasons/1999/standings", headers=timekeeper_headers).status_code == 404
+    assert (
+        client.get("/api/timekeeper/seasons/1999/standings", headers=timekeeper_headers).status_code
+        == 404
+    )
 
 
 def test_zverejneni_nahradi_dosavadni_vysledky_sezony(client, db, timekeeper_headers, sezona):
     vytvorene = []
     try:
+
         def zverejnit(final):
             odpoved = client.post(
                 f"/api/timekeeper/seasons/2031/standings/publish?final={str(final).lower()}",
@@ -287,10 +373,15 @@ def test_zverejneni_nahradi_dosavadni_vysledky_sezony(client, db, timekeeper_hea
 
         def prilohy_sezony():
             db.expire_all()
-            return [(p.role, p.file_id, p.published) for p in db.query(models.Attachment).filter(
-                models.Attachment.owner_type == AttachmentOwner.season.value,
-                models.Attachment.owner_id == 2031,
-            ).all()]
+            return [
+                (p.role, p.file_id, p.published)
+                for p in db.query(models.Attachment)
+                .filter(
+                    models.Attachment.owner_type == AttachmentOwner.season.value,
+                    models.Attachment.owner_id == 2031,
+                )
+                .all()
+            ]
 
         prubezne_id = zverejnit(final=False)
         assert prilohy_sezony() == [(AttachmentRole.prubezne.value, prubezne_id, True)]
@@ -309,11 +400,22 @@ def test_zverejneni_nahradi_dosavadni_vysledky_sezony(client, db, timekeeper_hea
 # Finálový závod
 # --------------------------------------------------------------------------
 
-def test_finale_se_oznaci_v_administraci_a_v_poradi_je_sloupec_f(client, db, admin_headers, timekeeper_headers, sezona, kategorie):
-    odpoved = client.post("/api/admin/races", headers=admin_headers, json={
-        "datum": "2032-03-01", "race_nr": "JMLP2031-05", "season_id": 2031,
-        "race_method_id": 1, "is_final": True, "registration": False,
-    })
+
+def test_finale_se_oznaci_v_administraci_a_v_poradi_je_sloupec_f(
+    client, db, admin_headers, timekeeper_headers, sezona, kategorie
+):
+    odpoved = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "datum": "2032-03-01",
+            "race_nr": "JMLP2031-05",
+            "season_id": 2031,
+            "race_method_id": 1,
+            "is_final": True,
+            "registration": False,
+        },
+    )
     assert odpoved.status_code == 200, odpoved.text
     finale = odpoved.json()
     assert finale["is_final"] is True
@@ -324,24 +426,43 @@ def test_finale_se_oznaci_v_administraci_a_v_poradi_je_sloupec_f(client, db, adm
 
     data = client.get("/api/timekeeper/seasons/2031/standings", headers=timekeeper_headers).json()
     assert [race["code"] for race in data["races"]] == ["F01.03"]
-    assert data["categories"][0]["rows"][0]["cells"] == [{"text": "1/100", "counted": True, "kind": "F"}]
+    assert data["categories"][0]["rows"][0]["cells"] == [
+        {"text": "1/100", "counted": True, "kind": "F"}
+    ]
 
     seznam = client.get("/api/admin/races", headers=admin_headers).json()
     assert next(r for r in seznam if r["id"] == finale["id"])["is_final"] is True
 
 
 def test_suchy_zavod_finalem_byt_nemuze(client, admin_headers, sezona):
-    vytvoreny = client.post("/api/admin/races", headers=admin_headers, json={
-        "datum": "2031-10-04", "race_nr": "JMLP2031-01", "season_id": 2031,
-        "race_method_id": 2, "is_final": True, "registration": False,
-    }).json()
+    vytvoreny = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "datum": "2031-10-04",
+            "race_nr": "JMLP2031-01",
+            "season_id": 2031,
+            "race_method_id": 2,
+            "is_final": True,
+            "registration": False,
+        },
+    ).json()
     assert vytvoreny["is_final"] is False
 
-    na_snehu = client.post("/api/admin/races", headers=admin_headers, json={
-        "datum": "2032-03-01", "race_nr": "JMLP2031-05", "season_id": 2031,
-        "race_method_id": 1, "is_final": True, "registration": False,
-    }).json()
+    na_snehu = client.post(
+        "/api/admin/races",
+        headers=admin_headers,
+        json={
+            "datum": "2032-03-01",
+            "race_nr": "JMLP2031-05",
+            "season_id": 2031,
+            "race_method_id": 1,
+            "is_final": True,
+            "registration": False,
+        },
+    ).json()
     # Přepnutí finále na suchý závod finále zruší.
-    upraveny = client.put(f"/api/admin/races/{na_snehu['id']}", headers=admin_headers,
-                          json={"race_method_id": 2}).json()
+    upraveny = client.put(
+        f"/api/admin/races/{na_snehu['id']}", headers=admin_headers, json={"race_method_id": 2}
+    ).json()
     assert upraveny["is_final"] is False

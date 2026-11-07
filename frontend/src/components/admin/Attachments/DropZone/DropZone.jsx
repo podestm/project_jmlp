@@ -10,7 +10,14 @@ import styles from './DropZone.module.css';
  * - onFiles(FileList): vybrané nebo přetažené soubory
  * - multiple: víc souborů naráz (seznam obecných dokumentů)
  */
-export default function DropZone({ accept, multiple = false, busy = false, uploading = false, onFiles, onPickFromLibrary }) {
+export default function DropZone({
+  accept,
+  multiple = false,
+  busy = false,
+  uploading = false,
+  onFiles,
+  onPickFromLibrary,
+}) {
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef(null);
 
@@ -23,12 +30,18 @@ export default function DropZone({ accept, multiple = false, busy = false, uploa
   return (
     <div
       className={cx(styles.zone, dragOver && styles.over)}
-      onDragOver={(event) => { event.preventDefault(); if (!busy) setDragOver(true); }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        if (!busy) setDragOver(true);
+      }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
     >
       {uploading ? (
-        <span className={styles.uploading} role="status"><Spinner size={18} />Nahrávám…</span>
+        <span className={styles.uploading} role="status">
+          <Spinner size={18} />
+          Nahrávám…
+        </span>
       ) : (
         <>
           <span className={styles.text}>
@@ -36,8 +49,12 @@ export default function DropZone({ accept, multiple = false, busy = false, uploa
             {multiple ? 'Přetáhněte soubory sem, nebo' : 'Přetáhněte soubor sem, nebo'}
           </span>
           <span className={styles.actions}>
-            <Button size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>Vybrat z počítače</Button>
-            <Button size="sm" disabled={busy} onClick={onPickFromLibrary}>Vybrat z knihovny</Button>
+            <Button size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
+              Vybrat z počítače
+            </Button>
+            <Button size="sm" disabled={busy} onClick={onPickFromLibrary}>
+              Vybrat z knihovny
+            </Button>
           </span>
         </>
       )}
@@ -48,7 +65,10 @@ export default function DropZone({ accept, multiple = false, busy = false, uploa
         multiple={multiple}
         hidden
         disabled={busy}
-        onChange={(event) => { onFiles(event.target.files); event.target.value = ''; }}
+        onChange={(event) => {
+          onFiles(event.target.files);
+          event.target.value = '';
+        }}
       />
     </div>
   );

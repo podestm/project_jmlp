@@ -8,7 +8,13 @@ import styles from './Pagination.module.css';
  * aktuální, Předchozí/Další jen tam, kam se dá jít (artboard: na první straně
  * šipka zpět chybí). Při jediné straně se nevykreslí nic.
  */
-export default function Pagination({ page, pageCount, onChange, label = 'Stránkování', className }) {
+export default function Pagination({
+  page,
+  pageCount,
+  onChange,
+  label = 'Stránkování',
+  className,
+}) {
   if (pageCount <= 1) return null;
   return (
     <nav aria-label={label} className={cx(styles.pagination, className)}>
@@ -25,7 +31,9 @@ export default function Pagination({ page, pageCount, onChange, label = 'Stránk
           aria-label={`Strana ${number}`}
           aria-current={number === page ? 'page' : undefined}
           className={styles.page}
-          onClick={() => { if (number !== page) onChange(number); }}
+          onClick={() => {
+            if (number !== page) onChange(number);
+          }}
         >
           {number}
         </button>

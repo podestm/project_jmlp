@@ -1,33 +1,25 @@
 """Start list management - generate and manage start lists from registrations."""
-import json
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Body, Header
-from sqlalchemy.orm import Session
-from sqlalchemy import text, func
 
+import json
+from typing import Any
+
+from fastapi import APIRouter, Body, Depends, Header
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
+
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
-from ...utils import (
-    fix_encoding,
-    category_display_sql,
-    convert_utf8_field,
-    StandardExceptions,
-    get_category_snapshot_for_birth_year,
-)
-from .idempotency import try_get_idempotent_response, store_idempotent_response
 from ...services.race_number_codes import normalize_code
 from ...services.start_list import (
     _apply_category_snapshot,
     _apply_race_number_snapshot,
     _clean_string,
     _compact_start_numbers_for_race,
-    _find_or_create_club,
     _get_category_rank_map,
     _get_effective_category_order,
     _get_next_available_race_number_for_race,
     _get_next_available_start_number_for_race,
     _get_or_create_manual_racer,
-    _get_race_number_by_display,
     _get_race_number_by_id,
     _get_racer_source_snapshot,
     _get_start_list_entry_payload,
@@ -37,6 +29,14 @@ from ...services.start_list import (
     _sort_start_list_rows,
     _validate_race_number_assignment,
 )
+from ...utils import (
+    StandardExceptions,
+    category_display_sql,
+    convert_utf8_field,
+    fix_encoding,
+    get_category_snapshot_for_birth_year,
+)
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-start-list"])
 
@@ -45,17 +45,16 @@ router = APIRouter(tags=["timekeeper-start-list"])
 def get_single_start_list_entry(
     entry_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Get a single start list entry snapshot for conflict comparison."""
     return _get_start_list_entry_payload(entry_id, db)
 
 
 @router.get("/categories")
 def get_categories_for_ordering(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
+) -> list[dict[str, Any]]:
     """Get active categories in default order (youngest first, women before men).
 
     Default order: U8 ženy, U8 muži, U10 ženy, U10 muži, ... OPEN ženy, OPEN muži
@@ -75,25 +74,28 @@ def get_categories_for_ordering(
     """)
     rows = db.execute(query).fetchall()
 
-    return [{
-        "id": row.id,
-        "code": fix_encoding(row.name) if row.name else "",
-        "display_name": fix_encoding(row.display_name) if row.display_name else "",
-        # Zpětná kompatibilita: `name` je to, co se zobrazuje.
-        "name": fix_encoding(row.display_name) if row.display_name else "",
-        "min_birth_year": row.min_birth_year,
-        "max_birth_year": row.max_birth_year,
-        "sex": row.sex,
-        "sex_label": "Ženy" if row.sex == 2 else ("Muži" if row.sex == 1 else "Mix"),
-    } for row in rows]
+    return [
+        {
+            "id": row.id,
+            "code": fix_encoding(row.name) if row.name else "",
+            "display_name": fix_encoding(row.display_name) if row.display_name else "",
+            # Zpětná kompatibilita: `name` je to, co se zobrazuje.
+            "name": fix_encoding(row.display_name) if row.display_name else "",
+            "min_birth_year": row.min_birth_year,
+            "max_birth_year": row.max_birth_year,
+            "sex": row.sex,
+            "sex_label": "Ženy" if row.sex == 2 else ("Muži" if row.sex == 1 else "Mix"),
+        }
+        for row in rows
+    ]
 
 
 @router.get("/races/{race_id}/start-list")
 def get_start_list(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    db: Session = Depends(get_db),
+) -> list[dict[str, Any]]:
     """Get start list for a specific race using snapshot fields stored in start_list."""
     # Verify race exists
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
@@ -108,11 +110,11 @@ def get_start_list(
 @router.post("/races/{race_id}/start-list/generate")
 def generate_start_list(
     race_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Generate start list from registered racers.
 
     Body (optional):
@@ -140,8 +142,8 @@ def generate_start_list(
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
         raise StandardExceptions.race_not_found()
-    
-    category_order = data.get("category_order", None) if data else None
+
+    category_order = data.get("category_order") if data else None
     if category_order and len(category_order) > 0:
         normalized_order = []
         for cat_id in category_order:
@@ -154,7 +156,7 @@ def generate_start_list(
             category_order = normalized_order
     else:
         category_order = _get_effective_category_order(race, db)
-    
+
     # Get registrations that don't have a start list entry yet and build fresh snapshot data
     new_racers_query = text(f"""
         SELECT rr.racer_id,
@@ -178,7 +180,7 @@ def generate_start_list(
     # a startovka pak neodpovídala ničemu. Řazení podle kategorií níže je
     # stabilní, takže tohle pořadí uvnitř kategorie zachová.
     new_racers_raw = db.execute(new_racers_query, {"race_id": race_id}).fetchall()
-    
+
     if not new_racers_raw:
         if data and data.get("category_order"):
             db.commit()
@@ -196,7 +198,7 @@ def generate_start_list(
             response_payload=response_payload,
         )
         return response_payload
-    
+
     new_racers = []
     for row in new_racers_raw:
         if row.racer_year is not None and row.racer_sex is not None:
@@ -207,17 +209,21 @@ def generate_start_list(
             )
         else:
             category_id, category_name, category_sex = None, None, None
-        new_racers.append({
-            "racer_id": row.racer_id,
-            "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else None,
-            "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else None,
-            "racer_year": row.racer_year,
-            "racer_sex": row.racer_sex,
-            "club_name": fix_encoding(row.club_name) if row.club_name else None,
-            "category_id": category_id,
-            "category_name": category_name,
-            "category_sex": category_sex,
-        })
+        new_racers.append(
+            {
+                "racer_id": row.racer_id,
+                "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else None,
+                "racer_surname": fix_encoding(row.racer_surname).strip()
+                if row.racer_surname
+                else None,
+                "racer_year": row.racer_year,
+                "racer_sex": row.racer_sex,
+                "club_name": fix_encoding(row.club_name) if row.club_name else None,
+                "category_id": category_id,
+                "category_name": category_name,
+                "category_sex": category_sex,
+            }
+        )
 
     # Sort by category order
     if category_order and len(category_order) > 0:
@@ -225,10 +231,7 @@ def generate_start_list(
         order_map = {cat_id: idx for idx, cat_id in enumerate(category_order)}
         # Racers with unknown categories go to the end
         max_order = len(category_order)
-        new_racers = sorted(
-            new_racers,
-            key=lambda r: order_map.get(r["category_id"], max_order)
-        )
+        new_racers = sorted(new_racers, key=lambda r: order_map.get(r["category_id"], max_order))
     else:
         # Default: sort by min_birth_year DESC (youngest first), sex DESC (women first)
         # Need to join category data
@@ -241,48 +244,55 @@ def generate_start_list(
         cat_rows = db.execute(cat_order_query).fetchall()
         order_map = {row.id: idx for idx, row in enumerate(cat_rows)}
         max_order = len(cat_rows)
-        new_racers = sorted(
-            new_racers,
-            key=lambda r: order_map.get(r["category_id"], max_order)
-        )
-    
+        new_racers = sorted(new_racers, key=lambda r: order_map.get(r["category_id"], max_order))
+
     # Get current max start_number for this race
-    max_start = db.query(func.max(models.StartListEntry.start_number)).filter(
-        models.StartListEntry.race_id == race_id
-    ).scalar() or 0
-    
+    max_start = (
+        db.query(func.max(models.StartListEntry.start_number))
+        .filter(models.StartListEntry.race_id == race_id)
+        .scalar()
+        or 0
+    )
+
     # Get used race_number_ids for this race
     used_rn_ids = set()
-    used_query = db.query(models.StartListEntry.race_number_id).filter(
-        models.StartListEntry.race_id == race_id,
-        models.StartListEntry.race_number_id.isnot(None)
-    ).all()
+    used_query = (
+        db.query(models.StartListEntry.race_number_id)
+        .filter(
+            models.StartListEntry.race_id == race_id,
+            models.StartListEntry.race_number_id.isnot(None),
+        )
+        .all()
+    )
     for row in used_query:
         used_rn_ids.add(row[0])
-    
+
     # Get available active race numbers from ALL sets, ordered by set_number then actual_number
     # (lowest numbers first, set 1 before set 2, etc.)
     if used_rn_ids:
-        available_rn = db.query(models.RaceNumber).filter(
-            models.RaceNumber.is_active.is_(True),
-            models.RaceNumber.id.notin_(used_rn_ids)
-        ).order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number).all()
+        available_rn = (
+            db.query(models.RaceNumber)
+            .filter(models.RaceNumber.is_active.is_(True), models.RaceNumber.id.notin_(used_rn_ids))
+            .order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number)
+            .all()
+        )
     else:
-        available_rn = db.query(models.RaceNumber).filter(
-            models.RaceNumber.is_active.is_(True)
-        ).order_by(
-            models.RaceNumber.set_number, models.RaceNumber.actual_number
-        ).all()
-    
+        available_rn = (
+            db.query(models.RaceNumber)
+            .filter(models.RaceNumber.is_active.is_(True))
+            .order_by(models.RaceNumber.set_number, models.RaceNumber.actual_number)
+            .all()
+        )
+
     rn_iter = iter(available_rn)
     added = 0
-    
+
     for racer_row in new_racers:
         max_start += 1
-        
+
         # Try to assign a race number
         race_number = next(rn_iter, None)
-        
+
         entry = models.StartListEntry(
             race_id=race_id,
             racer_id=racer_row["racer_id"],
@@ -300,7 +310,7 @@ def generate_start_list(
         )
         db.add(entry)
         added += 1
-    
+
     db.commit()
 
     response_payload = {
@@ -325,8 +335,8 @@ def clear_start_list(
     race_id: int,
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Clear entire start list for a race (reset).
 
     Návratový typ musí být Dict[str, Any]: odpověď nese i logické
@@ -348,9 +358,9 @@ def clear_start_list(
     if not race:
         raise StandardExceptions.race_not_found()
 
-    deleted = db.query(models.StartListEntry).filter(
-        models.StartListEntry.race_id == race_id
-    ).delete()
+    deleted = (
+        db.query(models.StartListEntry).filter(models.StartListEntry.race_id == race_id).delete()
+    )
     db.commit()
 
     response_payload = {
@@ -371,11 +381,11 @@ def clear_start_list(
 @router.put("/start-list/{entry_id}")
 def update_start_list_entry(
     entry_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Update a single start list entry using snapshot-first fields."""
     endpoint = f"/api/timekeeper/start-list/{entry_id}"
     replay = try_get_idempotent_response(
@@ -419,23 +429,43 @@ def update_start_list_entry(
         source_snapshot = _get_racer_source_snapshot(entry.racer_id, db)
         entry.racer_sex = source_snapshot["racer_sex"]
 
-    if any(key in data for key in ("racer_year", "year_override", "racer_name", "name_override", "racer_surname", "surname_override", "club_name", "racer_sex")):
+    if any(
+        key in data
+        for key in (
+            "racer_year",
+            "year_override",
+            "racer_name",
+            "name_override",
+            "racer_surname",
+            "surname_override",
+            "club_name",
+            "racer_sex",
+        )
+    ):
         _apply_category_snapshot(entry, db)
 
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)
     if race_number_provided:
-        next_display = data.get("race_number_display", None)
+        next_display = data.get("race_number_display")
         try:
             next_display = normalize_code(next_display)
         except ValueError:
-            next_display = None     # neplatný tvar už odmítl _resolve_race_number_for_assignment
-        if next_display is not None and entry.race_number_display is not None and next_display == entry.race_number_display:
-            race_number = entry.race_number_id and _get_race_number_by_id(int(entry.race_number_id), db, require_active=False)
-        _validate_race_number_assignment(db, entry.race_id, race_number.id if race_number else None, exclude_entry_id=entry.id)
+            next_display = None  # neplatný tvar už odmítl _resolve_race_number_for_assignment
+        if (
+            next_display is not None
+            and entry.race_number_display is not None
+            and next_display == entry.race_number_display
+        ):
+            race_number = entry.race_number_id and _get_race_number_by_id(
+                int(entry.race_number_id), db, require_active=False
+            )
+        _validate_race_number_assignment(
+            db, entry.race_id, race_number.id if race_number else None, exclude_entry_id=entry.id
+        )
         _apply_race_number_snapshot(entry, race_number)
 
     # Recalculate time_sum if times changed
-    if 'time1' in data or 'time2' in data:
+    if "time1" in data or "time2" in data:
         t1 = entry.time1 if entry.time1 is not None else None
         t2 = entry.time2 if entry.time2 is not None else None
         if t1 is not None and t2 is not None:
@@ -446,7 +476,7 @@ def update_start_list_entry(
             entry.time_sum = float(t2)
         else:
             entry.time_sum = None
-    
+
     db.commit()
     db.refresh(entry)
     return {
@@ -461,8 +491,8 @@ def set_start_list_entry_excluded(
     data: schemas.StartListExcludedUpdate,
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Vyřadí závodníka ze startovky, nebo ho do ní vrátí.
 
     Pro závodníka, který nedorazil nebo nestihl start. Řádek se NEMAŽE:
@@ -499,11 +529,14 @@ def set_start_list_entry_excluded(
 
     # Raw SQL kvůli revizi: ORM by updated_at přepsal sám (onupdate v modelu)
     # a MySQL taky (ON UPDATE CURRENT_TIMESTAMP), proto se výslovně ponechá.
-    db.execute(text("""
+    db.execute(
+        text("""
         UPDATE fuj_jmlp_race_start_list
         SET excluded = :excluded, updated_at = updated_at
         WHERE id = :entry_id
-    """), {"excluded": 1 if data.excluded else 0, "entry_id": entry_id})
+    """),
+        {"excluded": 1 if data.excluded else 0, "entry_id": entry_id},
+    )
     db.commit()
 
     response_payload = {
@@ -530,8 +563,8 @@ def set_start_list_entry_excluded(
 def delete_start_list_entry(
     entry_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, str]:
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
     """Delete a single entry from the start list."""
     entry = db.query(models.StartListEntry).filter(models.StartListEntry.id == entry_id).first()
     if not entry:
@@ -549,8 +582,8 @@ def delete_start_list_entry(
 def search_racers_for_start_list(
     q: str = "",
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    db: Session = Depends(get_db),
+) -> list[dict[str, Any]]:
     """Search racers by name/surname for manual start list entry.
 
     Hledá se po slovech: každé slovo musí sedět na jméno, příjmení nebo
@@ -562,7 +595,7 @@ def search_racers_for_start_list(
         return []
 
     conditions = []
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     for i, word in enumerate(words):
         params[f"w{i}"] = f"%{word}%"
         conditions.append(
@@ -583,30 +616,33 @@ def search_racers_for_start_list(
         LIMIT 20
     """)
     rows = db.execute(query, params).fetchall()
-    
-    return [{
-        "id": row.id,
-        "name": fix_encoding(row.name).strip() if row.name else "",
-        "surname": fix_encoding(row.surname).strip() if row.surname else "",
-        "year": row.year,
-        "sex": row.sex,
-        "club_name": fix_encoding(row.club_name) if row.club_name else None,
-        "slcr_id": row.slcr_id,
-    } for row in rows]
+
+    return [
+        {
+            "id": row.id,
+            "name": fix_encoding(row.name).strip() if row.name else "",
+            "surname": fix_encoding(row.surname).strip() if row.surname else "",
+            "year": row.year,
+            "sex": row.sex,
+            "club_name": fix_encoding(row.club_name) if row.club_name else None,
+            "slcr_id": row.slcr_id,
+        }
+        for row in rows
+    ]
 
 
 @router.get("/racers/snapshot")
 def racers_snapshot(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
+) -> list[dict[str, Any]]:
     """Celý registr závodníků v kompaktní podobě pro offline hledání.
 
     Časomíra si ho drží v IndexedDB: na kopci často není signál a přidat
     závodníka z registru (dohláška na místě) musí jít i bez něj. Jen to, co
     hledání a formulář potřebují - žádné kontakty.
     """
-    rows = db.execute(text(f"""
+    rows = db.execute(
+        text(f"""
         SELECT r.id,
                {convert_utf8_field('r.name')} as name,
                {convert_utf8_field('r.surname')} as surname,
@@ -615,28 +651,32 @@ def racers_snapshot(
         FROM fuj_jmlp_racer r
         LEFT JOIN fuj_jmlp_club c ON r.club_id = c.id
         ORDER BY r.surname, r.name
-    """)).fetchall()
-    return [{
-        "id": row.id,
-        "name": fix_encoding(row.name).strip() if row.name else "",
-        "surname": fix_encoding(row.surname).strip() if row.surname else "",
-        "year": row.year,
-        "sex": row.sex,
-        "club_name": fix_encoding(row.club_name).strip() if row.club_name else None,
-        "slcr_id": (row.slcr_id or "").strip() or None,
-    } for row in rows]
+    """)
+    ).fetchall()
+    return [
+        {
+            "id": row.id,
+            "name": fix_encoding(row.name).strip() if row.name else "",
+            "surname": fix_encoding(row.surname).strip() if row.surname else "",
+            "year": row.year,
+            "sex": row.sex,
+            "club_name": fix_encoding(row.club_name).strip() if row.club_name else None,
+            "slcr_id": (row.slcr_id or "").strip() or None,
+        }
+        for row in rows
+    ]
 
 
 @router.post("/races/{race_id}/start-list/entry")
 def add_manual_start_list_entry(
     race_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Manually add an entry to the start list.
-    
+
     Body: {
         "racer_id": 123,            // optional - existing racer
         "start_number": 50,        // optional - auto-assigns next if not provided
@@ -673,10 +713,13 @@ def add_manual_start_list_entry(
     racer, source_snapshot, created_new_racer = _get_or_create_manual_racer(data, db)
     racer_id = racer.id
 
-    existing_entry = db.query(models.StartListEntry).filter(
-        models.StartListEntry.race_id == race_id,
-        models.StartListEntry.racer_id == racer_id
-    ).first()
+    existing_entry = (
+        db.query(models.StartListEntry)
+        .filter(
+            models.StartListEntry.race_id == race_id, models.StartListEntry.racer_id == racer_id
+        )
+        .first()
+    )
     if existing_entry and data.get("client_temp_id") and not existing_entry.excluded:
         # Offline dohláška z časomíry, ale závodník už na startovce mezitím je
         # (přidalo ho jiné zařízení nebo se přihlásil online). Je to tentýž
@@ -715,14 +758,22 @@ def add_manual_start_list_entry(
     if not start_number:
         start_number = _get_next_available_start_number_for_race(race_id, db)
 
-    racer_name = _clean_string(data.get("racer_name", data.get("name_override"))) or source_snapshot["racer_name"]
-    racer_surname = _clean_string(data.get("racer_surname", data.get("surname_override"))) or source_snapshot["racer_surname"]
+    racer_name = (
+        _clean_string(data.get("racer_name", data.get("name_override")))
+        or source_snapshot["racer_name"]
+    )
+    racer_surname = (
+        _clean_string(data.get("racer_surname", data.get("surname_override")))
+        or source_snapshot["racer_surname"]
+    )
     year_value = data.get("racer_year", data.get("year_override"))
     racer_year = int(year_value) if year_value not in ("", None) else source_snapshot["racer_year"]
     sex_value = data.get("racer_sex")
     racer_sex = int(sex_value) if sex_value not in ("", None) else source_snapshot["racer_sex"]
     club_name = _clean_string(data.get("club_name")) or source_snapshot["club_name"]
-    category_id, category_name, category_sex = get_category_snapshot_for_birth_year(racer_year, racer_sex, db)
+    category_id, category_name, category_sex = get_category_snapshot_for_birth_year(
+        racer_year, racer_sex, db
+    )
 
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)
     if race_number_provided:
@@ -750,7 +801,9 @@ def add_manual_start_list_entry(
     db.refresh(entry)
 
     response_payload = {
-        "message": "Nový závodník byl vytvořen a přidán na startovní listinu" if created_new_racer else "Závodník přidán na startovní listinu",
+        "message": "Nový závodník byl vytvořen a přidán na startovní listinu"
+        if created_new_racer
+        else "Závodník přidán na startovní listinu",
         "id": entry.id,
         "start_number": start_number,
         "entry": _get_start_list_entry_payload(entry.id, db),

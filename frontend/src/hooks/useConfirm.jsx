@@ -21,23 +21,27 @@ export const useConfirm = () => {
   const [request, setRequest] = useState(null);
   const resolveRef = useRef(null);
 
-  const confirm = useCallback(({
-    title,
-    message = null,
-    confirmLabel = 'Potvrdit',
-    cancelLabel = 'Zrušit',
-    danger = false,
-    icon,
-    choices
-  }) => new Promise((resolve) => {
-    resolveRef.current = resolve;
-    setRequest({
+  const confirm = useCallback(
+    ({
       title,
-      message,
-      cancelLabel,
-      choices: choices || [{ value: true, label: confirmLabel, danger, icon }]
-    });
-  }), []);
+      message = null,
+      confirmLabel = 'Potvrdit',
+      cancelLabel = 'Zrušit',
+      danger = false,
+      icon,
+      choices,
+    }) =>
+      new Promise((resolve) => {
+        resolveRef.current = resolve;
+        setRequest({
+          title,
+          message,
+          cancelLabel,
+          choices: choices || [{ value: true, label: confirmLabel, danger, icon }],
+        });
+      }),
+    [],
+  );
 
   const handleResolve = useCallback((value) => {
     setRequest(null);
@@ -47,16 +51,17 @@ export const useConfirm = () => {
   }, []);
 
   // A pending promise would leak if the user navigated away mid-dialog.
-  useEffect(() => () => {
-    if (resolveRef.current) {
-      resolveRef.current(null);
-      resolveRef.current = null;
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (resolveRef.current) {
+        resolveRef.current(null);
+        resolveRef.current = null;
+      }
+    },
+    [],
+  );
 
-  const confirmElement = request
-    ? <ConfirmDialog {...request} onResolve={handleResolve} />
-    : null;
+  const confirmElement = request ? <ConfirmDialog {...request} onResolve={handleResolve} /> : null;
 
   return { confirm, confirmElement };
 };

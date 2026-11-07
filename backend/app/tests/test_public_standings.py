@@ -3,7 +3,6 @@
 Stejná služba jako náhled časomíry (test_standings.py), jen bez přihlášení
 a ve tvaru pro stránku Výsledky.
 """
-from datetime import date
 
 from app import models
 from app.models import AttachmentOwner, AttachmentRole
@@ -24,7 +23,9 @@ def test_verejne_poradi_bez_prihlaseni(client, sezona_s_vysledky):
     radky = data["categories"][0]["rows"]
     assert data["categories"][0]["name"] == "Přípravka dívky"
     assert [(r["surname"], r["rank"], r["total"]) for r in radky] == [
-        ("Adamová", 1, 180), ("Bílá", 2, 60), ("Cejpková", None, 100),
+        ("Adamová", 1, 180),
+        ("Bílá", 2, 60),
+        ("Cejpková", None, 100),
     ]
     assert radky[0]["cells"] == [
         {"rank": 2, "points": 80, "status": None, "counted": True},
@@ -36,12 +37,25 @@ def test_verejne_poradi_bez_prihlaseni(client, sezona_s_vysledky):
 
 
 def test_zverejnene_celkove_vysledky_prepnou_na_final(client, db, sezona_s_vysledky):
-    soubor = models.File(filename="poradi.pdf", original_filename="poradi.pdf", file_path="uploads/documents/poradi.pdf",
-                         file_type=models.FileTypeEnum.vysledky, file_size=10, mime_type="application/pdf")
+    soubor = models.File(
+        filename="poradi.pdf",
+        original_filename="poradi.pdf",
+        file_path="uploads/documents/poradi.pdf",
+        file_type=models.FileTypeEnum.vysledky,
+        file_size=10,
+        mime_type="application/pdf",
+    )
     db.add(soubor)
     db.commit()
-    db.add(models.Attachment(file_id=soubor.id, owner_type=AttachmentOwner.season.value, owner_id=2031,
-                             role=AttachmentRole.vysledky.value, published=True))
+    db.add(
+        models.Attachment(
+            file_id=soubor.id,
+            owner_type=AttachmentOwner.season.value,
+            owner_id=2031,
+            role=AttachmentRole.vysledky.value,
+            published=True,
+        )
+    )
     db.commit()
 
     data = client.get("/season-results/2031/standings").json()

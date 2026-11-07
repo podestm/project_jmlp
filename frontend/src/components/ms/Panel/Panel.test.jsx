@@ -4,7 +4,13 @@ import Panel from './Panel.jsx';
 
 describe('Panel', () => {
   it('předá element a atributy', () => {
-    render(<Panel as="aside" aria-label="Filtry aktualit">obsah</Panel>);
-    expect(screen.getByRole('complementary', { name: 'Filtry aktualit' })).toHaveTextContent('obsah');
+    render(
+      <Panel as="aside" aria-label="Filtry aktualit">
+        obsah
+      </Panel>,
+    );
+    expect(screen.getByRole('complementary', { name: 'Filtry aktualit' })).toHaveTextContent(
+      'obsah',
+    );
   });
 });

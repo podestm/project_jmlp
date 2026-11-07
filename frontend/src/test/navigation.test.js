@@ -4,7 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ICONS } from '../components/ms/Icon/icons.js';
 import {
-  adminNav, publicFooterColumns, publicFooterLinks, publicLegalLink, publicLiveNav, publicNav, timekeeperNav,
+  adminNav,
+  publicFooterColumns,
+  publicFooterLinks,
+  publicLegalLink,
+  publicLiveNav,
+  publicNav,
+  timekeeperNav,
 } from '../components/ms/navItems.js';
 
 /**
@@ -32,10 +38,11 @@ const routesOf = (source, prefix) => {
 };
 
 /** Odkazy ve starém rámci: to="…" i položky pole { path: '…' }. */
-const legacyLinksOf = (source) => new Set([
-  ...[...source.matchAll(/\bto="([^"]+)"/g)].map((m) => m[1]),
-  ...[...source.matchAll(/\bpath:\s*'([^']+)'/g)].map((m) => m[1]),
-]);
+const legacyLinksOf = (source) =>
+  new Set([
+    ...[...source.matchAll(/\bto="([^"]+)"/g)].map((m) => m[1]),
+    ...[...source.matchAll(/\bpath:\s*'([^']+)'/g)].map((m) => m[1]),
+  ]);
 
 /**
  * Obrazovky, na které se schválně nechodí z menu. Každá výjimka musí mít důvod -
@@ -82,17 +89,24 @@ describe.each(SECTIONS)('navigace $name', ({ items, routes, layout, prefix }) =>
   it('starý rámec, dokud nečte navItems, má stejné odkazy', () => {
     const source = read(layout);
     if (source.includes('navItems')) return;
-    const legacy = [...legacyLinksOf(source)].filter((link) => link === prefix || link.startsWith(`${prefix}/`));
+    const legacy = [...legacyLinksOf(source)].filter(
+      (link) => link === prefix || link.startsWith(`${prefix}/`),
+    );
     expect(new Set(legacy)).toEqual(links);
   });
 });
 
 describe('veřejná navigace', () => {
-  const routes = () => routesOf(read('Router.jsx'), '')
-    .filter((route) => !route.startsWith('/admin') && !route.startsWith('/timekeeper'));
+  const routes = () =>
+    routesOf(read('Router.jsx'), '').filter(
+      (route) => !route.startsWith('/admin') && !route.startsWith('/timekeeper'),
+    );
   const menuLinks = [...publicNav, publicLiveNav].map((item) => item.to);
-  const footerLinks = [...publicFooterLinks, ...publicFooterColumns.flatMap((column) => column.links), publicLegalLink]
-    .map((item) => item.to);
+  const footerLinks = [
+    ...publicFooterLinks,
+    ...publicFooterColumns.flatMap((column) => column.links),
+    publicLegalLink,
+  ].map((item) => item.to);
 
   it('na každou routu vede odkaz z menu nebo patičky', () => {
     const links = new Set([...menuLinks, ...footerLinks]);
@@ -118,7 +132,10 @@ describe('veřejná navigace', () => {
 });
 
 describe('položky menu', () => {
-  it.each([...publicNav, ...adminNav, ...timekeeperNav].filter((item) => item.icon))('$to má ikonu z registru kitu', (item) => {
-    expect(ICONS[item.icon]).toBeTruthy();
-  });
+  it.each([...publicNav, ...adminNav, ...timekeeperNav].filter((item) => item.icon))(
+    '$to má ikonu z registru kitu',
+    (item) => {
+      expect(ICONS[item.icon]).toBeTruthy();
+    },
+  );
 });

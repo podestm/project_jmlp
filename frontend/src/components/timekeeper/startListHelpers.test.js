@@ -8,7 +8,7 @@ import {
   isExcluded,
   resolveCategoryPreview,
   sortStartListEntries,
-  withoutExcluded
+  withoutExcluded,
 } from './startListHelpers.js';
 
 const entry = (overrides) => ({
@@ -18,21 +18,17 @@ const entry = (overrides) => ({
   race_number_display: null,
   racer_name: 'Jan',
   racer_surname: 'Novák',
-  ...overrides
+  ...overrides,
 });
 
-const OPTIONS = [
-  { display_number: 'A11' },
-  { display_number: 'A12' },
-  { display_number: 'A13' }
-];
+const OPTIONS = [{ display_number: 'A11' }, { display_number: 'A12' }, { display_number: 'A13' }];
 
 describe('sortStartListEntries', () => {
   it('řadí podle pořadí kategorie, pak startovního čísla, pak id', () => {
     const sorted = sortStartListEntries([
       entry({ id: 3, category_rank: 2, start_number: 1 }),
       entry({ id: 1, category_rank: 1, start_number: 2 }),
-      entry({ id: 2, category_rank: 1, start_number: 1 })
+      entry({ id: 2, category_rank: 1, start_number: 1 }),
     ]);
 
     expect(sorted.map((e) => e.id)).toEqual([2, 1, 3]);
@@ -41,7 +37,7 @@ describe('sortStartListEntries', () => {
   it('záznamy bez kategorie a čísla jdou nakonec', () => {
     const sorted = sortStartListEntries([
       entry({ id: 1, category_rank: null, start_number: null }),
-      entry({ id: 2, category_rank: 1, start_number: 5 })
+      entry({ id: 2, category_rank: 1, start_number: 5 }),
     ]);
 
     expect(sorted[0].id).toBe(2);
@@ -77,21 +73,27 @@ describe('getRaceNumberValidationError', () => {
   });
 
   it('neexistující číslo odmítne', () => {
-    expect(getRaceNumberValidationError('A99', { options: OPTIONS, entries: [] }))
-      .toBe('St. číslo A99 neexistuje nebo je neaktivní');
+    expect(getRaceNumberValidationError('A99', { options: OPTIONS, entries: [] })).toBe(
+      'St. číslo A99 neexistuje nebo je neaktivní',
+    );
   });
 
   it('obsazené číslo pojmenuje závodníka, který ho má', () => {
-    const entries = [entry({ id: 5, race_number_display: 'A12', racer_surname: 'Svoboda', racer_name: 'Petr' })];
+    const entries = [
+      entry({ id: 5, race_number_display: 'A12', racer_surname: 'Svoboda', racer_name: 'Petr' }),
+    ];
 
-    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries }))
-      .toBe('St. číslo A12 už má Svoboda Petr');
+    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries })).toBe(
+      'St. číslo A12 už má Svoboda Petr',
+    );
   });
 
   it('při opravě záznamu jeho vlastní číslo konflikt nedělá', () => {
     const entries = [entry({ id: 5, race_number_display: 'A12' })];
 
-    expect(getRaceNumberValidationError('A12', { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
+    expect(
+      getRaceNumberValidationError('A12', { options: OPTIONS, entries, excludeEntryId: 5 }),
+    ).toBe('');
   });
 
   it('vlastní číslo projde, i když už mezi aktivními není', () => {
@@ -99,12 +101,15 @@ describe('getRaceNumberValidationError', () => {
     // že se závodník nedá opravit vůbec.
     const entries = [entry({ id: 5, race_number_display: 'A77' })];
 
-    expect(getRaceNumberValidationError('A77', { options: OPTIONS, entries, excludeEntryId: 5 })).toBe('');
+    expect(
+      getRaceNumberValidationError('A77', { options: OPTIONS, entries, excludeEntryId: 5 }),
+    ).toBe('');
   });
 
   it('samotné číslo bez písmena sady odmítne', () => {
-    expect(getRaceNumberValidationError('12', { options: OPTIONS, entries: [] }))
-      .toBe('Číslo zadejte jako písmeno sady a číslo dresu, např. A12');
+    expect(getRaceNumberValidationError('12', { options: OPTIONS, entries: [] })).toBe(
+      'Číslo zadejte jako písmeno sady a číslo dresu, např. A12',
+    );
   });
 
   it('bez kontextu nespadne', () => {
@@ -116,7 +121,7 @@ describe('resolveCategoryPreview', () => {
   const CATEGORIES = [
     { name: 'Žáci', sex: 1, sex_label: 'Muži', min_birth_year: 2010, max_birth_year: 2015 },
     { name: 'Žákyně', sex: 2, sex_label: 'Ženy', min_birth_year: 2010, max_birth_year: 2015 },
-    { name: 'Open', sex: 0, sex_label: 'Mix', min_birth_year: 1950, max_birth_year: 2009 }
+    { name: 'Open', sex: 0, sex_label: 'Mix', min_birth_year: 1950, max_birth_year: 2009 },
   ];
 
   it('vybere kategorii podle ročníku a pohlaví', () => {
@@ -135,7 +140,9 @@ describe('resolveCategoryPreview', () => {
   });
 
   it('když nic nesedí, vrátí vlastní text obrazovky', () => {
-    expect(resolveCategoryPreview(CATEGORIES, 2030, 1, 'čeká', 'bez kategorie')).toBe('bez kategorie');
+    expect(resolveCategoryPreview(CATEGORIES, 2030, 1, 'čeká', 'bez kategorie')).toBe(
+      'bez kategorie',
+    );
   });
 
   it('nečíselný ročník nespadne', () => {
@@ -145,9 +152,13 @@ describe('resolveCategoryPreview', () => {
 
 describe('categoryLabel', () => {
   it('používá oficiální název z adminu, ne kódové označení', () => {
-    expect(categoryLabel({
-      code: 'U10', display_name: 'Myšáci dívky', sex_label: 'Ženy'
-    })).toBe('Myšáci dívky');
+    expect(
+      categoryLabel({
+        code: 'U10',
+        display_name: 'Myšáci dívky',
+        sex_label: 'Ženy',
+      }),
+    ).toBe('Myšáci dívky');
   });
 
   it('bez názvu se složí kód a pohlaví', () => {
@@ -164,9 +175,27 @@ describe('categoryLabel', () => {
 describe('groupEntriesByCategory', () => {
   it('seskupí po kategoriích v pořadí startu', () => {
     const groups = groupEntriesByCategory([
-      entry({ id: 3, category_id: 2, category_name: 'OPEN muži', category_rank: 3, start_number: 9 }),
-      entry({ id: 2, category_id: 1, category_name: 'U10 dívky', category_rank: 0, start_number: 2 }),
-      entry({ id: 1, category_id: 1, category_name: 'U10 dívky', category_rank: 0, start_number: 1 })
+      entry({
+        id: 3,
+        category_id: 2,
+        category_name: 'OPEN muži',
+        category_rank: 3,
+        start_number: 9,
+      }),
+      entry({
+        id: 2,
+        category_id: 1,
+        category_name: 'U10 dívky',
+        category_rank: 0,
+        start_number: 2,
+      }),
+      entry({
+        id: 1,
+        category_id: 1,
+        category_name: 'U10 dívky',
+        category_rank: 0,
+        start_number: 1,
+      }),
     ]);
 
     expect(groups.map((group) => group.category_name)).toEqual(['U10 dívky', 'OPEN muži']);
@@ -177,7 +206,7 @@ describe('groupEntriesByCategory', () => {
   it('řádek bez kategorie skončí ve vlastní skupině na konci', () => {
     const groups = groupEntriesByCategory([
       entry({ id: 1, category_id: null, category_name: null, category_rank: null }),
-      entry({ id: 2, category_id: 1, category_name: 'U10 dívky', category_rank: 0 })
+      entry({ id: 2, category_id: 1, category_name: 'U10 dívky', category_rank: 0 }),
     ]);
 
     expect(groups.map((group) => group.category_name)).toEqual(['U10 dívky', 'Bez kategorie']);
@@ -201,7 +230,7 @@ describe('vyřazení ze startky', () => {
     const entries = [
       entry({ id: 1 }),
       entry({ id: 2, excluded: true }),
-      entry({ id: 3, excluded: false })
+      entry({ id: 3, excluded: false }),
     ];
 
     expect(activeEntries(entries).map((e) => e.id)).toEqual([1, 3]);
@@ -217,7 +246,7 @@ describe('vyřazení ze startky', () => {
   it('withoutExcluded vyřadí závodníky z tisku a prázdnou kategorii zahodí celou', () => {
     const categories = [
       { category_name: 'U10 dívky', entries: [entry({ id: 1 }), entry({ id: 2, excluded: true })] },
-      { category_name: 'OPEN muži', entries: [entry({ id: 3, excluded: true })] }
+      { category_name: 'OPEN muži', entries: [entry({ id: 3, excluded: true })] },
     ];
 
     const printed = withoutExcluded(categories);

@@ -5,13 +5,12 @@ import Spinner from '../Spinner/Spinner.jsx';
 import styles from './Button.module.css';
 
 /** Třídy tlačítka – sdílí je Button a ButtonLink, aby vypadaly stejně. */
-export const buttonClassName = ({ variant = 'outline', size = 'md', block = false, className } = {}) => cx(
-  styles.button,
-  styles[variant],
-  styles[size],
-  block && styles.block,
+export const buttonClassName = ({
+  variant = 'outline',
+  size = 'md',
+  block = false,
   className,
-);
+} = {}) => cx(styles.button, styles[variant], styles[size], block && styles.block, className);
 
 /**
  * Obsah tlačítka: volitelná ikona vlevo (nebo spinner při `busy`), text
@@ -36,7 +35,19 @@ export const ButtonContent = ({ icon, iconEnd, busy, children }) => (
  *   odeslat (proti dvojímu odeslání), text zůstává
  */
 const Button = forwardRef(function Button(
-  { variant = 'outline', size = 'md', block = false, icon, iconEnd, busy = false, disabled, type = 'button', className, children, ...rest },
+  {
+    variant = 'outline',
+    size = 'md',
+    block = false,
+    icon,
+    iconEnd,
+    busy = false,
+    disabled,
+    type = 'button',
+    className,
+    children,
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -49,7 +60,9 @@ const Button = forwardRef(function Button(
       data-busy={busy || undefined}
       {...rest}
     >
-      <ButtonContent icon={icon} iconEnd={iconEnd} busy={busy}>{children}</ButtonContent>
+      <ButtonContent icon={icon} iconEnd={iconEnd} busy={busy}>
+        {children}
+      </ButtonContent>
     </button>
   );
 });

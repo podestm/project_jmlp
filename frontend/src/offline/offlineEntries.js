@@ -98,7 +98,10 @@ const startListCachePrefix = (raceId) => `/api/timekeeper/races/${raceId}/start-
 const updateStartListCache = async (raceId, transform) => {
   if (raceId == null) return;
   await timekeeperDb.transaction('rw', timekeeperDb.cache, async () => {
-    const rows = await timekeeperDb.cache.where('key').startsWith(startListCachePrefix(raceId)).toArray();
+    const rows = await timekeeperDb.cache
+      .where('key')
+      .startsWith(startListCachePrefix(raceId))
+      .toArray();
     for (const row of rows) {
       if (!Array.isArray(row.data)) continue;
       const data = transform(row.data);
@@ -117,19 +120,24 @@ export const addLocalEntry = async (raceId, entry) => {
   if (map[String(entry.id)] != null) return false;
   const row = { ...entry, race_id: Number(raceId), local_temp: true, updated_local_at: nowIso() };
   await timekeeperDb.startList.put(row);
-  await updateStartListCache(raceId, (data) => (
-    data.some((item) => Number(item?.id) === Number(entry.id)) ? data : [...data, row]
-  ));
+  await updateStartListCache(raceId, (data) =>
+    data.some((item) => Number(item?.id) === Number(entry.id)) ? data : [...data, row],
+  );
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(LOCAL_ENTRY_ADDED_EVENT, { detail: { raceId: Number(raceId), entry: row } }));
+    window.dispatchEvent(
+      new CustomEvent(LOCAL_ENTRY_ADDED_EVENT, { detail: { raceId: Number(raceId), entry: row } }),
+    );
   }
   return true;
 };
 
 /** Dočasné řádky závodu (pro doplnění do čerstvé odpovědi serveru). */
-export const getLocalTempEntries = async (raceId) => (
-  timekeeperDb.startList.where('race_id').equals(Number(raceId)).filter((row) => isTempEntryId(row.id)).toArray()
-);
+export const getLocalTempEntries = async (raceId) =>
+  timekeeperDb.startList
+    .where('race_id')
+    .equals(Number(raceId))
+    .filter((row) => isTempEntryId(row.id))
+    .toArray();
 
 const TIME_FIELDS = ['time1', 'time2', 'dnf', 'dns', 'dsq'];
 
@@ -162,7 +170,8 @@ export const remapTempEntry = async (tempId, serverEntry) => {
   for (const row of queueRows) {
     if (FINISHED_STATUSES.has(row.status)) continue;
     const { endpoint, payload, changed } = resolveTempIds(row.endpoint, row.payload, map);
-    if (changed) await timekeeperDb.syncQueue.update(row.id, { endpoint, payload, updated_at: nowIso() });
+    if (changed)
+      await timekeeperDb.syncQueue.update(row.id, { endpoint, payload, updated_at: nowIso() });
   }
   const conflicts = await timekeeperDb.conflicts.where('resolved').equals(0).toArray();
   for (const conflict of conflicts) {
@@ -177,7 +186,9 @@ export const remapTempEntry = async (tempId, serverEntry) => {
   if (temp) {
     const hasLocalTimes = TIME_FIELDS.some((field) => temp[field] != null && temp[field] !== false);
     if (hasLocalTimes) {
-      TIME_FIELDS.forEach((field) => { merged[field] = temp[field] ?? null; });
+      TIME_FIELDS.forEach((field) => {
+        merged[field] = temp[field] ?? null;
+      });
       merged.updated_local_only = true;
       merged.updated_local_at = temp.updated_local_at ?? nowIso();
     }
@@ -196,9 +207,11 @@ export const remapTempEntry = async (tempId, serverEntry) => {
   await remapDrafts(raceId, tempId, serverId);
 
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(ENTRY_REMAPPED_EVENT, {
-      detail: { tempId: Number(tempId), serverId, entry: merged }
-    }));
+    window.dispatchEvent(
+      new CustomEvent(ENTRY_REMAPPED_EVENT, {
+        detail: { tempId: Number(tempId), serverId, entry: merged },
+      }),
+    );
   }
   return merged;
 };
@@ -217,9 +230,11 @@ export const removeLocalEntry = async (tempId) => {
     return next.length === data.length ? data : next;
   });
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(ENTRY_REMAPPED_EVENT, {
-      detail: { tempId: Number(tempId), serverId: null, entry: null }
-    }));
+    window.dispatchEvent(
+      new CustomEvent(ENTRY_REMAPPED_EVENT, {
+        detail: { tempId: Number(tempId), serverId: null, entry: null },
+      }),
+    );
   }
   return temp;
 };
@@ -230,10 +245,13 @@ export const removeLocalEntry = async (tempId) => {
  * @param {{tempId: number, serverId: number|null, entry: object|null}} detail
  */
 export const remapEntriesInState = (entries, { tempId, serverId, entry }) => {
-  if (!Array.isArray(entries) || !entries.some((item) => Number(item?.id) === Number(tempId))) return entries;
+  if (!Array.isArray(entries) || !entries.some((item) => Number(item?.id) === Number(tempId)))
+    return entries;
   if (serverId == null) return entries.filter((item) => Number(item?.id) !== Number(tempId));
   const withoutDuplicate = entries.filter((item) => Number(item?.id) !== serverId);
-  return withoutDuplicate.map((item) => (Number(item?.id) === Number(tempId) ? { ...item, ...entry } : item));
+  return withoutDuplicate.map((item) =>
+    Number(item?.id) === Number(tempId) ? { ...item, ...entry } : item,
+  );
 };
 
 export const renameKey = (object, fromId, toId) => {

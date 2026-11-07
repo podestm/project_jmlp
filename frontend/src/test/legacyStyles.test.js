@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  check, classContexts, countBootstrapInCss, countBootstrapInMarkup, countFile, kitViolations,
+  check,
+  classContexts,
+  countBootstrapInCss,
+  countBootstrapInMarkup,
+  countFile,
+  kitViolations,
 } from '../../scripts/check-styles.mjs';
 
 /**
@@ -39,7 +44,10 @@ describe('počítání', () => {
   });
 
   it('bi-, --bs-, staré proměnné a emoji', () => {
-    const counts = countFile('x.jsx', '<i className="bi bi-house" style={{ color: "var(--text-primary)", x: "var(--bs-body-bg)" }} /> 🏆');
+    const counts = countFile(
+      'x.jsx',
+      '<i className="bi bi-house" style={{ color: "var(--text-primary)", x: "var(--bs-body-bg)" }} /> 🏆',
+    );
     expect(counts).toMatchObject({ bi: 2, bs: 1, legacyVars: 1, emoji: 1 });
   });
 });
@@ -55,15 +63,24 @@ describe('pravidla kitu', () => {
       .e { z-index: var(--ms-z-sticky); }
     `;
     const problems = kitViolations('src/components/ms/X/X.module.css', css);
-    expect(problems).toEqual(expect.arrayContaining([
-      expect.stringMatching(/hex/), expect.stringMatching(/!important/), expect.stringMatching(/600px/),
-      expect.stringMatching(/z-index: 5/), expect.stringMatching(/globální selektor „p“/),
-    ]));
+    expect(problems).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/hex/),
+        expect.stringMatching(/!important/),
+        expect.stringMatching(/600px/),
+        expect.stringMatching(/z-index: 5/),
+        expect.stringMatching(/globální selektor „p“/),
+      ]),
+    );
     expect(problems).toHaveLength(5);
   });
 
   it('style={{}} jen s custom properties', () => {
-    expect(kitViolations('src/components/ms/X/X.jsx', "<div style={{ '--gap': g }} />")).toEqual([]);
-    expect(kitViolations('src/components/ms/X/X.jsx', '<div style={{ color: c }} />')).toHaveLength(1);
+    expect(kitViolations('src/components/ms/X/X.jsx', "<div style={{ '--gap': g }} />")).toEqual(
+      [],
+    );
+    expect(kitViolations('src/components/ms/X/X.jsx', '<div style={{ color: c }} />')).toHaveLength(
+      1,
+    );
   });
 });

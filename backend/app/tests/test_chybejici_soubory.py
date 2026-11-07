@@ -8,6 +8,7 @@ chybě obsluhy. Aplikace se pak musí chovat rozdílně podle toho, kdo se dív�
   * záznam bez souboru se pročišťuje jednorázově (vazby i řádek souboru pryč),
     ne označováním v UI.
 """
+
 from pathlib import Path
 
 import pytest
@@ -38,8 +39,12 @@ def _soubor(db, original="obrazek.jpg", na_disku=True):
         _ZALOZENE.append(cesta)
 
     record = models.File(
-        filename=filename, original_filename=original, file_path=str(cesta),
-        file_size=10, mime_type="image/jpeg", file_type=models.FileTypeEnum.image,
+        filename=filename,
+        original_filename=original,
+        file_path=str(cesta),
+        file_size=10,
+        mime_type="image/jpeg",
+        file_type=models.FileTypeEnum.image,
     )
     db.add(record)
     db.commit()
@@ -57,8 +62,11 @@ def _prispevek(db, title="Závody v Olešnici se blíží.."):
 
 def _pripoj(db, post, soubor, role=AttachmentRole.image.value):
     attachment_service.attach(
-        db, file_id=soubor.id, owner_type=AttachmentOwner.post.value,
-        owner_id=post.id, role=role,
+        db,
+        file_id=soubor.id,
+        owner_type=AttachmentOwner.post.value,
+        owner_id=post.id,
+        role=role,
     )
 
 
@@ -86,8 +94,12 @@ def test_prispevek_s_chybejicim_obrazkem_ho_nenabizi(client, db):
 
 def test_chybejici_dokument_prispevku_se_taky_zamlci(client, db):
     post = _prispevek(db)
-    _pripoj(db, post, _soubor(db, original="propozice.pdf", na_disku=False),
-            role=AttachmentRole.document.value)
+    _pripoj(
+        db,
+        post,
+        _soubor(db, original="propozice.pdf", na_disku=False),
+        role=AttachmentRole.document.value,
+    )
 
     muj = next(p for p in client.get("/posts/").json() if p["id"] == post.id)
 

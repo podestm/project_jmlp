@@ -17,7 +17,9 @@ export default function DeleteFileMessage({ file }) {
       <div className={styles.body}>
         <p className={styles.text}>Soubor se smaže z knihovny i z disku. Vrátit to nejde.</p>
         <div className={styles.card}>
-          <FileInfo file={file}><span>nikde se nepoužívá</span></FileInfo>
+          <FileInfo file={file}>
+            <span>nikde se nepoužívá</span>
+          </FileInfo>
         </div>
       </div>
     );
@@ -30,7 +32,10 @@ export default function DeleteFileMessage({ file }) {
       </p>
       <ul className={styles.usage}>
         {usage.map((item, index) => (
-          <li key={`${item.owner_type}-${item.owner_id}-${item.role}-${index}`} className={styles.usageItem}>
+          <li
+            key={`${item.owner_type}-${item.owner_id}-${item.role}-${index}`}
+            className={styles.usageItem}
+          >
             <span className={styles.name}>{usageText(item)}</span>
             <span className={styles.meta}>{item.published ? 'zveřejněno' : 'skryto'}</span>
           </li>

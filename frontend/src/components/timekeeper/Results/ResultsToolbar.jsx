@@ -30,7 +30,12 @@ export default function ResultsToolbar({ api }) {
           onPrint={api.printAllInterim}
         />
         <Tooltip text={isOnline ? 'Náhled, tisk i publikace' : 'Publikace vyžaduje připojení'}>
-          <Button size="sm" icon="file" disabled={pdf.generating} onClick={() => api.printFinal(isOnline)}>
+          <Button
+            size="sm"
+            icon="file"
+            disabled={pdf.generating}
+            onClick={() => api.printFinal(isOnline)}
+          >
             Celková listina
           </Button>
         </Tooltip>
@@ -45,7 +50,13 @@ export default function ResultsToolbar({ api }) {
           </Button>
         </Tooltip>
         <Tooltip text="Startovní listina zůstane" className={styles.clear}>
-          <Button size="sm" variant="danger" icon="trash" busy={clearing} onClick={api.clearResults}>
+          <Button
+            size="sm"
+            variant="danger"
+            icon="trash"
+            busy={clearing}
+            onClick={api.clearResults}
+          >
             Smazat výsledky
           </Button>
         </Tooltip>

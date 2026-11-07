@@ -23,7 +23,11 @@ export default function PortPanel({ serial, usable, detecting }) {
         <Icon name={detecting ? 'search' : serial.connected ? 'plug' : 'plug-off'} size={22} />
         <span>
           <span className={styles.title}>{title}</span>
-          {portLabel && <span className={styles.detail}>Port: <span className={styles.mono}>{portLabel}</span></span>}
+          {portLabel && (
+            <span className={styles.detail}>
+              Port: <span className={styles.mono}>{portLabel}</span>
+            </span>
+          )}
         </span>
       </div>
 
@@ -40,21 +44,33 @@ export default function PortPanel({ serial, usable, detecting }) {
           >
             <option value="-1">-- Vyberte port --</option>
             {serial.knownPorts.map((item, index) => (
-              <option key={index} value={String(index)}>{describeSerialPort(item, index)}</option>
+              <option key={index} value={String(index)}>
+                {describeSerialPort(item, index)}
+              </option>
             ))}
           </Select>
         </label>
       )}
 
       <div className={styles.actions}>
-        <Button icon="plus" onClick={serial.requestPort} disabled={!usable || serial.connected || detecting}>Vybrat port</Button>
+        <Button
+          icon="plus"
+          onClick={serial.requestPort}
+          disabled={!usable || serial.connected || detecting}
+        >
+          Vybrat port
+        </Button>
         {serial.connected ? (
           <Button onClick={serial.disconnect}>Odpojit</Button>
         ) : (
-          <Button onClick={() => serial.connect()} disabled={!usable || !serial.port || detecting}>Připojit</Button>
+          <Button onClick={() => serial.connect()} disabled={!usable || !serial.port || detecting}>
+            Připojit
+          </Button>
         )}
         <Tooltip text="Zavře a znovu otevře port">
-          <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>Obnovit připojení</Button>
+          <Button icon="sync" onClick={serial.reconnect} disabled={!usable}>
+            Obnovit připojení
+          </Button>
         </Tooltip>
       </div>
     </div>

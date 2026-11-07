@@ -30,7 +30,14 @@ import styles from './AttachmentManager.module.css';
  * formuláře, kde by se dva sloty vedle sebe nevešly. `title` je nadpis nad
  * sloty (bez něj žádný – nadpis dává obrazovka sama).
  */
-export default function AttachmentManager({ ownerType, ownerId, roles, title, stacked = false, onChange }) {
+export default function AttachmentManager({
+  ownerType,
+  ownerId,
+  roles,
+  title,
+  stacked = false,
+  onChange,
+}) {
   // Hook sám nic nerenderuje, dialog proto vlastní tahle komponenta.
   const { confirm, confirmElement } = useConfirm();
   const am = useAttachments({ ownerType, ownerId, onChange, confirm });
@@ -95,7 +102,13 @@ export default function AttachmentManager({ ownerType, ownerId, roles, title, st
     <div className={styles.manager}>
       {title && <h3 className={styles.title}>{title}</h3>}
       {am.message && (
-        <Alert key={am.message.text} type={am.message.type} compact title={am.message.text} onDismiss={() => am.setMessage(null)} />
+        <Alert
+          key={am.message.text}
+          type={am.message.type}
+          compact
+          title={am.message.text}
+          onDismiss={() => am.setMessage(null)}
+        />
       )}
       {am.loading && am.attachments.length === 0 ? (
         <LoadingState variant="inline" label="Načítám dokumenty…" />

@@ -12,14 +12,25 @@ export default function NumberGrid({ numbers, updatingNumberId, onToggle }) {
   return (
     <div className={styles.wrap}>
       <ul className={styles.legend} aria-label="Stav čísla">
-        <li><span className={cx(styles.dot, styles.active)} aria-hidden="true" />Aktivní</li>
-        <li><span className={cx(styles.dot, styles.inactive)} aria-hidden="true" />Neaktivní</li>
-        <li><span className={cx(styles.dot, styles.saving)} aria-hidden="true" />Ukládá se</li>
+        <li>
+          <span className={cx(styles.dot, styles.active)} aria-hidden="true" />
+          Aktivní
+        </li>
+        <li>
+          <span className={cx(styles.dot, styles.inactive)} aria-hidden="true" />
+          Neaktivní
+        </li>
+        <li>
+          <span className={cx(styles.dot, styles.saving)} aria-hidden="true" />
+          Ukládá se
+        </li>
       </ul>
       <div className={styles.rows}>
         {chunkByTen(numbers).map((row) => (
           <div key={row[0].id} className={styles.row}>
-            <span className={styles.rowLabel}>{row[0].display_number}–{row[row.length - 1].display_number}</span>
+            <span className={styles.rowLabel}>
+              {row[0].display_number}–{row[row.length - 1].display_number}
+            </span>
             {row.map((n) => {
               const saving = updatingNumberId === n.id;
               const state = saving ? 'ukládá se' : n.is_active ? 'aktivní' : 'neaktivní';
@@ -35,7 +46,13 @@ export default function NumberGrid({ numbers, updatingNumberId, onToggle }) {
                   disabled={saving}
                   onClick={() => onToggle(n.id, !n.is_active)}
                 >
-                  <span className={cx(styles.dot, saving ? styles.saving : n.is_active ? styles.active : styles.inactive)} aria-hidden="true" />
+                  <span
+                    className={cx(
+                      styles.dot,
+                      saving ? styles.saving : n.is_active ? styles.active : styles.inactive,
+                    )}
+                    aria-hidden="true"
+                  />
                   <span className={styles.number}>{n.actual_number}</span>
                   <span className={styles.system}>{n.display_number}</span>
                 </button>

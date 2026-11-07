@@ -25,7 +25,9 @@ export default function StandingsTable({ category, races, className }) {
       >
         <thead>
           <tr>
-            <th scope="col" data-align="center" className={styles.rankHead}>Poř.</th>
+            <th scope="col" data-align="center" className={styles.rankHead}>
+              Poř.
+            </th>
             <th scope="col">Závodník</th>
             <th scope="col">Klub</th>
             {races.map((race) => {
@@ -38,19 +40,25 @@ export default function StandingsTable({ category, races, className }) {
                 </th>
               );
             })}
-            <th scope="col" data-align="center" className={styles.sumHead}>Přípr.</th>
-            <th scope="col" data-align="center" className={styles.sumHead}>Sníh</th>
-            <th scope="col" data-align="center" className={styles.totalHead}>Celkem</th>
+            <th scope="col" data-align="center" className={styles.sumHead}>
+              Přípr.
+            </th>
+            <th scope="col" data-align="center" className={styles.sumHead}>
+              Sníh
+            </th>
+            <th scope="col" data-align="center" className={styles.totalHead}>
+              Celkem
+            </th>
           </tr>
         </thead>
         <tbody>
           {category.rows.map((row) => (
             <tr key={`${row.surname}-${row.name}-${row.year}`}>
-              <td data-align="center">
-                {row.rank ? <Rank place={row.rank} /> : '—'}
-              </td>
+              <td data-align="center">{row.rank ? <Rank place={row.rank} /> : '—'}</td>
               <td>
-                <span className={styles.name}>{row.surname} {row.name}</span>
+                <span className={styles.name}>
+                  {row.surname} {row.name}
+                </span>
                 {row.year && <span className={styles.year}> ({row.year})</span>}
               </td>
               <td className={styles.club}>{fixEncoding(row.club) || '—'}</td>
@@ -67,9 +75,15 @@ export default function StandingsTable({ category, races, className }) {
                   {cell?.counted && <VisuallyHidden> (započteno)</VisuallyHidden>}
                 </td>
               ))}
-              <td data-align="center" data-numeric className={styles.sum}>{row.prep_points}</td>
-              <td data-align="center" data-numeric className={styles.sum}>{row.snow_points}</td>
-              <td data-align="center" data-numeric className={styles.total}>{row.total}</td>
+              <td data-align="center" data-numeric className={styles.sum}>
+                {row.prep_points}
+              </td>
+              <td data-align="center" data-numeric className={styles.sum}>
+                {row.snow_points}
+              </td>
+              <td data-align="center" data-numeric className={styles.total}>
+                {row.total}
+              </td>
             </tr>
           ))}
         </tbody>

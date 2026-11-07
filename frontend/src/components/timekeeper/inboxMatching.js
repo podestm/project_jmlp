@@ -10,9 +10,8 @@ export const normalizeBib = (value) => {
   return Number.isFinite(bib) && bib > 0 ? bib : null;
 };
 
-export const matchesBib = (entry, bib) => (
-  entry?.race_number_actual != null && Number(entry.race_number_actual) === bib
-);
+export const matchesBib = (entry, bib) =>
+  entry?.race_number_actual != null && Number(entry.race_number_actual) === bib;
 
 /**
  * Smí se impulz s tímhle dresem zapsat tomuhle závodníkovi?
@@ -32,7 +31,9 @@ export const compareCandidates = (a, b) => {
 
 export const candidatesForEvent = (event, startList, entriesById) => {
   const stored = Array.isArray(event?.candidateEntryIds)
-    ? event.candidateEntryIds.map((id) => entriesById[id]).filter((entry) => entry && !isExcluded(entry))
+    ? event.candidateEntryIds
+        .map((id) => entriesById[id])
+        .filter((entry) => entry && !isExcluded(entry))
     : [];
 
   const bib = normalizeBib(event?.bib);
@@ -56,8 +57,10 @@ export const pointsToExcludedEntry = (event, startList, entriesById) => {
   if (bib != null) {
     return startList.some((entry) => isExcluded(entry) && matchesBib(entry, bib));
   }
-  return Array.isArray(event?.candidateEntryIds)
-    && event.candidateEntryIds.some((id) => isExcluded(entriesById[id]));
+  return (
+    Array.isArray(event?.candidateEntryIds) &&
+    event.candidateEntryIds.some((id) => isExcluded(entriesById[id]))
+  );
 };
 
 /** Stavy, ve kterých je závodník už rozhodnutý a přepočítávat se nesmí. */
@@ -79,9 +82,10 @@ export const resolveInboxEvent = (event, startList, entriesById) => {
   }
 
   const candidates = candidatesForEvent(event, startList, entriesById);
-  const picked = (selectedId != null ? candidates.find((c) => c.id === selectedId) : null)
-    || candidates[0]
-    || null;
+  const picked =
+    (selectedId != null ? candidates.find((c) => c.id === selectedId) : null) ||
+    candidates[0] ||
+    null;
   const index = picked ? candidates.findIndex((c) => c.id === picked.id) : -1;
   return {
     entry: picked,
@@ -91,7 +95,12 @@ export const resolveInboxEvent = (event, startList, entriesById) => {
   };
 };
 
-export const EMPTY_RESOLUTION = Object.freeze({ entry: null, count: 0, index: -1, excluded: false });
+export const EMPTY_RESOLUTION = Object.freeze({
+  entry: null,
+  count: 0,
+  index: -1,
+  excluded: false,
+});
 
 /** Pole draftu, do kterého impulz pro dané kolo patří. */
 export const roundField = (targetRound) => (String(targetRound) === '2' ? 'time2' : 'time1');
@@ -109,9 +118,8 @@ const hasRoundValue = (row, field) => {
  * Kontroluje se rozepsaný draft i to, co je uložené: rozepsaný a neuložený čas
  * je pořád hodnota, kterou automatický zápis nesmí přepsat.
  */
-export const isRoundEmpty = (entry, draft, field) => (
-  !hasRoundValue(entry, field) && !hasRoundValue(draft, field)
-);
+export const isRoundEmpty = (entry, draft, field) =>
+  !hasRoundValue(entry, field) && !hasRoundValue(draft, field);
 
 /** Typy impulzů, které smí zapsat automatický zápis. DSQ zůstává vždy ruční. */
 export const AUTO_WRITE_TYPES = new Set(['TIME', 'DNF', 'DNS']);
@@ -124,14 +132,13 @@ export const AUTO_WRITE_TYPES = new Set(['TIME', 'DNF', 'DNS']);
  * nepodporovaný typ, přerušené ukládání - zůstává ruční. Obsazenost kola
  * a platnost času se kontrolují až při zápisu, nad aktuálním draftem.
  */
-export const isAutoWriteCandidate = (event) => (
-  event?.status === 'pending'
-  && event.reason === 'ready'
-  && event.selectedEntryId != null
-  && Array.isArray(event.candidateEntryIds)
-  && event.candidateEntryIds.length === 1
-  && AUTO_WRITE_TYPES.has(String(event.type || '').toUpperCase())
-);
+export const isAutoWriteCandidate = (event) =>
+  event?.status === 'pending' &&
+  event.reason === 'ready' &&
+  event.selectedEntryId != null &&
+  Array.isArray(event.candidateEntryIds) &&
+  event.candidateEntryIds.length === 1 &&
+  AUTO_WRITE_TYPES.has(String(event.type || '').toUpperCase());
 
 /**
  * Odpovídá kolo pořád tomu, co do něj automatický zápis dal?
@@ -146,7 +153,9 @@ export const roundMatchesAutoWrite = (current, autoWrite) => {
   const wantEmpty = value === null || value === undefined || String(value).trim() === '';
   if (nowEmpty !== wantEmpty) return false;
   if (!nowEmpty && Math.abs(parseFloat(now) - parseFloat(value)) > 0.001) return false;
-  return Boolean(current.dnf) === Boolean(autoWrite.dnf)
-    && Boolean(current.dns) === Boolean(autoWrite.dns)
-    && Boolean(current.dsq) === Boolean(autoWrite.dsq);
+  return (
+    Boolean(current.dnf) === Boolean(autoWrite.dnf) &&
+    Boolean(current.dns) === Boolean(autoWrite.dns) &&
+    Boolean(current.dsq) === Boolean(autoWrite.dsq)
+  );
 };

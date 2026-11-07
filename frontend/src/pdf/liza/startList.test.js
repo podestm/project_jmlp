@@ -11,19 +11,28 @@ const header = {
   editionLabel: 'XX.',
   raceNumberLabel: '2026-01',
   organizerName: 'FreeSki Academy Brno',
-  raceDate: '2026-10-03'
+  raceDate: '2026-10-03',
 };
 
 const entry = (n, overrides = {}) => ({
-  number: n, points: null, slcrId: n % 2 ? null : `89${String(n).padStart(4, '0')}`, surname: `Příjmení${n}`,
-  firstName: 'Jméno', club: 'Ski team Victoria Brno', nation: 'CZE', year: 2019, ...overrides
+  number: n,
+  points: null,
+  slcrId: n % 2 ? null : `89${String(n).padStart(4, '0')}`,
+  surname: `Příjmení${n}`,
+  firstName: 'Jméno',
+  club: 'Ski team Victoria Brno',
+  nation: 'CZE',
+  year: 2019,
+  ...overrides,
 });
 
 describe('startovní listina jako z LiZy', () => {
   it('má hlavičku závodu jen na první stránce a nadpis kola na každé', () => {
     const doc = buildStartListDoc({
       header,
-      categories: [{ name: 'Myšáci dívky', entries: Array.from({ length: 45 }, (_, i) => entry(i + 1)) }]
+      categories: [
+        { name: 'Myšáci dívky', entries: Array.from({ length: 45 }, (_, i) => entry(i + 1)) },
+      ],
     });
     const pages = pagesOf(doc);
     expect(pages).toHaveLength(2);
@@ -34,7 +43,10 @@ describe('startovní listina jako z LiZy', () => {
   });
 
   it('řádky po 20,16 b, číslo odsazené čtyřmi mezerami, registrační číslo ve vlastním sloupci', () => {
-    const doc = buildStartListDoc({ header, categories: [{ name: 'Myšáci dívky', entries: [entry(1), entry(2)] }] });
+    const doc = buildStartListDoc({
+      header,
+      categories: [{ name: 'Myšáci dívky', entries: [entry(1), entry(2)] }],
+    });
     const page = pagesOf(doc)[0];
     const first = page.find((t) => t.text === 'Příjmení1');
     const second = page.find((t) => t.text === 'Příjmení2');
@@ -48,7 +60,11 @@ describe('startovní listina jako z LiZy', () => {
   });
 
   it('nadpis 2. kola a patička na každé stránce', () => {
-    const doc = buildStartListDoc({ header, round: 2, categories: [{ name: 'OPEN muži', entries: [entry(97)] }] });
+    const doc = buildStartListDoc({
+      header,
+      round: 2,
+      categories: [{ name: 'OPEN muži', entries: [entry(97)] }],
+    });
     const texts = textsOf(doc);
     expect(texts).toContain('STARTOVNÍ LISTINA 2. KOLA');
     expect(texts).toContain('Strana:');
@@ -56,7 +72,13 @@ describe('startovní listina jako z LiZy', () => {
   });
 
   it('prázdné kategorie se netisknou', () => {
-    const doc = buildStartListDoc({ header, categories: [{ name: 'Junioři', entries: [] }, { name: 'OPEN ženy', entries: [entry(5)] }] });
+    const doc = buildStartListDoc({
+      header,
+      categories: [
+        { name: 'Junioři', entries: [] },
+        { name: 'OPEN ženy', entries: [entry(5)] },
+      ],
+    });
     const texts = textsOf(doc);
     expect(texts).not.toContain('Junioři');
     expect(texts).toContain('OPEN ženy');

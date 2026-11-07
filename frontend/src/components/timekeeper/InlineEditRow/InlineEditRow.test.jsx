@@ -8,11 +8,19 @@ describe('InlineEditRow', () => {
     const onSave = vi.fn();
     const onCancel = vi.fn();
     render(
-      <table><tbody>
-        <InlineEditRow colSpan={3} columns="1fr" categoryPreview="Předžáci" onSave={onSave} onCancel={onCancel}>
-          <input aria-label="Jméno" />
-        </InlineEditRow>
-      </tbody></table>,
+      <table>
+        <tbody>
+          <InlineEditRow
+            colSpan={3}
+            columns="1fr"
+            categoryPreview="Předžáci"
+            onSave={onSave}
+            onCancel={onCancel}
+          >
+            <input aria-label="Jméno" />
+          </InlineEditRow>
+        </tbody>
+      </table>,
     );
     expect(screen.getByLabelText('Jméno')).toBeInTheDocument();
     expect(screen.getByText('Předžáci')).toBeInTheDocument();

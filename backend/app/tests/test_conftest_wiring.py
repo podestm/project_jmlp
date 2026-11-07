@@ -3,6 +3,7 @@
 Bez toho by se selhání conftestu projevilo jako záhadné chyby v úplně jiných
 testech - a hledalo by se to dlouho.
 """
+
 from sqlalchemy import text
 
 from .conftest import TEST_DB

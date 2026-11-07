@@ -15,21 +15,33 @@ vi.mock('../../../../offline/useSyncStatus.js', () => ({
   useSyncStatus: () => ({
     isOnline: true,
     syncState: 'online',
-    queueStats: { pending: mockQueueTotal, failed: 0, processing: 0, conflict: 0, dead: 0, total: mockQueueTotal },
+    queueStats: {
+      pending: mockQueueTotal,
+      failed: 0,
+      processing: 0,
+      conflict: 0,
+      dead: 0,
+      total: mockQueueTotal,
+    },
   }),
 }));
 vi.mock('../../../../pdf/pdfmake.js', () => ({ preloadPdfMake: () => Promise.resolve(true) }));
-vi.mock('../../../../offline/racerRegistry.js', () => ({ preloadOfflineRacerData: () => Promise.resolve() }));
+vi.mock('../../../../offline/racerRegistry.js', () => ({
+  preloadOfflineRacerData: () => Promise.resolve(),
+}));
 
 const { default: TimekeeperLayout } = await import('./TimekeeperLayout.jsx');
 
-const renderLayout = () => render(
-  <MemoryRouter>
-    <SerialSessionProvider>
-      <TimekeeperLayout><div>obsah</div></TimekeeperLayout>
-    </SerialSessionProvider>
-  </MemoryRouter>,
-);
+const renderLayout = () =>
+  render(
+    <MemoryRouter>
+      <SerialSessionProvider>
+        <TimekeeperLayout>
+          <div>obsah</div>
+        </TimekeeperLayout>
+      </SerialSessionProvider>
+    </MemoryRouter>,
+  );
 
 describe('rámec časomíry', () => {
   it('správce má přepínač sekcí a přepne jím do administrace', () => {
@@ -55,14 +67,20 @@ describe('rámec časomíry', () => {
     const chips = screen.getByRole('group', { name: 'Stav časomíry' });
     expect(chips).toHaveTextContent('Online');
     expect(chips).toHaveTextContent('vše na serveru');
-    expect(within(chips).getByRole('link', { name: /Fronta/ })).toHaveAttribute('href', '/timekeeper/sync');
+    expect(within(chips).getByRole('link', { name: /Fronta/ })).toHaveAttribute(
+      'href',
+      '/timekeeper/sync',
+    );
   });
 
   it('bez vybraného závodu vyzve k výběru', () => {
     mockUser = { full_name: 'Časoměřič', role: 'timekeeper' };
     renderLayout();
 
-    expect(screen.getByRole('link', { name: /Závod není vybraný/ })).toHaveAttribute('href', '/timekeeper');
+    expect(screen.getByRole('link', { name: /Závod není vybraný/ })).toHaveAttribute(
+      'href',
+      '/timekeeper',
+    );
   });
 
   it('odhlášení s neodeslanou frontou se zeptá a Enter neodhlásí', async () => {

@@ -5,7 +5,7 @@ import {
   applySyncedRevisions,
   computeTimeSum,
   revisionsFromResponse,
-  START_LIST_REVISION_EVENT
+  START_LIST_REVISION_EVENT,
 } from './localEdits.js';
 import { resetTimekeeperDb, startListEntry } from '../test/helpers.js';
 
@@ -19,7 +19,7 @@ const seedEntry = async (overrides = {}) => {
     endpoint: CACHE_KEY,
     params: null,
     data: [entry],
-    updated_at: '2026-01-01T10:00:00.000Z'
+    updated_at: '2026-01-01T10:00:00.000Z',
   });
   return entry;
 };
@@ -54,8 +54,10 @@ describe('computeTimeSum', () => {
 
 describe('revisionsFromResponse', () => {
   it('přečte revizi z jednotlivé odpovědi', () => {
-    expect(revisionsFromResponse({ revision: 'r1' }))
-      .toEqual({ serverRevision: 'r1', serverRevisions: null });
+    expect(revisionsFromResponse({ revision: 'r1' })).toEqual({
+      serverRevision: 'r1',
+      serverRevisions: null,
+    });
   });
 
   it('vezme revizi z vnořeného entry, když samostatná není', () => {
@@ -63,8 +65,10 @@ describe('revisionsFromResponse', () => {
   });
 
   it('přečte mapu revizí u hromadné odpovědi', () => {
-    expect(revisionsFromResponse({ revisions: { 1: 'a', 2: 'b' } }).serverRevisions)
-      .toEqual({ 1: 'a', 2: 'b' });
+    expect(revisionsFromResponse({ revisions: { 1: 'a', 2: 'b' } }).serverRevisions).toEqual({
+      1: 'a',
+      2: 'b',
+    });
   });
 
   it('prázdnou odpověď snese', () => {
@@ -101,10 +105,15 @@ describe('applyLocalMutation - offline zápis času', () => {
   it('online zápis převezme čerstvou revizi ze serveru', async () => {
     await seedEntry({ updated_at: 'stará' });
 
-    await applyLocalMutation('PUT', '/api/timekeeper/start-list/1/time', { time1: 25.5 }, {
-      syncedRemote: true,
-      serverRevision: 'nová'
-    });
+    await applyLocalMutation(
+      'PUT',
+      '/api/timekeeper/start-list/1/time',
+      { time1: 25.5 },
+      {
+        syncedRemote: true,
+        serverRevision: 'nová',
+      },
+    );
 
     const snapshot = await timekeeperDb.startList.get(1);
     expect(snapshot.updated_at).toBe('nová');
@@ -116,21 +125,21 @@ describe('applyLocalMutation - hromadný zápis', () => {
   it('zapíše všechny řádky dávky', async () => {
     await timekeeperDb.startList.bulkPut([
       startListEntry({ id: 1 }),
-      startListEntry({ id: 2, start_number: 2 })
+      startListEntry({ id: 2, start_number: 2 }),
     ]);
     await timekeeperDb.cache.put({
       key: CACHE_KEY,
       endpoint: CACHE_KEY,
       params: null,
       data: [startListEntry({ id: 1 }), startListEntry({ id: 2, start_number: 2 })],
-      updated_at: 'x'
+      updated_at: 'x',
     });
 
     await applyLocalMutation('POST', '/api/timekeeper/races/10/times', {
       entries: [
         { entry_id: 1, time1: 10, time2: 11 },
-        { entry_id: 2, time1: 12, time2: null, dnf: true }
-      ]
+        { entry_id: 2, time1: 12, time2: null, dnf: true },
+      ],
     });
 
     expect((await timekeeperDb.startList.get(1)).time_sum).toBe(21);
@@ -141,9 +150,14 @@ describe('applyLocalMutation - hromadný zápis', () => {
   it('u dávky bez mapy revizí nechá revizi prázdnou místo cizí hodnoty', async () => {
     await seedEntry({ updated_at: 'stará' });
 
-    await applyLocalMutation('POST', '/api/timekeeper/races/10/times', {
-      entries: [{ entry_id: 1, time1: 10 }]
-    }, { syncedRemote: true, serverRevision: 'revize-jineho-radku' });
+    await applyLocalMutation(
+      'POST',
+      '/api/timekeeper/races/10/times',
+      {
+        entries: [{ entry_id: 1, time1: 10 }],
+      },
+      { syncedRemote: true, serverRevision: 'revize-jineho-radku' },
+    );
 
     // Přiřadit celé dávce jednu revizi znamená jistý 409 při dalším zápisu.
     expect((await timekeeperDb.startList.get(1)).updated_at).toBeNull();
@@ -152,9 +166,17 @@ describe('applyLocalMutation - hromadný zápis', () => {
   it('s mapou revizí přiřadí každému řádku tu jeho', async () => {
     await timekeeperDb.startList.bulkPut([startListEntry({ id: 1 }), startListEntry({ id: 2 })]);
 
-    await applyLocalMutation('POST', '/api/timekeeper/races/10/times', {
-      entries: [{ entry_id: 1, time1: 10 }, { entry_id: 2, time1: 20 }]
-    }, { syncedRemote: true, serverRevisions: { 1: 'r1', 2: 'r2' } });
+    await applyLocalMutation(
+      'POST',
+      '/api/timekeeper/races/10/times',
+      {
+        entries: [
+          { entry_id: 1, time1: 10 },
+          { entry_id: 2, time1: 20 },
+        ],
+      },
+      { syncedRemote: true, serverRevisions: { 1: 'r1', 2: 'r2' } },
+    );
 
     expect((await timekeeperDb.startList.get(1)).updated_at).toBe('r1');
     expect((await timekeeperDb.startList.get(2)).updated_at).toBe('r2');
@@ -173,11 +195,16 @@ describe('applyLocalMutation - přečíslování dresu', () => {
   it('online promítne serverovou podobu řádku', async () => {
     await seedEntry({ race_number_actual: 5 });
 
-    await applyLocalMutation('PUT', '/api/timekeeper/start-list/1', { race_number_id: 99 }, {
-      syncedRemote: true,
-      serverEntry: { race_number_actual: 42 },
-      serverRevision: 'r9'
-    });
+    await applyLocalMutation(
+      'PUT',
+      '/api/timekeeper/start-list/1',
+      { race_number_id: 99 },
+      {
+        syncedRemote: true,
+        serverEntry: { race_number_actual: 42 },
+        serverRevision: 'r9',
+      },
+    );
 
     const snapshot = await timekeeperDb.startList.get(1);
     expect(snapshot.race_number_actual).toBe(42);
@@ -215,11 +242,16 @@ describe('applyLocalMutation - vyřazení ze startky', () => {
   it('online vezme stav ze serveru, ale ne jeho revizi ani časy', async () => {
     await seedEntry({ time1: 30, updated_at: 'moje' });
 
-    await applyLocalMutation('PUT', EXCLUDE, { excluded: true }, {
-      syncedRemote: true,
-      serverEntry: { id: 1, excluded: true, time1: 99, updated_at: 'cizí' },
-      serverRevision: 'cizí'
-    });
+    await applyLocalMutation(
+      'PUT',
+      EXCLUDE,
+      { excluded: true },
+      {
+        syncedRemote: true,
+        serverEntry: { id: 1, excluded: true, time1: 99, updated_at: 'cizí' },
+        serverRevision: 'cizí',
+      },
+    );
 
     const snapshot = await timekeeperDb.startList.get(1);
     expect(snapshot.excluded).toBe(true);
@@ -234,7 +266,7 @@ describe('applySyncedRevisions', () => {
 
     await applySyncedRevisions(
       { method: 'PUT', endpoint: '/api/timekeeper/start-list/1/time', payload: {} },
-      { revision: 'nová' }
+      { revision: 'nová' },
     );
 
     const snapshot = await timekeeperDb.startList.get(1);
@@ -252,7 +284,7 @@ describe('applySyncedRevisions', () => {
     try {
       await applySyncedRevisions(
         { method: 'PUT', endpoint: '/api/timekeeper/start-list/1/time', payload: {} },
-        { revision: 'nová' }
+        { revision: 'nová' },
       );
     } finally {
       window.removeEventListener(START_LIST_REVISION_EVENT, listener);
@@ -274,9 +306,9 @@ describe('applySyncedRevisions', () => {
         {
           method: 'POST',
           endpoint: '/api/timekeeper/races/10/times',
-          payload: { entries: [{ entry_id: 1 }, { entry_id: 2 }] }
+          payload: { entries: [{ entry_id: 1 }, { entry_id: 2 }] },
         },
-        { revisions: { 1: 'r1', 2: 'r2' } }
+        { revisions: { 1: 'r1', 2: 'r2' } },
       );
     } finally {
       window.removeEventListener(START_LIST_REVISION_EVENT, listener);
@@ -286,9 +318,11 @@ describe('applySyncedRevisions', () => {
   });
 
   it('chybu při zápisu do cache spolkne - synchronizace proběhla', async () => {
-    await expect(applySyncedRevisions(
-      { method: 'PUT', endpoint: '/api/timekeeper/start-list/999/time', payload: {} },
-      { revision: 'nová' }
-    )).resolves.toBeUndefined();
+    await expect(
+      applySyncedRevisions(
+        { method: 'PUT', endpoint: '/api/timekeeper/start-list/999/time', payload: {} },
+        { revision: 'nová' },
+      ),
+    ).resolves.toBeUndefined();
   });
 });

@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { countRacers, filterClubs, racerCategoryOptions, racerClubOptions } from './registeredRacers.js';
+import {
+  countRacers,
+  filterClubs,
+  racerCategoryOptions,
+  racerClubOptions,
+} from './registeredRacers.js';
 
-const racer = (lastName, category) => ({ firstName: 'X', lastName, category_id: category?.id ?? null, category_name: category?.name ?? null });
+const racer = (lastName, category) => ({
+  firstName: 'X',
+  lastName,
+  category_id: category?.id ?? null,
+  category_name: category?.name ?? null,
+});
 const DIVKY = { id: 8, name: 'Přípravka dívky' };
 const CHLAPCI = { id: 7, name: 'Přípravka chlapci' };
 
@@ -28,15 +38,24 @@ describe('filtr přihlášených', () => {
 
   it('Bez kategorie jen když je někdo bez kategorie', () => {
     const clubs = [{ club_name: 'SK Brno', racers: [racer('Anna', DIVKY)] }];
-    expect(racerCategoryOptions({ categories: [DIVKY], clubs })).toEqual([{ value: '8', label: 'Přípravka dívky' }]);
+    expect(racerCategoryOptions({ categories: [DIVKY], clubs })).toEqual([
+      { value: '8', label: 'Přípravka dívky' },
+    ]);
   });
 
   it('filtruje podle klubu i kategorie, prázdné kluby vypadnou', () => {
     const { clubs } = REGISTRATIONS;
-    expect(names(filterClubs(clubs, { club: '', category: '' }))).toEqual(['Anna', 'Petr', 'Eva', 'Bez']);
+    expect(names(filterClubs(clubs, { club: '', category: '' }))).toEqual([
+      'Anna',
+      'Petr',
+      'Eva',
+      'Bez',
+    ]);
     expect(names(filterClubs(clubs, { club: '', category: '8' }))).toEqual(['Anna', 'Eva']);
     expect(names(filterClubs(clubs, { club: 'SK Brno', category: '8' }))).toEqual(['Anna']);
-    expect(filterClubs(clubs, { club: '', category: 'none' }).map((c) => c.club_name)).toEqual(['Bez klubu']);
+    expect(filterClubs(clubs, { club: '', category: 'none' }).map((c) => c.club_name)).toEqual([
+      'Bez klubu',
+    ]);
     expect(countRacers(filterClubs(clubs, { club: '', category: '7' }))).toBe(1);
   });
 });

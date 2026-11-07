@@ -32,7 +32,7 @@ export const createTokenStore = (tokenKey) => {
     clear: () => {
       localStorage.removeItem(tokenKey);
       localStorage.removeItem(expKey);
-    }
+    },
   };
 };
 
@@ -40,7 +40,13 @@ export const createTokenStore = (tokenKey) => {
  * Log in and fetch the profile in one step.
  * @returns {Promise<{access_token: string, user: object}>}
  */
-export const loginWithCredentials = async ({ loginEndpoint, meEndpoint, store, email, password }) => {
+export const loginWithCredentials = async ({
+  loginEndpoint,
+  meEndpoint,
+  store,
+  email,
+  password,
+}) => {
   const { access_token, expires_in } = await API.post(loginEndpoint, { email, password });
   store.save(access_token, expires_in);
 
@@ -48,9 +54,8 @@ export const loginWithCredentials = async ({ loginEndpoint, meEndpoint, store, e
   return { access_token, user };
 };
 
-export const fetchProfile = (meEndpoint, token) => (
-  API.get(meEndpoint, {}, { Authorization: `Bearer ${token}` })
-);
+export const fetchProfile = (meEndpoint, token) =>
+  API.get(meEndpoint, {}, { Authorization: `Bearer ${token}` });
 
 export const isNetworkError = (error) => {
   const message = error?.message || '';

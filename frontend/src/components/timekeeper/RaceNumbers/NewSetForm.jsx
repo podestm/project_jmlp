@@ -21,29 +21,52 @@ export default function NewSetForm({ numbersApi }) {
         <div className={styles.fields}>
           {FIELDS.map((field) => (
             <Field key={field.key} label={field.label} id={`nova-sada-${field.key}`}>
-              <Input size="sm" type="number" mono min="1" max={field.max} required value={setFormData[field.key]}
-                onChange={(e) => updateSetForm(field.key, e.target.value)} />
+              <Input
+                size="sm"
+                type="number"
+                mono
+                min="1"
+                max={field.max}
+                required
+                value={setFormData[field.key]}
+                onChange={(e) => updateSetForm(field.key, e.target.value)}
+              />
             </Field>
           ))}
         </div>
         <div className={styles.color}>
           <span className={styles.caps}>Barva sady</span>
-          <ColorSwatches label="Barva nové sady" value={setFormData.set_color} onChange={(color) => updateSetForm('set_color', color)} />
+          <ColorSwatches
+            label="Barva nové sady"
+            value={setFormData.set_color}
+            onChange={(color) => updateSetForm('set_color', color)}
+          />
         </div>
         {preview && (
           <p className={styles.preview}>
             <Icon name="info" size={18} />
             <span className={styles.previewText}>
-              dresy {preview.actualFrom}–{preview.actualTo} → <strong>{preview.displayFrom}–{preview.displayTo}</strong>
+              dresy {preview.actualFrom}–{preview.actualTo} →{' '}
+              <strong>
+                {preview.displayFrom}–{preview.displayTo}
+              </strong>
             </span>
             <span className={styles.previewCount}>{preview.count} ks</span>
           </p>
         )}
         <div className={styles.actions}>
-          <Button type="submit" variant="primary" icon="check" busy={creating} className={styles.submit}>
+          <Button
+            type="submit"
+            variant="primary"
+            icon="check"
+            busy={creating}
+            className={styles.submit}
+          >
             {creating ? 'Vytvářím…' : 'Vytvořit'}
           </Button>
-          <Button data-cancel onClick={() => setShowSetForm(false)}>Zrušit</Button>
+          <Button data-cancel onClick={() => setShowSetForm(false)}>
+            Zrušit
+          </Button>
         </div>
       </div>
     </form>

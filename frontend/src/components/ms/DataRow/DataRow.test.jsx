@@ -6,9 +6,16 @@ describe('DataRow', () => {
   it('vykreslí titulek, doplněk, hodnotu a stav slovy', () => {
     render(
       <ul>
-        <DataRow as="li" tone="open" statusLabel="Registrace otevřená" lead={<span>03</span>}
-          title="Brno – Kohoutovice" meta="FreeSki Academy Brno · suchý slalom" value="58" />
-      </ul>
+        <DataRow
+          as="li"
+          tone="open"
+          statusLabel="Registrace otevřená"
+          lead={<span>03</span>}
+          title="Brno – Kohoutovice"
+          meta="FreeSki Academy Brno · suchý slalom"
+          value="58"
+        />
+      </ul>,
     );
     const row = screen.getByRole('listitem');
     expect(row).toHaveAttribute('data-tone', 'open');
@@ -25,7 +32,14 @@ describe('DataRow', () => {
 
 describe('DataRow – karta', () => {
   it('vykreslí blok aside', () => {
-    render(<DataRow variant="card" tone="closed" title="Kraví hora" aside={<button type="button">Detail</button>} />);
+    render(
+      <DataRow
+        variant="card"
+        tone="closed"
+        title="Kraví hora"
+        aside={<button type="button">Detail</button>}
+      />,
+    );
     expect(screen.getByRole('button', { name: 'Detail' })).toBeInTheDocument();
   });
 

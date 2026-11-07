@@ -63,10 +63,13 @@ export const loadCurrentSeason = ({ force = false } = {}) => {
     .then((data) => {
       const seasonId = data?.current_season_id;
       if (!Number.isInteger(seasonId)) return;
-      publish({ seasonId, edition: Number.isInteger(data.edition) ? data.edition : seasonEdition(seasonId) });
+      publish({
+        seasonId,
+        edition: Number.isInteger(data.edition) ? data.edition : seasonEdition(seasonId),
+      });
     })
     .catch(() => {
-      request = null;   // příště to zkusí znovu
+      request = null; // příště to zkusí znovu
     });
   return request;
 };
@@ -78,7 +81,9 @@ const subscribe = (listener) => {
 
 /** { seasonId, edition } aktuální sezóny; při prvním použití ji načte. */
 export function useCurrentSeason() {
-  useEffect(() => { loadCurrentSeason(); }, []);
+  useEffect(() => {
+    loadCurrentSeason();
+  }, []);
   return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 

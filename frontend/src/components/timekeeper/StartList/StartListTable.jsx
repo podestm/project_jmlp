@@ -14,15 +14,31 @@ const COLUMNS = [
   { label: 'Řádek', align: 'end' },
 ];
 
-const plural = (count) => (count === 1 ? 'závodník' : count >= 2 && count <= 4 ? 'závodníci' : 'závodníků');
+const plural = (count) =>
+  count === 1 ? 'závodník' : count >= 2 && count <= 4 ? 'závodníci' : 'závodníků';
 
 /**
  * Listina po kategoriích (TkStartovniListina): jedna tabulka, každá
  * kategorie má vlastní <tbody> s tmavým záhlavím – sloupce tak sedí pod
  * sebou napříč kategoriemi.
  */
-export default function StartListTable({ list, categoryPreview, onEdit, onDelete, onToggleExcluded }) {
-  const { groupedByCategory, editingId, editForm, updateEditField, editError, editBibNumber, saveEditing, cancelEditing } = list;
+export default function StartListTable({
+  list,
+  categoryPreview,
+  onEdit,
+  onDelete,
+  onToggleExcluded,
+}) {
+  const {
+    groupedByCategory,
+    editingId,
+    editForm,
+    updateEditField,
+    editError,
+    editBibNumber,
+    saveEditing,
+    cancelEditing,
+  } = list;
 
   return (
     <TableScroll label="Startovní listina po kategoriích">
@@ -30,7 +46,9 @@ export default function StartListTable({ list, categoryPreview, onEdit, onDelete
         <thead>
           <tr>
             {COLUMNS.map((column) => (
-              <th key={column.label} scope="col" data-align={column.align}>{column.label}</th>
+              <th key={column.label} scope="col" data-align={column.align}>
+                {column.label}
+              </th>
             ))}
           </tr>
         </thead>
@@ -41,7 +59,8 @@ export default function StartListTable({ list, categoryPreview, onEdit, onDelete
                 <span className={styles.groupRow}>
                   <span className={styles.groupName}>{group.category_name}</span>
                   <span className={styles.groupCount}>
-                    <span className={styles.mono}>{group.activeCount}</span> {plural(group.activeCount)}
+                    <span className={styles.mono}>{group.activeCount}</span>{' '}
+                    {plural(group.activeCount)}
                   </span>
                   {group.excludedCount > 0 && (
                     <span className={styles.groupExcluded}>vyřazeno: {group.excludedCount}</span>
@@ -49,7 +68,7 @@ export default function StartListTable({ list, categoryPreview, onEdit, onDelete
                 </span>
               </th>
             </tr>
-            {group.entries.map((entry) => (
+            {group.entries.map((entry) =>
               editingId === entry.id ? (
                 <StartListEditRow
                   key={entry.id}
@@ -71,8 +90,8 @@ export default function StartListTable({ list, categoryPreview, onEdit, onDelete
                   onDelete={onDelete}
                   onToggleExcluded={onToggleExcluded}
                 />
-              )
-            ))}
+              ),
+            )}
           </tbody>
         ))}
       </Table>

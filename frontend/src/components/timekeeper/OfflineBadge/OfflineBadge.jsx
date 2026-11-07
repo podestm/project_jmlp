@@ -11,8 +11,13 @@ import styles from './OfflineBadge.module.css';
 export default function OfflineBadge({ entry, className }) {
   if (!isTempEntryId(entry?.id)) return null;
   return (
-    <span className={cx(styles.wrap, className)} title="Přidán offline – na server se odešle po obnovení připojení">
-      <Badge tone="dry" size="sm" icon="wifi-off">offline</Badge>
+    <span
+      className={cx(styles.wrap, className)}
+      title="Přidán offline – na server se odešle po obnovení připojení"
+    >
+      <Badge tone="dry" size="sm" icon="wifi-off">
+        offline
+      </Badge>
     </span>
   );
 }

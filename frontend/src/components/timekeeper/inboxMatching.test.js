@@ -5,7 +5,7 @@ const entry = (id, bib, startNumber = id) => ({
   id,
   race_number_actual: bib,
   start_number: startNumber,
-  racer_surname: `Z${id}`
+  racer_surname: `Z${id}`,
 });
 
 const START_LIST = [entry(1, 11), entry(2, 12), entry(3, 12, 5)];
@@ -22,8 +22,9 @@ describe('candidatesForEvent', () => {
   });
 
   it('bez dresu použije jen dřív uložené kandidáty', () => {
-    expect(candidatesForEvent({ candidateEntryIds: [2] }, START_LIST, byId).map((e) => e.id))
-      .toEqual([2]);
+    expect(
+      candidatesForEvent({ candidateEntryIds: [2] }, START_LIST, byId).map((e) => e.id),
+    ).toEqual([2]);
     expect(candidatesForEvent({}, START_LIST, byId)).toEqual([]);
   });
 
@@ -82,7 +83,7 @@ describe('vyřazení ze startky', () => {
     entry(1, 11),
     { ...entry(2, 12), excluded: true },
     entry(3, 12, 5),
-    { ...entry(4, 14), excluded: true }
+    { ...entry(4, 14), excluded: true },
   ];
   const listById = Object.fromEntries(LIST.map((e) => [e.id, e]));
 
@@ -126,7 +127,11 @@ describe('vyřazení ze startky', () => {
   });
 
   it('zapsaná událost zůstává u svého závodníka i po jeho vyřazení', () => {
-    const result = resolveInboxEvent({ bib: 14, selectedEntryId: 4, status: 'saved' }, LIST, listById);
+    const result = resolveInboxEvent(
+      { bib: 14, selectedEntryId: 4, status: 'saved' },
+      LIST,
+      listById,
+    );
 
     expect(result.entry.id).toBe(4);
     expect(result.excluded).toBe(false);

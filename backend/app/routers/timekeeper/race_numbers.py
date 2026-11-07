@@ -1,14 +1,16 @@
 """Race number sets management - create, list, delete number sets and individual numbers."""
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Query, Header
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 
+from typing import Any
+
+from fastapi import APIRouter, Depends, Header, Query
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
-from ...utils import StandardExceptions
 from ...services.race_number_codes import MAX_SETS, race_number_code, set_letter
-from .idempotency import try_get_idempotent_response, store_idempotent_response
+from ...utils import StandardExceptions
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-race-numbers"])
 
@@ -25,9 +27,8 @@ def _normalize_set_color(value: Any) -> str:
 
 @router.get("/race-number-sets")
 def get_race_number_sets(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
+) -> list[dict[str, Any]]:
     """Get summary of all race number sets."""
     query = text("""
         SELECT set_number,
@@ -42,27 +43,34 @@ def get_race_number_sets(
         ORDER BY set_number ASC
     """)
     rows = db.execute(query).fetchall()
-    
-    return [{
-        "set_number": row.set_number,
-        "set_color": row.set_color or "rose",
-        "count": row.count,
-        "active_count": int(row.active_count or 0),
-        "inactive_count": int(row.inactive_count or 0),
-        "min_actual": row.min_actual,
-        "max_actual": row.max_actual,
-        "letter": set_letter(row.set_number) if 1 <= row.set_number <= MAX_SETS else "",
-        "min_display": race_number_code(row.set_number, row.min_actual) if 1 <= row.set_number <= MAX_SETS else None,
-        "max_display": race_number_code(row.set_number, row.max_actual) if 1 <= row.set_number <= MAX_SETS else None,
-    } for row in rows]
+
+    return [
+        {
+            "set_number": row.set_number,
+            "set_color": row.set_color or "rose",
+            "count": row.count,
+            "active_count": int(row.active_count or 0),
+            "inactive_count": int(row.inactive_count or 0),
+            "min_actual": row.min_actual,
+            "max_actual": row.max_actual,
+            "letter": set_letter(row.set_number) if 1 <= row.set_number <= MAX_SETS else "",
+            "min_display": race_number_code(row.set_number, row.min_actual)
+            if 1 <= row.set_number <= MAX_SETS
+            else None,
+            "max_display": race_number_code(row.set_number, row.max_actual)
+            if 1 <= row.set_number <= MAX_SETS
+            else None,
+        }
+        for row in rows
+    ]
 
 
 @router.get("/race-numbers")
 def get_race_numbers(
     set_number: int = Query(default=1),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    db: Session = Depends(get_db),
+) -> list[dict[str, Any]]:
     """Get all race numbers for a given set."""
     query = text("""
         SELECT id, set_number, set_color, display_number, is_active,
@@ -72,22 +80,24 @@ def get_race_numbers(
         ORDER BY CAST(SUBSTRING(display_number, 2) AS UNSIGNED) ASC
     """)
     rows = db.execute(query, {"set_number": set_number}).fetchall()
-    
-    return [{
-        "id": row.id,
-        "set_number": row.set_number,
-        "set_color": row.set_color or "rose",
-        "actual_number": row.actual_number,
-        "display_number": row.display_number,
-        "is_active": bool(row.is_active),
-    } for row in rows]
+
+    return [
+        {
+            "id": row.id,
+            "set_number": row.set_number,
+            "set_color": row.set_color or "rose",
+            "actual_number": row.actual_number,
+            "display_number": row.display_number,
+            "is_active": bool(row.is_active),
+        }
+        for row in rows
+    ]
 
 
 @router.get("/race-number-options")
 def get_active_race_number_options(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
+) -> list[dict[str, Any]]:
     """Get all active race numbers across sets for assignment by system number."""
     query = text("""
         SELECT id, set_number, set_color, display_number, is_active,
@@ -98,23 +108,26 @@ def get_active_race_number_options(
     """)
     rows = db.execute(query).fetchall()
 
-    return [{
-        "id": row.id,
-        "set_number": row.set_number,
-        "set_color": row.set_color or "rose",
-        "actual_number": row.actual_number,
-        "display_number": row.display_number,
-        "is_active": bool(row.is_active),
-    } for row in rows]
+    return [
+        {
+            "id": row.id,
+            "set_number": row.set_number,
+            "set_color": row.set_color or "rose",
+            "actual_number": row.actual_number,
+            "display_number": row.display_number,
+            "is_active": bool(row.is_active),
+        }
+        for row in rows
+    ]
 
 
 @router.post("/race-numbers")
 def add_single_race_number(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Add a single race number to a set.
 
     Body: { "set_number": 1, "actual_number": 201 } - označení (A201) se
@@ -141,19 +154,27 @@ def add_single_race_number(
     except ValueError as exc:
         raise StandardExceptions.bad_request(str(exc)) from exc
 
-    duplicate_actual = db.query(models.RaceNumber).filter(
-        models.RaceNumber.display_number == display_number,
-    ).first()
+    duplicate_actual = (
+        db.query(models.RaceNumber)
+        .filter(
+            models.RaceNumber.display_number == display_number,
+        )
+        .first()
+    )
     if duplicate_actual:
         raise StandardExceptions.bad_request(
             f"Dresové číslo {actual_number} již v sadě {set_number} existuje"
         )
-    
-    existing_set_number = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number
-    ).first()
-    set_color = existing_set_number.set_color if existing_set_number and existing_set_number.set_color else "rose"
-    
+
+    existing_set_number = (
+        db.query(models.RaceNumber).filter(models.RaceNumber.set_number == set_number).first()
+    )
+    set_color = (
+        existing_set_number.set_color
+        if existing_set_number and existing_set_number.set_color
+        else "rose"
+    )
+
     entry = models.RaceNumber(
         set_number=set_number,
         set_color=set_color,
@@ -187,11 +208,11 @@ def add_single_race_number(
 @router.put("/race-numbers/{number_id}")
 def update_single_race_number(
     number_id: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Update a single race number state."""
     endpoint = f"/api/timekeeper/race-numbers/{number_id}"
     replay = try_get_idempotent_response(
@@ -236,18 +257,18 @@ def update_single_race_number(
 def delete_single_race_number(
     number_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, str]:
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
     """Delete a single race number. Start lists are independent snapshots, no FK constraint."""
     number = db.query(models.RaceNumber).filter(models.RaceNumber.id == number_id).first()
     if not number:
         raise StandardExceptions.not_found("Závodní číslo nenalezeno")
-    
+
     # Nullify any start list references (start lists are snapshots, not live bindings)
     db.query(models.StartListEntry).filter(
         models.StartListEntry.race_number_id == number_id
     ).update({"race_number_id": None})
-    
+
     db.delete(number)
     db.commit()
     return {"message": f"Smazáno číslo {number.display_number} (dres {number.actual_number})"}
@@ -256,18 +277,20 @@ def delete_single_race_number(
 @router.put("/race-number-sets/{set_number}")
 def update_race_number_set(
     set_number: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Update set metadata such as color."""
     if "set_color" not in data:
         raise StandardExceptions.bad_request("Chybí parametr set_color")
 
     set_color = _normalize_set_color(data.get("set_color"))
-    updated = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number
-    ).update({"set_color": set_color})
+    updated = (
+        db.query(models.RaceNumber)
+        .filter(models.RaceNumber.set_number == set_number)
+        .update({"set_color": set_color})
+    )
 
     if updated == 0:
         raise StandardExceptions.not_found(f"Sada č. {set_number} nenalezena")
@@ -282,11 +305,11 @@ def update_race_number_set(
 
 @router.post("/race-number-sets")
 def create_race_number_set(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Create a new race number set.
 
     Body: {
@@ -319,14 +342,16 @@ def create_race_number_set(
 
     if actual_from > actual_to:
         raise StandardExceptions.bad_request("actual_from musí být menší než actual_to")
-    
+
     # Check if set_number already exists
-    existing = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number
-    ).count()
+    existing = (
+        db.query(models.RaceNumber).filter(models.RaceNumber.set_number == set_number).count()
+    )
     if existing > 0:
-        raise StandardExceptions.bad_request(f"Sada č. {set_number} již existuje ({existing} čísel)")
-    
+        raise StandardExceptions.bad_request(
+            f"Sada č. {set_number} již existuje ({existing} čísel)"
+        )
+
     display_from = race_number_code(set_number, actual_from)
     display_to = race_number_code(set_number, actual_to)
 
@@ -340,7 +365,7 @@ def create_race_number_set(
         )
         db.add(entry)
         created += 1
-    
+
     db.commit()
 
     response_payload = {
@@ -366,26 +391,29 @@ def create_race_number_set(
 def delete_race_number_set(
     set_number: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, str]:
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
     """Delete all race numbers in a set.
-    
+
     Start lists are independent snapshots — references are nullified, not blocked.
     """
     # Nullify start list references to numbers from this set
-    db.execute(text("""
+    db.execute(
+        text("""
         UPDATE fuj_jmlp_race_start_list sl
         JOIN fuj_jmlp_race_numbers rn ON sl.race_number_id = rn.id
         SET sl.race_number_id = NULL
         WHERE rn.set_number = :set_number
-    """), {"set_number": set_number})
-    
-    deleted = db.query(models.RaceNumber).filter(
-        models.RaceNumber.set_number == set_number
-    ).delete()
-    
+    """),
+        {"set_number": set_number},
+    )
+
+    deleted = (
+        db.query(models.RaceNumber).filter(models.RaceNumber.set_number == set_number).delete()
+    )
+
     if deleted == 0:
         raise StandardExceptions.not_found(f"Sada č. {set_number} nenalezena")
-    
+
     db.commit()
     return {"message": f"Smazáno {deleted} závodních čísel ze sady {set_number}"}

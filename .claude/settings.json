@@ -6,6 +6,8 @@
       "Bash(harness/verify.sh:*)",
       "Bash(harness/tests/run.sh:*)",
       "Bash(harness/lib/backend-tests.sh:*)",
+      "Bash(npx prettier:*)",
+      "Bash(harness/lib/ruff.sh:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
@@ -49,7 +51,11 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop_verify.py start", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop_verify.py start",
+            "timeout": 30
+          }
         ]
       }
     ],
@@ -57,7 +63,11 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_bash.py", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_bash.py",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -65,14 +75,22 @@
       {
         "matcher": "Edit|MultiEdit|Write",
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post_edit.py", "timeout": 120 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post_edit.py",
+            "timeout": 120
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop_verify.py stop", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop_verify.py stop",
+            "timeout": 30
+          }
         ]
       }
     ]
@@ -81,5 +99,7 @@
     "BASH_DEFAULT_TIMEOUT_MS": "600000",
     "BASH_MAX_TIMEOUT_MS": "900000"
   },
-  "enabledMcpjsonServers": ["playwright"]
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }

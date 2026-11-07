@@ -7,7 +7,13 @@ import metrics from './metrics.json';
 
 const ascender = (item) => {
   const serif = item.font === 'LizaSerif';
-  const key = serif ? (item.bold ? 'serifBoldItalic' : 'serifItalic') : (item.bold ? 'sansBold' : 'sans');
+  const key = serif
+    ? item.bold
+      ? 'serifBoldItalic'
+      : 'serifItalic'
+    : item.bold
+      ? 'sansBold'
+      : 'sans';
   return metrics[key].ascender;
 };
 
@@ -22,13 +28,16 @@ export function pagesOf(doc) {
         x: item.absolutePosition.x,
         base: item.absolutePosition.y + ascender(item) * item.fontSize,
         size: item.fontSize,
-        bold: item.bold
+        bold: item.bold,
       });
     }
   });
   return pages;
 }
 
-export const textsOf = (doc) => pagesOf(doc).flat().map((item) => item.text);
+export const textsOf = (doc) =>
+  pagesOf(doc)
+    .flat()
+    .map((item) => item.text);
 
 export const imagesOf = (doc) => doc.content.filter((item) => item.image);

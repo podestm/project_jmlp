@@ -7,17 +7,23 @@ const mockLogout = vi.fn();
 const mockGet = vi.fn();
 
 vi.mock('../../../../config/auth.jsx', () => ({
-  useAuth: () => ({ admin: { full_name: 'Roman Keznikl', email: 'rk@x.cz', role: 'admin' }, logout: mockLogout }),
+  useAuth: () => ({
+    admin: { full_name: 'Roman Keznikl', email: 'rk@x.cz', role: 'admin' },
+    logout: mockLogout,
+  }),
 }));
 vi.mock('../../../../config/api.js', () => ({ AdminAPI: { get: (...args) => mockGet(...args) } }));
 
 const { default: AdminLayout } = await import('./AdminLayout.jsx');
 
-const renderLayout = (path = '/admin') => render(
-  <MemoryRouter initialEntries={[path]}>
-    <AdminLayout><div>obsah</div></AdminLayout>
-  </MemoryRouter>,
-);
+const renderLayout = (path = '/admin') =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <AdminLayout>
+        <div>obsah</div>
+      </AdminLayout>
+    </MemoryRouter>,
+  );
 
 describe('rámec administrace', () => {
   beforeEach(() => {
@@ -29,9 +35,21 @@ describe('rámec administrace', () => {
     renderLayout('/admin/races');
     const sidebar = screen.getByRole('complementary', { name: 'Menu administrace' });
     const nav = within(sidebar).getByRole('navigation', { name: 'Administrace' });
-    const labels = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(labels.slice(0, 6)).toEqual(['Přehled', 'Závody', 'Závodníci', 'Žádosti o kluby', 'Dokumenty', 'Aktuality']);
-    expect(within(nav).getByRole('link', { name: 'Závody' })).toHaveAttribute('aria-current', 'page');
+    const labels = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(labels.slice(0, 6)).toEqual([
+      'Přehled',
+      'Závody',
+      'Závodníci',
+      'Žádosti o kluby',
+      'Dokumenty',
+      'Aktuality',
+    ]);
+    expect(within(nav).getByRole('link', { name: 'Závody' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(screen.getByText('obsah')).toBeInTheDocument();
   });
 
@@ -39,11 +57,17 @@ describe('rámec administrace', () => {
     mockGet.mockResolvedValue({ count: 3 });
     renderLayout();
     const sidebar = screen.getByRole('complementary', { name: 'Menu administrace' });
-    expect(await within(sidebar).findByRole('link', { name: /Žádosti o kluby 3 čeká/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Otevřít menu administrace, 3 žádosti o kluby čekají' })).toBeInTheDocument();
+    expect(
+      await within(sidebar).findByRole('link', { name: /Žádosti o kluby 3 čeká/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Otevřít menu administrace, 3 žádosti o kluby čekají' }),
+    ).toBeInTheDocument();
 
     mockGet.mockResolvedValue({ count: 0 });
-    await act(async () => { window.dispatchEvent(new Event('club-request-resolved')); });
+    await act(async () => {
+      window.dispatchEvent(new Event('club-request-resolved'));
+    });
     expect(within(sidebar).getByRole('link', { name: 'Žádosti o kluby' })).toBeInTheDocument();
   });
 
@@ -51,7 +75,10 @@ describe('rámec administrace', () => {
     renderLayout();
     const sidebar = screen.getByRole('complementary', { name: 'Menu administrace' });
     const sw = within(sidebar).getByRole('navigation', { name: 'Přepnutí sekce' });
-    expect(within(sw).getByRole('link', { name: /Časomíra/ })).toHaveAttribute('href', '/timekeeper');
+    expect(within(sw).getByRole('link', { name: /Časomíra/ })).toHaveAttribute(
+      'href',
+      '/timekeeper',
+    );
 
     await userEvent.click(within(sidebar).getByRole('button', { name: 'Odhlásit se' }));
     expect(mockLogout).toHaveBeenCalledTimes(1);

@@ -11,10 +11,9 @@ export const deleteRaceConfirm = (race) => {
   const count = race?.registrations_count || 0;
   return {
     title: name ? `Smazat závod ${name}?` : 'Smazat závod?',
-    message: race
-      ? <DeleteRaceMessage race={race} />
-      : 'Smazání nejde vrátit.',
-    confirmLabel: count > 0 ? `Smazat závod i ${count} ${registrationsWord(count)}` : 'Smazat závod',
+    message: race ? <DeleteRaceMessage race={race} /> : 'Smazání nejde vrátit.',
+    confirmLabel:
+      count > 0 ? `Smazat závod i ${count} ${registrationsWord(count)}` : 'Smazat závod',
     danger: true,
     icon: 'trash',
   };

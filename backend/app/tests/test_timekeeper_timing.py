@@ -8,6 +8,7 @@ ale hlavně tři věci, na kterých ta fronta stojí:
   * force_apply - vědomé přepsání po vyřešení konfliktu,
   * idempotence - dvojí odeslání téhož požadavku smí zapsat jen jednou.
 """
+
 from decimal import Decimal
 
 import pytest
@@ -19,8 +20,12 @@ def _zavod(db, race_nr="JMLP2026-09"):
     # closed, registration a race_method_id jsou v legacy schématu NOT NULL
     # bez výchozí hodnoty, takže je musí doplnit i test.
     zavod = models.Race(
-        race_nr=race_nr, datum="2026-02-01", season_id=2025,
-        closed=False, registration=True, race_method_id=1,
+        race_nr=race_nr,
+        datum="2026-02-01",
+        season_id=2025,
+        closed=False,
+        registration=True,
+        race_method_id=1,
     )
     db.add(zavod)
     db.commit()
@@ -39,9 +44,7 @@ def _kategorie(db):
 
 
 def _zavodnik(db, name, surname, category_id):
-    zavodnik = models.Racer(
-        name=name, surname=surname, year=2000, sex=1, category_id=category_id
-    )
+    zavodnik = models.Racer(name=name, surname=surname, year=2000, sex=1, category_id=category_id)
     db.add(zavodnik)
     db.commit()
     db.refresh(zavodnik)
@@ -78,6 +81,7 @@ def polozky(db, zavod):
 # ---------------------------------------------------------------------------
 # Zápis jednoho času
 # ---------------------------------------------------------------------------
+
 
 def test_zapis_casu_secte_obe_jizdy(client, db, polozky, timekeeper_headers):
     odpoved = client.put(
@@ -132,8 +136,18 @@ def test_nulovy_cas_se_ulozi_jako_prazdny(client, db, polozky, timekeeper_header
 def test_hromadny_zapis_nulu_ulozi_jako_prazdny_cas(client, db, zavod, polozky, timekeeper_headers):
     client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [{"entry_id": polozky[0].id, "time1": 0, "time2": 0.0,
-                           "dnf": False, "dns": False, "dsq": False}]},
+        json={
+            "entries": [
+                {
+                    "entry_id": polozky[0].id,
+                    "time1": 0,
+                    "time2": 0.0,
+                    "dnf": False,
+                    "dns": False,
+                    "dsq": False,
+                }
+            ]
+        },
         headers=timekeeper_headers,
     )
 
@@ -163,15 +177,14 @@ def test_cas_neexistujici_polozce_je_404(client, timekeeper_headers):
 
 
 def test_zapis_casu_bez_prihlaseni_neprojde(client, polozky):
-    odpoved = client.put(
-        f"/api/timekeeper/start-list/{polozky[0].id}/time", json={"time1": 10}
-    )
+    odpoved = client.put(f"/api/timekeeper/start-list/{polozky[0].id}/time", json={"time1": 10})
     assert odpoved.status_code == 403
 
 
 # ---------------------------------------------------------------------------
 # Souběžná úprava (base_revision)
 # ---------------------------------------------------------------------------
+
 
 def test_zapis_proti_zastarale_revizi_konci_konfliktem(client, polozky, timekeeper_headers):
     prvni = client.put(
@@ -192,7 +205,9 @@ def test_zapis_proti_zastarale_revizi_konci_konfliktem(client, polozky, timekeep
     assert druhy.json()["detail"]["entry_id"] == polozky[0].id
 
 
-def test_zastarala_revize_se_stejnou_hodnotou_neni_konflikt(client, db, polozky, timekeeper_headers):
+def test_zastarala_revize_se_stejnou_hodnotou_neni_konflikt(
+    client, db, polozky, timekeeper_headers
+):
     """Fronta čas mezitím doručila, nebo přišel z impulzu i ručně: stejná
     hodnota pod starším razítkem se uloží bez konfliktu a vrátí novou revizi."""
     client.put(
@@ -203,8 +218,14 @@ def test_zastarala_revize_se_stejnou_hodnotou_neni_konflikt(client, db, polozky,
 
     odpoved = client.put(
         f"/api/timekeeper/start-list/{polozky[0].id}/time",
-        json={"time1": 219.60, "time2": None, "dnf": False, "dns": False, "dsq": False,
-              "base_revision": "2020-01-01T00:00:00"},
+        json={
+            "time1": 219.60,
+            "time2": None,
+            "dnf": False,
+            "dns": False,
+            "dsq": False,
+            "base_revision": "2020-01-01T00:00:00",
+        },
         headers=timekeeper_headers,
     )
 
@@ -230,7 +251,9 @@ def test_zastarala_revize_s_jinym_priznakem_je_konflikt(client, polozky, timekee
     assert odpoved.status_code == 409
 
 
-def test_hromadny_zapis_se_stejnou_hodnotou_a_starou_revizi_projde(client, zavod, polozky, timekeeper_headers):
+def test_hromadny_zapis_se_stejnou_hodnotou_a_starou_revizi_projde(
+    client, zavod, polozky, timekeeper_headers
+):
     client.put(
         f"/api/timekeeper/start-list/{polozky[0].id}/time",
         json={"time1": 41.2},
@@ -239,11 +262,20 @@ def test_hromadny_zapis_se_stejnou_hodnotou_a_starou_revizi_projde(client, zavod
 
     odpoved = client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [{
-            "entry_id": polozky[0].id, "time1": 41.2, "time2": None,
-            "dnf": False, "dns": False, "dsq": False,
-            "base_revision": "2020-01-01T00:00:00", "force_apply": False,
-        }]},
+        json={
+            "entries": [
+                {
+                    "entry_id": polozky[0].id,
+                    "time1": 41.2,
+                    "time2": None,
+                    "dnf": False,
+                    "dns": False,
+                    "dsq": False,
+                    "base_revision": "2020-01-01T00:00:00",
+                    "force_apply": False,
+                }
+            ]
+        },
         headers=timekeeper_headers,
     )
 
@@ -305,13 +337,16 @@ def test_force_apply_konflikt_prebije(client, db, polozky, timekeeper_headers):
 # Hromadný zápis
 # ---------------------------------------------------------------------------
 
+
 def test_hromadny_zapis_ulozi_vsechny_polozky(client, db, zavod, polozky, timekeeper_headers):
     odpoved = client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [
-            {"entry_id": polozky[0].id, "time1": 10, "time2": 11},
-            {"entry_id": polozky[1].id, "time1": 12, "time2": 13},
-        ]},
+        json={
+            "entries": [
+                {"entry_id": polozky[0].id, "time1": 10, "time2": 11},
+                {"entry_id": polozky[1].id, "time1": 12, "time2": 13},
+            ]
+        },
         headers=timekeeper_headers,
     )
 
@@ -328,10 +363,12 @@ def test_hromadny_zapis_vraci_revizi_ke_kazdemu_radku(client, zavod, polozky, ti
     do kteréhokoli z nich by skončil 409."""
     odpoved = client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [
-            {"entry_id": polozky[0].id, "time1": 10},
-            {"entry_id": polozky[1].id, "time1": 12},
-        ]},
+        json={
+            "entries": [
+                {"entry_id": polozky[0].id, "time1": 10},
+                {"entry_id": polozky[1].id, "time1": 12},
+            ]
+        },
         headers=timekeeper_headers,
     )
 
@@ -340,7 +377,9 @@ def test_hromadny_zapis_vraci_revizi_ke_kazdemu_radku(client, zavod, polozky, ti
     assert all(v is not None for v in revize.values())
 
 
-def test_revize_z_hromadneho_zapisu_plati_pro_dalsi_zapis(client, zavod, polozky, timekeeper_headers):
+def test_revize_z_hromadneho_zapisu_plati_pro_dalsi_zapis(
+    client, zavod, polozky, timekeeper_headers
+):
     davka = client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
         json={"entries": [{"entry_id": polozky[0].id, "time1": 10}]},
@@ -364,10 +403,12 @@ def test_hromadny_zapis_preskoci_cizi_polozku(client, db, zavod, polozky, timeke
 
     odpoved = client.post(
         f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [
-            {"entry_id": polozky[0].id, "time1": 10},
-            {"entry_id": cizi.id, "time1": 99},
-        ]},
+        json={
+            "entries": [
+                {"entry_id": polozky[0].id, "time1": 10},
+                {"entry_id": cizi.id, "time1": 99},
+            ]
+        },
         headers=timekeeper_headers,
     )
 
@@ -388,6 +429,7 @@ def test_hromadny_zapis_neexistujicimu_zavodu_je_404(client, timekeeper_headers)
 # ---------------------------------------------------------------------------
 # Idempotence
 # ---------------------------------------------------------------------------
+
 
 def test_dvoji_odeslani_tehoz_zapisu_ulozi_jednou(client, db, polozky, timekeeper_headers):
     """Přehrávka z offline fronty nese stejný klíč jako původní pokus. Když

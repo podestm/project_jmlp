@@ -16,7 +16,14 @@ const ICON = { danger: 'error', warning: 'warning', success: 'success', info: 'i
  * - compact: menší odsazení a nadpis (administrace, časomíra)
  */
 export default function Alert({
-  type = 'info', title, children, actions, onDismiss, autoDismissDelay, compact = false, className,
+  type = 'info',
+  title,
+  children,
+  actions,
+  onDismiss,
+  autoDismissDelay,
+  compact = false,
+  className,
 }) {
   const [visible, setVisible] = useState(true);
   // V refu, aby nová inline funkce od rodiče nerestartovala odpočet.
@@ -42,7 +49,10 @@ export default function Alert({
   };
 
   return (
-    <div role={type === 'danger' ? 'alert' : 'status'} className={cx(styles.alert, styles[type], compact && styles.compact, className)}>
+    <div
+      role={type === 'danger' ? 'alert' : 'status'}
+      className={cx(styles.alert, styles[type], compact && styles.compact, className)}
+    >
       <Icon name={ICON[type]} size={compact ? 20 : 22} className={styles.icon} />
       <div className={styles.body}>
         {title && <p className={styles.title}>{title}</p>}

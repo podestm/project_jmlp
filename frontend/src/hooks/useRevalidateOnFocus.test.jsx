@@ -110,7 +110,7 @@ describe('useRevalidateOnFocus', () => {
     const first = vi.fn();
     const second = vi.fn();
     const { rerender } = renderHook(({ callback }) => useRevalidateOnFocus(callback), {
-      initialProps: { callback: first }
+      initialProps: { callback: first },
     });
 
     rerender({ callback: second });

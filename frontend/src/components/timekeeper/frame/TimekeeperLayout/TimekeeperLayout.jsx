@@ -47,7 +47,9 @@ export default function TimekeeperLayout({ children }) {
   // Data pro offline dohlášku (registr závodníků, kategorie, dresy, kluby)
   // do zařízení hned, a znovu po každém obnovení připojení.
   useEffect(() => {
-    const preload = () => { preloadOfflineRacerData().catch(() => {}); };
+    const preload = () => {
+      preloadOfflineRacerData().catch(() => {});
+    };
     const timer = setTimeout(preload, 5000);
     const stopBackOnline = onBackOnline(preload);
     return () => {
@@ -62,7 +64,9 @@ export default function TimekeeperLayout({ children }) {
         <TopBar race={race} />
         <TabBar user={user} onLogout={handleLogout} />
       </header>
-      <main id="obsah" className={styles.main}>{children}</main>
+      <main id="obsah" className={styles.main}>
+        {children}
+      </main>
       {confirmElement}
     </div>
   );

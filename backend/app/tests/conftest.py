@@ -7,6 +7,7 @@ jiném enginu by testy buď spadly, nebo - hůř - prošly a nic neověřily.
 Schéma se načítá ze schema.sql, což je export produkčního schématu bez dat.
 Díky tomu testy vidí přesně ty sloupce, se kterými raw SQL počítá.
 """
+
 import os
 import re
 from pathlib import Path
@@ -16,7 +17,9 @@ from sqlalchemy import text
 
 # Musí být nastavené DŘÍV, než se naimportuje app.database - ta čte proměnnou
 # při importu a připojila by se na ostrou databázi.
-_ADMIN_URL = os.environ.get("DATABASE_URL", "mysql+pymysql://app:app@db:3306/jmlpcz?charset=utf8mb4")
+_ADMIN_URL = os.environ.get(
+    "DATABASE_URL", "mysql+pymysql://app:app@db:3306/jmlpcz?charset=utf8mb4"
+)
 # Vlastní databáze na běh dovoluje pouštět víc sad testů souběžně, aniž by si
 # navzájem maly tabulky. Název musí začínat jmlpcz_test - jen na ty má
 # uživatel aplikace práva.
@@ -25,7 +28,7 @@ assert TEST_DB.startswith("jmlpcz_test"), "Testovací databáze musí začínat 
 os.environ["DATABASE_URL"] = re.sub(r"/[^/?]+(\?|$)", f"/{TEST_DB}\\1", _ADMIN_URL)
 
 from app import auth, models  # noqa: E402
-from app.database import engine, SessionLocal  # noqa: E402
+from app.database import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 
 SCHEMA_SQL = Path(__file__).with_name("schema.sql")
@@ -33,12 +36,23 @@ SCHEMA_SQL = Path(__file__).with_name("schema.sql")
 # Pořadí nehraje roli (MyISAM, žádné cizí klíče), ale výčet ano - mazat se smí
 # jen tabulky testovací databáze.
 TABLES = [
-    "fuj_jmlp_admin", "fuj_jmlp_areal", "fuj_jmlp_attachment", "fuj_jmlp_category",
-    "fuj_jmlp_club", "fuj_jmlp_files", "fuj_jmlp_posts", "fuj_jmlp_race",
-    "fuj_jmlp_race_numbers", "fuj_jmlp_race_registration", "fuj_jmlp_race_run",
-    "fuj_jmlp_race_start_list", "fuj_jmlp_racer", "fuj_jmlp_season",
+    "fuj_jmlp_admin",
+    "fuj_jmlp_areal",
+    "fuj_jmlp_attachment",
+    "fuj_jmlp_category",
+    "fuj_jmlp_club",
+    "fuj_jmlp_files",
+    "fuj_jmlp_posts",
+    "fuj_jmlp_race",
+    "fuj_jmlp_race_numbers",
+    "fuj_jmlp_race_registration",
+    "fuj_jmlp_race_run",
+    "fuj_jmlp_race_start_list",
+    "fuj_jmlp_racer",
+    "fuj_jmlp_season",
     "fuj_jmlp_slcr_member",
-    "fuj_jmlp_timekeeper_idempotency", "fuj_jmlp_visitor_log",
+    "fuj_jmlp_timekeeper_idempotency",
+    "fuj_jmlp_visitor_log",
 ]
 
 
@@ -89,6 +103,15 @@ def _clean_tables():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _clear_live_cache():
+    """Výsledky live přenosu se cachují (services/live_cache.py); test nesmí vidět data předchozího."""
+    from app.services.live_cache import live_results
+
+    live_results.clear()
+    yield
+
+
 @pytest.fixture
 def db():
     session = SessionLocal()
@@ -101,6 +124,7 @@ def db():
 @pytest.fixture
 def client():
     from fastapi.testclient import TestClient
+
     with TestClient(app) as test_client:
         yield test_client
 

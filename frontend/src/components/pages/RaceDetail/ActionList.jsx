@@ -11,12 +11,23 @@ export default function ActionList({ items }) {
     <ul className={styles.list}>
       {items.map((item) => (
         <li key={item.key} className={styles.item} data-tone={item.tone ?? 'navy'}>
-          <span className={styles.lead}>{item.lead ?? <span className={styles.icon}><Icon name={item.icon} size={20} /></span>}</span>
+          <span className={styles.lead}>
+            {item.lead ?? (
+              <span className={styles.icon}>
+                <Icon name={item.icon} size={20} />
+              </span>
+            )}
+          </span>
           <span className={styles.text}>
             <span className={styles.title}>{item.title}</span>
             {item.hint && <span className={styles.hint}>{item.hint}</span>}
           </span>
-          <ButtonLink to={item.to} size="sm" variant={item.primary ? 'primary' : 'outline'} iconEnd={item.primary ? 'arrow-right' : undefined}>
+          <ButtonLink
+            to={item.to}
+            size="sm"
+            variant={item.primary ? 'primary' : 'outline'}
+            iconEnd={item.primary ? 'arrow-right' : undefined}
+          >
             {item.action}
           </ButtonLink>
         </li>

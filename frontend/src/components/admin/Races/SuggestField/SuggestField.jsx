@@ -7,7 +7,16 @@ import styles from './SuggestField.module.css';
  * text – co v nabídce není, založí backend sám (find-or-create), proto ne
  * Combobox z kitu, který povolí jen hodnotu ze seznamu.
  */
-export default function SuggestField({ label, hint, value, onChange, suggestions, onSelect, placeholder, icon = 'map-pin' }) {
+export default function SuggestField({
+  label,
+  hint,
+  value,
+  onChange,
+  suggestions,
+  onSelect,
+  placeholder,
+  icon = 'map-pin',
+}) {
   const listId = useId();
   return (
     <Field label={label} hint={hint} required>

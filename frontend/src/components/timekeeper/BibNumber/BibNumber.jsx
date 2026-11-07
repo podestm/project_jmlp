@@ -15,7 +15,14 @@ import styles from './BibNumber.module.css';
  * @param {boolean} plain dres zatím nepatří žádnému závodníkovi (schránka
  *   impulzů) – neutrální box, ať barva nenaznačuje sadu, kterou nikdo nezná
  */
-export default function BibNumber({ number, setColor, code, size = 'md', plain = false, className }) {
+export default function BibNumber({
+  number,
+  setColor,
+  code,
+  size = 'md',
+  plain = false,
+  className,
+}) {
   if (number == null || number === '') {
     return <span className={cx(styles.empty, className)}>—</span>;
   }

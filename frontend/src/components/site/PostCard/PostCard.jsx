@@ -17,30 +17,49 @@ import styles from './PostCard.module.css';
 export default function PostCard({ post, variant = 'full', headingLevel = 2 }) {
   const Heading = `h${headingLevel}`;
   const hasImage = Boolean(post.image_file_id) && post.image_position !== 'none';
-  const position = variant === 'side'
-    ? (post.image_position === 'left' ? 'left' : 'right')
-    : (post.image_position || 'right');
+  const position =
+    variant === 'side'
+      ? post.image_position === 'left'
+        ? 'left'
+        : 'right'
+      : post.image_position || 'right';
 
   return (
     <article className={cx(styles.card, styles[variant])} data-image={hasImage ? position : 'none'}>
       {hasImage && (
         <div className={styles.media}>
-          <img className={styles.image} src={API.getImageUrl(post.id, post.updated_at)} alt="" loading="lazy" />
+          <img
+            className={styles.image}
+            src={API.getImageUrl(post.id, post.updated_at)}
+            alt=""
+            loading="lazy"
+          />
         </div>
       )}
       <div className={styles.body}>
         <p className={styles.meta}>
           <span className={styles.date}>{formatDateShort(post.created_at)}</span>
           {variant === 'full' && post.document_file_id && (
-            <span className={styles.attachment}><Icon name="paperclip" size={14} />S přílohou</span>
+            <span className={styles.attachment}>
+              <Icon name="paperclip" size={14} />S přílohou
+            </span>
           )}
         </p>
         <Heading className={styles.title}>{post.title}</Heading>
         {/* formatText escapuje HTML dřív, než přidá vlastní značky */}
-        <div className={styles.text} dangerouslySetInnerHTML={{ __html: formatText(post.content) }} />
+        <div
+          className={styles.text}
+          dangerouslySetInnerHTML={{ __html: formatText(post.content) }}
+        />
         {post.document_file_id && (
-          <ButtonLink href={API.getDocumentUrl(post.id)} target="_blank" rel="noopener noreferrer" size="sm" icon="download"
-            className={styles.download}>
+          <ButtonLink
+            href={API.getDocumentUrl(post.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+            icon="download"
+            className={styles.download}
+          >
             Stáhnout přílohu
           </ButtonLink>
         )}

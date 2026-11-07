@@ -33,8 +33,18 @@ export default function AdminMobileMenu({ id, open, onClose, admin, counts, onLo
       {open && (
         <div className={styles.panel}>
           <div className={styles.top}>
-            <AdminBrand size="sm" subtitle={`${edition} ročník · ${season}`} className={styles.brand} />
-            <button type="button" data-cancel aria-label="Zavřít menu" className={styles.close} onClick={() => onClose('button')}>
+            <AdminBrand
+              size="sm"
+              subtitle={`${edition} ročník · ${season}`}
+              className={styles.brand}
+            />
+            <button
+              type="button"
+              data-cancel
+              aria-label="Zavřít menu"
+              className={styles.close}
+              onClick={() => onClose('button')}
+            >
               <Icon name="close" size={24} strokeWidth={2.2} />
             </button>
           </div>

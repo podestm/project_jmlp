@@ -40,47 +40,52 @@ const OBRAZEK = {
 
 let volani;
 
-const jsonResponse = (body) => Promise.resolve({
-  ok: true,
-  status: 200,
-  statusText: 'OK',
-  json: async () => body,
-});
+const jsonResponse = (body) =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => body,
+  });
 
 beforeEach(() => {
   volani = [];
   localStorage.setItem('auth_token', 'token-pro-test');
-  vi.stubGlobal('fetch', vi.fn((url, options = {}) => {
-    const cesta = String(url);
-    const metoda = options.method || 'GET';
-    const telo = typeof options.body === 'string' ? JSON.parse(options.body) : null;
-    volani.push({ cesta, metoda, telo });
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url, options = {}) => {
+      const cesta = String(url);
+      const metoda = options.method || 'GET';
+      const telo = typeof options.body === 'string' ? JSON.parse(options.body) : null;
+      volani.push({ cesta, metoda, telo });
 
-    if (metoda === 'PUT' && cesta.includes('/api/admin/posts/')) {
-      return jsonResponse({ ...PRISPEVEK, ...telo, image_file_id: 55 });
-    }
-    if (metoda === 'POST' && cesta.includes('/api/admin/posts')) {
-      return jsonResponse({ ...PRISPEVEK, id: 8, ...telo });
-    }
-    if (cesta.includes('/api/admin/posts')) return jsonResponse([PRISPEVEK]);
-    // Obrázek je u příspěvku 7 připojený - jako by ho uživatel právě nahrál.
-    if (cesta.includes('/api/admin/attachments') && cesta.includes('owner_id=7')) {
-      return jsonResponse([OBRAZEK]);
-    }
-    return jsonResponse([]);
-  }));
+      if (metoda === 'PUT' && cesta.includes('/api/admin/posts/')) {
+        return jsonResponse({ ...PRISPEVEK, ...telo, image_file_id: 55 });
+      }
+      if (metoda === 'POST' && cesta.includes('/api/admin/posts')) {
+        return jsonResponse({ ...PRISPEVEK, id: 8, ...telo });
+      }
+      if (cesta.includes('/api/admin/posts')) return jsonResponse([PRISPEVEK]);
+      // Obrázek je u příspěvku 7 připojený - jako by ho uživatel právě nahrál.
+      if (cesta.includes('/api/admin/attachments') && cesta.includes('owner_id=7')) {
+        return jsonResponse([OBRAZEK]);
+      }
+      return jsonResponse([]);
+    }),
+  );
 });
 
-const ulozeni = (metoda) => volani.filter(
-  (v) => v.metoda === metoda && v.cesta.includes('/api/admin/posts')
-);
+const ulozeni = (metoda) =>
+  volani.filter((v) => v.metoda === metoda && v.cesta.includes('/api/admin/posts'));
 
 describe('PostManagement', () => {
   it('uložení upraveného příspěvku neposílá obrázek ani dokument', async () => {
     const user = userEvent.setup();
     render(<PostManagement />);
 
-    await user.click(await screen.findByRole('button', { name: 'Upravit příspěvek Pozvánka na závod' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Upravit příspěvek Pozvánka na závod' }),
+    );
     // Přílohu ukazuje AttachmentManager z /api/admin/attachments
     expect(await screen.findByText('pozvanka.jpg')).toBeInTheDocument();
 
@@ -113,7 +118,9 @@ describe('PostManagement', () => {
     expect(ulozeni('POST')[0].telo).not.toHaveProperty('image_file_id');
 
     // Okno je teď úprava uloženého příspěvku a nabízí nahrání příloh
-    expect(await screen.findByRole('heading', { level: 1, name: 'Upravit příspěvek' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Upravit příspěvek' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Nahrát půjde po uložení.')).not.toBeInTheDocument();
     expect(await screen.findAllByRole('button', { name: 'Vybrat z knihovny' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Uložit příspěvek' })).toBeInTheDocument();
@@ -123,8 +130,12 @@ describe('PostManagement', () => {
     const user = userEvent.setup();
     render(<PostManagement />);
 
-    await user.click(await screen.findByRole('button', { name: 'Smazat příspěvek Pozvánka na závod' }));
-    expect(screen.getByRole('dialog', { name: 'Smazat příspěvek „Pozvánka na závod“?' })).toBeInTheDocument();
+    await user.click(
+      await screen.findByRole('button', { name: 'Smazat příspěvek Pozvánka na závod' }),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Smazat příspěvek „Pozvánka na závod“?' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Zrušit' })).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(screen.queryByRole('dialog')).toBeNull();

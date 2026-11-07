@@ -12,7 +12,9 @@ describe('schránka impulzů – stav slovy', () => {
 
   it('čekající: obsazené kolo, víc shod, nebo prosté čekání', () => {
     expect(eventStatus({ status: 'pending', reason: 'round_occupied' }).text).toBe('Kolo obsazené');
-    expect(eventStatus({ status: 'pending' }, { candidateCount: 2, candidateIndex: 1 }).text).toBe('2 shody · 2/2');
+    expect(eventStatus({ status: 'pending' }, { candidateCount: 2, candidateIndex: 1 }).text).toBe(
+      '2 shody · 2/2',
+    );
     expect(eventStatus({ status: 'pending' }).text).toBe('Čeká na potvrzení');
   });
 

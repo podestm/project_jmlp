@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TimekeeperAPI } from '../../../../config/timekeeperApi.js';
 import {
-  DEFAULT_DISCIPLINE, publishConfirm, publishedMessage, readSlcrChoice, slcrErrorText,
+  DEFAULT_DISCIPLINE,
+  publishConfirm,
+  publishedMessage,
+  readSlcrChoice,
+  slcrErrorText,
 } from './slcr.js';
 
 /**
@@ -19,7 +23,9 @@ export function useSlcrCategories({ raceId, isOnline, confirm, version = 0 }) {
   const [busyId, setBusyId] = useState(null);
   const [message, setMessage] = useState(null);
 
-  useEffect(() => { setChoice(readSlcrChoice(raceId)); }, [raceId, version]);
+  useEffect(() => {
+    setChoice(readSlcrChoice(raceId));
+  }, [raceId, version]);
 
   const eventId = choice.eventId ? String(choice.eventId) : '';
 
@@ -28,7 +34,11 @@ export function useSlcrCategories({ raceId, isOnline, confirm, version = 0 }) {
     setLoading(true);
     setError(null);
     try {
-      setData(await TimekeeperAPI.getOnline(`/api/timekeeper/races/${raceId}/slcr/categories`, { event_id: eventId }));
+      setData(
+        await TimekeeperAPI.getOnline(`/api/timekeeper/races/${raceId}/slcr/categories`, {
+          event_id: eventId,
+        }),
+      );
     } catch (err) {
       setError(slcrErrorText(err));
     } finally {
@@ -43,7 +53,8 @@ export function useSlcrCategories({ raceId, isOnline, confirm, version = 0 }) {
   }, [load]);
 
   const items = data?.categories || [];
-  const find = (categoryId) => items.find((item) => String(item.category_id) === String(categoryId)) || null;
+  const find = (categoryId) =>
+    items.find((item) => String(item.category_id) === String(categoryId)) || null;
 
   const publish = async (categoryId, categoryName) => {
     const current = find(categoryId);
@@ -53,7 +64,7 @@ export function useSlcrCategories({ raceId, isOnline, confirm, version = 0 }) {
       correction: current?.slcr_state === 'Published',
       dryRun: data?.dry_run,
     });
-    if (!await confirm(ask)) return;
+    if (!(await confirm(ask))) return;
     setBusyId(String(categoryId));
     setMessage(null);
     try {
@@ -61,13 +72,20 @@ export function useSlcrCategories({ raceId, isOnline, confirm, version = 0 }) {
         `/api/timekeeper/races/${raceId}/slcr/categories/${categoryId}/publish`,
         { event_id: Number(eventId), discipline: Number(choice.discipline) || DEFAULT_DISCIPLINE },
       );
-      setData((prev) => prev && {
-        ...prev,
-        categories: prev.categories.map((item) => (
-          String(item.category_id) === String(categoryId) ? result.category : item
-        )),
+      setData(
+        (prev) =>
+          prev && {
+            ...prev,
+            categories: prev.categories.map((item) =>
+              String(item.category_id) === String(categoryId) ? result.category : item,
+            ),
+          },
+      );
+      setMessage({
+        categoryId: String(categoryId),
+        type: 'success',
+        text: publishedMessage(categoryName, result),
       });
-      setMessage({ categoryId: String(categoryId), type: 'success', text: publishedMessage(categoryName, result) });
     } catch (err) {
       setMessage({ categoryId: String(categoryId), type: 'danger', text: slcrErrorText(err) });
     } finally {

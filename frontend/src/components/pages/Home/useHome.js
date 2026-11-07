@@ -8,18 +8,23 @@ function useBlock(fetcher) {
   const [status, setStatus] = useState('loading');
 
   // silent: obnova na pozadí – chyba nepřepíše to, co už je vidět
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setStatus('loading');
-    try {
-      const result = await fetcher();
-      setData(Array.isArray(result) ? result : []);
-      setStatus('ready');
-    } catch {
-      if (!silent) setStatus('error');
-    }
-  }, [fetcher]);
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) setStatus('loading');
+      try {
+        const result = await fetcher();
+        setData(Array.isArray(result) ? result : []);
+        setStatus('ready');
+      } catch {
+        if (!silent) setStatus('error');
+      }
+    },
+    [fetcher],
+  );
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
   return { data, status, load };
 }
 

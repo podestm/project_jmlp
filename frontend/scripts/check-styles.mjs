@@ -36,32 +36,51 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BASELINE_FILE = join(ROOT, 'scripts/style-baseline.json');
-const BOOTSTRAP = new Set(JSON.parse(readFileSync(join(ROOT, 'scripts/bootstrap-classes.json'), 'utf8')));
+const BOOTSTRAP = new Set(
+  JSON.parse(readFileSync(join(ROOT, 'scripts/bootstrap-classes.json'), 'utf8')),
+);
 
-export const METRICS = ['bootstrap', 'bi', 'bs', 'legacyVars', 'themeBackoffice', 'emoji', 'legacyImports'];
+export const METRICS = [
+  'bootstrap',
+  'bi',
+  'bs',
+  'legacyVars',
+  'themeBackoffice',
+  'emoji',
+  'legacyImports',
+];
 
 // Prefixy tříd skládaných v šabloně: `btn-${variant}`, `alert-${type}`…
-const TEMPLATE_PREFIXES = /(?<![\w-])(btn|btn-outline|alert|bg|text|border|badge|table|spinner-border)-\$\{/g;
-const LEGACY_VARS = /--(?:text-primary|sunset-orange|glass-bg|text-secondary|text-muted|tk-[\w-]+|adm-[\w-]+|jmlp-[\w-]+)(?![\w-])/g;
+const TEMPLATE_PREFIXES =
+  /(?<![\w-])(btn|btn-outline|alert|bg|text|border|badge|table|spinner-border)-\$\{/g;
+const LEGACY_VARS =
+  /--(?:text-primary|sunset-orange|glass-bg|text-secondary|text-muted|tk-[\w-]+|adm-[\w-]+|jmlp-[\w-]+)(?![\w-])/g;
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B55}\u{1F000}-\u{1F2FF}]/gu;
-const LEGACY_IMPORT = /(?:from\s*|import\s*\(\s*)['"][^'"]*\/(?:components\/)?(?:ui|layouts)\/[^'"]+['"]/g;
+const LEGACY_IMPORT =
+  /(?:from\s*|import\s*\(\s*)['"][^'"]*\/(?:components\/)?(?:ui|layouts)\/[^'"]+['"]/g;
 
 // ── Výběr souborů ──
 
-const walk = (dir) => readdirSync(dir).flatMap((name) => {
-  const full = join(dir, name);
-  if (statSync(full).isDirectory()) return walk(full);
-  return [full];
-});
+const walk = (dir) =>
+  readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return walk(full);
+    return [full];
+  });
 
 const isSource = (file) => /\.(jsx?|css|html)$/.test(file) && !/\.test\.jsx?$/.test(file);
 
 /** Soubory, které se kontrolují (cesty relativní k frontend/). */
-export const listFiles = () => [
-  ...walk(join(ROOT, 'src')).filter((f) => isSource(f) && !relative(ROOT, f).startsWith('src/test/')),
-  join(ROOT, 'index.html'),
-  ...walk(join(ROOT, 'public')).filter(isSource),
-].map((f) => relative(ROOT, f)).sort();
+export const listFiles = () =>
+  [
+    ...walk(join(ROOT, 'src')).filter(
+      (f) => isSource(f) && !relative(ROOT, f).startsWith('src/test/'),
+    ),
+    join(ROOT, 'index.html'),
+    ...walk(join(ROOT, 'public')).filter(isSource),
+  ]
+    .map((f) => relative(ROOT, f))
+    .sort();
 
 // ── Počítání ──
 
@@ -108,7 +127,10 @@ export const classContexts = (source) => {
       const start = i;
       for (; i < source.length; i += 1) {
         if (source[i] === '{') depth += 1;
-        else if (source[i] === '}') { depth -= 1; if (depth === 0) break; }
+        else if (source[i] === '}') {
+          depth -= 1;
+          if (depth === 0) break;
+        }
       }
       out.push(stringLiterals(source.slice(start + 1, i)).join(' '));
     }
@@ -123,9 +145,12 @@ export const countBootstrapInMarkup = (source) => {
     for (const token of tokens(ctx)) if (BOOTSTRAP.has(token)) count += 1;
   }
   // Mimo className jen jednoznačné (s pomlčkou) – v datech, helperech a HTML řetězcích.
-  const outside = stringLiterals(source.replace(/\b(?:className|class)\s*=\s*(?:"[^"]*"|'[^']*')/g, ''));
+  const outside = stringLiterals(
+    source.replace(/\b(?:className|class)\s*=\s*(?:"[^"]*"|'[^']*')/g, ''),
+  );
   for (const literal of outside) {
-    for (const token of tokens(literal)) if (token.includes('-') && BOOTSTRAP.has(token)) count += 1;
+    for (const token of tokens(literal))
+      if (token.includes('-') && BOOTSTRAP.has(token)) count += 1;
   }
   count += (source.match(TEMPLATE_PREFIXES) || []).length;
   return count;
@@ -134,13 +159,17 @@ export const countBootstrapInMarkup = (source) => {
 /** Počet selektorů tříd Bootstrapu v CSS. */
 export const countBootstrapInCss = (css) => {
   const selectors = stripCssComments(css).replace(/\{[^{}]*\}/g, '{}');
-  return [...selectors.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].filter((m) => BOOTSTRAP.has(m[1])).length;
+  return [...selectors.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].filter((m) => BOOTSTRAP.has(m[1]))
+    .length;
 };
 
 const countBi = (source, isCss) => {
   const prefixed = (source.match(/(?<![\w-])bi-[a-z0-9]/g) || []).length;
   if (isCss) return prefixed + (stripCssComments(source).match(/\.bi(?![\w-])/g) || []).length;
-  const bare = classContexts(source).reduce((n, ctx) => n + tokens(ctx).filter((t) => t === 'bi').length, 0);
+  const bare = classContexts(source).reduce(
+    (n, ctx) => n + tokens(ctx).filter((t) => t === 'bi').length,
+    0,
+  );
   return prefixed + bare;
 };
 
@@ -149,7 +178,11 @@ export const countFile = (relPath, source) => {
   const isCss = relPath.endsWith('.css');
   return {
     // CSS Modules hashují třídy, takže se s Bootstrapem nepotkají (:global je zakázaný).
-    bootstrap: isModuleCss(relPath) ? 0 : (isCss ? countBootstrapInCss(source) : countBootstrapInMarkup(source)),
+    bootstrap: isModuleCss(relPath)
+      ? 0
+      : isCss
+        ? countBootstrapInCss(source)
+        : countBootstrapInMarkup(source),
     bi: countBi(source, isCss),
     bs: (source.match(/--bs-/g) || []).length,
     legacyVars: (source.match(LEGACY_VARS) || []).length,
@@ -166,9 +199,19 @@ const isModuleCss = (rel) => rel.endsWith('.module.css');
 const importsModuleCss = (source) => /from\s*['"][^'"]+\.module\.css['"]/.test(source);
 
 /** Soubor, který musí mít všechny počty nulové. */
-export const mustBeClean = (rel, source) => isKitFile(rel) || isModuleCss(rel) || (!rel.endsWith('.css') && importsModuleCss(source));
+export const mustBeClean = (rel, source) =>
+  isKitFile(rel) || isModuleCss(rel) || (!rel.endsWith('.css') && importsModuleCss(source));
 
-const ALLOWED_MEDIA_PX = new Set(['767.98', '768', '1023.98', '1024', '1279.98', '1280', '1439.98', '1440']);
+const ALLOWED_MEDIA_PX = new Set([
+  '767.98',
+  '768',
+  '1023.98',
+  '1024',
+  '1279.98',
+  '1280',
+  '1439.98',
+  '1440',
+]);
 
 /** Porušení pravidel kitu v jednom souboru (seznam textů). */
 export const kitViolations = (rel, source) => {
@@ -186,11 +229,13 @@ export const kitViolations = (rel, source) => {
   if (isCss) {
     for (const media of code.matchAll(/@media([^{]*)\{/g)) {
       for (const px of media[1].matchAll(/([\d.]+)px/g)) {
-        if (!ALLOWED_MEDIA_PX.has(px[1])) problems.push(`@media s ${px[1]}px – jen 768/1024/1280/1440`);
+        if (!ALLOWED_MEDIA_PX.has(px[1]))
+          problems.push(`@media s ${px[1]}px – jen 768/1024/1280/1440`);
       }
     }
     for (const z of code.matchAll(/z-index\s*:\s*([^;}]+)/g)) {
-      if (!/^var\(--ms-z-[\w-]+\)$/.test(z[1].trim())) problems.push(`z-index: ${z[1].trim()} – jen var(--ms-z-*)`);
+      if (!/^var\(--ms-z-[\w-]+\)$/.test(z[1].trim()))
+        problems.push(`z-index: ${z[1].trim()} – jen var(--ms-z-*)`);
     }
     if (/:global/.test(code)) problems.push(':global selektor');
     // Selektory pravidel (mimo @-pravidla a kroky @keyframes) musí obsahovat třídu.
@@ -217,7 +262,8 @@ export const kitViolations = (rel, source) => {
 
 const nonZero = (counts) => Object.fromEntries(Object.entries(counts).filter(([, n]) => n > 0));
 
-export const readBaseline = () => (existsSync(BASELINE_FILE) ? JSON.parse(readFileSync(BASELINE_FILE, 'utf8')) : {});
+export const readBaseline = () =>
+  existsSync(BASELINE_FILE) ? JSON.parse(readFileSync(BASELINE_FILE, 'utf8')) : {};
 
 /** Současné nenulové počty všech souborů. */
 export const currentCounts = () => {
@@ -235,7 +281,7 @@ export const check = ({ final = false, baseline = readBaseline() } = {}) => {
   for (const rel of listFiles()) {
     const source = readFileSync(join(ROOT, rel), 'utf8');
     const counts = countFile(rel, source);
-    const allowed = final || mustBeClean(rel, source) ? {} : (baseline[rel] || {});
+    const allowed = final || mustBeClean(rel, source) ? {} : baseline[rel] || {};
     for (const metric of METRICS) {
       const limit = allowed[metric] || 0;
       if (counts[metric] > limit) problems.push(`${rel}: ${metric} ${counts[metric]} > ${limit}`);
@@ -243,7 +289,8 @@ export const check = ({ final = false, baseline = readBaseline() } = {}) => {
     if (isKitFile(rel) || isModuleCss(rel)) {
       for (const p of kitViolations(rel, source)) problems.push(`${rel}: ${p}`);
     }
-    if (final && /bootstrap|cdn\.jsdelivr/i.test(source)) problems.push(`${rel}: zmínka bootstrap/cdn.jsdelivr`);
+    if (final && /bootstrap|cdn\.jsdelivr/i.test(source))
+      problems.push(`${rel}: zmínka bootstrap/cdn.jsdelivr`);
   }
   return problems;
 };
@@ -254,11 +301,15 @@ if (isMain) {
   if (args.has('--update-baseline')) {
     const baseline = readBaseline();
     const current = currentCounts();
-    const raised = Object.entries(current).flatMap(([rel, counts]) => Object.entries(counts)
-      .filter(([metric, n]) => n > ((baseline[rel] || {})[metric] || 0))
-      .map(([metric, n]) => `${rel}: ${metric} ${n}`));
+    const raised = Object.entries(current).flatMap(([rel, counts]) =>
+      Object.entries(counts)
+        .filter(([metric, n]) => n > ((baseline[rel] || {})[metric] || 0))
+        .map(([metric, n]) => `${rel}: ${metric} ${n}`),
+    );
     if (raised.length && !args.has('--init')) {
-      console.error('Počty se nesmí zvyšovat – baseline nezměněna:\n' + raised.map((r) => `  ${r}`).join('\n'));
+      console.error(
+        'Počty se nesmí zvyšovat – baseline nezměněna:\n' + raised.map((r) => `  ${r}`).join('\n'),
+      );
       process.exit(1);
     }
     writeFileSync(BASELINE_FILE, `${JSON.stringify(current, null, 2)}\n`);
@@ -266,7 +317,9 @@ if (isMain) {
   } else {
     const problems = check({ final: args.has('--final') });
     if (problems.length) {
-      console.error(`check:styles – ${problems.length} porušení:\n` + problems.map((p) => `  ${p}`).join('\n'));
+      console.error(
+        `check:styles – ${problems.length} porušení:\n` + problems.map((p) => `  ${p}`).join('\n'),
+      );
       process.exit(1);
     }
     console.log('check:styles – OK');

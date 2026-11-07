@@ -11,15 +11,22 @@ const options = [
 
 describe('SegmentedControl', () => {
   it('skupina s aria-pressed u vybrané volby', () => {
-    render(<SegmentedControl label="Typ závodu" options={options} value="all" onChange={() => {}} />);
+    render(
+      <SegmentedControl label="Typ závodu" options={options} value="all" onChange={() => {}} />,
+    );
     expect(screen.getByRole('group', { name: 'Typ závodu' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vše (2)' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Suché (2)' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Suché (2)' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 
   it('klik na jinou volbu zavolá onChange s hodnotou, na vybranou ne', async () => {
     const onChange = vi.fn();
-    render(<SegmentedControl label="Typ závodu" options={options} value="all" onChange={onChange} />);
+    render(
+      <SegmentedControl label="Typ závodu" options={options} value="all" onChange={onChange} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Vše (2)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Suché (2)' }));
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -28,8 +35,19 @@ describe('SegmentedControl', () => {
 
   it('allowDeselect: klik na vybranou volbu ji zruší', async () => {
     const onChange = vi.fn();
-    const stavy = [{ value: 'dnf', label: 'DNF' }, { value: 'dns', label: 'DNS' }];
-    render(<SegmentedControl label="Stav 1. kola" options={stavy} value="dnf" onChange={onChange} allowDeselect />);
+    const stavy = [
+      { value: 'dnf', label: 'DNF' },
+      { value: 'dns', label: 'DNS' },
+    ];
+    render(
+      <SegmentedControl
+        label="Stav 1. kola"
+        options={stavy}
+        value="dnf"
+        onChange={onChange}
+        allowDeselect
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'DNF' }));
     expect(onChange).toHaveBeenCalledWith(null);
   });
@@ -37,7 +55,15 @@ describe('SegmentedControl', () => {
 
 describe('SegmentedControl – fill', () => {
   it('vykreslí skupinu i s fill', () => {
-    render(<SegmentedControl label="Typ" fill options={[{ value: 'a', label: 'A' }]} value="a" onChange={() => {}} />);
+    render(
+      <SegmentedControl
+        label="Typ"
+        fill
+        options={[{ value: 'a', label: 'A' }]}
+        value="a"
+        onChange={() => {}}
+      />,
+    );
     expect(screen.getByRole('group', { name: 'Typ' })).toBeInTheDocument();
   });
 });

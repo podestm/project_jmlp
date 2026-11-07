@@ -45,7 +45,13 @@ export default function Modal({
 }) {
   const closeButtonRef = useRef(null);
   const titleId = useId();
-  const dialogProps = useDialog({ open, onClose, dismissible, initialFocusRef, fallbackFocusRef: closeButtonRef });
+  const dialogProps = useDialog({
+    open,
+    onClose,
+    dismissible,
+    initialFocusRef,
+    fallbackFocusRef: closeButtonRef,
+  });
 
   return (
     <dialog
@@ -58,9 +64,17 @@ export default function Modal({
           <header className={styles.header}>
             <div className={styles.heading}>
               {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
-              <h2 id={titleId} className={styles.title}>{title}</h2>
+              <h2 id={titleId} className={styles.title}>
+                {title}
+              </h2>
             </div>
-            {dismissible && <CloseButton ref={closeButtonRef} label={closeLabel} onClick={() => onClose('button')} />}
+            {dismissible && (
+              <CloseButton
+                ref={closeButtonRef}
+                label={closeLabel}
+                onClick={() => onClose('button')}
+              />
+            )}
           </header>
           <div className={cx(styles.body, flush && styles.flush)}>{children}</div>
           {(footer || footerStart) && (

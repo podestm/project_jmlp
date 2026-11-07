@@ -85,49 +85,57 @@ export const AuthProvider = ({ children }) => {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [acceptProfile, logout]);
 
   // Klouzavé prodlužování společného přihlášení (viz config/tokenRefresh.js).
   useEffect(() => {
     if (!admin) return undefined;
-    const refresher = startTokenRefresh({ endpoint: '/api/admin/auth/refresh', store, onRefreshed: setToken });
+    const refresher = startTokenRefresh({
+      endpoint: '/api/admin/auth/refresh',
+      store,
+      onRefreshed: setToken,
+    });
     return refresher.stop;
   }, [admin]);
 
-  const login = useCallback(async (email, password) => {
-    try {
-      const { access_token, user } = await loginWithCredentials({
-        loginEndpoint: '/api/admin/auth/login',
-        meEndpoint: '/api/admin/auth/me',
-        store,
-        email,
-        password
-      });
-      setToken(access_token);
-      cacheUser(user);
-      acceptProfile(user);
-      return { success: true };
-    } catch (error) {
-      console.error('Login failed:', error);
-      return { success: false, error: error.message };
-    }
-  }, [acceptProfile]);
+  const login = useCallback(
+    async (email, password) => {
+      try {
+        const { access_token, user } = await loginWithCredentials({
+          loginEndpoint: '/api/admin/auth/login',
+          meEndpoint: '/api/admin/auth/me',
+          store,
+          email,
+          password,
+        });
+        setToken(access_token);
+        cacheUser(user);
+        acceptProfile(user);
+        return { success: true };
+      } catch (error) {
+        console.error('Login failed:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    [acceptProfile],
+  );
 
   // Memoized so consumers don't re-render on every provider render.
-  const value = useMemo(() => ({
-    admin,
-    deniedUser,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!admin,
-    token
-  }), [admin, deniedUser, loading, login, logout, token]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      admin,
+      deniedUser,
+      loading,
+      login,
+      logout,
+      isAuthenticated: !!admin,
+      token,
+    }),
+    [admin, deniedUser, loading, login, logout, token],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -17,8 +17,8 @@ export default defineConfig({
         'src/main.jsx',
         // Statická data a čistě prezentační obaly bez větvení; pokrytí by tu
         // měřilo jen to, že se soubor načetl.
-        'src/**/*.test.{js,jsx}'
-      ]
-    }
-  }
+        'src/**/*.test.{js,jsx}',
+      ],
+    },
+  },
 });

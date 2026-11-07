@@ -24,13 +24,14 @@ v jednom <Fisresults> neprojde). Výsledky přiřadí k závodu v akci podle
 navíc. Do <Fiscode> jde české číslo závodníka - při nahrání zvolit
 "České číslo závodníka" (athleteCodeType=RACE_CODE).
 """
+
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import Iterable, List, Optional
 from xml.etree import ElementTree as ET
 
 from .results import RankedEntry
@@ -50,19 +51,19 @@ class RaceHeader:
     event_name: str
     place: str
     discipline: str = ""
-    race_director: Optional[str] = None
-    technical_delegate: Optional[str] = None
+    race_director: str | None = None
+    technical_delegate: str | None = None
 
 
 @dataclass
 class CategoryResults:
     name: str
-    sex: Optional[int]          # 1 muži, 2 ženy
-    ranked: List[RankedEntry] = field(default_factory=list)
+    sex: int | None  # 1 muži, 2 ženy
+    ranked: list[RankedEntry] = field(default_factory=list)
     # Kodex závodu v evidenci (sloupec "Kodex" u závodu). Stálé číslo
     # kategorie - podle něj má import přiřadit soubor k existujícímu závodu
     # místo zakládání nového bez názvu.
-    codex: Optional[str] = None
+    codex: str | None = None
 
 
 def fis_season(race_date: date) -> int:
@@ -98,8 +99,8 @@ def _bib(row) -> str:
     return "" if bib is None else str(bib)
 
 
-def _split_name(full_name: Optional[str]) -> tuple[str, str]:
-    """"Markéta Slováčková" -> ("Slováčková", "Markéta")."""
+def _split_name(full_name: str | None) -> tuple[str, str]:
+    """ "Markéta Slováčková" -> ("Slováčková", "Markéta")."""
     parts = (full_name or "").split()
     if not parts:
         return "", ""
@@ -108,7 +109,7 @@ def _split_name(full_name: Optional[str]) -> tuple[str, str]:
     return parts[-1], " ".join(parts[:-1])
 
 
-def _sub(parent: ET.Element, tag: str, text: Optional[str] = None, **attrs) -> ET.Element:
+def _sub(parent: ET.Element, tag: str, text: str | None = None, **attrs) -> ET.Element:
     element = ET.SubElement(parent, tag, attrs)
     if text is not None:
         element.text = str(text)
@@ -172,8 +173,10 @@ def _race_element(header: RaceHeader, category: CategoryResults) -> ET.Element:
 
     al_race = _sub(root, "AL_race")
     info = _sub(al_race, "AL_raceinfo")
-    for function, person in (("TechnicalDelegate", header.technical_delegate),
-                             ("RaceDirector", header.race_director)):
+    for function, person in (
+        ("TechnicalDelegate", header.technical_delegate),
+        ("RaceDirector", header.race_director),
+    ):
         if not _clean(person):
             continue
         last, first = _split_name(_clean(person))
@@ -213,4 +216,6 @@ def _race_element(header: RaceHeader, category: CategoryResults) -> ET.Element:
 
 def unfinished_count(categories: Iterable[CategoryResults]) -> int:
     """Kolik startujících nemá čas ani příznak (do XML se nedostanou)."""
-    return sum(1 for c in categories for item in c.ranked if item.rank is None and item.status is None)
+    return sum(
+        1 for c in categories for item in c.ranked if item.rank is None and item.status is None
+    )

@@ -31,7 +31,7 @@ export const affectedEntryIds = (method, endpoint = '', payload = null) => {
       ids: payload.entries
         .map((entry) => Number(entry?.entry_id))
         .filter((id) => Number.isFinite(id) && id !== 0),
-      batch: true
+      batch: true,
     };
   }
 
@@ -69,18 +69,17 @@ export const mutationKeys = (method, endpoint = '', payload = null) => {
   if (tempId != null) return [`entry:${tempId}`, `excluded:${tempId}`];
   const excludedId = excludedEntryId(method, endpoint);
   if (excludedId != null) return [`excluded:${excludedId}`];
-  return affectedEntryIds((method || '').toUpperCase(), endpoint || '', payload)
-    .ids.map((id) => `entry:${id}`);
+  return affectedEntryIds((method || '').toUpperCase(), endpoint || '', payload).ids.map(
+    (id) => `entry:${id}`,
+  );
 };
 
 // 'processing' patří mezi nesynchronizované záměrně: požadavek je sice na cestě,
 // ale ještě nedoběhl, takže jeho revize na serveru zatím neplatí.
 const UNSYNCED_STATUSES = ['pending', 'failed', 'processing'];
 
-const getUnsyncedRows = () => timekeeperDb.syncQueue
-  .where('status')
-  .anyOf(UNSYNCED_STATUSES)
-  .toArray();
+const getUnsyncedRows = () =>
+  timekeeperDb.syncQueue.where('status').anyOf(UNSYNCED_STATUSES).toArray();
 
 /** Klíče (viz mutationKeys) všech zápisů, které ve frontě ještě čekají. */
 export const getQueuedMutationKeys = async () => {
@@ -112,14 +111,15 @@ export const getQueuedExcludedEntryIds = async () => {
  * s 409 a novější hodnota by čekala na ruční vyřešení konfliktu.
  */
 export const getQueuedEntryIds = async () => {
-  const rows = await timekeeperDb.syncQueue
-    .where('status')
-    .anyOf(UNSYNCED_STATUSES)
-    .toArray();
+  const rows = await timekeeperDb.syncQueue.where('status').anyOf(UNSYNCED_STATUSES).toArray();
 
   const ids = new Set();
   for (const row of rows) {
-    const { ids: rowIds } = affectedEntryIds((row.method || '').toUpperCase(), row.endpoint || '', row.payload);
+    const { ids: rowIds } = affectedEntryIds(
+      (row.method || '').toUpperCase(),
+      row.endpoint || '',
+      row.payload,
+    );
     rowIds.forEach((id) => ids.add(id));
   }
   return ids;
@@ -146,7 +146,7 @@ export const stripSupersededRevisions = async (endpoint, payload) => {
           return rest;
         }
         return entry;
-      })
+      }),
     };
   }
 

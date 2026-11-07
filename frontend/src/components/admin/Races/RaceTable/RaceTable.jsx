@@ -1,4 +1,13 @@
-import { Badge, BibDate, Button, ButtonLink, IconButton, Switch, Table, TableScroll } from '../../../ms/index.js';
+import {
+  Badge,
+  BibDate,
+  Button,
+  ButtonLink,
+  IconButton,
+  Switch,
+  Table,
+  TableScroll,
+} from '../../../ms/index.js';
 import RaceDocuments from '../RaceDocuments/RaceDocuments.jsx';
 import { raceSubtitle } from '../../shared/raceText.js';
 import styles from './RaceTable.module.css';
@@ -13,13 +22,19 @@ export default function RaceTable({ races, onEdit, onToggleRegistration, onDownl
       <Table caption="Závody">
         <thead>
           <tr>
-            <th scope="col" className={styles.date}>Datum</th>
+            <th scope="col" className={styles.date}>
+              Datum
+            </th>
             <th scope="col">Číslo</th>
             <th scope="col">Závod</th>
             <th scope="col">Registrace</th>
-            <th scope="col" data-align="end">Přihl.</th>
+            <th scope="col" data-align="end">
+              Přihl.
+            </th>
             <th scope="col">Dokumenty</th>
-            <th scope="col" data-align="end">Akce</th>
+            <th scope="col" data-align="end">
+              Akce
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -29,7 +44,11 @@ export default function RaceTable({ races, onEdit, onToggleRegistration, onDownl
               <td>
                 <span className={styles.nr}>
                   <span className={styles.mono}>{race.race_nr}</span>
-                  {race.is_final && <Badge tone="dry" size="sm">Finále</Badge>}
+                  {race.is_final && (
+                    <Badge tone="dry" size="sm">
+                      Finále
+                    </Badge>
+                  )}
                 </span>
               </td>
               <td>
@@ -46,15 +65,27 @@ export default function RaceTable({ races, onEdit, onToggleRegistration, onDownl
                   onChange={() => onToggleRegistration(race.id)}
                 />
               </td>
-              <td data-align="end" data-numeric>{race.registrations_count || 0}</td>
-              <td><RaceDocuments race={race} /></td>
+              <td data-align="end" data-numeric>
+                {race.registrations_count || 0}
+              </td>
+              <td>
+                <RaceDocuments race={race} />
+              </td>
               <td data-align="end">
                 <span className={styles.actions}>
-                  <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">Přihlášky</ButtonLink>
-                  <Button size="sm" onClick={() => onEdit(race)}>Upravit</Button>
+                  <ButtonLink to={`/admin/races/${race.id}/registrations`} size="sm">
+                    Přihlášky
+                  </ButtonLink>
+                  <Button size="sm" onClick={() => onEdit(race)}>
+                    Upravit
+                  </Button>
                   <IconButton
                     icon="download"
-                    label={race.race_nr ? `Stáhnout přihlášky ${race.race_nr} (CSV)` : 'Stáhnout přihlášky (CSV)'}
+                    label={
+                      race.race_nr
+                        ? `Stáhnout přihlášky ${race.race_nr} (CSV)`
+                        : 'Stáhnout přihlášky (CSV)'
+                    }
                     onClick={() => onDownloadCsv(race.id, race.race_nr)}
                   />
                 </span>

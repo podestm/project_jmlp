@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlalchemy import and_, or_
 
@@ -10,39 +10,39 @@ def fix_encoding(text: str) -> str:
 
     # Check for signs of double-encoded UTF-8 (UTF-8 bytes misread as Latin-1)
     # Common markers: Ã, Â, Å, Ä followed by other garbled bytes
-    if any(marker in text for marker in ['Ã', 'Â', 'Å', 'Ä']):
+    if any(marker in text for marker in ["Ã", "Â", "Å", "Ä"]):
         try:
-            return text.encode('latin1').decode('utf-8')
+            return text.encode("latin1").decode("utf-8")
         except (UnicodeEncodeError, UnicodeDecodeError):
             replacements = {
-                'Å½': 'Ž',
-                'Å¾': 'ž',
-                'Å ': 'Š',
-                'Å¡': 'š',
-                'Å': 'Ř',
-                'Å': 'ř',
-                'Ä': 'Č',
-                'Ä': 'č',
-                'Ä': 'Ě',
-                'Ä': 'ě',
-                'Å': 'Ň',
-                'Å': 'ň',
-                'Å¤': 'Ť',
-                'Å¥': 'ť',
-                'Å®': 'Ů',
-                'Å¯': 'ů',
-                'Ã': 'Á',
-                'Ã¡': 'á',
-                'Ã': 'É',
-                'Ã©': 'é',
-                'Ã': 'Í',
-                'Ã­': 'í',
-                'Ã': 'Ó',
-                'Ã³': 'ó',
-                'Ã': 'Ú',
-                'Ãº': 'ú',
-                'Ã': 'Ý',
-                'Ã½': 'ý',
+                "Å½": "Ž",
+                "Å¾": "ž",
+                "Å ": "Š",
+                "Å¡": "š",
+                "Å": "Ř",
+                "Å": "ř",
+                "Ä": "Č",
+                "Ä": "č",
+                "Ä": "Ě",
+                "Ä": "ě",
+                "Å": "Ň",
+                "Å": "ň",
+                "Å¤": "Ť",
+                "Å¥": "ť",
+                "Å®": "Ů",
+                "Å¯": "ů",
+                "Ã": "Á",
+                "Ã¡": "á",
+                "Ã": "É",
+                "Ã©": "é",
+                "Ã": "Í",
+                "Ã­": "í",
+                "Ã": "Ó",
+                "Ã³": "ó",
+                "Ã": "Ú",
+                "Ãº": "ú",
+                "Ã": "Ý",
+                "Ã½": "ý",
             }
             fixed = text
             for broken, correct in replacements.items():
@@ -52,18 +52,16 @@ def fix_encoding(text: str) -> str:
     return text
 
 
-def get_current_season_id(reference_date: Optional[date] = None) -> int:
+def get_current_season_id(reference_date: date | None = None) -> int:
     if reference_date is None:
         reference_date = date.today()
-    
+
     year = reference_date.year
 
     # season_id v databázi je POČÁTEČNÍ rok sezóny.
     # Sezóna 2025 = 1.8.2025 - 31.7.2026 (viz fuj_jmlp_race.season_id)
-    if reference_date.month >= 8:  # srpen a později - začíná nová sezóna
-        season_id = year
-    else:  # leden až červenec - stále běží sezóna začínající loni
-        season_id = year - 1
+    # Srpen a později začíná nová sezóna; leden až červenec stále běží sezóna začínající loni.
+    season_id = year if reference_date.month >= 8 else year - 1
 
     return season_id
 
@@ -73,13 +71,23 @@ EDITION_BASE_YEAR = 2006
 
 
 _ROMAN_NUMERALS = (
-    (1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'),
-    (100, 'C'), (90, 'XC'), (50, 'L'), (40, 'XL'),
-    (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I'),
+    (1000, "M"),
+    (900, "CM"),
+    (500, "D"),
+    (400, "CD"),
+    (100, "C"),
+    (90, "XC"),
+    (50, "L"),
+    (40, "XL"),
+    (10, "X"),
+    (9, "IX"),
+    (5, "V"),
+    (4, "IV"),
+    (1, "I"),
 )
 
 
-def to_roman(number: Optional[int]) -> str:
+def to_roman(number: int | None) -> str:
     """Číslo ročníku na římské číslice (19 -> 'XIX'). Prázdný řetězec pro None."""
     if not number or number <= 0:
         return ""
@@ -135,9 +143,9 @@ def format_file_size(size_bytes: int) -> str:
 def csv_safe(value) -> str:
     """Neutralizuje hodnoty, které by Excel interpretoval jako vzorec (CSV injection)."""
     if value is None:
-        return ''
+        return ""
     text = str(value)
-    if text and text[0] in ('=', '+', '-', '@', '\t', '\r'):
+    if text and text[0] in ("=", "+", "-", "@", "\t", "\r"):
         return "'" + text
     return text
 
@@ -145,23 +153,23 @@ def csv_safe(value) -> str:
 # Standard HTTP exceptions for consistent error handling
 class StandardExceptions:
     """Standard HTTP exceptions with Czech error messages."""
-    
+
     @staticmethod
     def not_found(detail: str = "Položka nenalezena") -> HTTPException:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
-    
+
     @staticmethod
     def bad_request(detail: str = "Neplatný požadavek") -> HTTPException:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
-    
+
     @staticmethod
     def internal_error(detail: str = "Vnitřní chyba serveru") -> HTTPException:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
-    
+
     @staticmethod
     def unauthorized(detail: str = "Nepřihlášený uživatel") -> HTTPException:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
-    
+
     @staticmethod
     def forbidden(detail: str = "Nemáte oprávnění") -> HTTPException:
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
@@ -170,41 +178,41 @@ class StandardExceptions:
     @staticmethod
     def race_not_found() -> HTTPException:
         return StandardExceptions.not_found("Závod nenalezen")
-    
+
     @staticmethod
     def racer_not_found() -> HTTPException:
         return StandardExceptions.not_found("Jezdec nenalezen")
-    
+
     @staticmethod
     def document_not_found() -> HTTPException:
         return StandardExceptions.not_found("Dokument nenalezen")
-    
+
     @staticmethod
     def file_not_found() -> HTTPException:
         return StandardExceptions.not_found("Soubor nenalezen")
-    
+
     @staticmethod
     def registration_closed() -> HTTPException:
         return StandardExceptions.bad_request("Registrace pro tento závod je uzavřena")
-    
+
     @staticmethod
     def file_too_large() -> HTTPException:
         return StandardExceptions.bad_request("Soubor je příliš velký (max 10MB)")
-    
+
     @staticmethod
     def invalid_file_type() -> HTTPException:
         return StandardExceptions.bad_request("Neplatný typ souboru")
-    
+
     @staticmethod
     def already_registered() -> HTTPException:
         return StandardExceptions.bad_request("Jezdec je již zaregistrován na tento závod")
-    
+
     @staticmethod
     def invalid_date_format() -> HTTPException:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
 
 
-def compose_category_name(name: Optional[str], sex: Optional[int]) -> Optional[str]:
+def compose_category_name(name: str | None, sex: int | None) -> str | None:
     """Záložní název kategorie, když není vyplněný display_name.
 
     Skládá "U8 Myšáci" + sex na "U8 Myšáci - Ženy". Pro nová data se používá
@@ -221,7 +229,7 @@ def compose_category_name(name: Optional[str], sex: Optional[int]) -> Optional[s
     return composed
 
 
-def category_display_name(category) -> Optional[str]:
+def category_display_name(category) -> str | None:
     """Zobrazovaný název kategorie - display_name, jinak složený z name + sex."""
     if category is None:
         return None
@@ -231,20 +239,27 @@ def category_display_name(category) -> Optional[str]:
     return compose_category_name(category.name, category.sex)
 
 
-def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) -> tuple[Optional[int], Optional[str], Optional[int]]:
+def get_category_snapshot_for_birth_year(
+    birth_year: int, racer_sex: int, db
+) -> tuple[int | None, str | None, int | None]:
     from .models import Category
 
-    category = db.query(Category).filter(
-        and_(
-            Category.active == True,
-            Category.min_birth_year <= birth_year,
-            Category.max_birth_year >= birth_year,
-            or_(
-                Category.sex == 0,
-                Category.sex == racer_sex,
+    category = (
+        db.query(Category)
+        .filter(
+            and_(
+                Category.active == True,
+                Category.min_birth_year <= birth_year,
+                Category.max_birth_year >= birth_year,
+                or_(
+                    Category.sex == 0,
+                    Category.sex == racer_sex,
+                ),
             )
         )
-    ).order_by(Category.sex.desc()).first()
+        .order_by(Category.sex.desc())
+        .first()
+    )
 
     if not category:
         return None, None, None
@@ -252,6 +267,6 @@ def get_category_snapshot_for_birth_year(birth_year: int, racer_sex: int, db) ->
     return category.id, category_display_name(category), category.sex
 
 
-def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
+def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> int | None:
     category_id, _, _ = get_category_snapshot_for_birth_year(birth_year, racer_sex, db)
     return category_id

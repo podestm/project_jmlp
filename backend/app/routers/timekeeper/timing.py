@@ -1,15 +1,17 @@
 """Time entry and management for races."""
-from typing import Dict, Any
+
 from datetime import datetime
+from decimal import Decimal
+from typing import Any
+
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
-from decimal import Decimal
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
-from ...utils import StandardExceptions
 from ...services import results as results_service
-from .idempotency import try_get_idempotent_response, store_idempotent_response
+from ...utils import StandardExceptions
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-timing"])
 
@@ -31,7 +33,9 @@ def _server_revision(entry: models.StartListEntry) -> str | None:
     return entry.updated_at.replace(microsecond=0).isoformat() + "Z"
 
 
-def _raise_stale_conflict(entry_id: int, endpoint: str, client_revision: str | None, server_revision: str | None) -> None:
+def _raise_stale_conflict(
+    entry_id: int, endpoint: str, client_revision: str | None, server_revision: str | None
+) -> None:
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
         detail={
@@ -66,7 +70,7 @@ def _same_stored_value(field: str, stored: Any, incoming: Any) -> bool:
     return bool(stored) == bool(incoming)
 
 
-def _matches_stored(entry: models.StartListEntry, values: Dict[str, Any]) -> bool:
+def _matches_stored(entry: models.StartListEntry, values: dict[str, Any]) -> bool:
     """Zápis by na řádku nic nezměnil (všechna poslaná pole časů už tak jsou).
 
     Zastaralá revize je pak jen jiné razítko u téže hodnoty - typicky fronta
@@ -85,7 +89,7 @@ def _check_revision_or_raise(
     client_revision: str | None,
     endpoint: str,
     force_apply: bool = False,
-    values: Dict[str, Any] | None = None,
+    values: dict[str, Any] | None = None,
 ) -> None:
     if force_apply:
         return
@@ -108,8 +112,8 @@ def save_times(
     data: schemas.BatchTimeEntry,
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Batch save times for multiple entries in a race."""
     endpoint = f"/api/timekeeper/races/{race_id}/times"
     replay = try_get_idempotent_response(
@@ -125,14 +129,18 @@ def save_times(
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
     if not race:
         raise StandardExceptions.race_not_found()
-    
+
     updated = 0
     updated_entries: list[models.StartListEntry] = []
     for time_entry in data.entries:
-        entry = db.query(models.StartListEntry).filter(
-            models.StartListEntry.id == time_entry.entry_id,
-            models.StartListEntry.race_id == race_id
-        ).first()
+        entry = (
+            db.query(models.StartListEntry)
+            .filter(
+                models.StartListEntry.id == time_entry.entry_id,
+                models.StartListEntry.race_id == race_id,
+            )
+            .first()
+        )
 
         if not entry:
             continue
@@ -144,17 +152,17 @@ def save_times(
             force_apply=bool(time_entry.force_apply),
             values={field: getattr(time_entry, field) for field in TIME_FIELDS},
         )
-        
+
         entry.time1 = _time_or_none(time_entry.time1)
         entry.time2 = _time_or_none(time_entry.time2)
         entry.dnf = time_entry.dnf
         entry.dns = time_entry.dns
         entry.dsq = time_entry.dsq
-        
+
         entry.time_sum = results_service.compute_time_sum(
             entry.time1, entry.time2, entry.dnf, entry.dns, entry.dsq
         )
-        
+
         updated += 1
         updated_entries.append(entry)
 
@@ -169,7 +177,7 @@ def save_times(
     # landed at >= .5 s. The client stamped that value onto every row it had
     # just saved and the next write to any of them came back 409 with nobody
     # else having touched anything.
-    revisions: Dict[str, str | None] = {}
+    revisions: dict[str, str | None] = {}
     for entry in updated_entries:
         db.refresh(entry)
         revisions[str(entry.id)] = _server_revision(entry)
@@ -199,8 +207,8 @@ def update_single_time(
     data: schemas.StartListEntryUpdate,
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
     """Update time for a single start list entry."""
     endpoint = f"/api/timekeeper/start-list/{entry_id}/time"
     replay = try_get_idempotent_response(
@@ -213,13 +221,11 @@ def update_single_time(
     if replay:
         return replay
 
-    entry = db.query(models.StartListEntry).filter(
-        models.StartListEntry.id == entry_id
-    ).first()
-    
+    entry = db.query(models.StartListEntry).filter(models.StartListEntry.id == entry_id).first()
+
     if not entry:
         raise StandardExceptions.not_found("Záznam nenalezen")
-    
+
     update_data = data.dict(exclude_unset=True)
 
     _check_revision_or_raise(
@@ -232,17 +238,17 @@ def update_single_time(
 
     update_data.pop("base_revision", None)
     update_data.pop("force_apply", None)
-    
+
     for key, value in update_data.items():
-        if key in ('time1', 'time2'):
+        if key in ("time1", "time2"):
             setattr(entry, key, _time_or_none(value))
         else:
             setattr(entry, key, value)
-    
+
     entry.time_sum = results_service.compute_time_sum(
         entry.time1, entry.time2, entry.dnf, entry.dns, entry.dsq
     )
-    
+
     db.commit()
     db.refresh(entry)
     response_payload = {

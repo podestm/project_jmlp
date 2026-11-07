@@ -29,16 +29,18 @@ export const slotConfig = (role) => SLOT_CONFIG[role] || { accept: DOCUMENT_ACCE
  * vylučujících rolí. Role mimo jakoukoli vylučovací skupinu smí mít víc
  * dokumentů -> seznam (single: false).
  */
-export const buildSlots = (ownerType, roles) => roles.map((entry) => {
-  const groupRoles = Array.isArray(entry) ? entry : [entry];
-  const single = groupRoles.length > 1 || Boolean(exclusiveGroup(ownerType, groupRoles[0]));
-  return { key: groupRoles.join('+'), roles: groupRoles, single };
-});
+export const buildSlots = (ownerType, roles) =>
+  roles.map((entry) => {
+    const groupRoles = Array.isArray(entry) ? entry : [entry];
+    const single = groupRoles.length > 1 || Boolean(exclusiveGroup(ownerType, groupRoles[0]));
+    return { key: groupRoles.join('+'), roles: groupRoles, single };
+  });
 
 /** Popisek slotu: skupina má vlastní název, jinak název role. */
-export const slotLabel = (slot, activeRole) => (
-  slot.roles.length > 1 ? GROUP_LABELS[slot.key] || ROLE_LABELS[activeRole] : ROLE_LABELS[activeRole]
-);
+export const slotLabel = (slot, activeRole) =>
+  slot.roles.length > 1
+    ? GROUP_LABELS[slot.key] || ROLE_LABELS[activeRole]
+    : ROLE_LABELS[activeRole];
 
 /** `accept` jako u <input accept> (".pdf,.doc") -> množina přípon, nebo null. */
 export const acceptedExtensions = (accept) => {
@@ -60,5 +62,7 @@ export const filterLibrary = (files, accept, query) => {
 /** „Nabízíme jen: PDF, DOC, DOCX…“ – co role bere, slovy. */
 export const acceptText = (accept) => {
   const allowed = acceptedExtensions(accept);
-  return allowed ? `Nabízíme jen ${[...allowed].map((ext) => ext.toUpperCase()).join(', ')}.` : null;
+  return allowed
+    ? `Nabízíme jen ${[...allowed].map((ext) => ext.toUpperCase()).join(', ')}.`
+    : null;
 };

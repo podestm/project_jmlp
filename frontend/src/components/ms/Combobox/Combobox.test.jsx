@@ -5,13 +5,25 @@ import { describe, expect, it, vi } from 'vitest';
 import Combobox from './Combobox.jsx';
 import { filterOptions } from './combobox.js';
 
-const OPTIONS = [{ value: 1, label: 'SKI KLUB JUNIOR BRNO' }, { value: 2, label: 'TJ Sokol Hlubočky' }];
+const OPTIONS = [
+  { value: 1, label: 'SKI KLUB JUNIOR BRNO' },
+  { value: 2, label: 'TJ Sokol Hlubočky' },
+];
 
 function Controlled({ onChange = () => {} }) {
   const [value, setValue] = useState(null);
   return (
-    <Combobox aria-label="Klub" options={OPTIONS} value={value} placeholder="Začněte psát"
-      onChange={(next) => { setValue(next); onChange(next); }} noMatchText={(q) => `Nic pro „${q}“`} />
+    <Combobox
+      aria-label="Klub"
+      options={OPTIONS}
+      value={value}
+      placeholder="Začněte psát"
+      onChange={(next) => {
+        setValue(next);
+        onChange(next);
+      }}
+      noMatchText={(q) => `Nic pro „${q}“`}
+    />
   );
 }
 

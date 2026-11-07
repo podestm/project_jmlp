@@ -1,14 +1,14 @@
-from typing import Dict, Any, List
-from datetime import datetime, timedelta, date
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import func, text
+from datetime import datetime, timedelta
+from typing import Any
 
+from fastapi import APIRouter, Depends
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
+
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
-import os
 from ...services import seasons as season_service
-from ...utils import fix_encoding, convert_utf8_field, format_file_size
+from ...utils import convert_utf8_field, fix_encoding, format_file_size
 from ._visits import daily_visits
 
 router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
@@ -16,55 +16,73 @@ router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
 
 @router.get("/stats")
 def get_dashboard_stats(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
+) -> dict[str, Any]:
     """Agregovaná data pro admin dashboard - jeden request místo mnoha."""
-    
+
     today = datetime.now()
     # season_id je START rok sezóny (2025 pro sezónu 2025/2026)
     season_id = season_service.current_season_id(db)
-    
+
     # --- Počty ---
     total_racers = db.query(func.count(models.Racer.id)).scalar() or 0
-    total_clubs = db.query(func.count(models.Club.id)).filter(models.Club.valid == True).scalar() or 0
+    total_clubs = (
+        db.query(func.count(models.Club.id)).filter(models.Club.valid == True).scalar() or 0
+    )
     total_posts = db.query(func.count(models.Post.id)).scalar() or 0
-    
-    # Závody v aktuální sezóně
-    season_races = db.query(func.count(models.Race.id)).filter(
-        models.Race.season_id == season_id
-    ).scalar() or 0
-    
-    open_registrations = db.query(func.count(models.Race.id)).filter(
-        models.Race.registration == True,
-        models.Race.closed == False
-    ).scalar() or 0
 
-    pending_club_requests = db.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_race_registration WHERE club_request_note IS NOT NULL"
-    )).scalar() or 0
-    
+    # Závody v aktuální sezóně
+    season_races = (
+        db.query(func.count(models.Race.id)).filter(models.Race.season_id == season_id).scalar()
+        or 0
+    )
+
+    open_registrations = (
+        db.query(func.count(models.Race.id))
+        .filter(models.Race.registration == True, models.Race.closed == False)
+        .scalar()
+        or 0
+    )
+
+    pending_club_requests = (
+        db.execute(
+            text(
+                "SELECT COUNT(*) FROM fuj_jmlp_race_registration WHERE club_request_note IS NOT NULL"
+            )
+        ).scalar()
+        or 0
+    )
+
     # --- Velikost souborů ---
     file_count, total_file_size = db.query(
         func.count(models.File.id), func.coalesce(func.sum(models.File.file_size), 0)
     ).first()
     file_count = file_count or 0
     storage_size_formatted = format_file_size(int(total_file_size or 0))
-    
+
     # --- Návštěvy ---
     today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
-    visits_today = db.query(func.count(models.VisitorLog.id)).filter(
-        models.VisitorLog.visited_at >= today_start
-    ).scalar() or 0
-    
-    unique_today = db.query(func.count(func.distinct(models.VisitorLog.ip_address))).filter(
-        models.VisitorLog.visited_at >= today_start
-    ).scalar() or 0
-    
-    visits_7days = db.query(func.count(models.VisitorLog.id)).filter(
-        models.VisitorLog.visited_at >= today - timedelta(days=7)
-    ).scalar() or 0
-    
+    visits_today = (
+        db.query(func.count(models.VisitorLog.id))
+        .filter(models.VisitorLog.visited_at >= today_start)
+        .scalar()
+        or 0
+    )
+
+    unique_today = (
+        db.query(func.count(func.distinct(models.VisitorLog.ip_address)))
+        .filter(models.VisitorLog.visited_at >= today_start)
+        .scalar()
+        or 0
+    )
+
+    visits_7days = (
+        db.query(func.count(models.VisitorLog.id))
+        .filter(models.VisitorLog.visited_at >= today - timedelta(days=7))
+        .scalar()
+        or 0
+    )
+
     # --- Nadcházející závod ---
     upcoming_race_query = text(f"""
         SELECT r.id, r.race_nr, r.datum, r.registration, r.closed,
@@ -77,7 +95,7 @@ def get_dashboard_stats(
         LIMIT 1
     """)
     upcoming_row = db.execute(upcoming_race_query, {"today": today.date()}).fetchone()
-    
+
     upcoming_race = None
     if upcoming_row:
         days_until = (upcoming_row.datum - today.date()).days if upcoming_row.datum else None
@@ -85,12 +103,14 @@ def get_dashboard_stats(
             "id": upcoming_row.id,
             "race_nr": upcoming_row.race_nr,
             "datum": upcoming_row.datum.isoformat() if upcoming_row.datum else None,
-            "areal_name": fix_encoding(upcoming_row.areal_name) if upcoming_row.areal_name else None,
+            "areal_name": fix_encoding(upcoming_row.areal_name)
+            if upcoming_row.areal_name
+            else None,
             "registration": bool(upcoming_row.registration),
             "registration_count": upcoming_row.registration_count,
-            "days_until": days_until
+            "days_until": days_until,
         }
-    
+
     # --- Posledních 5 registrací ---
     recent_regs_query = text(f"""
         SELECT rr.registered_at, 
@@ -108,18 +128,22 @@ def get_dashboard_stats(
         LIMIT 5
     """)
     recent_regs_rows = db.execute(recent_regs_query).fetchall()
-    
+
     recent_registrations = []
     for row in recent_regs_rows:
-        recent_registrations.append({
-            "registered_at": row.registered_at.isoformat() if row.registered_at else None,
-            "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
-            "racer_surname": fix_encoding(row.racer_surname).strip() if row.racer_surname else "",
-            "race_nr": row.race_nr,
-            "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
-            "club_name": fix_encoding(row.club_name) if row.club_name else None,
-        })
-    
+        recent_registrations.append(
+            {
+                "registered_at": row.registered_at.isoformat() if row.registered_at else None,
+                "racer_name": fix_encoding(row.racer_name).strip() if row.racer_name else "",
+                "racer_surname": fix_encoding(row.racer_surname).strip()
+                if row.racer_surname
+                else "",
+                "race_nr": row.race_nr,
+                "areal_name": fix_encoding(row.areal_name) if row.areal_name else None,
+                "club_name": fix_encoding(row.club_name) if row.club_name else None,
+            }
+        )
+
     # --- Top 5 navštěvovaných stránek (posledních 30 dní) ---
     top_pages_query = text("""
         SELECT path, COUNT(*) as visits
@@ -131,7 +155,7 @@ def get_dashboard_stats(
     """)
     top_pages_rows = db.execute(top_pages_query, {"start": today - timedelta(days=30)}).fetchall()
     top_pages = [{"path": row.path, "visits": row.visits} for row in top_pages_rows]
-    
+
     # --- Poslední příspěvky ---
     recent_posts_query = text("""
         SELECT id, title, published, created_at
@@ -140,18 +164,18 @@ def get_dashboard_stats(
         LIMIT 3
     """)
     recent_posts_rows = db.execute(recent_posts_query).fetchall()
-    recent_posts = [{
-        "id": row.id,
-        "title": row.title,
-        "published": bool(row.published),
-        "created_at": row.created_at.isoformat() if row.created_at else None
-    } for row in recent_posts_rows]
-    
+    recent_posts = [
+        {
+            "id": row.id,
+            "title": row.title,
+            "published": bool(row.published),
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        for row in recent_posts_rows
+    ]
+
     return {
-        "season": {
-            "id": season_id,
-            "label": f"{season_id}/{season_id + 1}"
-        },
+        "season": {"id": season_id, "label": f"{season_id}/{season_id + 1}"},
         "counts": {
             "total_racers": total_racers,
             "total_clubs": total_clubs,
@@ -178,10 +202,10 @@ def get_dashboard_stats(
 def get_visits_chart(
     days: int = 7,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+    db: Session = Depends(get_db),
+) -> list[dict[str, Any]]:
     """Statistika návštěv pro graf s volitelným obdobím."""
-    
+
     # Limit days to reasonable range
     days = min(max(days, 7), 90)
     return daily_visits(db, days)

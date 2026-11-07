@@ -3,7 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import LivePill from './LivePill.jsx';
 
-const renderPill = (props) => render(<MemoryRouter><LivePill to="/zive" {...props} /></MemoryRouter>);
+const renderPill = (props) =>
+  render(
+    <MemoryRouter>
+      <LivePill to="/zive" {...props} />
+    </MemoryRouter>,
+  );
 
 describe('LivePill', () => {
   it('v klidu odkazuje na /zive a čtečce řekne, že se nezávodí', () => {

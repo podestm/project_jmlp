@@ -36,16 +36,21 @@ export function migrateLegacySession(storage = globalThis.localStorage, now = Da
   if (!storage) return;
   try {
     if (!storage.getItem(SESSION_TOKEN_KEY)) {
-      const candidates = LEGACY_TOKEN_KEYS
-        .map((key) => ({ key, token: storage.getItem(key), exp: expiresAt(storage, key) }))
+      const candidates = LEGACY_TOKEN_KEYS.map((key) => ({
+        key,
+        token: storage.getItem(key),
+        exp: expiresAt(storage, key),
+      }))
         .filter((candidate) => candidate.token && candidate.exp > now)
         .sort((a, b) => b.exp - a.exp);
       const chosen = candidates[0];
       if (chosen) {
         storage.setItem(SESSION_TOKEN_KEY, chosen.token);
-        if (Number.isFinite(chosen.exp)) storage.setItem(expKey(SESSION_TOKEN_KEY), String(chosen.exp));
+        if (Number.isFinite(chosen.exp))
+          storage.setItem(expKey(SESSION_TOKEN_KEY), String(chosen.exp));
         const cachedUser = storage.getItem(LEGACY_TIMEKEEPER_USER_KEY);
-        if (chosen.key === 'timekeeper_token' && cachedUser) storage.setItem(SESSION_USER_KEY, cachedUser);
+        if (chosen.key === 'timekeeper_token' && cachedUser)
+          storage.setItem(SESSION_USER_KEY, cachedUser);
       }
     }
     LEGACY_TOKEN_KEYS.forEach((key) => {

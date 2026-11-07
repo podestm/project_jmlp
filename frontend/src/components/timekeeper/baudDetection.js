@@ -31,7 +31,7 @@ export const DETECTION_WINDOW_MS = 6000;
 export const detectionCandidates = (current) => {
   const first = Number(current);
   const rest = BAUD_DETECTION_ORDER.filter((baud) => baud !== first);
-  return (BAUD_OPTIONS.includes(first) ? [first, ...rest] : rest);
+  return BAUD_OPTIONS.includes(first) ? [first, ...rest] : rest;
 };
 
 // Znak náhrady (nečitelný bajt) a řídicí znaky - na špatné rychlosti jich
@@ -64,7 +64,12 @@ export const isCleanDeviceLine = (line) => {
  * @returns {Promise<number|null>} nalezená rychlost, nebo null
  */
 export async function runBaudDetection({
-  candidates, open, listen, cancelled, onProgress, windowMs = DETECTION_WINDOW_MS,
+  candidates,
+  open,
+  listen,
+  cancelled,
+  onProgress,
+  windowMs = DETECTION_WINDOW_MS,
 }) {
   for (let index = 0; index < candidates.length; index += 1) {
     if (cancelled()) return null;

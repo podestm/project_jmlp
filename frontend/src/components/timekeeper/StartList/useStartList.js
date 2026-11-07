@@ -76,7 +76,8 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
   // ho právě přidala obrazovka Závodníci v jiné záložce.
   useEffect(() => {
     const onRemapped = (event) => {
-      if (event?.detail) setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, event.detail)));
+      if (event?.detail)
+        setStartList((prev) => sortStartListEntries(remapEntriesInState(prev, event.detail)));
     };
     window.addEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
     return () => window.removeEventListener(ENTRY_REMAPPED_EVENT, onRemapped);
@@ -95,27 +96,28 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     if (!isOnline) {
       setMessage({
         type: 'warning',
-        text: 'Mazání startovní listiny vyžaduje připojení k internetu - offline by se smazání přehrálo až později.'
+        text: 'Mazání startovní listiny vyžaduje připojení k internetu - offline by se smazání přehrálo až později.',
       });
       return;
     }
     if (queueStats.total > 0) {
       setMessage({
         type: 'warning',
-        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nechte je nejdřív odeslat (Synchronizace).`
+        text: `Ve frontě čeká ${queueStats.total} nesynchronizovaných změn. Nechte je nejdřív odeslat (Synchronizace).`,
       });
       return;
     }
 
     const measured = startList.filter(
-      (entry) => entry.time1 != null || entry.time2 != null || entry.dnf || entry.dns || entry.dsq
+      (entry) => entry.time1 != null || entry.time2 != null || entry.dnf || entry.dns || entry.dsq,
     ).length;
 
     const confirmed = await confirm({
       title: 'Smazat celou startovní listinu?',
-      message: `Smaže se všech ${startList.length} závodníků včetně přidělených startovních čísel a dresů`
-        + (measured > 0 ? ` a naměřených časů (${measured} závodníků už má výsledek)` : '')
-        + '. Listinu půjde znovu vygenerovat z přihlášek. Akce je nevratná.',
+      message:
+        `Smaže se všech ${startList.length} závodníků včetně přidělených startovních čísel a dresů` +
+        (measured > 0 ? ` a naměřených časů (${measured} závodníků už má výsledek)` : '') +
+        '. Listinu půjde znovu vygenerovat z přihlášek. Akce je nevratná.',
       confirmLabel: 'Smazat vše',
       danger: true,
       icon: 'trash',
@@ -123,7 +125,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     if (!confirmed) return;
     try {
       const result = await TimekeeperAPI.deleteOnline(
-        `/api/timekeeper/races/${selectedRaceId}/start-list`
+        `/api/timekeeper/races/${selectedRaceId}/start-list`,
       );
       // Nakešovaná startovka i rozepsané časy musí zmizet s ní - jinak si je
       // obrazovka Zadávání časů offline načte jako platné.
@@ -134,7 +136,7 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     } catch (err) {
       setMessage({
         type: 'danger',
-        text: err.message || 'Nepodařilo se smazat startovní listinu'
+        text: err.message || 'Nepodařilo se smazat startovní listinu',
       });
     }
   };
@@ -161,17 +163,19 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
   };
 
   const updateEditField = (field, value) => {
-    setEditForm(prev => ({ ...prev, [field]: value }));
+    setEditForm((prev) => ({ ...prev, [field]: value }));
     if (field === 'race_number_display') setEditValidationError('');
   };
 
-  const validateRaceNumber = useCallback((displayNumber, excludeEntryId = null) => (
-    getRaceNumberValidationError(displayNumber, {
-      options: raceNumberOptions,
-      entries: startList,
-      excludeEntryId,
-    })
-  ), [raceNumberOptions, startList]);
+  const validateRaceNumber = useCallback(
+    (displayNumber, excludeEntryId = null) =>
+      getRaceNumberValidationError(displayNumber, {
+        options: raceNumberOptions,
+        entries: startList,
+        excludeEntryId,
+      }),
+    [raceNumberOptions, startList],
+  );
 
   const saveEditing = async () => {
     if (!editingId) return;
@@ -188,22 +192,34 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
       body.racer_name = editForm.racer_name?.trim() || null;
       body.racer_surname = editForm.racer_surname?.trim() || null;
       body.club_name = editForm.club_name?.trim() || null;
-      body.racer_year = editForm.racer_year !== '' && editForm.racer_year !== null && editForm.racer_year !== undefined
-        ? parseInt(editForm.racer_year)
-        : null;
-      body.race_number_display = editForm.race_number_display !== '' ? normalizeRaceNumberCode(editForm.race_number_display) : null;
+      body.racer_year =
+        editForm.racer_year !== '' &&
+        editForm.racer_year !== null &&
+        editForm.racer_year !== undefined
+          ? parseInt(editForm.racer_year)
+          : null;
+      body.race_number_display =
+        editForm.race_number_display !== ''
+          ? normalizeRaceNumberCode(editForm.race_number_display)
+          : null;
 
       const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${editingId}`, body);
       if (result?.entry) {
-        setStartList(prev => sortStartListEntries(prev.map(entry => (
-          entry.id === editingId ? result.entry : entry
-        ))));
+        setStartList((prev) =>
+          sortStartListEntries(
+            prev.map((entry) => (entry.id === editingId ? result.entry : entry)),
+          ),
+        );
       } else {
         // Offline: požadavek leží ve frontě a žádný `entry` se nevrátil, takže
         // řádek přepíšeme tím, co jsme odeslali, a označíme ho jako nesynchronizovaný.
-        setStartList(prev => sortStartListEntries(prev.map(entry => (
-          entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry
-        ))));
+        setStartList((prev) =>
+          sortStartListEntries(
+            prev.map((entry) =>
+              entry.id === editingId ? { ...entry, ...body, pending_sync: true } : entry,
+            ),
+          ),
+        );
         setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
       }
       setEditingId(null);
@@ -214,22 +230,25 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
     }
   };
 
-  const deleteEntry = useCallback(async (entryId, name) => {
-    const confirmed = await confirm({
-      title: `Odebrat ${name} ze startovní listiny?`,
-      confirmLabel: 'Odebrat',
-      danger: true,
-      icon: 'trash',
-    });
-    if (!confirmed) return;
-    try {
-      await TimekeeperAPI.delete(`/api/timekeeper/start-list/${entryId}`);
-      await loadStartListRef.current();
-      setMessage({ type: 'info', text: `${name} odebrán/a ze startovní listiny` });
-    } catch {
-      setMessage({ type: 'danger', text: 'Nepodařilo se odebrat závodníka' });
-    }
-  }, [confirm, setMessage]);
+  const deleteEntry = useCallback(
+    async (entryId, name) => {
+      const confirmed = await confirm({
+        title: `Odebrat ${name} ze startovní listiny?`,
+        confirmLabel: 'Odebrat',
+        danger: true,
+        icon: 'trash',
+      });
+      if (!confirmed) return;
+      try {
+        await TimekeeperAPI.delete(`/api/timekeeper/start-list/${entryId}`);
+        await loadStartListRef.current();
+        setMessage({ type: 'info', text: `${name} odebrán/a ze startovní listiny` });
+      } catch {
+        setMessage({ type: 'danger', text: 'Nepodařilo se odebrat závodníka' });
+      }
+    },
+    [confirm, setMessage],
+  );
 
   /**
    * Vyřazení ze startky / vrácení zpět (nedorazil, nestihl start).
@@ -238,50 +257,66 @@ export const useStartList = (selectedRaceId, { confirm, setMessage }) => {
    * změna uloží v zařízení a obrazovky (Časy, tisk) ji vidí hned. Posílá se
    * cílový stav, ne přepínač, takže opakovaná přehrávka nic neotočí.
    */
-  const toggleExcluded = useCallback(async (entry) => {
-    const excluded = !isExcluded(entry);
-    const name = `${entry.racer_surname} ${entry.racer_name}`.trim();
-    try {
-      const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${entry.id}/excluded`, { excluded });
-      if (result?.entry) {
-        setStartList(prev => prev.map(item => (item.id === entry.id ? result.entry : item)));
-        setMessage({
-          type: 'info',
-          text: excluded
-            ? `${name} vyřazen/a ze startovní listiny. Vrátit jde tlačítkem Vrátit.`
-            : `${name} vrácen/a na startovní listinu.`
+  const toggleExcluded = useCallback(
+    async (entry) => {
+      const excluded = !isExcluded(entry);
+      const name = `${entry.racer_surname} ${entry.racer_name}`.trim();
+      try {
+        const result = await TimekeeperAPI.put(`/api/timekeeper/start-list/${entry.id}/excluded`, {
+          excluded,
         });
-      } else {
-        // Offline: zápis čeká ve frontě a řádek se upraví podle odeslaného stavu.
-        setStartList(prev => prev.map(item => (
-          item.id === entry.id ? { ...item, excluded, pending_sync: true } : item
-        )));
-        setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
+        if (result?.entry) {
+          setStartList((prev) => prev.map((item) => (item.id === entry.id ? result.entry : item)));
+          setMessage({
+            type: 'info',
+            text: excluded
+              ? `${name} vyřazen/a ze startovní listiny. Vrátit jde tlačítkem Vrátit.`
+              : `${name} vrácen/a na startovní listinu.`,
+          });
+        } else {
+          // Offline: zápis čeká ve frontě a řádek se upraví podle odeslaného stavu.
+          setStartList((prev) =>
+            prev.map((item) =>
+              item.id === entry.id ? { ...item, excluded, pending_sync: true } : item,
+            ),
+          );
+          setMessage({ type: 'info', text: result?.message || OFFLINE_QUEUED_TEXT });
+        }
+      } catch {
+        setMessage({
+          type: 'danger',
+          text: excluded ? `Nepodařilo se vyřadit ${name}` : `Nepodařilo se vrátit ${name}`,
+        });
       }
-    } catch {
-      setMessage({
-        type: 'danger',
-        text: excluded ? `Nepodařilo se vyřadit ${name}` : `Nepodařilo se vrátit ${name}`
-      });
-    }
-  }, [setMessage]);
+    },
+    [setMessage],
+  );
 
-  const liveEditRaceNumberError = useMemo(() => (
-    editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''
-  ), [editingId, editForm.race_number_display, validateRaceNumber]);
+  const liveEditRaceNumberError = useMemo(
+    () => (editingId ? validateRaceNumber(editForm.race_number_display, editingId) : ''),
+    [editingId, editForm.race_number_display, validateRaceNumber],
+  );
 
   // Vyřazení zůstávají v tabulce své kategorie - jen tady se dají vrátit.
   // Počty jsou za ty, kdo na startovce opravdu jsou; vyřazení se hlásí zvlášť.
-  const groupedByCategory = useMemo(() => groupEntriesByCategory(startList).map((group) => {
-    const groupActiveCount = activeEntries(group.entries).length;
-    return { ...group, activeCount: groupActiveCount, excludedCount: group.entries.length - groupActiveCount };
-  }), [startList]);
+  const groupedByCategory = useMemo(
+    () =>
+      groupEntriesByCategory(startList).map((group) => {
+        const groupActiveCount = activeEntries(group.entries).length;
+        return {
+          ...group,
+          activeCount: groupActiveCount,
+          excludedCount: group.entries.length - groupActiveCount,
+        };
+      }),
+    [startList],
+  );
   const activeCount = useMemo(() => activeEntries(startList).length, [startList]);
 
   /** Číslo dresu, které by řádek po uložení systémového čísla dostal. */
-  const editBibNumber = (entry) => (
-    findRaceNumberOption(raceNumberOptions, editForm.race_number_display)?.actual_number ?? entry.race_number_actual
-  );
+  const editBibNumber = (entry) =>
+    findRaceNumberOption(raceNumberOptions, editForm.race_number_display)?.actual_number ??
+    entry.race_number_actual;
 
   return {
     startList,

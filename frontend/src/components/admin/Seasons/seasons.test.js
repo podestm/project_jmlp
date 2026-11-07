@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { currentSeasonOf, editionPreview, seasonCounts, seasonPayload, seasonRange, seasonsMeta, seasonState, splitSeasons } from './seasons.js';
+import {
+  currentSeasonOf,
+  editionPreview,
+  seasonCounts,
+  seasonPayload,
+  seasonRange,
+  seasonsMeta,
+  seasonState,
+  splitSeasons,
+} from './seasons.js';
 
 const SEASONS = [
   { year_start: 2027, edition_label: 'XXI.', races_count: 0, documents_count: 0 },
@@ -17,7 +26,9 @@ describe('sezóny', () => {
   });
 
   it('aktuální je označená sezóna, jinak záloha podle data', () => {
-    expect(currentSeasonOf([{ year_start: 2027 }, { year_start: 2025, is_current: true }], 2026)).toBe(2025);
+    expect(
+      currentSeasonOf([{ year_start: 2027 }, { year_start: 2025, is_current: true }], 2026),
+    ).toBe(2025);
     expect(currentSeasonOf([{ year_start: 2027 }, { year_start: 2025 }], 2026)).toBe(2026);
   });
 

@@ -1,30 +1,32 @@
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole
 from ...services import attachments as attachment_service
-from ...utils import fix_encoding, convert_utf8_field
+from ...utils import convert_utf8_field, fix_encoding
 
 router = APIRouter(prefix="/clubs", tags=["admin-clubs"])
 
 
-@router.get("/", response_model=List[schemas.Club])
+@router.get("/", response_model=list[schemas.Club])
 def list_clubs(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):
     """Všechny platné kluby (pro dropdown při vyřizování žádostí)."""
-    return db.query(models.Club).filter(models.Club.valid == True).order_by(models.Club.name.asc()).all()
+    return (
+        db.query(models.Club)
+        .filter(models.Club.valid == True)
+        .order_by(models.Club.name.asc())
+        .all()
+    )
 
 
 @router.get("/overview")
 def clubs_overview(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):
     """Kluby se závodníky, počtem pořádaných závodů a logem.
 
@@ -32,29 +34,42 @@ def clubs_overview(
     """
     clubs = db.query(models.Club).order_by(models.Club.name.asc()).all()
 
-    racer_counts = dict(db.execute(text(
-        "SELECT club_id, COUNT(*) FROM fuj_jmlp_racer WHERE club_id IS NOT NULL GROUP BY club_id"
-    )).all())
-    organized_counts = dict(db.execute(text(
-        "SELECT organizer_id, COUNT(*) FROM fuj_jmlp_race WHERE organizer_id IS NOT NULL GROUP BY organizer_id"
-    )).all())
+    racer_counts = dict(
+        db.execute(
+            text(
+                "SELECT club_id, COUNT(*) FROM fuj_jmlp_racer WHERE club_id IS NOT NULL GROUP BY club_id"
+            )
+        ).all()
+    )
+    organized_counts = dict(
+        db.execute(
+            text(
+                "SELECT organizer_id, COUNT(*) FROM fuj_jmlp_race WHERE organizer_id IS NOT NULL GROUP BY organizer_id"
+            )
+        ).all()
+    )
 
     logos = {
         row.owner_id: row.file_id
-        for row in db.query(models.Attachment).filter(
+        for row in db.query(models.Attachment)
+        .filter(
             models.Attachment.owner_type == AttachmentOwner.club.value,
             models.Attachment.role == AttachmentRole.logo.value,
-        ).all()
+        )
+        .all()
     }
 
-    return [{
-        "id": club.id,
-        "name": fix_encoding(club.name),
-        "valid": bool(club.valid),
-        "racers_count": racer_counts.get(club.id, 0),
-        "organized_races_count": organized_counts.get(club.id, 0),
-        "has_logo": club.id in logos,
-    } for club in clubs]
+    return [
+        {
+            "id": club.id,
+            "name": fix_encoding(club.name),
+            "valid": bool(club.valid),
+            "racers_count": racer_counts.get(club.id, 0),
+            "organized_races_count": organized_counts.get(club.id, 0),
+            "has_logo": club.id in logos,
+        }
+        for club in clubs
+    ]
 
 
 @router.delete("/{club_id}")
@@ -62,7 +77,7 @@ def delete_club(
     club_id: int,
     reassign_to: int | None = None,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Smaže klub a jeho závodníky i pořádané závody převede na jiný klub.
 
@@ -79,12 +94,18 @@ def delete_club(
         raise HTTPException(status_code=404, detail="Klub nenalezen")
     nazev = fix_encoding(club.name)
 
-    zavodniku = db.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_racer WHERE club_id = :id"
-    ), {"id": club_id}).scalar() or 0
-    zavodu = db.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_race WHERE organizer_id = :id"
-    ), {"id": club_id}).scalar() or 0
+    zavodniku = (
+        db.execute(
+            text("SELECT COUNT(*) FROM fuj_jmlp_racer WHERE club_id = :id"), {"id": club_id}
+        ).scalar()
+        or 0
+    )
+    zavodu = (
+        db.execute(
+            text("SELECT COUNT(*) FROM fuj_jmlp_race WHERE organizer_id = :id"), {"id": club_id}
+        ).scalar()
+        or 0
+    )
 
     cil = None
     cil_nazev = None
@@ -92,8 +113,10 @@ def delete_club(
         if not reassign_to:
             raise HTTPException(
                 status_code=409,
-                detail=(f"Na klubu {nazev} visí {zavodniku} závodníků "
-                        f"a {zavodu} pořádaných závodů. Vyberte klub, na který se převedou."),
+                detail=(
+                    f"Na klubu {nazev} visí {zavodniku} závodníků "
+                    f"a {zavodu} pořádaných závodů. Vyberte klub, na který se převedou."
+                ),
             )
         if reassign_to == club_id:
             raise HTTPException(status_code=400, detail="Klub nelze převést sám na sebe")
@@ -103,10 +126,14 @@ def delete_club(
             raise HTTPException(status_code=404, detail="Cílový klub nenalezen")
         cil_nazev = fix_encoding(cil.name)
 
-        db.execute(text("UPDATE fuj_jmlp_racer SET club_id = :novy WHERE club_id = :stary"),
-                   {"novy": cil.id, "stary": club_id})
-        db.execute(text("UPDATE fuj_jmlp_race SET organizer_id = :novy WHERE organizer_id = :stary"),
-                   {"novy": cil.id, "stary": club_id})
+        db.execute(
+            text("UPDATE fuj_jmlp_racer SET club_id = :novy WHERE club_id = :stary"),
+            {"novy": cil.id, "stary": club_id},
+        )
+        db.execute(
+            text("UPDATE fuj_jmlp_race SET organizer_id = :novy WHERE organizer_id = :stary"),
+            {"novy": cil.id, "stary": club_id},
+        )
         db.commit()
 
     odpojeno = attachment_service.detach_owner(db, AttachmentOwner.club.value, club_id)
@@ -127,20 +154,18 @@ def delete_club(
 
 @router.get("/requests/count")
 def get_pending_count(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):
     """Počet nevyřízených žádostí o přiřazení klubu."""
-    count = db.execute(text(
-        "SELECT COUNT(*) FROM fuj_jmlp_race_registration WHERE club_request_note IS NOT NULL"
-    )).scalar()
+    count = db.execute(
+        text("SELECT COUNT(*) FROM fuj_jmlp_race_registration WHERE club_request_note IS NOT NULL")
+    ).scalar()
     return {"count": count or 0}
 
 
-@router.get("/requests", response_model=List[schemas.ClubRequestItem])
+@router.get("/requests", response_model=list[schemas.ClubRequestItem])
 def list_pending_requests(
-    current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):
     """Seznam nevyřízených žádostí o přiřazení klubu."""
     query = text(f"""
@@ -166,16 +191,20 @@ def list_pending_requests(
     for row in rows:
         first = fix_encoding(row.racer_first_name).strip() if row.racer_first_name else ""
         last = fix_encoding(row.racer_last_name).strip() if row.racer_last_name else ""
-        result.append(schemas.ClubRequestItem(
-            registration_id=row.registration_id,
-            race_id=row.race_id,
-            race_name=row.race_name or f"Závod #{row.race_id}",
-            racer_id=row.racer_id,
-            racer_name=f"{first} {last}".strip(),
-            registered_at=row.registered_at,
-            club_request_note=row.club_request_note,
-            current_club_name=fix_encoding(row.current_club_name) if row.current_club_name else None,
-        ))
+        result.append(
+            schemas.ClubRequestItem(
+                registration_id=row.registration_id,
+                race_id=row.race_id,
+                race_name=row.race_name or f"Závod #{row.race_id}",
+                racer_id=row.racer_id,
+                racer_name=f"{first} {last}".strip(),
+                registered_at=row.registered_at,
+                club_request_note=row.club_request_note,
+                current_club_name=fix_encoding(row.current_club_name)
+                if row.current_club_name
+                else None,
+            )
+        )
     return result
 
 
@@ -184,18 +213,26 @@ def resolve_club_request(
     registration_id: int,
     payload: schemas.ResolveClubRequest,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Vyřídí žádost o přiřazení klubu — přiřadí závodníkovi klub a smaže poznámku."""
-    reg = db.query(models.Registration).filter(
-        models.Registration.id == registration_id,
-        models.Registration.club_request_note.isnot(None)
-    ).first()
+    reg = (
+        db.query(models.Registration)
+        .filter(
+            models.Registration.id == registration_id,
+            models.Registration.club_request_note.isnot(None),
+        )
+        .first()
+    )
     if not reg:
         raise HTTPException(status_code=404, detail="Žádost nenalezena nebo již vyřízena")
 
     if payload.club_id:
-        club = db.query(models.Club).filter(models.Club.id == payload.club_id, models.Club.valid == True).first()
+        club = (
+            db.query(models.Club)
+            .filter(models.Club.id == payload.club_id, models.Club.valid == True)
+            .first()
+        )
         if not club:
             raise HTTPException(status_code=404, detail="Klub nenalezen")
     else:

@@ -15,11 +15,22 @@ export default function LiveResultsList({ ranked, className }) {
         <li key={entry.id} className={styles.row} data-muted={entry.status ? true : undefined}>
           <Rank place={entry.display_rank} />
           <span className={styles.text}>
-            <span className={styles.name}>{entry.racer_surname} {entry.racer_name}</span>
-            <span className={styles.meta}>{[fixEncoding(entry.club_name), entry.race_number_actual != null && `dres ${entry.race_number_actual}`].filter(Boolean).join(' · ')}</span>
+            <span className={styles.name}>
+              {entry.racer_surname} {entry.racer_name}
+            </span>
+            <span className={styles.meta}>
+              {[
+                fixEncoding(entry.club_name),
+                entry.race_number_actual != null && `dres ${entry.race_number_actual}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
           </span>
           {entry.status ? (
-            <Badge tone="dry" size="sm">{entry.status}</Badge>
+            <Badge tone="dry" size="sm">
+              {entry.status}
+            </Badge>
           ) : (
             <span className={styles.times}>
               <span className={styles.total}>{formatResultTime(entry.time_sum)}</span>

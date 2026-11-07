@@ -23,7 +23,7 @@ const jsonResponse = (body, status = 200) => ({
   ok: status >= 200 && status < 300,
   status,
   statusText: 'Test',
-  json: async () => body
+  json: async () => body,
 });
 
 let serverRow;
@@ -36,10 +36,20 @@ beforeEach(async () => {
   localStorage.setItem(SELECTED_RACE_KEY, String(RACE_ID));
 
   serverRow = startListEntry({
-    id: 1, race_id: RACE_ID, category_id: 5, category_name: 'Myšáci dívky', category_rank: 0,
-    start_number: 1, racer_surname: 'Bečvářová', racer_name: 'Sophia', race_number_actual: 1,
-    club_name: 'Ski klub Victoria Brno', racer_year: 2020, excluded: false,
-    time1: null, updated_at: '2026-10-10T09:00:00Z'
+    id: 1,
+    race_id: RACE_ID,
+    category_id: 5,
+    category_name: 'Myšáci dívky',
+    category_rank: 0,
+    start_number: 1,
+    racer_surname: 'Bečvářová',
+    racer_name: 'Sophia',
+    race_number_actual: 1,
+    club_name: 'Ski klub Victoria Brno',
+    racer_year: 2020,
+    excluded: false,
+    time1: null,
+    updated_at: '2026-10-10T09:00:00Z',
   });
 
   fetchMock = vi.fn(async (url, options = {}) => {
@@ -67,16 +77,20 @@ describe('Časy - konflikt se stejnou hodnotou', () => {
             <TimingEntry />
           </SerialSessionProvider>
         </TimekeeperAuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const input = await screen.findByLabelText('Kolo 1 – Bečvářová Sophia');
     await userEvent.type(input, '219.6');
     await userEvent.tab();
 
-    await waitFor(() => expect(
-      fetchMock.mock.calls.some(([url]) => String(url).split('?')[0] === '/api/timekeeper/start-list/1')
-    ).toBe(true));
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => String(url).split('?')[0] === '/api/timekeeper/start-list/1',
+        ),
+      ).toBe(true),
+    );
     expect(screen.queryByText('Záznam byl mezitím změněn')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Kolo 1 – Bečvářová Sophia')).toHaveValue(219.6);
   });

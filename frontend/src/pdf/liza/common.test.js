@@ -24,7 +24,8 @@ describe('formáty jako v LiZe', () => {
   });
 
   it('název poháru s ročníkem', () => {
-    expect(cupTitle({ cupName: 'Jihomoravský lyžařský pohár', editionLabel: 'XX.' }))
-      .toBe('Jihomoravský lyžařský pohár - XX.ročník');
+    expect(cupTitle({ cupName: 'Jihomoravský lyžařský pohár', editionLabel: 'XX.' })).toBe(
+      'Jihomoravský lyžařský pohár - XX.ročník',
+    );
   });
 });

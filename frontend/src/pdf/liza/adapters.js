@@ -16,10 +16,9 @@ const bibOf = (entry) => entry.race_number_actual ?? entry.start_number ?? null;
 const finishedFirstRun = (entry) => entry.time1 != null && !entry.dnf && !entry.dns && !entry.dsq;
 
 /** Pořadí startu v rámci kategorie (startovní číslo, pak id kvůli stabilitě). */
-const byStartOrder = (a, b) => (
-  (a.start_number ?? Number.MAX_SAFE_INTEGER) - (b.start_number ?? Number.MAX_SAFE_INTEGER)
-  || (a.id ?? 0) - (b.id ?? 0)
-);
+const byStartOrder = (a, b) =>
+  (a.start_number ?? Number.MAX_SAFE_INTEGER) - (b.start_number ?? Number.MAX_SAFE_INTEGER) ||
+  (a.id ?? 0) - (b.id ?? 0);
 
 export const SECOND_RUN_SAME = 'same';
 export const SECOND_RUN_BY_RESULTS = 'results';
@@ -34,7 +33,7 @@ export const SECOND_RUN_BY_RESULTS = 'results';
 export function secondRunEntries(entries, order = SECOND_RUN_SAME) {
   const starters = (entries || []).filter(finishedFirstRun);
   if (order === SECOND_RUN_BY_RESULTS) {
-    return [...starters].sort((a, b) => (a.time1 - b.time1) || byStartOrder(a, b));
+    return [...starters].sort((a, b) => a.time1 - b.time1 || byStartOrder(a, b));
   }
   return [...starters].sort(byStartOrder);
 }
@@ -48,7 +47,7 @@ const startListEntry = (entry) => ({
   firstName: entry.racer_name || '',
   club: entry.club_name || '',
   nation: 'CZE',
-  year: entry.racer_year ?? null
+  year: entry.racer_year ?? null,
 });
 
 /**
@@ -58,13 +57,15 @@ const startListEntry = (entry) => ({
  * @param {string} order       u 2. kola SECOND_RUN_SAME | SECOND_RUN_BY_RESULTS
  */
 export function startListCategories(categories, round = 1, order = SECOND_RUN_SAME) {
-  return (categories || []).map((category) => ({
-    name: category.category_name,
-    entries: (round === 2
-      ? secondRunEntries(category.entries, order)
-      : [...(category.entries || [])].sort(byStartOrder)
-    ).map(startListEntry)
-  })).filter((category) => category.entries.length > 0);
+  return (categories || [])
+    .map((category) => ({
+      name: category.category_name,
+      entries: (round === 2
+        ? secondRunEntries(category.entries, order)
+        : [...(category.entries || [])].sort(byStartOrder)
+      ).map(startListEntry),
+    }))
+    .filter((category) => category.entries.length > 0);
 }
 
 /**
@@ -77,29 +78,35 @@ export function resultCategories(categories, mode = 'final', run = 1) {
   const secondRun = mode === 'run' && Number(run) === 2;
   // Listina 2. kola řadí podle součtu, ale jen ty, kdo už 2. kolo dojeli -
   // jinak by se mezi součty zamíchal samotný čas 1. kola (time_sum = time1).
-  const timeField = secondRun ? 'second_run_sum' : (mode === 'run' ? `time${run}` : 'time_sum');
-  const withSum = (entries) => (secondRun
-    ? entries.map((entry) => ({ ...entry, second_run_sum: entry.time2 != null ? entry.time_sum : null }))
-    : entries);
-  return (categories || []).map((category) => ({
-    name: category.category_name,
-    entries: rankEntriesByTime(withSum(category.entries || []), { timeField }).map((entry) => ({
-      rank: entry.display_rank,
-      status: entry.display_rank == null ? (entry.status || null) : null,
-      surname: entry.racer_surname || '',
-      firstName: entry.racer_name || '',
-      bib: bibOf(entry),
-      year: entry.racer_year ?? null,
-      slcrId: entry.slcr_id || null,
-      club: entry.club_name || '',
-      nation: 'CZE',
-      time1: entry.time1 ?? null,
-      time2: entry.time2 ?? null,
-      total: entry[timeField] ?? null,
-      diff: entry.display_diff ?? null,
-      points: entry.display_points || null
+  const timeField = secondRun ? 'second_run_sum' : mode === 'run' ? `time${run}` : 'time_sum';
+  const withSum = (entries) =>
+    secondRun
+      ? entries.map((entry) => ({
+          ...entry,
+          second_run_sum: entry.time2 != null ? entry.time_sum : null,
+        }))
+      : entries;
+  return (categories || [])
+    .map((category) => ({
+      name: category.category_name,
+      entries: rankEntriesByTime(withSum(category.entries || []), { timeField }).map((entry) => ({
+        rank: entry.display_rank,
+        status: entry.display_rank == null ? entry.status || null : null,
+        surname: entry.racer_surname || '',
+        firstName: entry.racer_name || '',
+        bib: bibOf(entry),
+        year: entry.racer_year ?? null,
+        slcrId: entry.slcr_id || null,
+        club: entry.club_name || '',
+        nation: 'CZE',
+        time1: entry.time1 ?? null,
+        time2: entry.time2 ?? null,
+        total: entry[timeField] ?? null,
+        diff: entry.display_diff ?? null,
+        points: entry.display_points || null,
+      })),
     }))
-  })).filter((category) => category.entries.length > 0);
+    .filter((category) => category.entries.length > 0);
 }
 
 /**
@@ -108,18 +115,21 @@ export function resultCategories(categories, mode = 'final', run = 1) {
  */
 export function clubListInput(categories) {
   const list = categories || [];
-  const entries = list.flatMap((category) => (category.entries || []).map((entry) => ({
-    club: entry.club_name || '-',
-    bib: bibOf(entry),
-    setNumber: entry.set_number ?? null,
-    sex: entry.racer_sex ?? entry.category_sex,
-    surname: entry.racer_surname || '',
-    firstName: entry.racer_name || '',
-    year: entry.racer_year ?? null,
-    categoryCode: categoryCode(category.category_name, entry.category_sex ?? entry.racer_sex)
-  })));
-  const setNumbers = [...new Set(entries.map((entry) => entry.setNumber).filter((n) => n != null))]
-    .sort((a, b) => a - b);
+  const entries = list.flatMap((category) =>
+    (category.entries || []).map((entry) => ({
+      club: entry.club_name || '-',
+      bib: bibOf(entry),
+      setNumber: entry.set_number ?? null,
+      sex: entry.racer_sex ?? entry.category_sex,
+      surname: entry.racer_surname || '',
+      firstName: entry.racer_name || '',
+      year: entry.racer_year ?? null,
+      categoryCode: categoryCode(category.category_name, entry.category_sex ?? entry.racer_sex),
+    })),
+  );
+  const setNumbers = [
+    ...new Set(entries.map((entry) => entry.setNumber).filter((n) => n != null)),
+  ].sort((a, b) => a - b);
   return {
     entries,
     sets: setNumbers.map((number) => ({ number, name: setName(number) })),
@@ -127,7 +137,7 @@ export function clubListInput(categories) {
       .filter((category) => (category.entries || []).length > 0)
       .map((category) => ({
         code: categoryCode(category.category_name, category.entries[0]?.category_sex),
-        name: category.category_name
-      }))
+        name: category.category_name,
+      })),
   };
 }

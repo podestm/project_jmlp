@@ -11,7 +11,9 @@ const OPTIONS = [
 describe('RadioList', () => {
   it('skupina s legendou, vybraná volba zaškrtnutá, klik pošle hodnotu', async () => {
     const onChange = vi.fn();
-    render(<RadioList label="Ke které sezóně" options={OPTIONS} value={2026} onChange={onChange} />);
+    render(
+      <RadioList label="Ke které sezóně" options={OPTIONS} value={2026} onChange={onChange} />,
+    );
     expect(screen.getByRole('group', { name: 'Ke které sezóně' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /2026\/27/ })).toBeChecked();
     expect(screen.getByText('aktuální sezóna')).toBeInTheDocument();

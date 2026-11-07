@@ -4,24 +4,24 @@ Složky ani sezóny se tu už nespravují: kam soubor patří, určuje příloha
 (fuj_jmlp_attachment) a systematický název. Zbývá filtrovat, přejmenovat,
 smazat a stáhnout všechno jako ZIP.
 """
+
 import logging
 import tempfile
 import zipfile
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...services import attachments as attachment_service
 from ...services import files as file_service
 from ...services import library as library_service
-from ...services import library_export
-from ...services import naming
+from ...services import library_export, naming
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +29,11 @@ router = APIRouter(prefix="/library", tags=["admin-library"])
 
 
 def library_filters(
-    q: Optional[str] = Query(None, description="Část názvu souboru"),
-    extension: Optional[str] = Query(None, description="Přípona, s tečkou i bez"),
-    owner_type: Optional[str] = Query(None, description="Kam je soubor připojený"),
-    date_from: Optional[date] = Query(None, description="Nahráno od (včetně)"),
-    date_to: Optional[date] = Query(None, description="Nahráno do (včetně)"),
+    q: str | None = Query(None, description="Část názvu souboru"),
+    extension: str | None = Query(None, description="Přípona, s tečkou i bez"),
+    owner_type: str | None = Query(None, description="Kam je soubor připojený"),
+    date_from: date | None = Query(None, description="Nahráno od (včetně)"),
+    date_to: date | None = Query(None, description="Nahráno do (včetně)"),
 ) -> library_service.LibraryFilters:
     """Filtry výpisu - stejné pro seznam i pro export, ať stahuje to, co je vidět."""
     if owner_type and owner_type not in library_service.FILTERABLE_OWNERS:
@@ -64,7 +64,7 @@ def list_library(
     filters: library_service.LibraryFilters = Depends(library_filters),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Soubory odpovídající filtru, od nejnovějšího."""
     files = library_service.list_files(db, filters)
     return {
@@ -77,10 +77,10 @@ def list_library(
 @router.put("/files/{file_id}")
 def rename_file(
     file_id: int,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Přejmenuje soubor. Příponu určuje soubor na disku, ne zadaný text."""
     file_record = _get_file(db, file_id)
 
@@ -88,17 +88,21 @@ def rename_file(
     try:
         new_name = naming.sanitize_manual_name(payload.get("name"), extension)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     # Kolace je case-insensitive, takže tohle chytne i "Propozice.pdf".
-    clash = db.query(models.File.id).filter(
-        models.File.original_filename == new_name,
-        models.File.id != file_id,
-    ).first()
+    clash = (
+        db.query(models.File.id)
+        .filter(
+            models.File.original_filename == new_name,
+            models.File.id != file_id,
+        )
+        .first()
+    )
     if clash:
         raise HTTPException(
             status_code=409,
-            detail=f"Soubor s názvem „{new_name}\" už v knihovně je",
+            detail=f'Soubor s názvem „{new_name}" už v knihovně je',
         )
 
     file_record.original_filename = new_name
@@ -112,7 +116,7 @@ def delete_file(
     force: bool = Query(False, description="Smazat i když je soubor použitý"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Smaže soubor z knihovny i z disku."""
     file_record = _get_file(db, file_id)
 
@@ -162,14 +166,15 @@ def export_library(
                 if not source.is_file():
                     logger.warning(
                         "Soubor %s (%s) chybí na disku, do archivu nepůjde",
-                        file_info["id"], file_info["filename"],
+                        file_info["id"],
+                        file_info["filename"],
                     )
                     continue
                 bundle.write(source, entry_names[file_info["id"]])
     except OSError:
         archive_path.unlink(missing_ok=True)
         logger.exception("Nepodařilo se sestavit archiv knihovny")
-        raise HTTPException(status_code=500, detail="Nepodařilo se sestavit archiv")
+        raise HTTPException(status_code=500, detail="Nepodařilo se sestavit archiv") from None
 
     # Až po odeslání odpovědi - dřív by se stahoval smazaný soubor.
     background_tasks.add_task(archive_path.unlink, missing_ok=True)

@@ -8,14 +8,19 @@ export default function DeleteZone({ race, onDelete }) {
   return (
     <section className={styles.zone} aria-labelledby="zavod-smazat">
       <span className={styles.text}>
-        <h2 id="zavod-smazat" className={styles.title}>Smazat závod</h2>
+        <h2 id="zavod-smazat" className={styles.title}>
+          Smazat závod
+        </h2>
         {count > 0 && (
           <span className={styles.desc}>
-            Smaže i <span className={styles.mono}>{count}</span> {registrationsWord(count)} a startovní listinu.
+            Smaže i <span className={styles.mono}>{count}</span> {registrationsWord(count)} a
+            startovní listinu.
           </span>
         )}
       </span>
-      <Button variant="danger" size="sm" icon="trash" onClick={onDelete}>Smazat závod</Button>
+      <Button variant="danger" size="sm" icon="trash" onClick={onDelete}>
+        Smazat závod
+      </Button>
     </section>
   );
 }

@@ -17,9 +17,18 @@ const SECTIONS = [
  * - block: na celou šířku (mobilní menu)
  * - compact: pod 1440 px jen ikony (lišta časomíry)
  */
-export default function SectionSwitch({ current, block = false, compact = false, onNavigate, className }) {
+export default function SectionSwitch({
+  current,
+  block = false,
+  compact = false,
+  onNavigate,
+  className,
+}) {
   return (
-    <nav aria-label="Přepnutí sekce" className={cx(styles.switch, block && styles.block, compact && styles.compact, className)}>
+    <nav
+      aria-label="Přepnutí sekce"
+      className={cx(styles.switch, block && styles.block, compact && styles.compact, className)}
+    >
       {SECTIONS.map((section) => {
         const content = (
           <>
@@ -28,7 +37,9 @@ export default function SectionSwitch({ current, block = false, compact = false,
           </>
         );
         return section.key === current ? (
-          <span key={section.key} className={cx(styles.option, styles.active)} aria-current="true">{content}</span>
+          <span key={section.key} className={cx(styles.option, styles.active)} aria-current="true">
+            {content}
+          </span>
         ) : (
           <Link
             key={section.key}

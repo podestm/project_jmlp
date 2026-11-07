@@ -41,7 +41,9 @@ export default function AdminLogin() {
       <div className={styles.content}>
         <div className={styles.brand}>
           <span className={styles.name}>JMLP Administrace</span>
-          <span className={styles.cup}>{CUP_NAME} · {edition} ročník</span>
+          <span className={styles.cup}>
+            {CUP_NAME} · {edition} ročník
+          </span>
         </div>
 
         <form className={styles.card} onSubmit={handleSubmit}>
@@ -57,9 +59,7 @@ export default function AdminLogin() {
               Do administrace se přihlaste účtem správce.
             </Alert>
           )}
-          {error && (
-            <Alert type="danger" compact title={error} />
-          )}
+          {error && <Alert type="danger" compact title={error} />}
 
           <Field label="E-mail" id="admin-email">
             <Input
@@ -84,7 +84,14 @@ export default function AdminLogin() {
           </Field>
 
           <Tooltip text="Platí i pro časomíru" className={styles.submit}>
-            <Button type="submit" variant="primary" size="lg" block iconEnd="arrow-right" busy={loading}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              block
+              iconEnd="arrow-right"
+              busy={loading}
+            >
               {loading ? 'Přihlašování…' : 'Přihlásit se'}
             </Button>
           </Tooltip>

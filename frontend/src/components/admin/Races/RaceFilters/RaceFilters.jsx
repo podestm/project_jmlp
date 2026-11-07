@@ -10,11 +10,15 @@ export default function RaceFilters({ seasonFilter, setSeasonFilter, availableSe
         <Select size="sm" value={seasonFilter} onChange={(e) => setSeasonFilter(e.target.value)}>
           <option value="">Všechny sezóny</option>
           {availableSeasons.map((season) => (
-            <option key={season} value={season}>{seasonOptionLabel(season)}</option>
+            <option key={season} value={season}>
+              {seasonOptionLabel(season)}
+            </option>
           ))}
         </Select>
       </Field>
-      <p className={styles.summary} aria-live="polite">{summary}</p>
+      <p className={styles.summary} aria-live="polite">
+        {summary}
+      </p>
     </div>
   );
 }

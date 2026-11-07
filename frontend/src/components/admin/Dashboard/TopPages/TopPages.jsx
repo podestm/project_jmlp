@@ -17,7 +17,9 @@ export default function TopPages({ pages }) {
         {pages.map((page) => (
           <li key={page.path} className={styles.item}>
             <span className={styles.row}>
-              <span className={styles.label} title={page.path}>{pathLabel(page.path)}</span>
+              <span className={styles.label} title={page.path}>
+                {pathLabel(page.path)}
+              </span>
               <span className={styles.count}>{formatCount(page.visits)}</span>
             </span>
             <span className={styles.track} aria-hidden="true">

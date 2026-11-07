@@ -5,6 +5,7 @@ a závod si nikde nedrží, na kolik kol se jede: jedna kategorie může jet ob�
 kola a jiná jen jedno. Listina se proto řídí naměřenými daty a do hlavičky se
 tiskne jen to kolo, které je vyplněné (viz frontend/src/pdf/resultsPdf.js).
 """
+
 from datetime import date
 
 import pytest
@@ -33,20 +34,24 @@ def zavod(db):
 
 
 def _uloz(client, zavod, hlavicky, telo):
-    odpoved = client.put(f"/api/timekeeper/races/{zavod.id}/detail",
-                         json=telo, headers=hlavicky)
+    odpoved = client.put(f"/api/timekeeper/races/{zavod.id}/detail", json=telo, headers=hlavicky)
     assert odpoved.status_code == 200, odpoved.text
     return odpoved.json()
 
 
 def test_ulozi_udaje_obou_kol(client, zavod, timekeeper_headers):
-    ulozeno = _uloz(client, zavod, timekeeper_headers, {
-        "race_director": "Jan Ředitel",
-        "runs": [
-            {"run_number": 1, "course_setter": "Stavitel A", "gates_count": 12},
-            {"run_number": 2, "course_setter": "Stavitel B", "gates_count": 14},
-        ],
-    })
+    ulozeno = _uloz(
+        client,
+        zavod,
+        timekeeper_headers,
+        {
+            "race_director": "Jan Ředitel",
+            "runs": [
+                {"run_number": 1, "course_setter": "Stavitel A", "gates_count": 12},
+                {"run_number": 2, "course_setter": "Stavitel B", "gates_count": 14},
+            ],
+        },
+    )
 
     assert ulozeno["race_director"] == "Jan Ředitel"
     assert [kolo["run_number"] for kolo in ulozeno["runs"]] == [1, 2]
@@ -55,12 +60,17 @@ def test_ulozi_udaje_obou_kol(client, zavod, timekeeper_headers):
 
 def test_druhe_kolo_zustane_ulozene_i_po_dalsim_ulozeni(client, zavod, timekeeper_headers):
     """Dřív se kolo nad rámec "počtu kol" mazalo - a počet kol už se nenastavuje."""
-    _uloz(client, zavod, timekeeper_headers, {
-        "runs": [
-            {"run_number": 1, "course_setter": "Stavitel A"},
-            {"run_number": 2, "course_setter": "Stavitel B"},
-        ],
-    })
+    _uloz(
+        client,
+        zavod,
+        timekeeper_headers,
+        {
+            "runs": [
+                {"run_number": 1, "course_setter": "Stavitel A"},
+                {"run_number": 2, "course_setter": "Stavitel B"},
+            ],
+        },
+    )
 
     ulozeno = _uloz(client, zavod, timekeeper_headers, {"chief_timekeeper": "Karel Čas"})
 
@@ -70,13 +80,18 @@ def test_druhe_kolo_zustane_ulozene_i_po_dalsim_ulozeni(client, zavod, timekeepe
 
 def test_pocet_kol_se_zavodu_nenastavuje(client, zavod, timekeeper_headers):
     """Starší klient může run_count ještě posílat - musí se tiše ignorovat."""
-    ulozeno = _uloz(client, zavod, timekeeper_headers, {
-        "run_count": 1,
-        "runs": [
-            {"run_number": 1, "course_setter": "Stavitel A"},
-            {"run_number": 2, "course_setter": "Stavitel B"},
-        ],
-    })
+    ulozeno = _uloz(
+        client,
+        zavod,
+        timekeeper_headers,
+        {
+            "run_count": 1,
+            "runs": [
+                {"run_number": 1, "course_setter": "Stavitel A"},
+                {"run_number": 2, "course_setter": "Stavitel B"},
+            ],
+        },
+    )
 
     assert "run_count" not in ulozeno
     assert [kolo["run_number"] for kolo in ulozeno["runs"]] == [1, 2]
@@ -95,23 +110,43 @@ def test_detail_nese_obrazek_sponzoru(client, db, zavod, timekeeper_headers):
     assert bez["sponsors_url"] is None
 
     soubor = models.File(
-        filename="sponzori-abc.png", original_filename="sponzori.png",
-        file_path="uploads/documents/sponzori-abc.png", file_size=10,
-        mime_type="image/png", file_type=models.FileTypeEnum.image,
+        filename="sponzori-abc.png",
+        original_filename="sponzori.png",
+        file_path="uploads/documents/sponzori-abc.png",
+        file_size=10,
+        mime_type="image/png",
+        file_type=models.FileTypeEnum.image,
     )
     db.add(soubor)
     db.commit()
-    db.add(models.Attachment(file_id=soubor.id, owner_type="race", owner_id=zavod.id,
-                             role="sponzori", published=True, sort_order=0))
+    db.add(
+        models.Attachment(
+            file_id=soubor.id,
+            owner_type="race",
+            owner_id=zavod.id,
+            role="sponzori",
+            published=True,
+            sort_order=0,
+        )
+    )
     db.commit()
 
-    detail = client.get(f"/api/timekeeper/races/{zavod.id}/detail", headers=timekeeper_headers).json()
+    detail = client.get(
+        f"/api/timekeeper/races/{zavod.id}/detail", headers=timekeeper_headers
+    ).json()
     assert detail["sponsors_url"] == "/uploads/documents/sponzori-abc.png"
 
 
 def test_delka_trati_je_text_jako_v_lize(client, zavod, timekeeper_headers):
-    ulozeno = _uloz(client, zavod, timekeeper_headers, {
-        "runs": [{"run_number": 1, "course_length_m": "400m, 7 stanovišť"},
-                 {"run_number": 2, "course_length_m": 350}],
-    })
+    ulozeno = _uloz(
+        client,
+        zavod,
+        timekeeper_headers,
+        {
+            "runs": [
+                {"run_number": 1, "course_length_m": "400m, 7 stanovišť"},
+                {"run_number": 2, "course_length_m": 350},
+            ],
+        },
+    )
     assert [kolo["course_length_m"] for kolo in ulozeno["runs"]] == ["400m, 7 stanovišť", "350"]

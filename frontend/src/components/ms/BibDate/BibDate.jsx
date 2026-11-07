@@ -29,7 +29,9 @@ export default function BibDate({ date, variant = 'table', className }) {
           <>
             <span className={styles.caps}>{parts.weekdayShort}</span>
             <span className={styles.number}>{parts.day}</span>
-            <span className={cx(styles.caps, styles.accent)}>{parts.monthShort} {parts.yearShort}</span>
+            <span className={cx(styles.caps, styles.accent)}>
+              {parts.monthShort} {parts.yearShort}
+            </span>
           </>
         )}
         {variant === 'row' && (

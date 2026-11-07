@@ -481,7 +481,7 @@
       "acceptance": [
         "GitHub Actions run lint, style rules, frontend tests, build, backend tests on MySQL and the harness self-test on pushes to dev/main and pull requests to dev/main",
         "The test environment deploys a dev commit only after CI passed on it",
-        "Merging a PR dev -> main deploys that commit to production after CI passed (GitHub job `deploy` over an SSH key restricted to deploy/prod/ssh-deploy.sh, optional approval), never on weekends, with a DB dump and image tags before and automatic rollback if /health fails",
+        "Merging a PR dev -> main deploys that commit to production after CI passed (GitHub job `deploy` over an SSH key restricted to deploy/prod/ssh-deploy.sh, optional approval), with a DB dump and image tags before and automatic rollback if /health fails",
         "The main ruleset requires the frontend, backend and harness checks before merge"
       ],
       "checks": [
@@ -492,9 +492,12 @@
         "deploy/test/auto-deploy-dev.sh"
       ],
       "e2e": [],
-      "status": "unverified",
-      "verified": null,
-      "notes": "CI green on GitHub; deploy script dry-run with stubbed docker/curl passed 9 scenarios; forced-command filter tested. Passing after the first real deployment through the GitHub job and the required checks are set."
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "first production deployment (721a036) + GitHub deploy job re-run green; CI green on dev and main"
+      },
+      "notes": "Deploy timing is the merger's call (owner's decision): no weekend block."
     },
     {
       "id": "HAR-06",
@@ -509,6 +512,42 @@
       "e2e": [],
       "status": "todo",
       "verified": null
+    },
+    {
+      "id": "PERF-01",
+      "area": "performance",
+      "title": "Live timing for 1000 concurrent viewers",
+      "acceptance": [
+        "`harness/load/run.sh live` sustains 200 req/s (1000 viewers polling every 5 s) at p95 ≤ 1 s and < 1 % errors on the production hardware"
+      ],
+      "checks": [
+        "harness/load/run.sh",
+        "backend/app/tests/test_live_cache.py"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/load/run.sh live: 1000 viewers p95 4 ms, 1600 viewers p95 144 ms (harness/load/results/2026-11-07-live-cache.md); backend suite 810 passed"
+      },
+      "notes": "Live payload cached as encoded JSON for 2 s per worker (services/live_cache.py), stale fallback capped at 4 s. Above ~1600 viewers the same-host load generator becomes the limit."
+    },
+    {
+      "id": "PERF-02",
+      "area": "performance",
+      "title": "200 concurrent race registrations",
+      "acceptance": [
+        "`harness/load/run.sh registration` sustains at least 200 registrations within 20 s at p95 ≤ 2 s, every registration stored exactly once"
+      ],
+      "checks": [
+        "harness/load/run.sh"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/load/run.sh all: 32/s, p95 21 ms, 1984 stored, 0 duplicates"
+      }
     }
   ]
 }

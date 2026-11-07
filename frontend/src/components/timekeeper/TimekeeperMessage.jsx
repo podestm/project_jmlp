@@ -11,7 +11,13 @@ import styles from './TimekeeperMessage.module.css';
 export default function TimekeeperMessage({ message, onDismiss }) {
   if (!message) return null;
   return (
-    <Alert type={message.type} compact autoDismissDelay={0} onDismiss={onDismiss} className={styles.message}>
+    <Alert
+      type={message.type}
+      compact
+      autoDismissDelay={0}
+      onDismiss={onDismiss}
+      className={styles.message}
+    >
       {message.text}
     </Alert>
   );

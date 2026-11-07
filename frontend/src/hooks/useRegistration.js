@@ -9,283 +9,304 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
  * řada závodnic). Pohlaví je povinné a vybírá se pokaždé.
  */
 const EMPTY_FORM = Object.freeze({
-    name: '',
-    surname: '',
-    year: '',
-    sex: '', // 1 = muž, 2 = žena
-    clubId: null,
-    clubNoteMode: false,
-    clubNote: '',
-    telefon: '',
-    email: '',
-    slcr_id: ''
+  name: '',
+  surname: '',
+  year: '',
+  sex: '', // 1 = muž, 2 = žena
+  clubId: null,
+  clubNoteMode: false,
+  clubNote: '',
+  telefon: '',
+  email: '',
+  slcr_id: '',
 });
 
 const NO_ERRORS = Object.freeze({ name: '', surname: '', year: '', sex: '', club: '', email: '' });
 
 export const useRegistration = (raceId, onSuccess) => {
-    // Formulářová data
-    const [formData, setFormData] = useState({ ...EMPTY_FORM });
+  // Formulářová data
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
 
-    // Seznam vyfiltrovaných závodníků
-    const [filteredRacers, setFilteredRacers] = useState([]);
+  // Seznam vyfiltrovaných závodníků
+  const [filteredRacers, setFilteredRacers] = useState([]);
 
-    // Vybraný závodník ze seznamu (pokud nějaký)
-    const [selectedRacer, setSelectedRacer] = useState(null);
+  // Vybraný závodník ze seznamu (pokud nějaký)
+  const [selectedRacer, setSelectedRacer] = useState(null);
 
-    // Klub seznam pro autocomplete
-    const [clubs, setClubs] = useState([]);
+  // Klub seznam pro autocomplete
+  const [clubs, setClubs] = useState([]);
 
-    // UI state
-    const [message, setMessage] = useState(null); // {type, text} – hláška nad formulářem přihlášky
-    const [isSearching, setIsSearching] = useState(false);
-    // Přihláška se právě odesílá – tlačítko je zamčené, aby nevznikla dvakrát
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [fieldErrors, setFieldErrors] = useState({ ...NO_ERRORS });
-    const [clubNoteMode, setClubNoteMode] = useState(false);
+  // UI state
+  const [message, setMessage] = useState(null); // {type, text} – hláška nad formulářem přihlášky
+  const [isSearching, setIsSearching] = useState(false);
+  // Přihláška se právě odesílá – tlačítko je zamčené, aby nevznikla dvakrát
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ ...NO_ERRORS });
+  const [clubNoteMode, setClubNoteMode] = useState(false);
 
-    // Načtení klubů
-    useEffect(() => {
-        fetch('/clubs/').then(r => r.json()).then(setClubs);
-    }, []);
+  // Načtení klubů
+  useEffect(() => {
+    fetch('/clubs/')
+      .then((r) => r.json())
+      .then(setClubs);
+  }, []);
 
-    // Debounced search funkce
-    const searchRacers = useCallback(
-        useMemo(() => {
-            let timeoutId;
-            return (searchParams) => {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(async () => {
-                    if (!searchParams.name && !searchParams.surname && !searchParams.club && !searchParams.slcr_id) {
-                        setFilteredRacers([]);
-                        return;
-                    }
-                    
-                    setIsSearching(true);
-                    try {
-                        const params = new URLSearchParams();
-                        if (searchParams.name) params.append('name', searchParams.name);
-                        if (searchParams.surname) params.append('surname', searchParams.surname);
-                        if (searchParams.club) params.append('club', searchParams.club);
-                        if (searchParams.slcr_id) params.append('slcr_id', searchParams.slcr_id);
-                        
-                        const response = await fetch(`/racers/search?${params}`);
-                        const data = await response.json();
-                        setFilteredRacers(data);
-                    } catch (error) {
-                        console.error('Search error:', error);
-                        setFilteredRacers([]);
-                    } finally {
-                        setIsSearching(false);
-                    }
-                }, 300);
-            };
-        }, [])
-    );
-
-    // Aktualizace pole formuláře
-    const updateField = useCallback((field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        setSelectedRacer(null);
-        setMessage(null);
-        if (['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote', 'email'].includes(field)) {
-            setFieldErrors(prev => ({ ...prev, [field === 'clubId' || field === 'clubNote' ? 'club' : field]: '' }));
-        }
-
-        // Trigger search při změně relevantních polí
-        if (['name', 'surname', 'slcr_id'].includes(field)) {
-            const updatedData = { ...formData, [field]: value };
-            searchRacers({
-                name: updatedData.name,
-                surname: updatedData.surname,
-                slcr_id: updatedData.slcr_id
-            });
-        }
-    }, [formData, searchRacers]);
-
-    // Výběr existujícího závodníka
-    const selectExistingRacer = (racer) => {
-        // Pokud závodník má klub, předvyplníme ho
-        const existingClubId = racer.club_id || null;
-        setFormData({
-            name: racer.name,
-            surname: racer.surname,
-            year: racer.year,
-            sex: racer.sex,
-            clubId: existingClubId,
-            clubNoteMode: false,
-            clubNote: '',
-            telefon: '', // Záměrně prázdné - nechceme automaticky vyplňovat
-            email: '',   // Záměrně prázdné - nechceme automaticky vyplňovat
-            slcr_id: racer.slcr_id || ''
-        });
-        setClubNoteMode(false);
-        setSelectedRacer(racer);
-        setMessage({ type: 'info', text: `Vybrán existující závodník: ${racer.name} ${racer.surname}` });
-        setFieldErrors({ ...NO_ERRORS });
-    };
-
-    // Submit registration
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setMessage(null);
-
-        // Validace povinných polí
-        const errors = {};
-        if (!formData.name.trim()) errors.name = 'Jméno je povinné';
-        if (!formData.surname.trim()) errors.surname = 'Příjmení je povinné';
-        // Formulář má noValidate (české hlášky u polí místo bublin prohlížeče),
-        // proto rozsah ročníku a tvar e-mailu hlídáme tady.
-        const year = Number(formData.year);
-        if (!formData.year) errors.year = 'Rok narození je povinný';
-        else if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
-            errors.year = 'Ročník má čtyři číslice, například 2015.';
-        }
-        if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-            errors.email = 'E-mail nemá správný tvar, například vas@email.cz.';
-        }
-        if (![1, 2].includes(Number(formData.sex))) errors.sex = 'Vyberte pohlaví';
-        if (!formData.clubId && !(formData.clubNote && formData.clubNote.trim())) {
-            errors.club = 'Vyberte klub nebo zadejte poznámku';
-        } else if (!formData.clubId && formData.clubNote) {
-            const note = formData.clubNote.trim();
-            if (note.length > 100) {
-                errors.club = 'Název klubu může mít nejvýše 100 znaků';
-            } else if (!/^[a-zA-Z0-9\u00C0-\u017E\s\-.]+$/.test(note)) {
-                errors.club = 'Název klubu smí obsahovat pouze písmena (včetně háčků), číslice, mezery, pomlčky a tečky';
-            }
-        }
-        if (Object.keys(errors).length > 0) {
-            setFieldErrors(errors);
+  // Debounced search funkce
+  const searchRacers = useCallback(
+    useMemo(() => {
+      let timeoutId;
+      return (searchParams) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+          if (
+            !searchParams.name &&
+            !searchParams.surname &&
+            !searchParams.club &&
+            !searchParams.slcr_id
+          ) {
+            setFilteredRacers([]);
             return;
-        }
-        if (isSubmitting) return;
-        setIsSubmitting(true);
+          }
 
-        // Detekce existujícího závodníka - hledáme v celé databázi
-        let exactMatch = null;
-        try {
+          setIsSearching(true);
+          try {
             const params = new URLSearchParams();
-            params.append('name', formData.name.trim());
-            params.append('surname', formData.surname.trim());
-            
+            if (searchParams.name) params.append('name', searchParams.name);
+            if (searchParams.surname) params.append('surname', searchParams.surname);
+            if (searchParams.club) params.append('club', searchParams.club);
+            if (searchParams.slcr_id) params.append('slcr_id', searchParams.slcr_id);
+
             const response = await fetch(`/racers/search?${params}`);
-            const allMatches = await response.json();
-            
-            exactMatch = allMatches.find(r => 
-                r.name.toLowerCase() === formData.name.trim().toLowerCase() &&
-                r.surname.toLowerCase() === formData.surname.trim().toLowerCase() &&
-                r.year === parseInt(formData.year, 10)
-            );
-        } catch (error) {
-            console.error('Error checking for existing racer:', error);
-        }
+            const data = await response.json();
+            setFilteredRacers(data);
+          } catch (error) {
+            console.error('Search error:', error);
+            setFilteredRacers([]);
+          } finally {
+            setIsSearching(false);
+          }
+        }, 300);
+      };
+    }, []),
+  );
 
-        const payload = {
-            race_id: raceId,
-            club_id: formData.clubId || null,
-            club_request_note: (!formData.clubId && formData.clubNote && formData.clubNote.trim())
-                ? formData.clubNote.trim()
-                : null
-        };
+  // Aktualizace pole formuláře
+  const updateField = useCallback(
+    (field, value) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      setSelectedRacer(null);
+      setMessage(null);
+      if (
+        ['name', 'surname', 'year', 'sex', 'club', 'clubId', 'clubNote', 'email'].includes(field)
+      ) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [field === 'clubId' || field === 'clubNote' ? 'club' : field]: '',
+        }));
+      }
 
-        if (exactMatch) {
-            // Existující závodník. Jméno, příjmení a ročník jdou s přihláškou jako
-            // důkaz totožnosti - backend podle nich smí opravit pohlaví (když ho
-            // uživatel ve formuláři změnil) a přepsat kontakty. Bez nich se oprava
-            // pohlaví tiše zahodila a závodník zůstal ve špatné kategorii.
-            payload.racer_id = exactMatch.id;
-            payload.racer_name = formData.name.trim();
-            payload.racer_surname = formData.surname.trim();
-            payload.racer_year = parseInt(formData.year, 10);
-            payload.racer_sex = Number(formData.sex);
-            if (formData.telefon.trim()) {
-                payload.racer_telefon = formData.telefon.trim();
-            }
-            if (formData.email.trim()) {
-                payload.racer_email = formData.email.trim();
-            }
-            if (formData.slcr_id.trim()) {
-                payload.racer_slcr_id = formData.slcr_id.trim();
-            }
-        } else {
-            // Vytvořit nového závodníka
-            payload.racer_name = formData.name.trim();
-            payload.racer_surname = formData.surname.trim();
-            payload.racer_year = formData.year;
-            payload.racer_sex = Number(formData.sex);
-            payload.racer_telefon = formData.telefon.trim();
-            payload.racer_email = formData.email.trim();
-            payload.racer_slcr_id = formData.slcr_id.trim();
-        }
+      // Trigger search při změně relevantních polí
+      if (['name', 'surname', 'slcr_id'].includes(field)) {
+        const updatedData = { ...formData, [field]: value };
+        searchRacers({
+          name: updatedData.name,
+          surname: updatedData.surname,
+          slcr_id: updatedData.slcr_id,
+        });
+      }
+    },
+    [formData, searchRacers],
+  );
 
-        try {
-            const response = await fetch(`/races/${raceId}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+  // Výběr existujícího závodníka
+  const selectExistingRacer = (racer) => {
+    // Pokud závodník má klub, předvyplníme ho
+    const existingClubId = racer.club_id || null;
+    setFormData({
+      name: racer.name,
+      surname: racer.surname,
+      year: racer.year,
+      sex: racer.sex,
+      clubId: existingClubId,
+      clubNoteMode: false,
+      clubNote: '',
+      telefon: '', // Záměrně prázdné - nechceme automaticky vyplňovat
+      email: '', // Záměrně prázdné - nechceme automaticky vyplňovat
+      slcr_id: racer.slcr_id || '',
+    });
+    setClubNoteMode(false);
+    setSelectedRacer(racer);
+    setMessage({
+      type: 'info',
+      text: `Vybrán existující závodník: ${racer.name} ${racer.surname}`,
+    });
+    setFieldErrors({ ...NO_ERRORS });
+  };
 
-            if (response.ok) {
-                const result = await response.json();
-                setMessage({ type: 'success', text: `Registrace úspěšná! ${result.message || ''}`.trim() });
+  // Submit registration
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage(null);
 
-                // Reset formuláře
-                setFormData({ ...EMPTY_FORM });
-                setClubNoteMode(false);
-                setFilteredRacers([]);
-                setSelectedRacer(null);
-                setFieldErrors({ ...NO_ERRORS });
-                
-                if (onSuccess) onSuccess(result);
-            } else {
-                const error = await response.json();
-                setMessage({ type: 'danger', text: `Chyba: ${error.detail || 'Registrace se nezdařila'}` });
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            setMessage({ type: 'danger', text: 'Chyba spojení se serverem' });
-        } finally {
-            setIsSubmitting(false);
-        }
+    // Validace povinných polí
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'Jméno je povinné';
+    if (!formData.surname.trim()) errors.surname = 'Příjmení je povinné';
+    // Formulář má noValidate (české hlášky u polí místo bublin prohlížeče),
+    // proto rozsah ročníku a tvar e-mailu hlídáme tady.
+    const year = Number(formData.year);
+    if (!formData.year) errors.year = 'Rok narození je povinný';
+    else if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) {
+      errors.year = 'Ročník má čtyři číslice, například 2015.';
+    }
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = 'E-mail nemá správný tvar, například vas@email.cz.';
+    }
+    if (![1, 2].includes(Number(formData.sex))) errors.sex = 'Vyberte pohlaví';
+    if (!formData.clubId && !(formData.clubNote && formData.clubNote.trim())) {
+      errors.club = 'Vyberte klub nebo zadejte poznámku';
+    } else if (!formData.clubId && formData.clubNote) {
+      const note = formData.clubNote.trim();
+      if (note.length > 100) {
+        errors.club = 'Název klubu může mít nejvýše 100 znaků';
+      } else if (!/^[a-zA-Z0-9\u00C0-\u017E\s\-.]+$/.test(note)) {
+        errors.club =
+          'Název klubu smí obsahovat pouze písmena (včetně háčků), číslice, mezery, pomlčky a tečky';
+      }
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    // Detekce existujícího závodníka - hledáme v celé databázi
+    let exactMatch = null;
+    try {
+      const params = new URLSearchParams();
+      params.append('name', formData.name.trim());
+      params.append('surname', formData.surname.trim());
+
+      const response = await fetch(`/racers/search?${params}`);
+      const allMatches = await response.json();
+
+      exactMatch = allMatches.find(
+        (r) =>
+          r.name.toLowerCase() === formData.name.trim().toLowerCase() &&
+          r.surname.toLowerCase() === formData.surname.trim().toLowerCase() &&
+          r.year === parseInt(formData.year, 10),
+      );
+    } catch (error) {
+      console.error('Error checking for existing racer:', error);
+    }
+
+    const payload = {
+      race_id: raceId,
+      club_id: formData.clubId || null,
+      club_request_note:
+        !formData.clubId && formData.clubNote && formData.clubNote.trim()
+          ? formData.clubNote.trim()
+          : null,
     };
 
-    // Reset formuláře
-    const resetForm = () => {
+    if (exactMatch) {
+      // Existující závodník. Jméno, příjmení a ročník jdou s přihláškou jako
+      // důkaz totožnosti - backend podle nich smí opravit pohlaví (když ho
+      // uživatel ve formuláři změnil) a přepsat kontakty. Bez nich se oprava
+      // pohlaví tiše zahodila a závodník zůstal ve špatné kategorii.
+      payload.racer_id = exactMatch.id;
+      payload.racer_name = formData.name.trim();
+      payload.racer_surname = formData.surname.trim();
+      payload.racer_year = parseInt(formData.year, 10);
+      payload.racer_sex = Number(formData.sex);
+      if (formData.telefon.trim()) {
+        payload.racer_telefon = formData.telefon.trim();
+      }
+      if (formData.email.trim()) {
+        payload.racer_email = formData.email.trim();
+      }
+      if (formData.slcr_id.trim()) {
+        payload.racer_slcr_id = formData.slcr_id.trim();
+      }
+    } else {
+      // Vytvořit nového závodníka
+      payload.racer_name = formData.name.trim();
+      payload.racer_surname = formData.surname.trim();
+      payload.racer_year = formData.year;
+      payload.racer_sex = Number(formData.sex);
+      payload.racer_telefon = formData.telefon.trim();
+      payload.racer_email = formData.email.trim();
+      payload.racer_slcr_id = formData.slcr_id.trim();
+    }
+
+    try {
+      const response = await fetch(`/races/${raceId}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setMessage({ type: 'success', text: `Registrace úspěšná! ${result.message || ''}`.trim() });
+
+        // Reset formuláře
         setFormData({ ...EMPTY_FORM });
         setClubNoteMode(false);
         setFilteredRacers([]);
         setSelectedRacer(null);
-        setMessage(null);
         setFieldErrors({ ...NO_ERRORS });
-    };
 
-    // Utility funkce
-    const getSexLabel = (sex) => {
-        return sex === 1 ? 'Muž' : 'Žena';
-    };
+        if (onSuccess) onSuccess(result);
+      } else {
+        const error = await response.json();
+        setMessage({ type: 'danger', text: `Chyba: ${error.detail || 'Registrace se nezdařila'}` });
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setMessage({ type: 'danger', text: 'Chyba spojení se serverem' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    return {
-        // State
-        formData,
-        filteredRacers,
-        selectedRacer,
-        clubs,
-        clubNoteMode,
-        message,
-        isSearching,
-        isSubmitting,
-        fieldErrors,
+  // Reset formuláře
+  const resetForm = () => {
+    setFormData({ ...EMPTY_FORM });
+    setClubNoteMode(false);
+    setFilteredRacers([]);
+    setSelectedRacer(null);
+    setMessage(null);
+    setFieldErrors({ ...NO_ERRORS });
+  };
 
-        // Setters
-        setMessage,
-        setClubNoteMode,
+  // Utility funkce
+  const getSexLabel = (sex) => {
+    return sex === 1 ? 'Muž' : 'Žena';
+  };
 
-        // Functions
-        updateField,
-        selectExistingRacer,
-        handleSubmit,
-        resetForm,
-        getSexLabel
-    };
+  return {
+    // State
+    formData,
+    filteredRacers,
+    selectedRacer,
+    clubs,
+    clubNoteMode,
+    message,
+    isSearching,
+    isSubmitting,
+    fieldErrors,
+
+    // Setters
+    setMessage,
+    setClubNoteMode,
+
+    // Functions
+    updateField,
+    selectExistingRacer,
+    handleSubmit,
+    resetForm,
+    getSexLabel,
+  };
 };

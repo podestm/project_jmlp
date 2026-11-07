@@ -8,7 +8,10 @@ const mockSeasons = vi.fn();
 const mockRemove = vi.fn();
 const mockPublish = vi.fn();
 vi.mock('../../../config/libraryApi.js', () => ({
-  OWNER_FILTERS: [{ value: '', label: 'Kdekoli' }, { value: 'library', label: 'Nikde nepoužité' }],
+  OWNER_FILTERS: [
+    { value: '', label: 'Kdekoli' },
+    { value: 'library', label: 'Nikde nepoužité' },
+  ],
   LibraryAPI: {
     list: (...args) => mockList(...args),
     seasons: (...args) => mockSeasons(...args),
@@ -22,18 +25,55 @@ vi.mock('../../../config/libraryApi.js', () => ({
 const { default: DocumentLibrary } = await import('./DocumentLibrary.jsx');
 
 const FILES = [
-  { id: 1, original_filename: 'IMG_2291.jpg', file_size: 2202009, uploaded_at: '2026-09-20T10:00:00', download_url: '/uploads/documents/a.jpg', usage_info: [] },
   {
-    id: 2, original_filename: 'Soutěžní řád.pdf', file_size: 216985, uploaded_at: '2026-09-16T10:00:00', download_url: '/uploads/documents/b.pdf',
-    usage_info: [{ type: 'Sezóna', title: '2026/2027', owner_type: 'season', owner_id: 2026, role: 'document', published: true }],
+    id: 1,
+    original_filename: 'IMG_2291.jpg',
+    file_size: 2202009,
+    uploaded_at: '2026-09-20T10:00:00',
+    download_url: '/uploads/documents/a.jpg',
+    usage_info: [],
+  },
+  {
+    id: 2,
+    original_filename: 'Soutěžní řád.pdf',
+    file_size: 216985,
+    uploaded_at: '2026-09-16T10:00:00',
+    download_url: '/uploads/documents/b.pdf',
+    usage_info: [
+      {
+        type: 'Sezóna',
+        title: '2026/2027',
+        owner_type: 'season',
+        owner_id: 2026,
+        role: 'document',
+        published: true,
+      },
+    ],
   },
 ];
 const SEASONS = [
-  { year_start: 2026, season_label: '2026/2027', edition_label: 'XX.', active: true, documents_count: 2 },
-  { year_start: 2025, season_label: '2025/2026', edition_label: 'XIX.', active: false, documents_count: 5 },
+  {
+    year_start: 2026,
+    season_label: '2026/2027',
+    edition_label: 'XX.',
+    active: true,
+    documents_count: 2,
+  },
+  {
+    year_start: 2025,
+    season_label: '2025/2026',
+    edition_label: 'XIX.',
+    active: false,
+    documents_count: 5,
+  },
 ];
 
-const renderScreen = () => render(<MemoryRouter><DocumentLibrary /></MemoryRouter>);
+const renderScreen = () =>
+  render(
+    <MemoryRouter>
+      <DocumentLibrary />
+    </MemoryRouter>,
+  );
 
 describe('knihovna dokumentů', () => {
   beforeEach(() => {
@@ -88,11 +128,15 @@ describe('knihovna dokumentů', () => {
   it('zveřejnění: výběr sezóny, výchozí aktuální', async () => {
     renderScreen();
     await screen.findByRole('table', { name: 'Soubory knihovny' });
-    await userEvent.click(screen.getByRole('button', { name: 'Zveřejnit soubor IMG_2291.jpg na webu' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Zveřejnit soubor IMG_2291.jpg na webu' }),
+    );
     const dialog = screen.getByRole('dialog', { name: 'Zveřejnit „IMG_2291.jpg“ na webu?' });
     expect(within(dialog).getByRole('radio', { name: /2026\/2027 · XX\. ročník/ })).toBeChecked();
     await userEvent.click(within(dialog).getByRole('radio', { name: /2025\/2026/ }));
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Zveřejnit u sezóny 2025/2026' }));
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Zveřejnit u sezóny 2025/2026' }),
+    );
     expect(mockPublish).toHaveBeenCalledWith(1, 2025);
   });
 });
