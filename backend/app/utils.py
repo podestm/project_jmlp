@@ -60,10 +60,8 @@ def get_current_season_id(reference_date: date | None = None) -> int:
 
     # season_id v databázi je POČÁTEČNÍ rok sezóny.
     # Sezóna 2025 = 1.8.2025 - 31.7.2026 (viz fuj_jmlp_race.season_id)
-    if reference_date.month >= 8:  # srpen a později - začíná nová sezóna
-        season_id = year
-    else:  # leden až červenec - stále běží sezóna začínající loni
-        season_id = year - 1
+    # Srpen a později začíná nová sezóna; leden až červenec stále běží sezóna začínající loni.
+    season_id = year if reference_date.month >= 8 else year - 1
 
     return season_id
 

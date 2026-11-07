@@ -100,7 +100,7 @@ def _cisla(
     """Sada dresových čísel. actual = číslo na dresu, display = označení "B12"
     (písmeno sady + dres); display_from zůstává jen kvůli starým voláním."""
     vytvorena = []
-    for posun, actual in enumerate(range(actual_from, actual_to + 1)):
+    for actual in range(actual_from, actual_to + 1):
         cislo = models.RaceNumber(
             set_number=set_number,
             set_color=color,

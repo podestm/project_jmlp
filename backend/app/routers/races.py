@@ -231,7 +231,7 @@ def calculate_season_for_date_endpoint(race_date: str):
             "season_period": f"1.8.{season_id} - 31.7.{season_id + 1}",
         }
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/{race_id}", response_model=schemas.Race)
@@ -347,7 +347,7 @@ def get_registrations(race_id: int, db: Session = Depends(get_db)):
     # Convert to list and add counts
     club_list = []
     total_racers = 0
-    for club_name, club_data in clubs.items():
+    for club_data in clubs.values():
         club_data["racer_count"] = len(club_data["racers"])
         club_list.append(club_data)
         total_racers += club_data["racer_count"]

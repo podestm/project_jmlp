@@ -148,7 +148,9 @@ def create_racer(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=409, detail=_duplicate_message(columns, None, None))
+        raise HTTPException(
+            status_code=409, detail=_duplicate_message(columns, None, None)
+        ) from None
     db.refresh(db_racer)
 
     # Fix encoding in the returned racer data
@@ -187,7 +189,9 @@ def update_racer(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=409, detail=_duplicate_message(columns, None, None))
+        raise HTTPException(
+            status_code=409, detail=_duplicate_message(columns, None, None)
+        ) from None
     db.refresh(db_racer)
 
     # Fix encoding in the returned racer data

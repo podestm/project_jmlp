@@ -209,11 +209,11 @@ def create_registration(payload: schemas.RegistrationCreate, db: Session = Depen
         # Záložní pojistka - duplicitu řeší pre-check výše, sem se dostaneme jen při závodu dvou requestů
         db.rollback()
         logger.warning("Duplicitní registrace race_id=%s racer_id=%s", payload.race_id, racer.id)
-        raise StandardExceptions.already_registered()
+        raise StandardExceptions.already_registered() from None
     except Exception:
         db.rollback()
         logger.exception("Uložení registrace selhalo (race_id=%s)", payload.race_id)
-        raise StandardExceptions.internal_error("Registraci se nepodařilo uložit")
+        raise StandardExceptions.internal_error("Registraci se nepodařilo uložit") from None
 
     db.refresh(reg)
     return reg

@@ -439,7 +439,7 @@ def test_aktualita_vraci_odkazy_na_obrazek_i_dokument(client, db):
 
 def test_prilohy_se_neprelivaji_mezi_aktualitami(client, db):
     prvni = _aktualita(db, "Prvni", created_at=datetime(2026, 3, 2))
-    druha = _aktualita(db, "Druha", created_at=datetime(2026, 3, 1))
+    _aktualita(db, "Druha", created_at=datetime(2026, 3, 1))
     soubor = _soubor(db, "jen-k-prvni.pdf")
     _priloha(db, soubor.id, "post", prvni.id, "document")
 

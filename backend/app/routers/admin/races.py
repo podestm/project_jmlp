@@ -223,7 +223,7 @@ def create_race(
         try:
             race_dict["datum"] = parse_date_string(race_dict["datum"])
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Finále je jen závod na sněhu - suchý (přípravný) závod finálem být nemůže.
     race_dict["is_final"] = (
@@ -397,7 +397,7 @@ def delete_race(
     except Exception:
         db.rollback()
         logger.exception("Mazání závodu %s selhalo", race_id)
-        raise HTTPException(status_code=500, detail="Chyba při mazání závodu")
+        raise HTTPException(status_code=500, detail="Chyba při mazání závodu") from None
 
 
 @router.get("/autocomplete/areals")

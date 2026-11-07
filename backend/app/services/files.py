@@ -85,7 +85,7 @@ def store_document_bytes(
         file_path.write_bytes(content)
     except OSError:
         logger.exception("Nepodařilo se uložit soubor %s", file_path)
-        raise HTTPException(status_code=500, detail="Chyba při ukládání souboru")
+        raise HTTPException(status_code=500, detail="Chyba při ukládání souboru") from None
 
     file_record = models.File(
         original_filename=original_filename,

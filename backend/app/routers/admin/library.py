@@ -88,7 +88,7 @@ def rename_file(
     try:
         new_name = naming.sanitize_manual_name(payload.get("name"), extension)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     # Kolace je case-insensitive, takže tohle chytne i "Propozice.pdf".
     clash = (
@@ -174,7 +174,7 @@ def export_library(
     except OSError:
         archive_path.unlink(missing_ok=True)
         logger.exception("Nepodařilo se sestavit archiv knihovny")
-        raise HTTPException(status_code=500, detail="Nepodařilo se sestavit archiv")
+        raise HTTPException(status_code=500, detail="Nepodařilo se sestavit archiv") from None
 
     # Až po odeslání odpovědi - dřív by se stahoval smazaný soubor.
     background_tasks.add_task(archive_path.unlink, missing_ok=True)

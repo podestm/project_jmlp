@@ -37,7 +37,9 @@ def _validate_owner(owner_type: str, owner_id: int | None, db: Session) -> int |
     try:
         owner = AttachmentOwner(owner_type)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Neznámý typ vlastníka: {owner_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Neznámý typ vlastníka: {owner_type}"
+        ) from None
 
     if owner is AttachmentOwner.library:
         return None
@@ -63,7 +65,7 @@ def _validate_role(role: str, owner_type: str | None = None) -> AttachmentRole:
     try:
         role_enum = AttachmentRole(role)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Neznámá role přílohy: {role}")
+        raise HTTPException(status_code=400, detail=f"Neznámá role přílohy: {role}") from None
 
     if owner_type is not None:
         permitted = attachment_service.allowed_roles(owner_type)

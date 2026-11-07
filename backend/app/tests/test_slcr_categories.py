@@ -304,10 +304,12 @@ def test_neprirazene_vysledky_jsou_chyba(podvrh_evidence, monkeypatch):
 
 
 def test_soubezne_odeslani_se_odmitne():
-    with slcr_evidence.race_lock(501):
-        with pytest.raises(slcr_evidence.SlcrBusy):
-            with slcr_evidence.race_lock(501):
-                pass
+    with (
+        slcr_evidence.race_lock(501),
+        pytest.raises(slcr_evidence.SlcrBusy),
+        slcr_evidence.race_lock(501),
+    ):
+        pass
     with slcr_evidence.race_lock(501):
         pass
 
