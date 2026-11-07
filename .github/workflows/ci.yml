@@ -1,17 +1,17 @@
-# Checks mirror `harness/verify.sh full`.
-# - pull request to dev/main: checks before merge; make "frontend", "backend" and "harness"
-#   required status checks in the main ruleset.
-# - push to dev: gate for the test deployment (deploy/test/auto-deploy-dev.sh waits for it).
-# - push to main (= merged PR dev -> main): checks, then the `deploy` job deploys that commit
-#   to production over SSH (deploy/prod/README.md). Optional approval: required reviewers
-#   on the GitHub environment "production".
+# Checks mirror `harness/verify.sh full`. One run per commit:
+# - push to dev: checks every dev commit; the test deployment (deploy/test/auto-deploy-dev.sh) waits for
+#   it, and a PR dev -> main uses these results (its head is the same commit), so PRs to main do not
+#   run again. Required status checks "frontend", "backend", "harness" in the main ruleset match them.
+# - pull request to dev: checks a branch (e.g. a feature branch) before it is merged into dev.
+# - push to main (= merged PR dev -> main): checks the merge commit, then the `deploy` job deploys it
+#   to production (deploy/prod/README.md). Optional approval: required reviewers on the environment.
 name: CI
 
 on:
   push:
     branches: [dev, main]
   pull_request:
-    branches: [dev, main]
+    branches: [dev]
 
 permissions:
   contents: read
