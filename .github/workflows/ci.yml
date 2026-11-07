@@ -1,23 +1,25 @@
-# Mirrors `harness/verify.sh full`.
-# - push to dev: gate for the automatic test deployment (deploy/test/auto-deploy-dev.sh
-#   deploys a dev commit only after these jobs succeed on it).
-# - pull request to dev: checks a branch before it is merged.
-# - pull request to main: gate for production; make "frontend", "backend" and "harness"
-#   required status checks in the main ruleset.
+# Checks mirror `harness/verify.sh full`. One run per commit:
+# - push to dev: checks every dev commit; the test deployment (deploy/test/auto-deploy-dev.sh) waits for
+#   it, and a PR dev -> main uses these results (its head is the same commit), so PRs to main do not
+#   run again. Required status checks "frontend", "backend", "harness" in the main ruleset match them.
+# - pull request to dev: checks a branch (e.g. a feature branch) before it is merged into dev.
+# - push to main (= merged PR dev -> main): checks the merge commit, then the `deploy` job deploys it
+#   to production (deploy/prod/README.md). Optional approval: required reviewers on the environment.
 name: CI
 
 on:
   push:
-    branches: [dev]
-  pull_request:
     branches: [dev, main]
+  pull_request:
+    branches: [dev]
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel a run on main: it may be in the middle of a production deployment.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   frontend:
@@ -84,3 +86,29 @@ jobs:
       - uses: actions/checkout@v4
       - name: Harness self-test (guard rules, state files, agent config)
         run: harness/tests/run.sh
+
+  deploy:
+    # Only a push to main, i.e. a merged pull request dev -> main, and only after all checks passed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [frontend, backend, harness]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Secrets live in this environment; add required reviewers there to get an Approve button.
+    environment: production
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to production
+        env:
+          SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The key can only run deploy/prod/ssh-deploy.sh on the server (command= in authorized_keys).
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+              -o ServerAliveInterval=30 "$SSH_USER@$SSH_HOST" "deploy $GITHUB_SHA"

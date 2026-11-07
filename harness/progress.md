@@ -17,6 +17,19 @@ Template:
 
 ---
 
+## 2026-11-07 — Production deployment triggered by merge to main (HAR-05)
+- Done: owner's decision — no timer; merging PR dev -> main deploys. CI job `deploy` (needs frontend, backend,
+  harness; environment `production`, optional required reviewers) connects with a key whose authorized_keys
+  entry forces deploy/prod/ssh-deploy.sh (accepts only `deploy <40-hex sha>`), which runs deploy-main.sh:
+  tip-of-main check, CI gate (shared deploy/lib/ci-gate.sh), weekend block, DB dump, pred-<sha> image tags,
+  3-min health check, automatic rollback of images + code (not DB), failed-commit marker. Runs on main are
+  never cancelled; hangup is ignored so a dropped connection cannot kill a build.
+- Verified: shellcheck clean; workflow parses; dry-run with stubbed docker/curl — weekend, older sha skipped,
+  unknown sha, CI pending, CI failed, unhealthy -> rollback, retry of failed commit, healthy deploy, nothing new;
+  forced-command filter rejects anything but `deploy <sha>`; `harness/tests/run.sh` PASS.
+- Next: owner sets up environment, key and secrets (deploy/prod/README.md), first deployment manual.
+- Blocked / decisions needed: owner of the production checkout not verified by the agent (guard).
+
 ## 2026-11-07 — CI workflow (HAR-05)
 - Done: `.github/workflows/ci.yml` — frontend (lint, style/import rules, vitest, build), backend (pytest on a
   MySQL 8 service container, app user limited to jmlpcz_test) and harness self-test. Runs on push to dev and on
