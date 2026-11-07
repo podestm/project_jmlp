@@ -17,6 +17,18 @@ Template:
 
 ---
 
+## 2026-11-07 — Formatters enforced (code-style rules)
+- Done: Prettier 3.3.3 + Ruff 0.6.9 configured as in .claude/rules; one-off reformat (5438527) and Ruff safe
+  fixes (9e0bbd3), both in .git-blame-ignore-revs; remaining 25 findings fixed by hand (exception chaining,
+  unused variables, imports). PostToolUse hook now formats each written file (ruff format / prettier --write)
+  and replaces py_compile (which left root-owned __pycache__) with ruff check. verify.sh fast/full and CI
+  check formatting. harness/lib/ruff.sh: local ruff or the pinned image, writes as the backend/ owner.
+- Verified: verify full after the reformat (frontend 1249, backend 810, build); backend suite after each
+  lint commit; `prettier --check .`, `ruff format --check .`, `ruff check .` clean; hook tried on a backend
+  and a frontend file; verify fast PASS.
+- Next: HAR-04 Playwright e2e suite.
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — Live timing cache (PERF-01)
 - Done: GET /races/live served from a per-worker 2 s cache of the encoded JSON (services/live_cache.py);
   one caller refreshes, others get the previous payload but never older than 4 s; failures not cached.

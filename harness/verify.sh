@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Verification loop. An agent's work is "done" only when this passes.
 #
-#   harness/verify.sh fast   # changed files only: lint, related unit tests, style rules (~10-60 s)
+#   harness/verify.sh fast   # changed files only: format, lint, related unit tests, style rules (~10-60 s)
 #   harness/verify.sh full   # everything: all unit tests, backend suite on throwaway MySQL, build (~8 min)
 #
 # "Changed" = differs from the fork point with origin/dev (override: HARNESS_BASE), plus uncommitted and untracked files.
@@ -32,11 +32,14 @@ step() { # step <name> <command...>
 base="$(git merge-base HEAD "${HARNESS_BASE:-origin/dev}" 2>/dev/null || git merge-base HEAD origin/main)"
 mapfile -t changed < <( { git diff --name-only "$base"; git ls-files --others --exclude-standard; } | sort -u | while read -r f; do [ -e "$f" ] && echo "$f"; done)
 
-fe_src=(); py_src=()
+fe_src=(); fe_fmt=(); py_src=()
 for f in "${changed[@]}"; do
   case "$f" in
     frontend/src/*.js|frontend/src/*.jsx) fe_src+=("${f#frontend/}") ;;
-    backend/app/*.py) py_src+=("$f") ;;
+  esac
+  case "$f" in
+    frontend/*.js|frontend/*.jsx|frontend/*.mjs|frontend/*.css|frontend/*.json|frontend/*.html) fe_fmt+=("${f#frontend/}") ;;
+    backend/*.py) py_src+=("${f#backend/}") ;;
   esac
 done
 
@@ -45,6 +48,10 @@ need_node() { [ -d frontend/node_modules ] || (cd frontend && npm ci --no-audit 
 case "$TIER" in
   fast)
     printf 'verify fast: %d changed files (%d frontend, %d backend)\n' "${#changed[@]}" "${#fe_src[@]}" "${#py_src[@]}"
+    if [ ${#fe_fmt[@]} -gt 0 ]; then
+      need_node
+      step "prettier (changed)" bash -c 'cd frontend && npx prettier --check --log-level warn --ignore-unknown "$@"' _ "${fe_fmt[@]}"
+    fi
     if [ ${#fe_src[@]} -gt 0 ]; then
       need_node
       step "eslint (changed)" bash -c 'cd frontend && npx eslint --quiet "$@"' _ "${fe_src[@]}"
@@ -55,7 +62,7 @@ case "$TIER" in
       step "style rules" bash -c 'cd frontend && npm run -s check:styles && npm run -s check:imports'
     fi
     if [ ${#py_src[@]} -gt 0 ]; then
-      step "python syntax (changed)" python3 -m py_compile "${py_src[@]}"
+      step "ruff (changed)" bash -c 'harness/lib/ruff.sh format --check --quiet "$@" && harness/lib/ruff.sh check --output-format concise "$@"' _ "${py_src[@]}"
       # Backend tests whose file name matches a changed module, e.g. services/seasons.py -> test_*season*.
       mapfile -t related < <(for f in "${py_src[@]}"; do b="$(basename "$f" .py)"; b="${b%s}"; ls backend/app/tests/test_*"$b"*.py 2>/dev/null; done | sort -u | sed 's|^backend/||')
       if [ ${#related[@]} -gt 0 ]; then
@@ -67,6 +74,8 @@ case "$TIER" in
     ;;
   full)
     need_node
+    step "prettier" bash -c 'cd frontend && npx prettier --check --log-level warn .'
+    step "ruff" bash -c 'harness/lib/ruff.sh format --check --quiet . && harness/lib/ruff.sh check --output-format concise .'
     step "eslint" bash -c 'cd frontend && npx eslint --quiet src'
     step "style rules" bash -c 'cd frontend && npm run -s check:styles && npm run -s check:imports'
     step "frontend unit tests" bash -c 'cd frontend && npx vitest run --reporter=dot'

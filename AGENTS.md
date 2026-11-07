@@ -32,6 +32,7 @@ startovka = start list, časomíra = timekeeper, propozice = race notice, katego
 | Backend tests only (throwaway MySQL) | `harness/lib/backend-tests.sh [-k expr] [-x]` | ~2.5 min full |
 | Frontend tests for given files | `cd frontend && npx vitest related --run <files>` | seconds |
 | Frontend style rules | `cd frontend && npm run check:styles` | <1 s |
+| Format (the PostToolUse hook does it per file) | `cd frontend && npm run format`, `harness/lib/ruff.sh format .` | seconds |
 | Harness self-test | `harness/tests/run.sh` | ~2 s |
 
 Backend tests never run against a shared database: `backend-tests.sh` starts its own MySQL on a private
