@@ -7,7 +7,7 @@ přesouvání mezi složkami. Knihovna proto jen filtruje jednu tabulku.
 
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -25,21 +25,21 @@ FILTERABLE_OWNERS = tuple(owner.value for owner in AttachmentOwner)
 class LibraryFilters:
     """Filtry výpisu knihovny. Všechny jsou volitelné a kombinují se přes AND."""
 
-    q: Optional[str] = None
-    extension: Optional[str] = None
-    owner_type: Optional[str] = None
-    date_from: Optional[date] = None
-    date_to: Optional[date] = None
+    q: str | None = None
+    extension: str | None = None
+    owner_type: str | None = None
+    date_from: date | None = None
+    date_to: date | None = None
 
 
-def build_where(filters: LibraryFilters) -> Tuple[str, Dict[str, Any]]:
+def build_where(filters: LibraryFilters) -> tuple[str, dict[str, Any]]:
     """WHERE (bez klíčového slova) a parametry pro dotaz nad `fuj_jmlp_files f`.
 
     Prázdný filtr vrací prázdný řetězec - volající ho pak do dotazu vůbec
     nevkládá a projdou všechny soubory.
     """
-    clauses: List[str] = []
-    params: Dict[str, Any] = {}
+    clauses: list[str] = []
+    params: dict[str, Any] = {}
 
     if filters.q:
         clauses.append("f.original_filename LIKE :q")
@@ -75,7 +75,7 @@ def build_where(filters: LibraryFilters) -> Tuple[str, Dict[str, Any]]:
     return " AND ".join(clauses), params
 
 
-def list_files(db: Session, filters: LibraryFilters) -> List[Dict[str, Any]]:
+def list_files(db: Session, filters: LibraryFilters) -> list[dict[str, Any]]:
     """Soubory odpovídající filtru, od nejnovějšího."""
     where, params = build_where(filters)
     sql = "SELECT f.id FROM fuj_jmlp_files f"

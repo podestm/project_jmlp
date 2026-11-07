@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlalchemy import and_, or_
 
@@ -52,7 +52,7 @@ def fix_encoding(text: str) -> str:
     return text
 
 
-def get_current_season_id(reference_date: Optional[date] = None) -> int:
+def get_current_season_id(reference_date: date | None = None) -> int:
     if reference_date is None:
         reference_date = date.today()
 
@@ -89,7 +89,7 @@ _ROMAN_NUMERALS = (
 )
 
 
-def to_roman(number: Optional[int]) -> str:
+def to_roman(number: int | None) -> str:
     """Číslo ročníku na římské číslice (19 -> 'XIX'). Prázdný řetězec pro None."""
     if not number or number <= 0:
         return ""
@@ -214,7 +214,7 @@ class StandardExceptions:
         return StandardExceptions.bad_request("Neplatný formát data. Použijte YYYY-MM-DD")
 
 
-def compose_category_name(name: Optional[str], sex: Optional[int]) -> Optional[str]:
+def compose_category_name(name: str | None, sex: int | None) -> str | None:
     """Záložní název kategorie, když není vyplněný display_name.
 
     Skládá "U8 Myšáci" + sex na "U8 Myšáci - Ženy". Pro nová data se používá
@@ -231,7 +231,7 @@ def compose_category_name(name: Optional[str], sex: Optional[int]) -> Optional[s
     return composed
 
 
-def category_display_name(category) -> Optional[str]:
+def category_display_name(category) -> str | None:
     """Zobrazovaný název kategorie - display_name, jinak složený z name + sex."""
     if category is None:
         return None
@@ -243,7 +243,7 @@ def category_display_name(category) -> Optional[str]:
 
 def get_category_snapshot_for_birth_year(
     birth_year: int, racer_sex: int, db
-) -> tuple[Optional[int], Optional[str], Optional[int]]:
+) -> tuple[int | None, str | None, int | None]:
     from .models import Category
 
     category = (
@@ -269,6 +269,6 @@ def get_category_snapshot_for_birth_year(
     return category.id, category_display_name(category), category.sex
 
 
-def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> Optional[int]:
+def get_category_for_birth_year(birth_year: int, racer_sex: int, db) -> int | None:
     category_id, _, _ = get_category_snapshot_for_birth_year(birth_year, racer_sex, db)
     return category_id

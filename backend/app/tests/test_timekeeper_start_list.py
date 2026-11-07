@@ -188,6 +188,7 @@ def klient_jako_v_provozu():
     """TestClient, který výjimku ze serveru nepřehodí do testu, ale vrátí ji jako
     odpověď - stejně, jako ji uvidí prohlížeč časoměřiče."""
     from fastapi.testclient import TestClient
+
     from app.main import app
 
     with TestClient(app, raise_server_exceptions=False) as test_client:

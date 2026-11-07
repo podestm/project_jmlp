@@ -1,15 +1,16 @@
 """Race number sets management - create, list, delete number sets and individual numbers."""
 
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Query, Header
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from typing import Any
 
+from fastapi import APIRouter, Depends, Header, Query
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
-from ...utils import StandardExceptions
 from ...services.race_number_codes import MAX_SETS, race_number_code, set_letter
-from .idempotency import try_get_idempotent_response, store_idempotent_response
+from ...utils import StandardExceptions
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-race-numbers"])
 
@@ -27,7 +28,7 @@ def _normalize_set_color(value: Any) -> str:
 @router.get("/race-number-sets")
 def get_race_number_sets(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get summary of all race number sets."""
     query = text("""
         SELECT set_number,
@@ -69,7 +70,7 @@ def get_race_numbers(
     set_number: int = Query(default=1),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get all race numbers for a given set."""
     query = text("""
         SELECT id, set_number, set_color, display_number, is_active,
@@ -96,7 +97,7 @@ def get_race_numbers(
 @router.get("/race-number-options")
 def get_active_race_number_options(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get all active race numbers across sets for assignment by system number."""
     query = text("""
         SELECT id, set_number, set_color, display_number, is_active,
@@ -122,11 +123,11 @@ def get_active_race_number_options(
 
 @router.post("/race-numbers")
 def add_single_race_number(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Add a single race number to a set.
 
     Body: { "set_number": 1, "actual_number": 201 } - označení (A201) se
@@ -207,11 +208,11 @@ def add_single_race_number(
 @router.put("/race-numbers/{number_id}")
 def update_single_race_number(
     number_id: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update a single race number state."""
     endpoint = f"/api/timekeeper/race-numbers/{number_id}"
     replay = try_get_idempotent_response(
@@ -257,7 +258,7 @@ def delete_single_race_number(
     number_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Delete a single race number. Start lists are independent snapshots, no FK constraint."""
     number = db.query(models.RaceNumber).filter(models.RaceNumber.id == number_id).first()
     if not number:
@@ -276,10 +277,10 @@ def delete_single_race_number(
 @router.put("/race-number-sets/{set_number}")
 def update_race_number_set(
     set_number: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update set metadata such as color."""
     if "set_color" not in data:
         raise StandardExceptions.bad_request("Chybí parametr set_color")
@@ -304,11 +305,11 @@ def update_race_number_set(
 
 @router.post("/race-number-sets")
 def create_race_number_set(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a new race number set.
 
     Body: {
@@ -391,7 +392,7 @@ def delete_race_number_set(
     set_number: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Delete all race numbers in a set.
 
     Start lists are independent snapshots — references are nullified, not blocked.

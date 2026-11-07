@@ -1,18 +1,16 @@
 import os
-import hashlib
 import threading
 import time
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Session
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from .database import get_db
 from . import models, schemas
+from .database import get_db
 
 # Security configuration
 # Compose vyrenderuje nenastavenou proměnnou jako prázdný řetězec, proto testujeme délku.
@@ -41,17 +39,17 @@ def get_password_hash(password: str) -> str:
     return generate_password_hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create JWT access token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     # iat: klient podle něj pozná polovinu platnosti a token včas obnoví
     # (klouzavé prodlužování, viz issue_token a /auth/refresh).
-    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
+    to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -69,7 +67,7 @@ def issue_token(admin: models.AdminUser) -> dict:
     }
 
 
-def verify_token(token: str) -> Optional[schemas.TokenData]:
+def verify_token(token: str) -> schemas.TokenData | None:
     """Verify JWT token and return token data. Returns None for any invalid token."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -130,14 +128,14 @@ _login_attempts: dict = {}  # key -> (počet neúspěchů, čas posledního poku
 _login_attempts_lock = threading.Lock()
 
 
-def _login_key(email: str, request: Optional[Request]) -> str:
+def _login_key(email: str, request: Request | None) -> str:
     ip = ""
     if request is not None:
         ip = request.headers.get("X-Real-IP") or (request.client.host if request.client else "")
     return f"{(email or '').strip().lower()}|{ip}"
 
 
-def check_login_allowed(email: str, request: Optional[Request] = None) -> None:
+def check_login_allowed(email: str, request: Request | None = None) -> None:
     """Vyhodí 429, pokud je kombinace e-mail+IP dočasně zablokovaná."""
     key = _login_key(email, request)
     now = time.monotonic()
@@ -153,7 +151,7 @@ def check_login_allowed(email: str, request: Optional[Request] = None) -> None:
             )
 
 
-def register_failed_login(email: str, request: Optional[Request] = None) -> None:
+def register_failed_login(email: str, request: Request | None = None) -> None:
     """Zaznamená neúspěšný pokus o přihlášení."""
     key = _login_key(email, request)
     now = time.monotonic()
@@ -164,13 +162,13 @@ def register_failed_login(email: str, request: Optional[Request] = None) -> None
         _login_attempts[key] = (count + 1, now)
 
 
-def reset_login_attempts(email: str, request: Optional[Request] = None) -> None:
+def reset_login_attempts(email: str, request: Request | None = None) -> None:
     """Vynuluje počítadlo po úspěšném přihlášení."""
     with _login_attempts_lock:
         _login_attempts.pop(_login_key(email, request), None)
 
 
-def authenticate_admin(db: Session, email: str, password: str) -> Optional[models.AdminUser]:
+def authenticate_admin(db: Session, email: str, password: str) -> models.AdminUser | None:
     """Authenticate admin user with email and password."""
     admin = db.query(models.AdminUser).filter(models.AdminUser.email == email).first()
     if not admin:

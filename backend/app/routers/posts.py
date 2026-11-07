@@ -1,11 +1,12 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from typing import List
-from pathlib import Path
+from sqlalchemy.orm import Session
+
 from ..database import get_db
-from ..models import AttachmentRole, Post, File
+from ..models import AttachmentRole, Post
 from ..schemas import Post as PostSchema
 from ..services import attachments as attachment_service
 from ..utils import fix_encoding
@@ -13,7 +14,7 @@ from ..utils import fix_encoding
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
-@router.get("/", response_model=List[PostSchema])
+@router.get("/", response_model=list[PostSchema])
 def get_posts(
     skip: int = Query(0, description="Počet příspěvků k přeskočení"),
     limit: int = Query(10, description="Maximální počet příspěvků"),

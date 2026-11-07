@@ -10,7 +10,6 @@ fuj_jmlp_slcr_member (naplněná při jednorázovém pročištění registru 10.
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -18,11 +17,11 @@ from sqlalchemy.orm import Session
 MEMBER_URL = "https://evidence.czech-ski.com/clenove/{id}/{slug}"
 
 
-def member_url(member_id: int, slug: Optional[str]) -> str:
+def member_url(member_id: int, slug: str | None) -> str:
     return MEMBER_URL.format(id=member_id, slug=slug or "clen")
 
 
-def _code(slcr_id: Optional[str]) -> Optional[int]:
+def _code(slcr_id: str | None) -> int | None:
     value = (slcr_id or "").strip()
     return int(value) if re.fullmatch(r"\d{5,7}", value) else None
 
@@ -44,11 +43,11 @@ class MemberLinks:
 
     def url_for(
         self,
-        surname: Optional[str],
-        name: Optional[str],
-        year: Optional[int],
-        slcr_id: Optional[str],
-    ) -> Optional[str]:
+        surname: str | None,
+        name: str | None,
+        year: int | None,
+        slcr_id: str | None,
+    ) -> str | None:
         code = _code(slcr_id)
         if code is not None and code in self.by_code:
             return self.by_code[code]

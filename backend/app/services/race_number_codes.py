@@ -9,7 +9,7 @@ sadami - jako dřív systémová čísla 1-400.
 from __future__ import annotations
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 MAX_SETS = 26
 
@@ -33,7 +33,7 @@ def race_number_code(set_number: int, actual_number: int) -> str:
     return f"{set_letter(set_number)}{int(actual_number)}"
 
 
-def normalize_code(value: Any) -> Optional[str]:
+def normalize_code(value: Any) -> str | None:
     """ "b 12" -> "B12"; prázdné -> None; jiný tvar (i samotné číslo) -> ValueError."""
     if value is None:
         return None
@@ -46,7 +46,7 @@ def normalize_code(value: Any) -> Optional[str]:
     return f"{letter}{int(digits)}"
 
 
-def code_sort_key(code: Optional[str]) -> tuple:
+def code_sort_key(code: str | None) -> tuple:
     """Řazení A1, A2 ... A200, B1 (ne podle textu, kde by A10 bylo před A2)."""
     match = _CODE.match(code or "")
     if not match:

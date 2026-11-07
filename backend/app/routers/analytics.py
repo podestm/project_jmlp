@@ -1,11 +1,11 @@
 import logging
-from typing import Dict
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from ..database import get_db
 from .. import models
+from ..database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ router = APIRouter(tags=["analytics"])
 
 
 @router.post("/visitor-log")
-async def log_visitor(request: Request, db: Session = Depends(get_db)) -> Dict[str, str]:
+async def log_visitor(request: Request, db: Session = Depends(get_db)) -> dict[str, str]:
     """
     Veřejný endpoint pro logování návštěv z frontendu.
     Zavolá se při načtení každé stránky v React aplikaci.

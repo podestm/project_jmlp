@@ -1,18 +1,17 @@
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole
 from ...services import attachments as attachment_service
-from ...utils import fix_encoding, convert_utf8_field
+from ...utils import convert_utf8_field, fix_encoding
 
 router = APIRouter(prefix="/clubs", tags=["admin-clubs"])
 
 
-@router.get("/", response_model=List[schemas.Club])
+@router.get("/", response_model=list[schemas.Club])
 def list_clubs(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):
@@ -164,7 +163,7 @@ def get_pending_count(
     return {"count": count or 0}
 
 
-@router.get("/requests", response_model=List[schemas.ClubRequestItem])
+@router.get("/requests", response_model=list[schemas.ClubRequestItem])
 def list_pending_requests(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
 ):

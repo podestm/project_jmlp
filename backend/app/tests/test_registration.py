@@ -32,6 +32,7 @@ def klient_jako_v_provozu():
     utnul výjimkou místo aby ukázal, co dostane uživatel.
     """
     from fastapi.testclient import TestClient
+
     from app.main import app
 
     with TestClient(app, raise_server_exceptions=False) as test_client:

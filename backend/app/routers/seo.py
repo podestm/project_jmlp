@@ -9,8 +9,8 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..services import seo
 from ..services import seasons as season_service
+from ..services import seo
 
 router = APIRouter(tags=["seo"])
 

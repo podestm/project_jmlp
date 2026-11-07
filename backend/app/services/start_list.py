@@ -6,21 +6,21 @@ jen práce s daty, takže se to dá volat i odjinud a testovat bez HTTP.
 """
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 from sqlalchemy import and_, func, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models
-from .race_number_codes import normalize_code
 from ..utils import (
+    StandardExceptions,
     category_display_sql,
     convert_utf8_field,
     fix_encoding,
     get_category_snapshot_for_birth_year,
-    StandardExceptions,
 )
+from .race_number_codes import normalize_code
 
 
 def _clean_string(value: Any) -> str | None:
@@ -67,7 +67,7 @@ def _get_category_rank_map(race: models.Race, db: Session) -> dict[int, int]:
     return {cat_id: idx for idx, cat_id in enumerate(_get_effective_category_order(race, db))}
 
 
-def _get_racer_source_snapshot(racer_id: int, db: Session) -> Dict[str, Any]:
+def _get_racer_source_snapshot(racer_id: int, db: Session) -> dict[str, Any]:
     query = text(f"""
         SELECT r.id,
                {convert_utf8_field('r.name')} as racer_name,
@@ -105,7 +105,7 @@ def _find_or_create_club(club_name: str, db: Session) -> models.Club:
 
 
 def _get_or_create_manual_racer(
-    data: Dict[str, Any], db: Session
+    data: dict[str, Any], db: Session
 ) -> tuple[models.Racer, dict[str, Any], bool]:
     racer_id = data.get("racer_id")
     racer_slcr_id = _clean_string(data.get("racer_slcr_id"))
@@ -241,7 +241,7 @@ def _get_race_number_by_id(
 
 
 def _resolve_race_number_for_assignment(
-    data: Dict[str, Any], db: Session
+    data: dict[str, Any], db: Session
 ) -> tuple[bool, models.RaceNumber | None]:
     if "race_number_display" in data:
         display_number = data.get("race_number_display")
@@ -400,7 +400,7 @@ def _slcr_id(value: Any) -> str | None:
 
 def _serialize_start_list_row(
     row: Any, category_rank_map: dict[int, int] | None = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     category_rank = None
     if category_rank_map is not None:
         category_rank = category_rank_map.get(row.category_id, len(category_rank_map))
@@ -477,7 +477,7 @@ def _get_start_list_rows(race_id: int, db: Session) -> list[Any]:
     return db.execute(query, {"race_id": race_id}).fetchall()
 
 
-def _get_start_list_entry_payload(entry_id: int, db: Session) -> Dict[str, Any]:
+def _get_start_list_entry_payload(entry_id: int, db: Session) -> dict[str, Any]:
     query = text(f"""
         SELECT sl.id, sl.race_id, sl.racer_id, sl.category_id,
                sl.start_number, sl.race_number_id,

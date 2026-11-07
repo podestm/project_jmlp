@@ -1,10 +1,12 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database import get_db
+
 from .. import models, schemas
-from ..utils import get_category_for_birth_year, StandardExceptions
-import logging
+from ..database import get_db
+from ..utils import StandardExceptions, get_category_for_birth_year
 
 logger = logging.getLogger("uvicorn.error")
 

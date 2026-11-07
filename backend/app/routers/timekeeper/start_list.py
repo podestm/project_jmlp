@@ -1,34 +1,25 @@
 """Start list management - generate and manage start lists from registrations."""
 
 import json
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, Body, Header
-from sqlalchemy.orm import Session
-from sqlalchemy import text, func
+from typing import Any
 
+from fastapi import APIRouter, Body, Depends, Header
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
+
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
-from ...utils import (
-    fix_encoding,
-    category_display_sql,
-    convert_utf8_field,
-    StandardExceptions,
-    get_category_snapshot_for_birth_year,
-)
-from .idempotency import try_get_idempotent_response, store_idempotent_response
 from ...services.race_number_codes import normalize_code
 from ...services.start_list import (
     _apply_category_snapshot,
     _apply_race_number_snapshot,
     _clean_string,
     _compact_start_numbers_for_race,
-    _find_or_create_club,
     _get_category_rank_map,
     _get_effective_category_order,
     _get_next_available_race_number_for_race,
     _get_next_available_start_number_for_race,
     _get_or_create_manual_racer,
-    _get_race_number_by_display,
     _get_race_number_by_id,
     _get_racer_source_snapshot,
     _get_start_list_entry_payload,
@@ -38,6 +29,14 @@ from ...services.start_list import (
     _sort_start_list_rows,
     _validate_race_number_assignment,
 )
+from ...utils import (
+    StandardExceptions,
+    category_display_sql,
+    convert_utf8_field,
+    fix_encoding,
+    get_category_snapshot_for_birth_year,
+)
+from .idempotency import store_idempotent_response, try_get_idempotent_response
 
 router = APIRouter(tags=["timekeeper-start-list"])
 
@@ -47,7 +46,7 @@ def get_single_start_list_entry(
     entry_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get a single start list entry snapshot for conflict comparison."""
     return _get_start_list_entry_payload(entry_id, db)
 
@@ -55,7 +54,7 @@ def get_single_start_list_entry(
 @router.get("/categories")
 def get_categories_for_ordering(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get active categories in default order (youngest first, women before men).
 
     Default order: U8 ženy, U8 muži, U10 ženy, U10 muži, ... OPEN ženy, OPEN muži
@@ -96,7 +95,7 @@ def get_start_list(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get start list for a specific race using snapshot fields stored in start_list."""
     # Verify race exists
     race = db.query(models.Race).filter(models.Race.id == race_id).first()
@@ -111,11 +110,11 @@ def get_start_list(
 @router.post("/races/{race_id}/start-list/generate")
 def generate_start_list(
     race_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate start list from registered racers.
 
     Body (optional):
@@ -144,7 +143,7 @@ def generate_start_list(
     if not race:
         raise StandardExceptions.race_not_found()
 
-    category_order = data.get("category_order", None) if data else None
+    category_order = data.get("category_order") if data else None
     if category_order and len(category_order) > 0:
         normalized_order = []
         for cat_id in category_order:
@@ -337,7 +336,7 @@ def clear_start_list(
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Clear entire start list for a race (reset).
 
     Návratový typ musí být Dict[str, Any]: odpověď nese i logické
@@ -382,11 +381,11 @@ def clear_start_list(
 @router.put("/start-list/{entry_id}")
 def update_start_list_entry(
     entry_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update a single start list entry using snapshot-first fields."""
     endpoint = f"/api/timekeeper/start-list/{entry_id}"
     replay = try_get_idempotent_response(
@@ -447,7 +446,7 @@ def update_start_list_entry(
 
     race_number_provided, race_number = _resolve_race_number_for_assignment(data, db)
     if race_number_provided:
-        next_display = data.get("race_number_display", None)
+        next_display = data.get("race_number_display")
         try:
             next_display = normalize_code(next_display)
         except ValueError:
@@ -493,7 +492,7 @@ def set_start_list_entry_excluded(
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Vyřadí závodníka ze startovky, nebo ho do ní vrátí.
 
     Pro závodníka, který nedorazil nebo nestihl start. Řádek se NEMAŽE:
@@ -565,7 +564,7 @@ def delete_start_list_entry(
     entry_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Delete a single entry from the start list."""
     entry = db.query(models.StartListEntry).filter(models.StartListEntry.id == entry_id).first()
     if not entry:
@@ -584,7 +583,7 @@ def search_racers_for_start_list(
     q: str = "",
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Search racers by name/surname for manual start list entry.
 
     Hledá se po slovech: každé slovo musí sedět na jméno, příjmení nebo
@@ -596,7 +595,7 @@ def search_racers_for_start_list(
         return []
 
     conditions = []
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
     for i, word in enumerate(words):
         params[f"w{i}"] = f"%{word}%"
         conditions.append(
@@ -635,7 +634,7 @@ def search_racers_for_start_list(
 @router.get("/racers/snapshot")
 def racers_snapshot(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Celý registr závodníků v kompaktní podobě pro offline hledání.
 
     Časomíra si ho drží v IndexedDB: na kopci často není signál a přidat
@@ -671,11 +670,11 @@ def racers_snapshot(
 @router.post("/races/{race_id}/start-list/entry")
 def add_manual_start_list_entry(
     race_id: int,
-    data: Dict[str, Any] = Body(default={}),
+    data: dict[str, Any] = Body(default={}),
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Manually add an entry to the start list.
 
     Body: {

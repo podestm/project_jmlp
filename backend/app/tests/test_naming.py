@@ -1,4 +1,4 @@
-from app.services.naming import slugify, role_suffix, ROLE_SUFFIX
+from app.services.naming import ROLE_SUFFIX, role_suffix, slugify
 
 
 def test_slugify_removes_diacritics():
@@ -101,6 +101,7 @@ def test_unique_name_is_case_insensitive():
 
 
 import pytest
+
 from app.services.naming import sanitize_manual_name
 
 

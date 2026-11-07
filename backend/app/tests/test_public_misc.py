@@ -5,7 +5,6 @@ a season_results.py - tedy všechno, co si nepřihlášený návštěvník smí 
 """
 
 from datetime import datetime, timedelta
-
 from pathlib import Path
 
 import pytest

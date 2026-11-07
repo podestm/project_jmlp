@@ -7,8 +7,9 @@ kdykoli přejmenovat a pak se už sám nepřepíše.
 
 import re
 import unicodedata
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -49,7 +50,7 @@ def role_suffix(role) -> str:
         return _FALLBACK_SUFFIX
 
 
-def owner_stem(owner_type: str, owner_id: Optional[int], owner: Any) -> Optional[str]:
+def owner_stem(owner_type: str, owner_id: int | None, owner: Any) -> str | None:
     """Základ názvu podle vlastníka, bez role a přípony.
 
     Vrací None pro knihovnu - soubor bez vlastníka nemá z čeho název odvodit
@@ -132,7 +133,7 @@ def _load_owner(db: Session, owner_type: str, owner_id):
 
 def systematic_filename(
     db: Session, owner_type: str, owner_id, role, original_filename: str
-) -> Optional[str]:
+) -> str | None:
     """Systematický název pro soubor právě připojený k vlastníkovi.
 
     None znamená "nech název, jak je" - to platí pro knihovnu, kde není

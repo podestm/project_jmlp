@@ -1,14 +1,14 @@
-from typing import Dict, Any, List
-from datetime import datetime, timedelta, date
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import func, text
+from datetime import datetime, timedelta
+from typing import Any
 
+from fastapi import APIRouter, Depends
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
+
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
-import os
 from ...services import seasons as season_service
-from ...utils import fix_encoding, convert_utf8_field, format_file_size
+from ...utils import convert_utf8_field, fix_encoding, format_file_size
 from ._visits import daily_visits
 
 router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
 @router.get("/stats")
 def get_dashboard_stats(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Agregovaná data pro admin dashboard - jeden request místo mnoha."""
 
     today = datetime.now()
@@ -203,7 +203,7 @@ def get_visits_chart(
     days: int = 7,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Statistika návštěv pro graf s volitelným obdobím."""
 
     # Limit days to reasonable range

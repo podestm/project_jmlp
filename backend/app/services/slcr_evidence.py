@@ -58,11 +58,12 @@ from __future__ import annotations
 
 import os
 import threading
-from contextlib import contextmanager
 import unicodedata
+from collections.abc import Iterable
+from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional
+from datetime import UTC, date, datetime
+from typing import Any
 
 import httpx
 
@@ -140,7 +141,7 @@ def fold(value: Any) -> str:
     return "".join(ch for ch in text if not unicodedata.combining(ch)).lower().strip()
 
 
-def racing_sex(sex: Optional[int]) -> str:
+def racing_sex(sex: int | None) -> str:
     if sex == 2:
         return "Female"
     if sex == 1:
@@ -148,11 +149,11 @@ def racing_sex(sex: Optional[int]) -> str:
     return "Both"
 
 
-def _id_of(value: Any) -> Optional[int]:
+def _id_of(value: Any) -> int | None:
     return value.get("id") if isinstance(value, dict) else None
 
 
-def existing_race_input(race: Dict[str, Any]) -> Dict[str, Any]:
+def existing_race_input(race: dict[str, Any]) -> dict[str, Any]:
     """Stávající závod akce jako RacingRaceInput - beze změny."""
     category = race.get("category") or {}
     if category.get("__typename") == "PublicRacingCategory":
@@ -197,7 +198,7 @@ def same_codex(codex: Any, category_id: Any) -> bool:
     return text.isdigit() and int(text) == int(category_id)
 
 
-def _matches(race: Dict[str, Any], category: Dict[str, Any]) -> bool:
+def _matches(race: dict[str, Any], category: dict[str, Any]) -> bool:
     if same_codex(race.get("codex"), category["id"]):
         return True
     wanted = fold(category["name"])
@@ -209,12 +210,12 @@ SKIP_REASON = "Na startovní listině nikdo není"
 
 
 def plan_races(
-    categories: Iterable[Dict[str, Any]],
-    existing: Iterable[Dict[str, Any]],
+    categories: Iterable[dict[str, Any]],
+    existing: Iterable[dict[str, Any]],
     race_date: date,
-    start_time: Optional[str] = None,
+    start_time: str | None = None,
     discipline: int = DEFAULT_DISCIPLINE,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Co se v akci založí, doplní nebo nechá.
 
     categories: naše kategorie {id, name, sex, year_from, year_to, entries}
@@ -229,7 +230,7 @@ def plan_races(
     """
     existing = list(existing)
     used: set = set()
-    plan: List[Dict[str, Any]] = []
+    plan: list[dict[str, Any]] = []
     for category in categories:
         found = next(
             (race for race in existing if race["id"] not in used and _matches(race, category)), None
@@ -295,8 +296,8 @@ def plan_races(
 
 
 def build_inputs(
-    existing: Iterable[Dict[str, Any]], plan: Iterable[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
+    existing: Iterable[dict[str, Any]], plan: Iterable[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Celý seznam závodů akce pro racingRacesUpdate: stávající + nové."""
     codex_by_race = {
         item["slcr_race_id"]: str(item["category_id"]) for item in plan if item["action"] == "codex"
@@ -361,8 +362,8 @@ mutation RacesUpdate($event: Int!, $inputs: [RacingRaceInput!]!) {
 
 
 def _graphql(
-    client: httpx.Client, query: str, variables: Dict[str, Any], token: Optional[str] = None
-) -> tuple[Dict[str, Any], httpx.Response]:
+    client: httpx.Client, query: str, variables: dict[str, Any], token: str | None = None
+) -> tuple[dict[str, Any], httpx.Response]:
     headers = {"Content-Type": "application/json"}
     if token:
         headers[AUTH_HEADER] = token
@@ -392,7 +393,7 @@ IDENTITY_COOKIE = "identity"
 IDENTITY_PREFERENCE = ("Team", "Timekeeper", "Section", "Area", "Admin", "Person")
 
 
-def pick_identity(options: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def pick_identity(options: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Role, pod kterou aplikace v evidenci jedná: SLCR_IDENTITY (popisek
     nebo id z evidence), jinak klub, pak měřící skupina; správcovská přednostně."""
     wanted = os.getenv("SLCR_IDENTITY", "").strip()
@@ -413,7 +414,7 @@ def pick_identity(options: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     return min(options, key=rank) if options else None
 
 
-def _login(client: httpx.Client, config: Settings) -> Optional[str]:
+def _login(client: httpx.Client, config: Settings) -> str | None:
     if not config.has_login:
         raise SlcrError("Chybí přihlášení do evidence (SLCR_USERNAME a SLCR_PASSWORD v .env)")
     try:
@@ -433,8 +434,8 @@ def _login(client: httpx.Client, config: Settings) -> Optional[str]:
 
 
 def fetch_event(
-    event_id: int, config: Optional[Settings] = None, login: bool = True
-) -> Dict[str, Any]:
+    event_id: int, config: Settings | None = None, login: bool = True
+) -> dict[str, Any]:
     """Akce s jejími závody. S přihlášením (je-li nastavené) - jen tak je vidět kodex."""
     config = config or settings()
     with httpx.Client(timeout=TIMEOUT) as client:
@@ -448,8 +449,8 @@ def fetch_event(
 
 
 def update_races(
-    event_id: int, inputs: List[Dict[str, Any]], config: Optional[Settings] = None
-) -> Dict[str, Any]:
+    event_id: int, inputs: list[dict[str, Any]], config: Settings | None = None
+) -> dict[str, Any]:
     if dry_run():
         return _DRY.update_races(int(event_id), inputs)
     config = config or settings()
@@ -461,7 +462,7 @@ def update_races(
     return data.get("racingRacesUpdate") or {}
 
 
-def _api_headers(config: Settings, content_type: Optional[str] = None) -> Dict[str, str]:
+def _api_headers(config: Settings, content_type: str | None = None) -> dict[str, str]:
     if not config.has_token:
         raise SlcrError("Chybí token časomíry (SLCR_API_TOKEN v .env)")
     headers = {"Auth-token": config.api_token, "Accept": "application/json"}
@@ -484,7 +485,7 @@ def _api_error(response: httpx.Response) -> SlcrError:
     return SlcrError(f"Evidence SLČR vrátila {response.status_code}: {detail}".strip())
 
 
-def _event_summary(item: Dict[str, Any]) -> Dict[str, Any]:
+def _event_summary(item: dict[str, Any]) -> dict[str, Any]:
     date_value = item.get("date")
     if isinstance(date_value, dict):
         date_value = date_value.get("from") or date_value.get("start")
@@ -497,8 +498,8 @@ def _event_summary(item: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def list_events(
-    date_from: date, date_to: date, config: Optional[Settings] = None
-) -> List[Dict[str, Any]]:
+    date_from: date, date_to: date, config: Settings | None = None
+) -> list[dict[str, Any]]:
     """Akce alpského úseku v rozsahu dat (oficiální API)."""
     config = config or settings()
     params = {
@@ -526,7 +527,7 @@ def list_events(
     return [_event_summary(item) for item in items if isinstance(item, dict)]
 
 
-def is_own_event(owner: Dict[str, Any], own: str = OWN_TIMEKEEPING) -> bool:
+def is_own_event(owner: dict[str, Any], own: str = OWN_TIMEKEEPING) -> bool:
     """Akci měří naše měřící skupina – podle názvu (bez diakritiky) nebo id."""
     company = (owner or {}).get("timekeepingCompany") or {}
     if not own or not company:
@@ -535,8 +536,8 @@ def is_own_event(owner: Dict[str, Any], own: str = OWN_TIMEKEEPING) -> bool:
 
 
 def own_events(
-    events: List[Dict[str, Any]], config: Optional[Settings] = None
-) -> List[Dict[str, Any]]:
+    events: list[dict[str, Any]], config: Settings | None = None
+) -> list[dict[str, Any]]:
     """Z akcí alpského úseku nechá jen ty, které měří naše měřící skupina.
     Měřící firmu vrací jen GraphQL webu evidence, proto se dotáže po akcích
     (kolem data závodu jich je jen pár)."""
@@ -553,8 +554,8 @@ def own_events(
 
 
 def upload_results(
-    event_id: int, xml: bytes, layout: Optional[str] = None, config: Optional[Settings] = None
-) -> Dict[str, Any]:
+    event_id: int, xml: bytes, layout: str | None = None, config: Settings | None = None
+) -> dict[str, Any]:
     """Nahraje FIS XML (dataset) do akce. Import je atomický."""
     if dry_run():
         return {"message": "Zkušební režim: výsledky se do evidence neposlaly.", "dry_run": True}
@@ -604,18 +605,16 @@ mutation ResultRace($race: Int!) {
 RESULT_MUTATIONS = ("resultRaceCheck", "resultRacePublish", "resultRaceDraft")
 
 
-def find_race(races: Iterable[Dict[str, Any]], category_id: int) -> Optional[Dict[str, Any]]:
+def find_race(races: Iterable[dict[str, Any]], category_id: int) -> dict[str, Any] | None:
     """Závod akce s kodexem naší kategorie."""
     return next((race for race in races if same_codex(race.get("codex"), category_id)), None)
 
 
-def result_state(race: Optional[Dict[str, Any]]) -> Optional[str]:
+def result_state(race: dict[str, Any] | None) -> str | None:
     return ((race or {}).get("resultRace") or {}).get("state")
 
 
-def _read_state(
-    client: httpx.Client, token: Optional[str], event_id: int, race_id: int
-) -> Optional[str]:
+def _read_state(client: httpx.Client, token: str | None, event_id: int, race_id: int) -> str | None:
     event = (
         _graphql(client, RESULT_STATE_QUERY, {"event": int(event_id)}, token)[0].get(
             "publicRacingEvent"
@@ -629,14 +628,14 @@ def _read_state(
 
 
 def _change_state(
-    client: httpx.Client, token: Optional[str], mutation: str, race_id: int
-) -> Optional[str]:
+    client: httpx.Client, token: str | None, mutation: str, race_id: int
+) -> str | None:
     assert mutation in RESULT_MUTATIONS
     data, _ = _graphql(client, RESULT_MUTATION % mutation, {"race": int(race_id)}, token)
     return result_state(data.get(mutation))
 
 
-def _not_published(state: Optional[str]) -> SlcrError:
+def _not_published(state: str | None) -> SlcrError:
     label = STATE_LABELS.get(state or "", state or "bez výsledků")
     return SlcrError(
         f"Výsledky jsou v evidenci, ale zůstaly {label} - dokončete zveřejnění přímo v evidenci."
@@ -647,8 +646,8 @@ def publish_race_results(
     event_id: int,
     race_id: int,
     xml: bytes,
-    layout: Optional[str] = None,
-    config: Optional[Settings] = None,
+    layout: str | None = None,
+    config: Settings | None = None,
 ) -> str:
     """Pošle výsledky jednoho závodu a zveřejní je. Vrací konečný stav.
 
@@ -690,18 +689,18 @@ def publish_race_results(
                 state = _change_state(client, token, "resultRacePublish", race_id)
         if state != "Published":
             raise _not_published(state)
-        _PUBLISHED_AT[int(race_id)] = datetime.now(timezone.utc)
+        _PUBLISHED_AT[int(race_id)] = datetime.now(UTC)
         return state
 
 
 # Kdy aplikace závod naposledy zveřejnila (evidence čas nevrací). Jen do
 # restartu backendu - po něm panel řekne jen „Zveřejněno“.
-_PUBLISHED_AT: Dict[int, datetime] = {}
+_PUBLISHED_AT: dict[int, datetime] = {}
 _BUSY: set = set()
 _BUSY_LOCK = threading.Lock()
 
 
-def published_at(race_id: Optional[int]) -> Optional[datetime]:
+def published_at(race_id: int | None) -> datetime | None:
     return _PUBLISHED_AT.get(race_id) if race_id is not None else None
 
 
@@ -727,8 +726,8 @@ class _DryStore:
 
     def __init__(self):
         self.lock = threading.Lock()
-        self.races: Dict[int, List[Dict[str, Any]]] = {}
-        self.results: Dict[int, str] = {}
+        self.races: dict[int, list[dict[str, Any]]] = {}
+        self.results: dict[int, str] = {}
         self.next_id = -1
 
     def reset(self) -> None:
@@ -737,7 +736,7 @@ class _DryStore:
             self.results.clear()
             self.next_id = -1
 
-    def _fake_race(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _fake_race(self, data: dict[str, Any]) -> dict[str, Any]:
         manual = (data.get("category") or {}).get("manual") or {}
         race = {
             key: data.get(key)
@@ -767,7 +766,7 @@ class _DryStore:
             self.next_id -= 1
         return race
 
-    def update_races(self, event_id: int, inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def update_races(self, event_id: int, inputs: list[dict[str, Any]]) -> dict[str, Any]:
         with self.lock:
             self.races[event_id] = [self._fake_race(item) for item in inputs]
             races = self.races[event_id]
@@ -780,10 +779,10 @@ class _DryStore:
     def publish(self, race_id: int) -> str:
         with self.lock:
             self.results[race_id] = "Published"
-        _PUBLISHED_AT[race_id] = datetime.now(timezone.utc)
+        _PUBLISHED_AT[race_id] = datetime.now(UTC)
         return "Published"
 
-    def overlay(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    def overlay(self, event: dict[str, Any]) -> dict[str, Any]:
         """Akce z evidence tak, jak by vypadala po zkušebních zápisech."""
         with self.lock:
             stored = {race["id"]: race for race in self.races.get(int(event.get("id") or 0), [])}

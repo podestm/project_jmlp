@@ -9,13 +9,13 @@ PDF vzniká v prohlížeči stejně jako výsledková listina závodu; sem se po
 hotový soubor, takže je zveřejněné přesně to, co bylo v náhledu.
 """
 
-from typing import Optional, Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
 from ...services import files as file_service
@@ -35,14 +35,14 @@ def _season_or_404(db: Session, season_id: int) -> models.Season:
 @router.get("/seasons/{season_id}/standings")
 def get_standings(
     season_id: int,
-    final: Optional[bool] = Query(
+    final: bool | None = Query(
         default=None,
         description="Celkové výsledky místo průběžných; "
         "bez parametru celkové, jakmile má finále sezóny výsledky",
     ),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Pořadí poháru po kategoriích jako podklad pro PDF."""
     _season_or_404(db, season_id)
     if final is None:
@@ -57,7 +57,7 @@ async def publish_standings(
     file: UploadFile = File(...),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Zveřejní vygenerované pořadí u sezóny (průběžné nebo celkové výsledky)."""
     _season_or_404(db, season_id)
     owner_type = AttachmentOwner.season.value

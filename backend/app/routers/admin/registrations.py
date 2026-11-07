@@ -1,20 +1,19 @@
-import io
 import csv
-from typing import List
+import io
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
-from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, schemas, auth
 from ...utils import category_display_name, csv_safe
 
 router = APIRouter(tags=["admin-registrations"])
 
 
-@router.get("/races/{race_id}/registrations", response_model=List[dict])
+@router.get("/races/{race_id}/registrations", response_model=list[dict])
 def get_race_registrations(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),

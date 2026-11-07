@@ -9,7 +9,7 @@ from datetime import date
 
 import pytest
 
-from app import auth, models
+from app import models
 from app.models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from app.utils import get_current_season_id
 

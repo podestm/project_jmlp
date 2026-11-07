@@ -6,13 +6,13 @@ se propisují do hlavičky výsledkové listiny, a s libovolným počtem dokumen
 přes fuj_jmlp_attachment - tedy i průběžné a celkové výsledky zároveň.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...models import AttachmentOwner
 from ...services import attachments as attachment_service
 from ...services import seasons as season_service
@@ -21,7 +21,7 @@ from ...utils import to_roman
 router = APIRouter(prefix="/seasons", tags=["admin-seasons"])
 
 
-def _season_dict(season: models.Season, db: Session) -> Dict[str, Any]:
+def _season_dict(season: models.Season, db: Session) -> dict[str, Any]:
     races_count = db.query(models.Race).filter(models.Race.season_id == season.year_start).count()
     documents_count = (
         db.query(models.Attachment)
@@ -52,7 +52,7 @@ def _get_season(db: Session, season_id: int) -> models.Season:
     return season
 
 
-@router.get("", response_model=List[schemas.Season])
+@router.get("", response_model=list[schemas.Season])
 def list_seasons(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),

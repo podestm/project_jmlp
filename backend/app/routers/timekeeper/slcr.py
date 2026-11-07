@@ -16,7 +16,7 @@ Komunikace s evidencí je v services/slcr_evidence.py.
 """
 
 from datetime import timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -26,9 +26,9 @@ from sqlalchemy.orm import Session
 from ... import auth, models
 from ...database import get_db
 from ...services import category_order as category_order_service
+from ...services import results as results_service
 from ...services import slcr_evidence
 from ...utils import category_display_sql, fix_encoding
-from ...services import results as results_service
 from .results import _group_by_category, _load_entries, _race_or_404, build_fis_dataset
 
 router = APIRouter(tags=["timekeeper-slcr"])
@@ -49,7 +49,7 @@ def _fail(exc: slcr_evidence.SlcrError) -> HTTPException:
     return HTTPException(status_code=status, detail=str(exc))
 
 
-def _entry_counts(db: Session, race_id: int) -> Dict[int, int]:
+def _entry_counts(db: Session, race_id: int) -> dict[int, int]:
     """Kolik závodníků je v každé kategorii na startovce (bez vyřazených)."""
     rows = db.execute(
         text("""
@@ -62,7 +62,7 @@ def _entry_counts(db: Session, race_id: int) -> Dict[int, int]:
     return {int(row.category_id): int(row.n) for row in rows if row.category_id is not None}
 
 
-def _categories(db: Session, race: models.Race) -> List[Dict[str, Any]]:
+def _categories(db: Session, race: models.Race) -> list[dict[str, Any]]:
     rows = db.execute(
         text(f"""
         SELECT id, {category_display_sql('fuj_jmlp_category')} AS display_name,
@@ -87,7 +87,7 @@ def _categories(db: Session, race: models.Race) -> List[Dict[str, Any]]:
     return sorted(categories, key=lambda item: rank.get(item["id"], 10**6))
 
 
-def _start_time(db: Session, race_id: int) -> Optional[str]:
+def _start_time(db: Session, race_id: int) -> str | None:
     row = db.execute(
         text("""
         SELECT start_time FROM fuj_jmlp_race_run
@@ -105,8 +105,8 @@ def _start_time(db: Session, race_id: int) -> Optional[str]:
 
 
 def _plan(
-    db: Session, race: models.Race, event: Dict[str, Any], discipline: int
-) -> List[Dict[str, Any]]:
+    db: Session, race: models.Race, event: dict[str, Any], discipline: int
+) -> list[dict[str, Any]]:
     if not race.datum:
         raise HTTPException(status_code=400, detail="Závod nemá datum")
     return slcr_evidence.plan_races(
@@ -118,7 +118,7 @@ def _plan(
     )
 
 
-def _event_info(event: Dict[str, Any]) -> Dict[str, Any]:
+def _event_info(event: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": event.get("id"),
         "name": event.get("name"),
@@ -137,7 +137,7 @@ def _check_discipline(discipline: int) -> None:
 @router.get("/slcr/status")
 def slcr_status(
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Co je v .env nastavené (hodnoty se nikdy nevrací)."""
     config = slcr_evidence.settings()
     return {
@@ -154,7 +154,7 @@ def slcr_events(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Naše akce v evidenci (měří je naše měřící skupina) ±3 dny od data závodu."""
     race = _race_or_404(db, race_id)
     if not race.datum:
@@ -177,7 +177,7 @@ def slcr_plan(
     discipline: int = Query(default=slcr_evidence.DEFAULT_DISCIPLINE),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Náhled: akce a co se v ní u kterých kategorií udělá."""
     _check_discipline(discipline)
     race = _race_or_404(db, race_id)
@@ -194,7 +194,7 @@ def slcr_create_races(
     payload: RacesRequest,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Založí v akci chybějící závody a doplní kodex tam, kde chybí."""
     _check_discipline(payload.discipline)
     race = _race_or_404(db, race_id)
@@ -228,7 +228,7 @@ def slcr_send_results(
     payload: ResultsRequest,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Pošle výsledky závodu do akce (FIS XML Dataset, české číslo závodníka)."""
     _check_discipline(payload.discipline)
     fis_code = slcr_evidence.FIS_CODE_BY_DISCIPLINE.get(payload.discipline, "")
@@ -244,7 +244,7 @@ def slcr_send_results(
 # ---------------------------------------------------------------------------
 # Výsledky po kategoriích
 # ---------------------------------------------------------------------------
-def _readiness(db: Session, race: models.Race) -> List[Dict[str, Any]]:
+def _readiness(db: Session, race: models.Race) -> list[dict[str, Any]]:
     """Kategorie se závodníky: kolik jich ještě nemá čas ani DNF/DNS/DSQ."""
     items = []
     for group in _group_by_category(_load_entries(db, race.id), race, db):
@@ -264,7 +264,7 @@ def _readiness(db: Session, race: models.Race) -> List[Dict[str, Any]]:
     return items
 
 
-def _category_state(item: Dict[str, Any], races: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _category_state(item: dict[str, Any], races: list[dict[str, Any]]) -> dict[str, Any]:
     race = slcr_evidence.find_race(races, item["category_id"])
     race_id = race["id"] if race else None
     published = slcr_evidence.published_at(race_id)
@@ -282,7 +282,7 @@ def slcr_categories(
     event_id: int = Query(...),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Po kategoriích: připravenost výsledků u nás a jejich stav v evidenci."""
     race = _race_or_404(db, race_id)
     try:
@@ -312,7 +312,7 @@ def slcr_publish_category(
     payload: ResultsRequest,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Pošle výsledky jedné kategorie do jejího závodu v akci a zveřejní je.
     Už zveřejněné se opraví (zrušit zveřejnění → nahrát → zveřejnit)."""
     _check_discipline(payload.discipline)

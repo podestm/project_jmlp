@@ -10,19 +10,18 @@ import tempfile
 import zipfile
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...services import attachments as attachment_service
 from ...services import files as file_service
 from ...services import library as library_service
-from ...services import library_export
-from ...services import naming
+from ...services import library_export, naming
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +29,11 @@ router = APIRouter(prefix="/library", tags=["admin-library"])
 
 
 def library_filters(
-    q: Optional[str] = Query(None, description="Část názvu souboru"),
-    extension: Optional[str] = Query(None, description="Přípona, s tečkou i bez"),
-    owner_type: Optional[str] = Query(None, description="Kam je soubor připojený"),
-    date_from: Optional[date] = Query(None, description="Nahráno od (včetně)"),
-    date_to: Optional[date] = Query(None, description="Nahráno do (včetně)"),
+    q: str | None = Query(None, description="Část názvu souboru"),
+    extension: str | None = Query(None, description="Přípona, s tečkou i bez"),
+    owner_type: str | None = Query(None, description="Kam je soubor připojený"),
+    date_from: date | None = Query(None, description="Nahráno od (včetně)"),
+    date_to: date | None = Query(None, description="Nahráno do (včetně)"),
 ) -> library_service.LibraryFilters:
     """Filtry výpisu - stejné pro seznam i pro export, ať stahuje to, co je vidět."""
     if owner_type and owner_type not in library_service.FILTERABLE_OWNERS:
@@ -65,7 +64,7 @@ def list_library(
     filters: library_service.LibraryFilters = Depends(library_filters),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Soubory odpovídající filtru, od nejnovějšího."""
     files = library_service.list_files(db, filters)
     return {
@@ -78,10 +77,10 @@ def list_library(
 @router.put("/files/{file_id}")
 def rename_file(
     file_id: int,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Přejmenuje soubor. Příponu určuje soubor na disku, ne zadaný text."""
     file_record = _get_file(db, file_id)
 
@@ -117,7 +116,7 @@ def delete_file(
     force: bool = Query(False, description="Smazat i když je soubor použitý"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Smaže soubor z knihovny i z disku."""
     file_record = _get_file(db, file_id)
 

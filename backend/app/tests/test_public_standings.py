@@ -4,8 +4,6 @@ Stejná služba jako náhled časomíry (test_standings.py), jen bez přihláše
 a ve tvaru pro stránku Výsledky.
 """
 
-from datetime import date
-
 from app import models
 from app.models import AttachmentOwner, AttachmentRole
 from app.tests.test_standings import kategorie, sezona, sezona_s_vysledky  # noqa: F401 (fixtures)

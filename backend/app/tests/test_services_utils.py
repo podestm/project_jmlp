@@ -13,7 +13,6 @@ from jose import jwt
 from app import auth, utils
 from app.services import results as results_service
 
-
 # ---------------------------------------------------------------------------
 # Sezóna
 # ---------------------------------------------------------------------------
@@ -78,7 +77,7 @@ def test_velikost_souboru_ma_citelnou_jednotku():
 
 
 def test_fix_encoding_opravi_dvojite_kodovani():
-    rozbite = "Petrův".encode("utf-8").decode("latin1")
+    rozbite = "Petrův".encode().decode("latin1")
     assert utils.fix_encoding(rozbite) == "Petrův"
 
 

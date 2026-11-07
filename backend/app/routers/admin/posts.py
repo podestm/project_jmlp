@@ -1,11 +1,10 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
-from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
+from ...models import AttachmentOwner, AttachmentRole
 from ...services import attachments as attachment_service
 from ...utils import fix_encoding
 
@@ -36,7 +35,7 @@ def _sync_post_documents(db: Session, post_id: int, document_ids: dict, admin_id
         )
 
 
-@router.get("/posts", response_model=List[schemas.Post])
+@router.get("/posts", response_model=list[schemas.Post])
 def get_posts(
     skip: int = 0,
     limit: int = 100,

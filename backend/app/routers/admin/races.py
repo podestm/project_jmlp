@@ -1,11 +1,11 @@
 import logging
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, text
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
 from ...services.standings import RACE_METHOD_PREP
@@ -96,7 +96,7 @@ def _build_race_dict(race: models.Race, db: Session) -> dict:
     return race_dict
 
 
-@router.get("", response_model=List[schemas.Race])
+@router.get("", response_model=list[schemas.Race])
 def get_races(
     skip: int = 0,
     limit: int = 100,

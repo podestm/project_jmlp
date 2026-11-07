@@ -1,24 +1,25 @@
+from datetime import date
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from sqlalchemy import text
-from ..database import get_db
+from sqlalchemy.orm import Session
+
 from .. import models, schemas
+from ..database import get_db
 from ..models import AttachmentRole
 from ..services import attachments as attachment_service
 from ..services import live as live_service
 from ..services import seasons as season_service
 from ..services.live_cache import live_results
 from ..utils import (
-    get_current_season_id,
+    EDITION_BASE_YEAR,
     calculate_season_for_date,
     category_display_sql,
+    get_current_season_id,
     to_roman,
-    EDITION_BASE_YEAR,
 )
-from typing import List
-from pathlib import Path
-from datetime import date
 
 router = APIRouter(prefix="/races", tags=["races"])
 
@@ -53,21 +54,21 @@ def get_current_season_filter(db: Session) -> int:
 
 
 # Helper endpoints for dropdowns - must be before parametrized routes
-@router.get("/areals", response_model=List[schemas.Areal])
+@router.get("/areals", response_model=list[schemas.Areal])
 def list_areals(db: Session = Depends(get_db)):
     """List all areals for dropdown selection."""
     areals = db.query(models.Areal).all()
     return areals
 
 
-@router.get("/organizers", response_model=List[schemas.Club])
+@router.get("/organizers", response_model=list[schemas.Club])
 def list_organizers(db: Session = Depends(get_db)):
     """List all clubs that can be organizers."""
     clubs = db.query(models.Club).filter(models.Club.valid == True).all()
     return clubs
 
 
-@router.get("/", response_model=List[schemas.Race])
+@router.get("/", response_model=list[schemas.Race])
 def list_races(
     current_season: bool = False,
     upcoming: bool = False,

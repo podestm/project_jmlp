@@ -1,15 +1,16 @@
 """Timekeeper race listing - shows races with registration data."""
 
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...models import AttachmentOwner, AttachmentRole
 from ...services import attachments as attachment_service
-from ...utils import fix_encoding, convert_utf8_field, to_roman
+from ...utils import convert_utf8_field, fix_encoding, to_roman
 
 router = APIRouter(prefix="/races", tags=["timekeeper-races"])
 
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/races", tags=["timekeeper-races"])
 @router.get("")
 def get_races_for_timekeeper(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get all races with registration counts, ordered by date desc.
 
     `start_list_count` počítá jen závodníky, kteří na startovce opravdu jsou -
@@ -85,7 +86,7 @@ def toggle_race_live(
 # ============================================================================
 
 
-def _race_detail_payload(race: models.Race, db: Session) -> Dict[str, Any]:
+def _race_detail_payload(race: models.Race, db: Session) -> dict[str, Any]:
     areal_name = None
     if race.areal_id:
         row = db.execute(

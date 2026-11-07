@@ -1,22 +1,25 @@
+import enum
+from datetime import date, datetime
+
 from sqlalchemy import (
-    Integer,
     BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
     SmallInteger,
     String,
-    ForeignKey,
-    Date,
-    Boolean,
-    DateTime,
     UniqueConstraint,
-    Enum,
-    Numeric,
+    cast,
+    func,
 )
-from sqlalchemy import cast, func
 from sqlalchemy.orm import Mapped, column_property, mapped_column
 from sqlalchemy.types import TypeDecorator
+
 from .database import Base
-from datetime import datetime, date
-import enum
 
 
 class FileTypeEnum(str, enum.Enum):

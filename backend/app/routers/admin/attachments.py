@@ -6,13 +6,13 @@ do knihovny a teprve pak přiřazovat.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
 from ...services import files as file_service
@@ -32,7 +32,7 @@ _FILE_TYPE_BY_ROLE = {
 }
 
 
-def _validate_owner(owner_type: str, owner_id: Optional[int], db: Session) -> Optional[int]:
+def _validate_owner(owner_type: str, owner_id: int | None, db: Session) -> int | None:
     """Ověří, že vlastník existuje. Vrací normalizované owner_id."""
     try:
         owner = AttachmentOwner(owner_type)
@@ -59,7 +59,7 @@ def _validate_owner(owner_type: str, owner_id: Optional[int], db: Session) -> Op
     return owner_id
 
 
-def _validate_role(role: str, owner_type: Optional[str] = None) -> AttachmentRole:
+def _validate_role(role: str, owner_type: str | None = None) -> AttachmentRole:
     try:
         role_enum = AttachmentRole(role)
     except ValueError:
@@ -86,11 +86,11 @@ def _get_attachment(db: Session, attachment_id: int) -> models.Attachment:
 @router.get("/attachments")
 def list_attachments(
     owner_type: str = Query(...),
-    owner_id: Optional[int] = Query(None),
-    role: Optional[str] = Query(None),
+    owner_id: int | None = Query(None),
+    role: str | None = Query(None),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Přílohy jednoho vlastníka."""
     normalized_owner_id = _validate_owner(owner_type, owner_id, db)
     roles = [_validate_role(role, owner_type).value] if role else None
@@ -101,11 +101,11 @@ def list_attachments(
 async def upload_attachment(
     file: UploadFile = File(...),
     owner_type: str = Form(...),
-    owner_id: Optional[int] = Form(None),
+    owner_id: int | None = Form(None),
     role: str = Form(AttachmentRole.document.value),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Nahraje soubor a rovnou ho připojí k vlastníkovi (jeden request)."""
     normalized_owner_id = _validate_owner(owner_type, owner_id, db)
     role_enum = _validate_role(role, owner_type)
@@ -138,10 +138,10 @@ async def upload_attachment(
 
 @router.post("/attachments/link")
 def link_attachment(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Připojí soubor, který už je v knihovně."""
     file_id = payload.get("file_id")
     if not file_id:
@@ -171,10 +171,10 @@ def link_attachment(
 @router.put("/attachments/{attachment_id}")
 def update_attachment(
     attachment_id: int,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Změní roli, pořadí nebo zveřejnění přílohy.
 
     Název se tu měnit nedá - je to název souboru a mění se v knihovně
@@ -197,10 +197,10 @@ def update_attachment(
 
 @router.post("/attachments/reorder")
 def reorder_attachments(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Přeuspořádá přílohy podle pořadí ID v `attachment_ids`."""
     attachment_ids = payload.get("attachment_ids") or []
     if not isinstance(attachment_ids, list):
@@ -220,7 +220,7 @@ def delete_attachment(
     delete_file: bool = Query(False, description="Smazat i soubor z knihovny"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Odpojí přílohu. Soubor zůstane v knihovně, pokud není delete_file=true."""
     attachment = _get_attachment(db, attachment_id)
     file_id = attachment.file_id

@@ -7,7 +7,6 @@ z administrace, tak publikace vygenerovaného PDF.
 import logging
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
@@ -44,7 +43,7 @@ _MIME_BY_EXTENSION = {
 }
 
 
-def guess_mime_type(filename: str, fallback: Optional[str] = None) -> str:
+def guess_mime_type(filename: str, fallback: str | None = None) -> str:
     """MIME podle přípony. Content-Type z prohlížeče je jen záložní zdroj."""
     extension = Path(filename).suffix.lower()
     return _MIME_BY_EXTENSION.get(extension) or fallback or "application/octet-stream"
@@ -67,8 +66,8 @@ def store_document_bytes(
     content: bytes,
     original_filename: str,
     file_type: FileTypeEnum = FileTypeEnum.neprirazene,
-    mime_type: Optional[str] = None,
-    uploaded_by: Optional[int] = None,
+    mime_type: str | None = None,
+    uploaded_by: int | None = None,
 ) -> models.File:
     """Zapíše bajty na disk pod UUID názvem a založí řádek ve fuj_jmlp_files."""
     extension = validate_extension(original_filename)
@@ -108,7 +107,7 @@ async def store_upload(
     upload: UploadFile,
     *,
     file_type: FileTypeEnum = FileTypeEnum.neprirazene,
-    uploaded_by: Optional[int] = None,
+    uploaded_by: int | None = None,
 ) -> models.File:
     """Načte UploadFile a uloží ho.
 

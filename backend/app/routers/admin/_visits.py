@@ -1,13 +1,13 @@
 """Sdílené dotazy pro statistiku návštěv (dashboard + stats)."""
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 
-def daily_visits(db: Session, days: int) -> List[Dict[str, Any]]:
+def daily_visits(db: Session, days: int) -> list[dict[str, Any]]:
     """Návštěvy po dnech za posledních `days` dní.
 
     Jeden agregační dotaz místo dvou dotazů na každý den. Dny bez návštěv

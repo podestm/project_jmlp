@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
-from typing import List
 import logging
-from ..database import get_db
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
 from .. import models, schemas
+from ..database import get_db
 from ..utils import fix_encoding
 
 logger = logging.getLogger("uvicorn.error")
@@ -82,7 +82,7 @@ def search_racers(
     return results
 
 
-@router.get("/", response_model=List[schemas.RacerPublic])
+@router.get("/", response_model=list[schemas.RacerPublic])
 def list_racers(q: str | None = Query(default=None), db: Session = Depends(get_db)):
     """Veřejný seznam závodníků - bez kontaktních údajů."""
     query = db.query(models.Racer)

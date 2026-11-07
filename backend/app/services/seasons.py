@@ -8,15 +8,13 @@ Tady se odpovídá na otázku "která sezóna je teď"; ke které sezóně patř
 podle data, řeší dál utils.calculate_season_for_date.
 """
 
-from typing import Optional
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ..utils import get_current_season_id
 
 
-def flagged_season_id(db: Session) -> Optional[int]:
+def flagged_season_id(db: Session) -> int | None:
     """year_start sezóny označené jako aktuální, nebo None."""
     return db.execute(
         text(

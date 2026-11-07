@@ -1,25 +1,26 @@
 import logging
 import os
-from pathlib import Path
 import traceback
+from pathlib import Path
+
 from fastapi import Depends, FastAPI, Request, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from . import models
 from .database import get_db
 from .routers import (
-    races,
-    racers,
-    clubs,
-    registration,
-    posts,
     analytics,
-    season_results,
+    clubs,
     documents,
+    posts,
+    racers,
+    races,
+    registration,
+    season_results,
     seo,
 )
 from .routers.admin import router as admin_router

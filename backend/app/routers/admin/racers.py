@@ -1,13 +1,12 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
-from ...utils import fix_encoding, category_display_sql, get_category_snapshot_for_birth_year
 from ...services.slcr_links import MemberLinks
+from ...utils import category_display_sql, fix_encoding, get_category_snapshot_for_birth_year
 
 router = APIRouter(tags=["admin-racers"])
 
@@ -72,7 +71,7 @@ def _duplicate_message(columns: dict, other_id, club) -> str:
     )
 
 
-@router.get("/racers", response_model=List[schemas.Racer])
+@router.get("/racers", response_model=list[schemas.Racer])
 def get_racers(
     skip: int = 0,
     limit: int = 10000,

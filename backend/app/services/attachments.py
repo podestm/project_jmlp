@@ -6,10 +6,10 @@ i když ho veřejný kalendář používal.
 """
 
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -77,7 +77,7 @@ def race_document_joins(published_only: bool = False, alias: str = "r") -> str:
     """
 
 
-def race_document_file(db: Session, race_id: int, role: str) -> Optional[models.File]:
+def race_document_file(db: Session, race_id: int, role: str) -> models.File | None:
     """Soubor připojený k závodu v dané roli (propozice / výsledky)."""
     row = (
         db.query(models.File)
@@ -123,7 +123,7 @@ def apply_post_documents(db: Session, posts: Iterable[Any], published_only: bool
         query = query.filter(models.Attachment.published.is_(True))
     rows = query.all()
 
-    by_post: Dict[int, Dict[str, int]] = defaultdict(dict)
+    by_post: dict[int, dict[str, int]] = defaultdict(dict)
     for row, file_obj in rows:
         if not Path(file_obj.file_path).exists():
             continue
@@ -136,7 +136,7 @@ def apply_post_documents(db: Session, posts: Iterable[Any], published_only: bool
         post.document_file_id = documents.get("document_file_id")
 
 
-def post_document_file(db: Session, post_id: int, role: str) -> Optional[models.File]:
+def post_document_file(db: Session, post_id: int, role: str) -> models.File | None:
     """Zveřejněný soubor připojený k příspěvku v dané roli (pro veřejné stažení)."""
     return (
         db.query(models.File)
@@ -151,16 +151,14 @@ def post_document_file(db: Session, post_id: int, role: str) -> Optional[models.
     )
 
 
-def role_label(role: Optional[str]) -> str:
+def role_label(role: str | None) -> str:
     try:
         return ATTACHMENT_ROLE_LABELS[AttachmentRole(role)]
     except (ValueError, KeyError):
         return role or "Dokument"
 
 
-def attachment_dict(
-    attachment: models.Attachment, file_obj: Optional[models.File]
-) -> Dict[str, Any]:
+def attachment_dict(attachment: models.Attachment, file_obj: models.File | None) -> dict[str, Any]:
     """Příloha + denormalizovaná data souboru, jak je čeká frontend."""
     return {
         "id": attachment.id,
@@ -186,11 +184,11 @@ def attachment_dict(
 def list_for_owner(
     db: Session,
     owner_type: str,
-    owner_id: Optional[int],
+    owner_id: int | None,
     *,
-    roles: Optional[Iterable[str]] = None,
+    roles: Iterable[str] | None = None,
     published_only: bool = False,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Přílohy jednoho vlastníka, seřazené podle sort_order."""
     query = (
         db.query(models.Attachment, models.File)
@@ -212,8 +210,8 @@ def list_for_owner(
 
 
 def first_for_owner(
-    db: Session, owner_type: str, owner_id: Optional[int], role: str
-) -> Optional[Dict[str, Any]]:
+    db: Session, owner_type: str, owner_id: int | None, role: str
+) -> dict[str, Any] | None:
     """První (nejvýše jedna) příloha dané role - náhrada za *_file_id sloupce."""
     items = list_for_owner(db, owner_type, owner_id, roles=[role])
     return items[0] if items else None
@@ -224,10 +222,10 @@ def attach(
     *,
     file_id: int,
     owner_type: str,
-    owner_id: Optional[int],
+    owner_id: int | None,
     role: str,
     is_generated: bool = False,
-    created_by: Optional[int] = None,
+    created_by: int | None = None,
     replace_singleton: bool = True,
 ) -> models.Attachment:
     """Připojí soubor k vlastníkovi.
@@ -273,11 +271,11 @@ def sync_single(
     db: Session,
     *,
     owner_type: str,
-    owner_id: Optional[int],
+    owner_id: int | None,
     role: str,
-    file_id: Optional[int],
-    created_by: Optional[int] = None,
-) -> Optional[models.Attachment]:
+    file_id: int | None,
+    created_by: int | None = None,
+) -> models.Attachment | None:
     """Nastaví jedinou přílohu dané role. Prázdné file_id ji odpojí.
 
     Používají to místa, kde měl vlastník dřív jeden *_file_id sloupec:
@@ -327,7 +325,7 @@ def detach_owner(db: Session, owner_type: str, owner_id: int) -> int:
     return removed
 
 
-def usage_map(db: Session, file_ids: Optional[List[int]] = None) -> Dict[int, List[Dict[str, Any]]]:
+def usage_map(db: Session, file_ids: list[int] | None = None) -> dict[int, list[dict[str, Any]]]:
     """Mapa file_id -> kde všude je soubor použitý.
 
     Jeden dotaz nad fuj_jmlp_attachment s doplněním názvu vlastníka. Na rozdíl
@@ -349,7 +347,7 @@ def usage_map(db: Session, file_ids: Optional[List[int]] = None) -> Dict[int, Li
         return {}
 
     labels = _owner_labels(db, attachments)
-    usage: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
+    usage: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for attachment in attachments:
         usage[attachment.file_id].append(
             {
@@ -366,14 +364,14 @@ def usage_map(db: Session, file_ids: Optional[List[int]] = None) -> Dict[int, Li
     return usage
 
 
-def _owner_labels(db: Session, attachments: List[models.Attachment]) -> Dict[tuple, str]:
+def _owner_labels(db: Session, attachments: list[models.Attachment]) -> dict[tuple, str]:
     """Čitelné názvy vlastníků pro výpis použití souboru."""
-    by_type: Dict[str, set] = defaultdict(set)
+    by_type: dict[str, set] = defaultdict(set)
     for attachment in attachments:
         if attachment.owner_id is not None:
             by_type[attachment.owner_type].add(attachment.owner_id)
 
-    labels: Dict[tuple, str] = {}
+    labels: dict[tuple, str] = {}
 
     race_ids = by_type.get(AttachmentOwner.race.value)
     if race_ids:

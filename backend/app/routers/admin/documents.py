@@ -10,15 +10,15 @@ Složky skončily spolu s tabulkou fuj_jmlp_folders - kam soubor patří,
 """
 
 import os
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...models import FileTypeEnum
 from ...services import attachments as attachment_service
 from ...utils import format_file_size
@@ -97,7 +97,7 @@ def download_file(
 @router.get("/files/storage-stats")
 def get_storage_stats(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Vrací statistiku úložného prostoru nahraných souborů.
     """

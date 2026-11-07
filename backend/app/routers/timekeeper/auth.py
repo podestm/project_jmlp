@@ -1,11 +1,12 @@
 """Timekeeper auth - shares the same user table but checks for timekeeper/admin role."""
 
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 
 router = APIRouter(prefix="/auth", tags=["timekeeper-auth"])
 

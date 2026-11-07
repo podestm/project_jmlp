@@ -1,7 +1,8 @@
 """Helpers for idempotent timekeeper sync operations."""
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -35,8 +36,8 @@ def ensure_idempotency_table(db: Session) -> None:
 
 
 def try_get_idempotent_response(
-    db: Session, idempotency_key: Optional[str], admin_id: int, method: str, endpoint: str
-) -> Optional[Dict[str, Any]]:
+    db: Session, idempotency_key: str | None, admin_id: int, method: str, endpoint: str
+) -> dict[str, Any] | None:
     if not idempotency_key:
         return None
 
@@ -70,11 +71,11 @@ def try_get_idempotent_response(
 
 def store_idempotent_response(
     db: Session,
-    idempotency_key: Optional[str],
+    idempotency_key: str | None,
     admin_id: int,
     method: str,
     endpoint: str,
-    response_payload: Dict[str, Any],
+    response_payload: dict[str, Any],
 ) -> None:
     if not idempotency_key:
         return

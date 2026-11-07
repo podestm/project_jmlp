@@ -28,7 +28,7 @@ assert TEST_DB.startswith("jmlpcz_test"), "Testovací databáze musí začínat 
 os.environ["DATABASE_URL"] = re.sub(r"/[^/?]+(\?|$)", f"/{TEST_DB}\\1", _ADMIN_URL)
 
 from app import auth, models  # noqa: E402
-from app.database import engine, SessionLocal  # noqa: E402
+from app.database import SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 
 SCHEMA_SQL = Path(__file__).with_name("schema.sql")

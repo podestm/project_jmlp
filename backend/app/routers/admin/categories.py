@@ -1,10 +1,11 @@
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, text, and_
+from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_, text
+from sqlalchemy.orm import Session
+
+from ... import auth, models, schemas
 from ...database import get_db
-from ... import models, schemas, auth
 from ...utils import category_display_name, fix_encoding
 
 router = APIRouter(tags=["admin-categories"])
@@ -13,7 +14,7 @@ router = APIRouter(tags=["admin-categories"])
 @router.get("/categories")
 def get_categories(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> List[schemas.Category]:
+) -> list[schemas.Category]:
     """Get all categories."""
     return db.query(models.Category).order_by(models.Category.name).all()
 
@@ -182,7 +183,7 @@ def delete_category(
 @router.get("/categories/check/coverage")
 def check_category_coverage(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Kontroluje pokrytí kategorií od roku 1900 do současnosti podle pohlaví - zjišťuje:
     - Rozsahy roků, které nejsou pokryté žádnou kategorií pro muže/ženy
@@ -365,7 +366,7 @@ def check_category_coverage(
 @router.post("/categories/recalculate/all")
 def recalculate_all_racer_categories(
     current_admin: models.AdminUser = Depends(auth.get_current_admin), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Přepočítá kategorie pro všechny závodníky v tabulce fuj_jmlp_racer
     podle jejich ročníku narození.

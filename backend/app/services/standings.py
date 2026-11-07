@@ -25,9 +25,10 @@ Pořadí a body v jednotlivých závodech počítá services/results.py stejně 
 pro výsledkovou listinu závodu, takže se pohár s listinami nemůže rozejít.
 """
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any
 
 from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
@@ -73,9 +74,9 @@ class RaceResult:
     """Výsledek jednoho závodníka v jednom závodě."""
 
     race: SeasonRace
-    rank: Optional[int]
+    rank: int | None
     points: int
-    status: Optional[str]  # 'DSQ' | 'DNF' | None
+    status: str | None  # 'DSQ' | 'DNF' | None
     counted: bool = False
 
     @property
@@ -95,13 +96,13 @@ class StandingRow:
     key: Any
     surname: str
     name: str
-    year: Optional[int]
-    club: Optional[str]
-    results: List[RaceResult] = field(default_factory=list)
+    year: int | None
+    club: str | None
+    results: list[RaceResult] = field(default_factory=list)
     prep_points: int = 0
     snow_points: int = 0
     total: int = 0
-    rank: Optional[int] = None
+    rank: int | None = None
 
     @property
     def raced_on_snow(self) -> bool:
@@ -113,7 +114,7 @@ class StandingRow:
         return self.raced_on_snow and (self.total > 0 or not final)
 
 
-def _best(results: Iterable[RaceResult], count: int) -> List[RaceResult]:
+def _best(results: Iterable[RaceResult], count: int) -> list[RaceResult]:
     """Nejlepší výsledky podle bodů; při shodě bodů ten dřívější.
 
     Počítá se i DSQ a DNF (0 bodů), když závodník víc výsledků nemá - LIP je
@@ -166,7 +167,7 @@ def _tie_break_key(row: StandingRow, width: int) -> tuple:
     )
 
 
-def rank_rows(rows: Sequence[StandingRow], final: bool = False) -> List[StandingRow]:
+def rank_rows(rows: Sequence[StandingRow], final: bool = False) -> list[StandingRow]:
     """Seřadí kategorii a přidělí místa.
 
     Nejdřív klasifikovaní podle bodů a pravidel pro shodu, plná shoda dělí
@@ -210,7 +211,7 @@ def _race_kind(race: models.Race) -> str:
     return FINAL if race.is_final else SNOW
 
 
-def _load_race_rows(db: Session, race_id: int) -> List[Any]:
+def _load_race_rows(db: Session, race_id: int) -> list[Any]:
     """Řádky startovky závodu bez vyřazených - stejně jako výsledková listina."""
     query = text(f"""
         SELECT sl.id, sl.racer_id, sl.start_number,
@@ -227,11 +228,11 @@ def _load_race_rows(db: Session, race_id: int) -> List[Any]:
     return list(db.execute(query, {"race_id": race_id}).fetchall())
 
 
-def _clean(value: Optional[str]) -> str:
+def _clean(value: str | None) -> str:
     return fix_encoding(value).strip() if value else ""
 
 
-def _areal_names(db: Session, races: Sequence[models.Race]) -> Dict[int, str]:
+def _areal_names(db: Session, races: Sequence[models.Race]) -> dict[int, str]:
     """Názvy areálů pro seznam zpracovaných závodů pod pořadím."""
     ids = sorted({race.areal_id for race in races if race.areal_id})
     if not ids:
@@ -267,8 +268,8 @@ def season_finished(db: Session, season_id: int) -> bool:
 
 
 def season_standings(
-    db: Session, season_id: int, final: bool = False, today: Optional[date] = None
-) -> Dict[str, Any]:
+    db: Session, season_id: int, final: bool = False, today: date | None = None
+) -> dict[str, Any]:
     """Pořadí poháru za sezónu po kategoriích (final = celkové výsledky).
 
     Sloupec dostane každý závod sezóny, který už má v aplikaci výsledky.
@@ -284,18 +285,18 @@ def season_standings(
         .all()
     )
 
-    columns: List[SeasonRace] = []
-    missing: List[Dict[str, Any]] = []
+    columns: list[SeasonRace] = []
+    missing: list[dict[str, Any]] = []
     # (kategorie, závodník) -> řádek
-    rows: Dict[tuple, StandingRow] = {}
-    category_names: Dict[int, str] = {}
-    last_race_with_results: Optional[models.Race] = None
+    rows: dict[tuple, StandingRow] = {}
+    category_names: dict[int, str] = {}
+    last_race_with_results: models.Race | None = None
 
     for race in races:
         season_race = SeasonRace(id=race.id, kind=_race_kind(race), datum=race.datum)
         race_rows = _load_race_rows(db, race.id)
 
-        by_category: Dict[int, List[Any]] = {}
+        by_category: dict[int, list[Any]] = {}
         for row in race_rows:
             by_category.setdefault(row.cat_id or 0, []).append(row)
 
@@ -342,7 +343,7 @@ def season_standings(
         if last_race_with_results
         else {}
     )
-    grouped: Dict[int, List[StandingRow]] = {}
+    grouped: dict[int, list[StandingRow]] = {}
     for (cat_id, _), standing in rows.items():
         grouped.setdefault(cat_id, []).append(standing)
 
@@ -383,7 +384,7 @@ def season_standings(
     }
 
 
-def _serialize_row(row: StandingRow, columns: Sequence[SeasonRace]) -> Dict[str, Any]:
+def _serialize_row(row: StandingRow, columns: Sequence[SeasonRace]) -> dict[str, Any]:
     by_race = {result.race.id: result for result in row.results}
     cells = []
     for race in columns:

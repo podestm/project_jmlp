@@ -8,7 +8,7 @@ končí v „nezarazene".
 import re
 from collections import defaultdict
 from pathlib import PurePosixPath
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..models import AttachmentOwner
 from . import naming
@@ -25,19 +25,19 @@ _UNSORTED = "nezarazene"
 _PATH_SEPARATORS = re.compile(r"[\\/]+")
 
 
-def zip_folder_for(owner_type: Optional[str]) -> str:
+def zip_folder_for(owner_type: str | None) -> str:
     """Složka v archivu podle toho, k čemu je soubor připojený."""
     return ZIP_FOLDERS.get(owner_type or "", _UNSORTED)
 
 
-def zip_entry_names(files: List[Dict[str, Any]]) -> Dict[int, str]:
+def zip_entry_names(files: list[dict[str, Any]]) -> dict[int, str]:
     """Mapa file_id -> „složka/název" pro celý archiv.
 
     Soubor použitý na víc místech leží v archivu jen jednou, ve složce podle
     prvního použití - kopie by jen nafoukly archiv.
     """
-    taken: Dict[str, set] = defaultdict(set)
-    entries: Dict[int, str] = {}
+    taken: dict[str, set] = defaultdict(set)
+    entries: dict[int, str] = {}
 
     for file_info in files:
         usage = file_info.get("usage_info") or []

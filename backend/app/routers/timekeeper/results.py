@@ -4,21 +4,21 @@
 uložené body i tištěná listina nemohly rozejít.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from ... import auth, models
 from ...database import get_db
-from ... import models, auth
 from ...models import AttachmentOwner, AttachmentRole, FileTypeEnum
 from ...services import attachments as attachment_service
 from ...services import category_order as category_order_service
 from ...services import files as file_service
-from ...services import naming
-from ...services import fis_xml
+from ...services import fis_xml, naming
 from ...services import results as results_service
+from ...services.start_list import _slcr_id
 from ...utils import (
     StandardExceptions,
     category_display_sql,
@@ -26,12 +26,11 @@ from ...utils import (
     fix_encoding,
 )
 from .idempotency import store_idempotent_response, try_get_idempotent_response
-from ...services.start_list import _slcr_id
 
 router = APIRouter(tags=["timekeeper-results"])
 
 
-def _load_entries(db: Session, race_id: int) -> List[Any]:
+def _load_entries(db: Session, race_id: int) -> list[Any]:
     """Řádky startovní listiny závodu i s údaji potřebnými pro listinu.
 
     Bez vyřazených ze startky: do výsledků nepatří a pořadí i body ostatních
@@ -76,11 +75,11 @@ def _clear_points_of_excluded(db: Session, race_id: int) -> None:
     ).update({"points": None}, synchronize_session=False)
 
 
-def _group_by_category(entries: List[Any], race: models.Race, db: Session) -> List[Dict[str, Any]]:
+def _group_by_category(entries: list[Any], race: models.Race, db: Session) -> list[dict[str, Any]]:
     """Seskupí řádky po kategoriích v pořadí nastaveném u závodu."""
     rank_map = category_order_service.category_rank_map(race, db)
 
-    groups: Dict[int, Dict[str, Any]] = {}
+    groups: dict[int, dict[str, Any]] = {}
     for row in entries:
         cat_id = row.cat_id or 0
         if cat_id not in groups:
@@ -99,7 +98,7 @@ def _group_by_category(entries: List[Any], race: models.Race, db: Session) -> Li
     return sorted(groups.values(), key=lambda g: rank_map.get(g["category_id"], 10**6))
 
 
-def _format_entry(ranked: results_service.RankedEntry) -> Dict[str, Any]:
+def _format_entry(ranked: results_service.RankedEntry) -> dict[str, Any]:
     row = ranked.row
     return {
         "id": row.id,
@@ -136,7 +135,7 @@ def _race_or_404(db: Session, race_id: int) -> models.Race:
     return race
 
 
-def _areal_name(db: Session, race: models.Race) -> Optional[str]:
+def _areal_name(db: Session, race: models.Race) -> str | None:
     if not race.areal_id:
         return None
     row = db.execute(
@@ -150,7 +149,7 @@ def _areal_name(db: Session, race: models.Race) -> Optional[str]:
 
 
 def build_fis_dataset(
-    db: Session, race_id: int, discipline: str = "", category_id: Optional[int] = None
+    db: Session, race_id: int, discipline: str = "", category_id: int | None = None
 ) -> tuple[bytes, int, str]:
     """FIS XML Dataset závodu pro evidenci SLČR (routers/timekeeper/slcr.py):
     (obsah, počet startujících bez výsledku, název souboru). Všechny kategorie
@@ -205,7 +204,7 @@ def get_race_results(
     group_by_category: bool = Query(default=True, description="Group results by category"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Výsledky závodu seřazené podle času, volitelně po kategoriích."""
     race = _race_or_404(db, race_id)
     entries = _load_entries(db, race_id)
@@ -291,7 +290,7 @@ def clear_race_results(
     x_idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Smaže naměřené výsledky závodu - časy, příznaky i body.
 
     Startovní listina zůstává, maže se jen to, co se naměřilo: závod se dá
@@ -359,7 +358,7 @@ def calculate_points(
     race_id: int,
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Přepočítá a uloží body podle pořadí v kategoriích."""
     race = _race_or_404(db, race_id)
     entries = _load_entries(db, race_id)
@@ -388,7 +387,7 @@ async def publish_results(
     file: UploadFile = File(...),
     current_admin: models.AdminUser = Depends(auth.get_current_admin),
     db: Session = Depends(get_db),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Publikuje vygenerovanou výsledkovou listinu jako dokument závodu.
 
     PDF vzniká v prohlížeči, aby tisk fungoval i offline; sem se posílá hotový

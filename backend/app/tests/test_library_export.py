@@ -1,4 +1,4 @@
-from app.services.library_export import zip_folder_for, zip_entry_names
+from app.services.library_export import zip_entry_names, zip_folder_for
 
 
 def test_zip_folder_per_owner_type():
