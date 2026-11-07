@@ -21,6 +21,8 @@ Permissions: harness scripts, git read/commit, eslint and vitest are pre-approve
 - `/next [feature|task]` — briefing → pick one feature → plan with a verification per step.
 - `/checkpoint [fast|full]` — verify → reviewers → update features.json + progress.md → commit.
 - `/review [range]` — run the reviewer agents in parallel, confirm findings, one ranked list.
+- `/security [scan|audit|fix|explain <rule>]` — security review (adapted Netxeo/skill-file-security); findings stay in
+  `.harness/state/security/`, never in the public repo.
 - Model-invoked skills: `karpathy-guidelines` (coding discipline), `frontend-design` (subordinate to Modrá stopa).
 
 ## Subagents (`.claude/agents/`)
