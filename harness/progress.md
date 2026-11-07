@@ -17,6 +17,17 @@ Template:
 
 ---
 
+## 2026-11-07 — Continuous deployment to production (HAR-05)
+- Done: `deploy/prod/auto-deploy-main.sh` + systemd unit/timer + README: deploys origin/main after CI passed,
+  skips weekends (race days), dumps the DB and tags running images first, health-checks for 3 min and rolls
+  back images + code (not the DB) on failure, remembers the failed commit, reports to Discord.
+  CI gate shared with the test deployment (`deploy/lib/ci-gate.sh`); CI now also runs on push to main.
+  Guard rule `deploy-scripts` covers deploy/prod and wrapped invocations (sudo/env/runuser ...).
+- Verified: shellcheck clean; dry-run with stubbed docker/curl — weekend, CI pending, CI failed, unhealthy ->
+  rollback, retry of failed commit skipped, healthy deploy; `harness/tests/run.sh` PASS (26 block / 24 allow).
+- Next: owner installs the timer (deploy/prod/README.md), first run manual; required checks on main.
+- Blocked / decisions needed: owner of the production checkout not verified by the agent (guard) — check `User=` in the unit.
+
 ## 2026-11-07 — CI workflow (HAR-05)
 - Done: `.github/workflows/ci.yml` — frontend (lint, style/import rules, vitest, build), backend (pytest on a
   MySQL 8 service container, app user limited to jmlpcz_test) and harness self-test. Runs on push to dev and on

@@ -14,6 +14,10 @@
       "deploy-scripts"
     ],
     [
+      "sudo -u podm12 REPO=/srv/app ./deploy/prod/auto-deploy-main.sh",
+      "deploy-scripts"
+    ],
+    [
       "sudo systemctl restart nginx",
       "systemd"
     ],
@@ -125,6 +129,7 @@
     "grep -l init_exact docker-compose.server.yml",
     "ls docker-compose.yml docker-compose.test.yml docker-compose.server.yml",
     "head -20 build.sh rebuild.sh",
-    "wc -l build.sh rebuild.sh mysql/"
+    "wc -l build.sh rebuild.sh mysql/",
+    "bash -n deploy/prod/auto-deploy-main.sh"
   ]
 }
