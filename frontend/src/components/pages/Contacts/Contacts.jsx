@@ -34,7 +34,6 @@ export default function Contacts() {
           <div className={styles.organizer}>
             <h3 className={styles.name}>{ORGANIZER.name}</h3>
             <p className={styles.address}>{ORGANIZER.street}, {ORGANIZER.city} · IČO {ORGANIZER.ico}</p>
-            <p className={styles.note}>Jednotlivé závody poháru pořádají lyžařské kluby z pověření svazu.</p>
           </div>
         </section>
 
