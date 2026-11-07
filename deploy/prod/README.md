@@ -1,45 +1,61 @@
-# Automatické nasazení produkce (jmlp.cz)
+# Nasazení produkce (jmlp.cz)
 
 ```
 lokální vývoj ─► push do dev ─► CI ─► test preprodtest (deploy/test) ─► kontrola v prohlížeči
                                                                               │
-         produkce ◄─ auto-deploy-main.sh ◄─ CI na main ◄─ merge ◄─ CI ◄─ PR dev → main
+produkce ◄─ deploy-main.sh ◄─ SSH ◄─ úloha deploy ◄─ [Approve] ◄─ CI ◄─ merge PR dev → main
 ```
 
-`auto-deploy-main.sh` (spouští ho `jmlp-prod-deploy.timer` každých 5 minut) nasadí nový commit z
-`origin/main`, jen když na něm na GitHubu prošlo CI (`frontend`, `backend`, `harness`), není víkend
-(závody) a commit dřív neselhal. Před nasazením zazálohuje DB (`/var/lib/jmlp-deploy/backups`,
-posledních 10) a označí běžící image `jmlp-{backend,frontend}:pred-<commit>`. Po nasazení až 3 minuty
-kontroluje `/health` a healthcheck obou kontejnerů; když neprojde, vrátí předchozí image i kód,
-commit zapíše do `/var/lib/jmlp-deploy/failed` a ohlásí to na Discord. **Databázi nevrací** – pokud
-nová verze spustila migraci, obnova je ruční ze zálohy uvedené v hlášení.
+Nasazení spouští **sloučení pull requestu dev → main**. Na `main` proběhne CI (`frontend`, `backend`,
+`harness`) a po něm úloha `deploy` v `.github/workflows/ci.yml`: přes SSH zavolá na serveru
+`deploy/prod/ssh-deploy.sh`, který spustí `deploy-main.sh <commit>`. Klíč, který má GitHub, nic
+jiného neumí (vynucený příkaz v `authorized_keys`). Když má GitHub Environment `production`
+schvalovatele, úloha čeká na tlačítko *Approve*.
 
-Agenti tyto soubory nespouštějí ani neinstalují (guard v `.claude/hooks/`); zapíná je člověk.
+`deploy-main.sh` nasadí commit jen když je špičkou `origin/main`, prošlo na něm CI, není víkend
+(závody) a dřív neselhal. Před nasazením zazálohuje DB (`/var/lib/jmlp-deploy/backups`, posledních
+10) a označí běžící image `jmlp-{backend,frontend}:pred-<commit>`. Po nasazení až 3 minuty kontroluje
+`/health` a healthcheck obou kontejnerů; když neprojde, vrátí předchozí image i kód, commit zapíše do
+`/var/lib/jmlp-deploy/failed` a skončí chybou (úloha v GitHubu zčervená, log je tam). **Databázi
+nevrací** – pokud nová verze spustila migraci, obnova je ruční ze zálohy uvedené v logu.
 
-## Zapnutí (jednou, jako root)
+Agenti tyto skripty nespouštějí ani neinstalují (guard v `.claude/hooks/`); nastavuje je člověk.
 
-1. `git -C /opt/jmlp status` musí být čisté a `main` na GitHubu musí na produkci navazovat.
-2. Ověř vlastníka `/opt/jmlp` (`stat -c %U /opt/jmlp`) a podle něj uprav `User=` v `jmlp-prod-deploy.service`.
-3. První nasazení spusť ručně a sleduj ho. Produkce skript ještě nemá (přijde až s tímto nasazením),
-   proto se spustí z testovací kopie, která je na `dev`:
+## Zapnutí (jednou)
+
+1. **GitHub → Settings → Environments → New environment `production`.** Pro potvrzování zaškrtni
+   *Required reviewers* a přidej sebe.
+2. **Slouč PR dev → main.** Úloha `deploy` počká na schválení – zatím ji neschvaluj.
+3. **První nasazení ručně** (produkce ještě nemá `deploy/prod`, přijde až s ním). Jako root na serveru:
    ```
-   sudo install -d -o podm12 -m 700 /var/lib/jmlp-deploy
-   sudo -u podm12 REPO=/opt/jmlp /opt/jmlp-test/deploy/prod/auto-deploy-main.sh
+   install -d -o podm12 -m 700 /var/lib/jmlp-deploy
+   sudo -u podm12 REPO=/opt/jmlp /opt/jmlp-test/deploy/prod/deploy-main.sh
    ```
-   (O víkendu nejdřív `touch /opt/jmlp/.deploy-allow-weekend`.)
-4. Pak nainstaluj jednotky z produkce:
+   O víkendu nejdřív `touch /opt/jmlp/.deploy-allow-weekend` (po nasazení smazat). `podm12` musí
+   vlastnit `/opt/jmlp` a být ve skupině `docker`.
+4. **Klíč pro GitHub** (na serveru, jako `podm12`):
    ```
-   sudo cp /opt/jmlp/deploy/prod/jmlp-prod-deploy.service /opt/jmlp/deploy/prod/jmlp-prod-deploy.timer /etc/systemd/system/
-   sudo systemctl daemon-reload
+   ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/jmlp-deploy
+   echo "command=\"/opt/jmlp/deploy/prod/ssh-deploy.sh\",restrict $(cat ~/jmlp-deploy.pub)" >> ~/.ssh/authorized_keys
    ```
-5. Zapni časovač: `sudo systemctl enable --now jmlp-prod-deploy.timer`.
+   `restrict` vypne terminál i přesměrování portů; klíč umí jen `deploy <commit>`.
+5. **Secrets v environmentu `production`** (*Environment secrets*, ne repozitáře):
+   | Secret | Hodnota |
+   |---|---|
+   | `PROD_SSH_KEY` | obsah `~/jmlp-deploy` (soukromý klíč); pak `rm ~/jmlp-deploy` |
+   | `PROD_SSH_HOST` | `jmlp.cz` |
+   | `PROD_SSH_USER` | `podm12` |
+   | `PROD_SSH_KNOWN_HOSTS` | výstup `ssh-keyscan -t ed25519 jmlp.cz` (spusť na svém počítači) |
+6. **Schval čekající úlohu `deploy`** z kroku 2. Zjistí, že produkce už je na tom commitu, a skončí zeleně –
+   tím je ověřené, že spojení funguje. Další sloučení už nasadí samo.
 
 ## Ovládání
 
 | Co | Jak |
 |---|---|
-| Pozastavit | `touch /opt/jmlp/.deploy-paused` (zrušit: `rm`) |
+| Ruční nasazení | `sudo -u podm12 /opt/jmlp/deploy/prod/deploy-main.sh` |
+| Zablokovat nasazení | `touch /opt/jmlp/.deploy-paused` (zrušit: `rm`) |
 | Povolit nasazení o víkendu | `touch /opt/jmlp/.deploy-allow-weekend` (po nasazení smazat) |
-| Znovu zkusit selhaný commit | `sudo rm /var/lib/jmlp-deploy/failed` |
-| Log | `journalctl -u jmlp-prod-deploy` |
+| Znovu zkusit selhaný commit | `rm /var/lib/jmlp-deploy/failed`, pak *Re-run* úlohy `deploy` v GitHubu |
 | Ruční návrat | `docker tag jmlp-backend:pred-<commit> jmlp-backend:latest` (totéž `jmlp-frontend`), `git -C /opt/jmlp reset --hard <commit>`, pak `up -d --no-build backend frontend` se souborem `docker-compose.server.yml` |
+| Odebrat GitHubu přístup | smazat řádek `github-deploy` z `~podm12/.ssh/authorized_keys` |

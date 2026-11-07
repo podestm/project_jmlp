@@ -1,19 +1,26 @@
 #!/bin/bash
 # =============================================================================
-# Automatické nasazení větve main na produkci jmlp.cz.
-# Spouští jmlp-prod-deploy.timer každých 5 minut (návod: deploy/prod/README.md).
+# Nasazení větve main na produkci jmlp.cz (návod: deploy/prod/README.md).
 #
-# Nový commit v origin/main se nasadí, jen když:
+#   deploy-main.sh [<commit>]
+#
+# Spouští ho úloha `deploy` v GitHub Actions po sloučení do main (přes SSH klíč
+# s vynuceným příkazem ssh-deploy.sh) s commitem, na kterém prošlo CI; ručně
+# bez argumentu = poslední commit origin/main.
+#
+# Commit se nasadí, jen když:
+#   - je to špička origin/main (starší commit se přeskočí - nasadí se ten novější),
 #   - na něm na GitHubu prošlo CI (frontend, backend, harness),
-#   - není víkend (závody; obejití: touch $REPO/.deploy-allow-weekend),
-#   - nejde o commit, který už jednou selhal ($STATE/failed),
+#   - není víkend (závody; obejití: touch $REPO/.deploy-allow-weekend, po nasazení smazat),
+#   - nejde o commit, který už jednou selhal ($STATE/failed; znovu: smazat ten soubor),
 #   - je dost volné paměti.
 # Před nasazením: záloha DB a označení běžících image (pred-<commit>).
 # Po nasazení: kontrola zdraví; když web do 3 minut neodpovídá, vrátí předchozí
 # image i kód a commit si zapamatuje jako selhaný. DB se nevrací (migrace) -
 # k ruční obnově je záloha z kroku před nasazením.
 #
-# Pozastavení: touch $REPO/.deploy-paused   (zrušit: rm ...)
+# Když se nenasazuje, skript skončí chybou (exit 1) a napíše proč.
+# Zablokování nasazení: touch $REPO/.deploy-paused   (zrušit: rm ...)
 # =============================================================================
 set -euo pipefail
 
@@ -30,24 +37,32 @@ HEALTH_TRIES=${HEALTH_TRIES:-18}  # x HEALTH_WAIT s
 HEALTH_WAIT=${HEALTH_WAIT:-10}
 
 log() { echo "[$(date '+%F %T')] $*"; }
-notify() {  # Discord, pokud je v prostředí DISCORD_WEBHOOK_URL (EnvironmentFile služby)
+notify() {  # Discord, pokud je v prostředí DISCORD_WEBHOOK_URL (nepovinné)
     [[ -n "${DISCORD_WEBHOOK_URL:-}" ]] || return 0
     curl -fsS -o /dev/null --max-time 15 -H "Content-Type: application/json" \
         -d "$(python3 -c 'import json,sys;print(json.dumps({"content":sys.argv[1]}))' "$1")" \
         "$DISCORD_WEBHOOK_URL" || true
 }
 
-[[ -e "$REPO/.deploy-paused" ]] && { log "Pozastaveno ($REPO/.deploy-paused)."; exit 0; }
+[[ -e "$REPO/.deploy-paused" ]] && { log "Nasazení je zablokované ($REPO/.deploy-paused)."; exit 1; }
 exec 9>/tmp/jmlp-prod-deploy.lock
-flock -n 9 || { log "Předchozí nasazení ještě běží."; exit 0; }
+flock -n 9 || { log "Předchozí nasazení ještě běží."; exit 1; }
 mkdir -p "$BACKUPS"
 
 cd "$REPO"
 git fetch -q origin main
 OLD=$(git rev-parse HEAD)
 NEW=$(git rev-parse origin/main)
-[[ "$OLD" == "$NEW" ]] && exit 0
-[[ -f "$STATE/failed" && "$(cat "$STATE/failed")" == "$NEW" ]] && exit 0
+if [[ -n "${1:-}" && "$1" != "$NEW" ]]; then
+    if git merge-base --is-ancestor "$1" "$NEW" 2>/dev/null; then
+        log "Na main už je novější ${NEW:0:7}; ${1:0:7} přeskakuji (nasadí se s tím novějším)."; exit 0
+    fi
+    log "Commit ${1:0:7} není na origin/main, nenasazuji."; exit 1
+fi
+[[ "$OLD" == "$NEW" ]] && { log "Produkce už běží na ${NEW:0:7}, není co nasadit."; exit 0; }
+if [[ -f "$STATE/failed" && "$(cat "$STATE/failed")" == "$NEW" ]]; then
+    log "Commit ${NEW:0:7} už jednou selhal a byl vrácen. Znovu zkusit: rm $STATE/failed"; exit 1
+fi
 
 if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
     log "V $REPO jsou ruční změny, nenasazuji."; exit 1
@@ -57,7 +72,7 @@ if ! git merge-base --is-ancestor "$OLD" "$NEW"; then
 fi
 
 if [[ $(date +%u) -ge 6 && ! -e "$REPO/.deploy-allow-weekend" ]]; then
-    log "Víkend - produkci nenasazuji (obejití: $REPO/.deploy-allow-weekend)."; exit 0
+    log "Víkend - produkci nenasazuji (obejití: touch $REPO/.deploy-allow-weekend)."; exit 1
 fi
 
 # Ze složky skriptu, ne z $REPO: první nasazení běží ze starého checkoutu, který ji ještě nemá.
@@ -65,13 +80,13 @@ source "$(dirname "$(readlink -f "$0")")/../lib/ci-gate.sh"
 CI=$(ci_status "$REPO" "$NEW")
 case "$CI" in
     success) log "CI ${NEW:0:7}: prošlo." ;;
-    pending) log "CI ${NEW:0:7}: ještě běží, zkusím příště."; exit 0 ;;
-    failure*) log "CI ${NEW:0:7}: SELHALO (${CI#failure:}), nenasazuji."; exit 0 ;;
-    *) log "CI ${NEW:0:7}: stav nelze zjistit (výpadek GitHubu?), nenasazuji."; exit 0 ;;
+    pending) log "CI ${NEW:0:7}: ještě běží, zkus to za pár minut."; exit 1 ;;
+    failure*) log "CI ${NEW:0:7}: SELHALO (${CI#failure:}), nenasazuji."; exit 1 ;;
+    *) log "CI ${NEW:0:7}: stav nelze zjistit (výpadek GitHubu?), nenasazuji."; exit 1 ;;
 esac
 
 FREE=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)
-(( FREE >= MIN_FREE_MB )) || { log "Málo volné paměti ($FREE MB), zkusím příště."; exit 0; }
+(( FREE >= MIN_FREE_MB )) || { log "Málo volné paměti ($FREE MB < $MIN_FREE_MB MB), nenasazuji."; exit 1; }
 
 log "Nasazuji ${OLD:0:7} -> ${NEW:0:7}"
 

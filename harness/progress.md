@@ -17,16 +17,18 @@ Template:
 
 ---
 
-## 2026-11-07 — Continuous deployment to production (HAR-05)
-- Done: `deploy/prod/auto-deploy-main.sh` + systemd unit/timer + README: deploys origin/main after CI passed,
-  skips weekends (race days), dumps the DB and tags running images first, health-checks for 3 min and rolls
-  back images + code (not the DB) on failure, remembers the failed commit, reports to Discord.
-  CI gate shared with the test deployment (`deploy/lib/ci-gate.sh`); CI now also runs on push to main.
-  Guard rule `deploy-scripts` covers deploy/prod and wrapped invocations (sudo/env/runuser ...).
-- Verified: shellcheck clean; dry-run with stubbed docker/curl — weekend, CI pending, CI failed, unhealthy ->
-  rollback, retry of failed commit skipped, healthy deploy; `harness/tests/run.sh` PASS (26 block / 24 allow).
-- Next: owner installs the timer (deploy/prod/README.md), first run manual; required checks on main.
-- Blocked / decisions needed: owner of the production checkout not verified by the agent (guard) — check `User=` in the unit.
+## 2026-11-07 — Production deployment triggered by merge to main (HAR-05)
+- Done: owner's decision — no timer; merging PR dev -> main deploys. CI job `deploy` (needs frontend, backend,
+  harness; environment `production`, optional required reviewers) connects with a key whose authorized_keys
+  entry forces deploy/prod/ssh-deploy.sh (accepts only `deploy <40-hex sha>`), which runs deploy-main.sh:
+  tip-of-main check, CI gate (shared deploy/lib/ci-gate.sh), weekend block, DB dump, pred-<sha> image tags,
+  3-min health check, automatic rollback of images + code (not DB), failed-commit marker. Runs on main are
+  never cancelled; hangup is ignored so a dropped connection cannot kill a build.
+- Verified: shellcheck clean; workflow parses; dry-run with stubbed docker/curl — weekend, older sha skipped,
+  unknown sha, CI pending, CI failed, unhealthy -> rollback, retry of failed commit, healthy deploy, nothing new;
+  forced-command filter rejects anything but `deploy <sha>`; `harness/tests/run.sh` PASS.
+- Next: owner sets up environment, key and secrets (deploy/prod/README.md), first deployment manual.
+- Blocked / decisions needed: owner of the production checkout not verified by the agent (guard).
 
 ## 2026-11-07 — CI workflow (HAR-05)
 - Done: `.github/workflows/ci.yml` — frontend (lint, style/import rules, vitest, build), backend (pytest on a

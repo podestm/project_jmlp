@@ -19,7 +19,7 @@ The repository is set up to be developed by coding agents. Start with [AGENTS.md
 | Workflow | `/next` → work → `/checkpoint`, `/review` (`.claude/skills/`) |
 | Harness self-test | `harness/tests/run.sh` |
 | CI | `.github/workflows/ci.yml` — same checks as `verify.sh full`, on pushes and PRs to dev/main |
-| CD | `deploy/test/` (dev → test) and `deploy/prod/` (main → production), both gated on green CI |
+| CD | `deploy/test/` (push dev → test) and `deploy/prod/` (merge dev → main → production, restricted deploy key), both gated on green CI |
 
 ## Run the checks
 

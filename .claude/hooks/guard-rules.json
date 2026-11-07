@@ -8,7 +8,7 @@
     },
     {
       "id": "deploy-scripts",
-      "pattern": "(^|[;&|]\\s*)((sudo|env|nice|nohup|timeout|exec|runuser)\\b[^;&|]*?\\s)?(bash\\s+|sh\\s+|source\\s+|\\.\\s+)?(\\S*/)?(deploy/(ops|test|prod)/[\\w.-]+\\.sh|sync-prod-to-test\\.sh|jmlp-backup\\.sh|auto-deploy-\\w+\\.sh)\\b",
+      "pattern": "(^|[;&|]\\s*)(\\w+=('[^']*'|\"[^\"]*\"|\\S*)\\s+)*((sudo|env|nice|nohup|timeout|exec|runuser)\\b[^;&|]*?\\s)?(bash\\s+|sh\\s+|source\\s+|\\.\\s+)?(\\S*/)?(deploy/(ops|test|prod)/[\\w.-]+\\.sh|sync-prod-to-test\\.sh|jmlp-backup\\.sh|auto-deploy-\\w+\\.sh)\\b",
       "reason": "Deployment, backup and data-sync scripts change shared environments. Ask the owner to run them."
     },
     {

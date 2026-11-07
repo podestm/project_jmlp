@@ -14,7 +14,11 @@
       "deploy-scripts"
     ],
     [
-      "sudo -u podm12 REPO=/srv/app ./deploy/prod/auto-deploy-main.sh",
+      "sudo -u podm12 REPO=/srv/app ./deploy/prod/deploy-main.sh",
+      "deploy-scripts"
+    ],
+    [
+      "SSH_ORIGINAL_COMMAND='deploy abc' deploy/prod/ssh-deploy.sh",
       "deploy-scripts"
     ],
     [
@@ -130,6 +134,6 @@
     "ls docker-compose.yml docker-compose.test.yml docker-compose.server.yml",
     "head -20 build.sh rebuild.sh",
     "wc -l build.sh rebuild.sh mysql/",
-    "bash -n deploy/prod/auto-deploy-main.sh"
+    "bash -n deploy/prod/deploy-main.sh"
   ]
 }
