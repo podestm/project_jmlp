@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchesFilter, splitByDate } from './raceCalendar.js';
+import { emptyFilterTitle, matchesFilter, splitByDate } from './raceCalendar.js';
 import { seasonLabel, seasonsOf } from '../../../utils/races.js';
 
 const race = (nr, datum, method = 2) => ({ race_nr: nr, datum, race_method_id: method });
@@ -20,5 +20,16 @@ describe('raceCalendar', () => {
   it('filtr podle typu', () => {
     expect(matchesFilter(race('a', null, 1), 'snow')).toBe(true);
     expect(matchesFilter(race('a', null, 2), 'snow')).toBe(false);
+  });
+
+  it('prázdný filtr v aktuální nebo budoucí sezóně neříká, že se nezávodí, jen že závody zatím nejsou', () => {
+    expect(emptyFilterTitle('snow', 2026, 2026)).toBe('Závody na sněhu zatím nejsou vypsané');
+    expect(emptyFilterTitle('dry', 2026, 2026)).toBe('Suché závody zatím nejsou vypsané');
+    expect(emptyFilterTitle('snow', 2027, 2026)).toBe('Závody na sněhu zatím nejsou vypsané');
+  });
+
+  it('prázdný filtr v proběhlé sezóně mluví v minulém čase', () => {
+    expect(emptyFilterTitle('snow', 2024, 2026)).toBe('V sezóně 2024/25 se na sněhu nezávodilo');
+    expect(emptyFilterTitle('dry', 2024, 2026)).toBe('V sezóně 2024/25 se suchý závod nekonal');
   });
 });

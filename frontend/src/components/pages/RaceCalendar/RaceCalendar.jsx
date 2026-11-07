@@ -9,7 +9,7 @@ import { fixEncoding } from '../../../utils/text.js';
 import { defaultSeasonId, raceSeasonId, seasonLabel, seasonsOf, startOfToday } from '../../../utils/races.js';
 import { useCurrentSeason } from '../../../hooks/useCurrentSeason.js';
 import { useRaceCalendar } from '../../../hooks/useRaceCalendar.js';
-import { METHOD_FILTERS, matchesFilter, splitByDate } from './raceCalendar.js';
+import { METHOD_FILTERS, emptyFilterTitle, matchesFilter, splitByDate } from './raceCalendar.js';
 import RaceRow from './RaceRow.jsx';
 import { usePageMeta } from '../../../hooks/usePageMeta.js';
 import { PAGE_META } from '../../../seo/pageMeta.js';
@@ -118,9 +118,7 @@ export default function RaceCalendar() {
               <EmptyState
                 size="lg"
                 icon={filter === 'snow' ? 'snowflake' : 'tree'}
-                title={filter === 'snow'
-                  ? `Na sněhu se v sezóně ${formatSeasonShort(seasonId)} nezávodí`
-                  : `Suchý závod v sezóně ${formatSeasonShort(seasonId)} není`}
+                title={emptyFilterTitle(filter, seasonId, currentSeasonId)}
                 action={<Button onClick={() => setFilter('all')}>Zobrazit všechny závody</Button>}
               />
             ) : (
