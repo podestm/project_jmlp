@@ -521,15 +521,16 @@
         "`harness/load/run.sh live` sustains 200 req/s (1000 viewers polling every 5 s) at p95 ≤ 1 s and < 1 % errors on the production hardware"
       ],
       "checks": [
-        "harness/load/run.sh"
+        "harness/load/run.sh",
+        "backend/app/tests/test_live_cache.py"
       ],
       "e2e": [],
-      "status": "failing",
+      "status": "passing",
       "verified": {
         "at": "2026-11-07",
-        "by": "harness/load/run.sh all (results: harness/load/results/2026-11-07.md)"
+        "by": "harness/load/run.sh live: 1000 viewers p95 4 ms, 1600 viewers p95 144 ms (harness/load/results/2026-11-07-live-cache.md); backend suite 810 passed"
       },
-      "notes": "Measured limit 400-600 viewers; /races/live recomputes everything per request. Candidate fix: short server-side cache of the live payload."
+      "notes": "Live payload cached as encoded JSON for 2 s per worker (services/live_cache.py), stale fallback capped at 4 s. Above ~1600 viewers the same-host load generator becomes the limit."
     },
     {
       "id": "PERF-02",

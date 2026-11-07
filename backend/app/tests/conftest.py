@@ -89,6 +89,15 @@ def _clean_tables():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _clear_live_cache():
+    """Výsledky live přenosu se cachují (services/live_cache.py); test nesmí vidět data předchozího."""
+    from app.services.live_cache import live_results
+
+    live_results.clear()
+    yield
+
+
 @pytest.fixture
 def db():
     session = SessionLocal()

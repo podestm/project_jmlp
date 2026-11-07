@@ -17,6 +17,15 @@ Template:
 
 ---
 
+## 2026-11-07 — Live timing cache (PERF-01)
+- Done: GET /races/live served from a per-worker 2 s cache of the encoded JSON (services/live_cache.py);
+  one caller refreshes, others get the previous payload but never older than 4 s; failures not cached.
+  Payload building moved from the router to services/live.py.
+- Verified: harness/load/run.sh live — 1000 viewers p95 4 ms (was failing at 600), 1600 viewers p95 144 ms;
+  backend suite 810 passed; code-reviewer: approve, its major finding (unbounded stale fallback) fixed.
+- Next: finish the formatter work (Ruff manual fixes, enforcement in hook/verify/CI); HAR-04.
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — Load test harness and first capacity run (PERF-01, PERF-02)
 - Done: `harness/load/` — disposable copy of the production stack with synthetic data, k6 step search,
   production watchdog, results in .harness/state/load and harness/load/results/.
