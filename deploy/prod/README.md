@@ -3,14 +3,14 @@
 ```
 lokální vývoj ─► push do dev ─► CI ─► test preprodtest (deploy/test) ─► kontrola v prohlížeči
                                                                               │
-produkce ◄─ deploy-main.sh ◄─ SSH ◄─ úloha deploy ◄─ [Approve] ◄─ CI ◄─ merge PR dev → main
+produkce ◄─ deploy-main.sh ◄─ SSH ◄─ úloha deploy ◄─ CI ◄─ merge PR dev → main
 ```
 
-Nasazení spouští **sloučení pull requestu dev → main**. Na `main` proběhne CI (`frontend`, `backend`,
-`harness`) a po něm úloha `deploy` v `.github/workflows/ci.yml`: přes SSH zavolá na serveru
-`deploy/prod/ssh-deploy.sh`, který spustí `deploy-main.sh <commit>`. Klíč, který má GitHub, nic
-jiného neumí (vynucený příkaz v `authorized_keys`). Když má GitHub Environment `production`
-schvalovatele, úloha čeká na tlačítko *Approve*.
+Nasazení spouští **sloučení pull requestu dev → main**, nic dalšího se neschvaluje. Na `main` proběhne
+CI (`frontend`, `backend`, `harness`) a když projde, úloha `deploy` v `.github/workflows/ci.yml` přes
+SSH zavolá na serveru `deploy/prod/ssh-deploy.sh`, který spustí `deploy-main.sh <commit>`. Klíč, který
+má GitHub, nic jiného neumí (vynucený příkaz v `authorized_keys`). Kdo by chtěl před nasazením ještě
+tlačítko *Approve*, přidá v GitHub Environment `production` *Required reviewers*.
 
 `deploy-main.sh` nasadí commit jen když je špičkou `origin/main`, prošlo na něm CI, není víkend
 (závody) a dřív neselhal. Před nasazením zazálohuje DB (`/var/lib/jmlp-deploy/backups`, posledních
@@ -23,9 +23,8 @@ Agenti tyto skripty nespouštějí ani neinstalují (guard v `.claude/hooks/`); 
 
 ## Zapnutí (jednou)
 
-1. **GitHub → Settings → Environments → New environment `production`.** Pro potvrzování zaškrtni
-   *Required reviewers* a přidej sebe.
-2. **Slouč PR dev → main.** Úloha `deploy` počká na schválení – zatím ji neschvaluj.
+1. **GitHub → Settings → Environments → New environment `production`** (bez dalšího nastavení).
+2. **Slouč PR dev → main.** Úloha `deploy` napoprvé selže (ještě nemá klíč) – to je v pořádku.
 3. **První nasazení ručně** (produkce ještě nemá `deploy/prod`, přijde až s ním). Jako root na serveru:
    ```
    install -d -o podm12 -m 700 /var/lib/jmlp-deploy
@@ -46,8 +45,8 @@ Agenti tyto skripty nespouštějí ani neinstalují (guard v `.claude/hooks/`); 
    | `PROD_SSH_HOST` | `jmlp.cz` |
    | `PROD_SSH_USER` | `podm12` |
    | `PROD_SSH_KNOWN_HOSTS` | výstup `ssh-keyscan -t ed25519 jmlp.cz` (spusť na svém počítači) |
-6. **Schval čekající úlohu `deploy`** z kroku 2. Zjistí, že produkce už je na tom commitu, a skončí zeleně –
-   tím je ověřené, že spojení funguje. Další sloučení už nasadí samo.
+6. **V GitHubu u selhané úlohy `deploy` z kroku 2 dej *Re-run*.** Zjistí, že produkce už je na tom
+   commitu, a skončí zeleně – tím je ověřené, že spojení funguje. Další sloučení už nasadí samo.
 
 ## Ovládání
 
