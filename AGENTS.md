@@ -86,6 +86,8 @@ Enforced by `.claude/settings.json` (permissions) and `.claude/hooks/guard_bash.
 
 - The nested AGENTS.md files — architecture, decisions and their reasons, next to the code they govern.
   When you make a decision a future agent could undo, write the rule and its reason there.
+- `.claude/rules/` — code style: `code-style.md` (all code), `python.md`, `react.md`, `tests.md`.
+  Claude Code loads them by path; other agents read them before editing.
 - `frontend/src/styles/ms/tokens.css` and the kit catalogue `/__ms` (dev) — the design system in code.
 - `deploy/` — how the test and production environments are set up (human-operated).
 - `CLAUDE.local.md` (gitignored, per machine) — server names, URLs and local quirks. Never commit them here.
