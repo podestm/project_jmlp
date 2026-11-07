@@ -23,7 +23,10 @@ Template:
   PRs to dev and main (owner's flow: local work → push dev → CI → auto-deploy to test → browser check → PR dev→main).
   `deploy/test/auto-deploy-dev.sh` deploys a dev commit only after all three jobs succeeded on it.
 - Verified: YAML parses; `harness/tests/run.sh` PASS; CI gate dry-run: no runs → wait, unknown → no deploy.
-  First GitHub run pending.
+  First GitHub run: backend red — test_api_contract.py runs only with the frontend present (skipped in
+  harness/lib/backend-tests.sh, which mounts backend/app only) and misread `/standings${query}` as a path.
+  Fixed the path-shape helper (+ test); full backend suite with the whole repo: 801 passed, 0 skipped.
+- Known: local backend-tests.sh still skips the contract test; mount the repo root there (harness/lib, ask first).
 - Next: make `frontend`, `backend`, `harness` required status checks in the main ruleset; then HAR-04.
 - Blocked / decisions needed: none.
 
