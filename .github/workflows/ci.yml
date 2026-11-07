@@ -1,12 +1,15 @@
-# Checks every pull request into dev or main. Mirrors `harness/verify.sh full`.
-# Make the jobs "frontend", "backend" and "harness" required in the branch ruleset.
+# Mirrors `harness/verify.sh full`.
+# - push to dev: gate for the automatic test deployment (deploy/test/auto-deploy-dev.sh
+#   deploys a dev commit only after these jobs succeed on it).
+# - pull request to main: gate for production; make "frontend", "backend" and "harness"
+#   required status checks in the main ruleset.
 name: CI
 
 on:
-  pull_request:
-    branches: [dev, main]
   push:
     branches: [dev]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read

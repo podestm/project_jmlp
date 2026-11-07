@@ -479,8 +479,8 @@
       "area": "harness",
       "title": "CI pipeline",
       "acceptance": [
-        "GitHub Actions run lint, style rules, frontend tests, build, backend tests on MySQL and the harness self-test on every pull request to dev or main",
-        "The ruleset requires the frontend, backend and harness checks before merge"
+        "GitHub Actions run lint, style rules, frontend tests, build, backend tests on MySQL and the harness self-test on every push to dev and pull request to main; the test deployment waits for them",
+        "The main ruleset requires the frontend, backend and harness checks before merge"
       ],
       "checks": [
         ".github/workflows/ci.yml"

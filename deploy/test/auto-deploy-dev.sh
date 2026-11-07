@@ -31,6 +31,35 @@ if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
     log "V $REPO jsou ruční změny, nenasazuji."; exit 1
 fi
 
+# Nasadit jen commit, na kterém na GitHubu prošlo CI (.github/workflows/ci.yml).
+# Běží / ještě nezačalo -> zkusí se příště; spadlo -> nenasazuje se, dokud nepřijde
+# opravený commit. Nouzové obejití: touch $REPO/.deploy-skip-ci (zrušit: rm ...).
+CI_JOBS="frontend backend harness"
+if [[ -e "$REPO/.deploy-skip-ci" ]]; then
+    log "Kontrola CI vypnutá ($REPO/.deploy-skip-ci)."
+else
+    SLUG=$(git remote get-url origin | sed -E 's#^(git@github\.com:|https://github\.com/)##; s#\.git$##')
+    CI=$(curl -fsSL --max-time 20 -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/repos/$SLUG/commits/$NEW/check-runs?per_page=100" \
+      | python3 -c '
+import json, sys
+jobs = sys.argv[1].split()
+runs = {r["name"]: r for r in json.load(sys.stdin).get("check_runs", [])}
+if any(j not in runs or runs[j]["status"] != "completed" for j in jobs):
+    print("pending")
+elif all(runs[j]["conclusion"] == "success" for j in jobs):
+    print("success")
+else:
+    print("failure:" + ",".join(j for j in jobs if runs[j]["conclusion"] != "success"))
+' "$CI_JOBS" 2>/dev/null) || CI="unknown"
+    case "$CI" in
+        success) log "CI ${NEW:0:7}: prošlo." ;;
+        pending) log "CI ${NEW:0:7}: ještě běží, zkusím příště."; exit 0 ;;
+        failure*) log "CI ${NEW:0:7}: SELHALO (${CI#failure:}), nenasazuji."; exit 0 ;;
+        *) log "CI ${NEW:0:7}: stav nelze zjistit (soukromé repo nebo výpadek GitHubu), nenasazuji."; exit 0 ;;
+    esac
+fi
+
 FREE=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)
 if (( FREE < MIN_FREE_MB )); then
     log "Málo volné paměti ($FREE MB < $MIN_FREE_MB MB), zkusím příště."; exit 0
