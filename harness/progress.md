@@ -20,7 +20,7 @@ Template:
 ## 2026-11-07 — CI workflow (HAR-05)
 - Done: `.github/workflows/ci.yml` — frontend (lint, style/import rules, vitest, build), backend (pytest on a
   MySQL 8 service container, app user limited to jmlpcz_test) and harness self-test. Runs on push to dev and on
-  PRs to main (owner's flow: local work → push dev → CI → auto-deploy to test → browser check → PR dev→main).
+  PRs to dev and main (owner's flow: local work → push dev → CI → auto-deploy to test → browser check → PR dev→main).
   `deploy/test/auto-deploy-dev.sh` deploys a dev commit only after all three jobs succeeded on it.
 - Verified: YAML parses; `harness/tests/run.sh` PASS; CI gate dry-run: no runs → wait, unknown → no deploy.
   First GitHub run pending.
