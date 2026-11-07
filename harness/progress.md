@@ -17,6 +17,15 @@ Template:
 
 ---
 
+## 2026-11-07 — Load test harness and first capacity run (PERF-01, PERF-02)
+- Done: `harness/load/` — disposable copy of the production stack with synthetic data, k6 step search,
+  production watchdog, results in .harness/state/load and harness/load/results/.
+- Verified: run on the production host in a quiet period: live timing 400 viewers OK, 600 fails (p95 4 s,
+  backend CPU-bound) → PERF-01 failing; registrations ≥ 32/s, all stored once → PERF-02 passing.
+  Production backend ≤ 4 % CPU during the run, watchdog never triggered.
+- Next: PERF-01 — cache the /races/live payload for a few seconds, re-run `harness/load/run.sh live`.
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — CI/CD live; weekend block removed (HAR-05)
 - Done: first production deployment 08befe1 -> 721a036 (manual run of deploy-main.sh), GitHub deploy job
   connected and re-ran green. Owner removed the weekend block: only the owner merges to main and decides when

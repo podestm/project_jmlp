@@ -1,0 +1,55 @@
+# Disposable copy of the production stack for load tests (harness/load/README.md).
+# Built from the same Dockerfiles as production, synthetic data only, no published ports:
+# the load generator joins this network. Memory is capped so a test cannot take RAM from
+# production when it runs on the same host.
+name: jmlp-harness-load
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: load-root
+      MYSQL_DATABASE: jmlpcz_load
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=64M
+      - --key-buffer-size=32M
+      - --performance-schema=OFF
+      - --skip-log-bin
+    tmpfs:
+      - /var/lib/mysql:rw,size=512m
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pload-root"]
+      interval: 3s
+      retries: 40
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.prod
+    environment:
+      DATABASE_URL: mysql+pymysql://app:app@db:3306/jmlpcz_load?charset=utf8mb4
+      SECRET_KEY: load-test-only-secret-key-at-least-32-chars
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      CORS_ORIGINS: http://frontend
+    volumes:
+      - ./seed.py:/app/seed.py:ro
+      - ../../backend/app/tests/schema.sql:/app/schema.sql:ro
+    mem_limit: 448m
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE: ""
+    mem_limit: 64m
+    depends_on:
+      - backend

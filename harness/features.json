@@ -512,6 +512,41 @@
       "e2e": [],
       "status": "todo",
       "verified": null
+    },
+    {
+      "id": "PERF-01",
+      "area": "performance",
+      "title": "Live timing for 1000 concurrent viewers",
+      "acceptance": [
+        "`harness/load/run.sh live` sustains 200 req/s (1000 viewers polling every 5 s) at p95 ≤ 1 s and < 1 % errors on the production hardware"
+      ],
+      "checks": [
+        "harness/load/run.sh"
+      ],
+      "e2e": [],
+      "status": "failing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/load/run.sh all (results: harness/load/results/2026-11-07.md)"
+      },
+      "notes": "Measured limit 400-600 viewers; /races/live recomputes everything per request. Candidate fix: short server-side cache of the live payload."
+    },
+    {
+      "id": "PERF-02",
+      "area": "performance",
+      "title": "200 concurrent race registrations",
+      "acceptance": [
+        "`harness/load/run.sh registration` sustains at least 200 registrations within 20 s at p95 ≤ 2 s, every registration stored exactly once"
+      ],
+      "checks": [
+        "harness/load/run.sh"
+      ],
+      "e2e": [],
+      "status": "passing",
+      "verified": {
+        "at": "2026-11-07",
+        "by": "harness/load/run.sh all: 32/s, p95 21 ms, 1984 stored, 0 duplicates"
+      }
     }
   ]
 }
