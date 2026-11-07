@@ -110,6 +110,9 @@ journalctl -u jmlp-backup -n 30
 `jmlp-test-deploy.timer` každých 5 minut spustí `auto-deploy-dev.sh` (jako podm12):
 když je v `origin/dev` nový commit, fast-forward `/opt/jmlp-test` a přestaví jen
 frontend/backend, kterého se změna týká. Při málo volné paměti počká na další běh.
+Nasazuje se jen commit, na kterém na GitHubu prošlo CI (úlohy `frontend`, `backend`, `harness`
+z `.github/workflows/ci.yml`); dokud běží, čeká se na další kolo, když spadne, nenasadí se.
+Nouzové obejití kontroly CI: `touch /opt/jmlp-test/.deploy-skip-ci`.
 Pozastavení: `touch /opt/jmlp-test/.deploy-paused`. Log: `journalctl -u jmlp-test-deploy`.
 
 ```bash

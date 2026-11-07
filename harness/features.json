@@ -479,13 +479,16 @@
       "area": "harness",
       "title": "CI pipeline",
       "acceptance": [
-        "GitHub Actions run harness/verify.sh full on every pull request",
-        "Branch protection requires it before merge"
+        "GitHub Actions run lint, style rules, frontend tests, build, backend tests on MySQL and the harness self-test on every push to dev and pull request to main; the test deployment waits for them",
+        "The main ruleset requires the frontend, backend and harness checks before merge"
       ],
-      "checks": [],
+      "checks": [
+        ".github/workflows/ci.yml"
+      ],
       "e2e": [],
-      "status": "todo",
-      "verified": null
+      "status": "unverified",
+      "verified": null,
+      "notes": "Becomes passing after the first green run on GitHub and the required checks are set in the ruleset."
     },
     {
       "id": "HAR-06",

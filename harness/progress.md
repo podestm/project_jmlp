@@ -17,6 +17,19 @@ Template:
 
 ---
 
+## 2026-11-07 — CI workflow (HAR-05)
+- Done: `.github/workflows/ci.yml` — frontend (lint, style/import rules, vitest, build), backend (pytest on a
+  MySQL 8 service container, app user limited to jmlpcz_test) and harness self-test. Runs on push to dev and on
+  PRs to dev and main (owner's flow: local work → push dev → CI → auto-deploy to test → browser check → PR dev→main).
+  `deploy/test/auto-deploy-dev.sh` deploys a dev commit only after all three jobs succeeded on it.
+- Verified: YAML parses; `harness/tests/run.sh` PASS; CI gate dry-run: no runs → wait, unknown → no deploy.
+  First GitHub run: backend red — test_api_contract.py runs only with the frontend present (skipped in
+  harness/lib/backend-tests.sh, which mounts backend/app only) and misread `/standings${query}` as a path.
+  Fixed the path-shape helper (+ test); full backend suite with the whole repo: 801 passed, 0 skipped.
+- Known: local backend-tests.sh still skips the contract test; mount the repo root there (harness/lib, ask first).
+- Next: make `frontend`, `backend`, `harness` required status checks in the main ruleset; then HAR-04.
+- Blocked / decisions needed: none.
+
 ## 2026-11-07 — Agent harness, phase 1–3 (HAR-01)
 - Done: AGENTS.md as canonical entry point with nested AGENTS.md for backend, frontend and the offline layer;
   CLAUDE.md files import them. Architecture and design rules live in those AGENTS.md files; no docs/ folder
