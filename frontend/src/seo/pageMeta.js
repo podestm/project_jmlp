@@ -44,7 +44,7 @@ export const PAGE_META = {
   contacts: {
     title: publicTitle('Kontakty'),
     description:
-      'Pořadatel a soutěžní výbor Jihomoravského lyžařského poháru a e-mailové kontakty na zúčastněné kluby.',
+      'Soutěžní výbor Jihomoravského lyžařského poháru a e-mailové kontakty na zúčastněné kluby.',
   },
   live: {
     title: publicTitle('Živé výsledky'),

@@ -39,16 +39,14 @@ describe('Contacts', () => {
     );
   });
 
-  it('pořadatel poháru se sídlem a IČO, bez vysvětlujícího textu', () => {
+  it('does not show the cup organiser section', () => {
     render(
       <MemoryRouter>
         <Contacts />
       </MemoryRouter>,
     );
-    expect(
-      screen.getByRole('heading', { name: 'Krajský svaz lyžařů Jihomoravského kraje p.s.' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Vídeňská 470\/9, 639 00 Brno · IČO 04711556/)).toBeInTheDocument();
-    expect(screen.queryByText(/pořádají lyžařské kluby z pověření svazu/)).not.toBeInTheDocument();
+
+    expect(screen.queryByText('Pořadatel poháru')).not.toBeInTheDocument();
+    expect(screen.queryByText(/IČO 04711556/)).not.toBeInTheDocument();
   });
 });
