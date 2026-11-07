@@ -1,0 +1,22 @@
+/* ButtonContent obaluje text do <span>; tečka s textem v jedné řadě. */
+.live > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  flex-shrink: 0;
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  background: var(--ms-line-control);
+}
+
+.on {
+  border-color: var(--ms-red);
+}
+
+.on .dot {
+  background: var(--ms-red);
+}

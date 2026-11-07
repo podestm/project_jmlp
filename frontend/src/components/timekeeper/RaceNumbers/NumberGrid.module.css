@@ -1,0 +1,109 @@
+/* TkCisla: mřížka čísel po desítkách s popiskem řádku vlevo. */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-sm);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 64px repeat(10, minmax(72px, 1fr));
+  gap: 6px;
+}
+
+.rowLabel {
+  align-self: center;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.06em;
+  color: var(--ms-navy);
+}
+
+.cell {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 7px;
+  min-block-size: var(--ms-target);
+  padding: 4px 10px;
+  border: 1.5px solid var(--ms-line-control);
+  border-inline-start: 4px solid var(--set-color);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+  text-align: start;
+  cursor: pointer;
+}
+
+.cell:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.off {
+  border-color: var(--ms-line);
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink-muted);
+}
+
+.busy {
+  border-color: var(--ms-amber);
+  background: var(--ms-dry-bg);
+  cursor: progress;
+}
+
+.dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+}
+
+.active {
+  background: var(--ms-open);
+}
+
+.inactive {
+  background: var(--ms-line-control);
+}
+
+.saving {
+  background: var(--ms-dry-ink);
+}
+
+.number {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-lg);
+  line-height: 1.1;
+}
+
+.system {
+  grid-column: 2;
+  font-family: var(--ms-font-mono);
+  font-size: 10px;
+  color: var(--ms-ink-body);
+}

@@ -1,0 +1,97 @@
+.table td {
+  vertical-align: top;
+}
+
+.title {
+  inline-size: 260px;
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.content {
+  min-inline-size: 240px;
+}
+
+/* Úryvek obsahu: nejvýš tři řádky. */
+.snippet {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: var(--ms-fs-md);
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+}
+
+.attachments {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.none {
+  color: var(--ms-ink-muted);
+}
+
+.created {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--ms-ink);
+}
+
+.time {
+  font-weight: 400;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+/* Mobil: řádek jako karta. */
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ms-space-2) var(--ms-space-3);
+    padding: var(--ms-space-3) var(--ms-space-4);
+  }
+
+  .table td {
+    padding: 0;
+  }
+
+  .title,
+  .content {
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .attachments {
+    flex-direction: row;
+  }
+
+  .created {
+    flex-direction: row;
+    gap: var(--ms-space-2);
+  }
+
+  .actions {
+    display: flex;
+  }
+}

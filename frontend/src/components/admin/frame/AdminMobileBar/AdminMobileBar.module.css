@@ -1,0 +1,40 @@
+/* AdminMobilPrehled: navy-deep lišta 60 px. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  block-size: 60px;
+  padding: 0 var(--ms-space-1) 0 var(--ms-space-4);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  min-inline-size: 0;
+  min-block-size: var(--ms-target);
+  color: var(--ms-on-dark);
+  text-decoration: none;
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  block-size: 48px;
+  padding: 0 var(--ms-space-3) 0 var(--ms-space-2);
+  border: 0;
+  background: transparent;
+  color: var(--ms-on-dark);
+  cursor: pointer;
+}
+
+.count {
+  min-inline-size: 22px;
+  block-size: 22px;
+  padding-inline: 6px;
+}

@@ -34,7 +34,7 @@ export const useNewsArchive = () => {
     // aktuality, které už na obrazovce jsou
     const fetchPosts = async ({ silent = false } = {}) => {
         try {
-            if (!silent) setLoading(true);
+            if (!silent) { setLoading(true); setError(null); }
             const data = await API.get(API_CONFIG.ENDPOINTS.POSTS);
             setPosts(data);
         } catch (err) {
@@ -134,6 +134,7 @@ export const useNewsArchive = () => {
         setCurrentPage,
         
         // Functions
+        reload: fetchPosts,
         getAvailableYears,
         getAvailableMonths,
         monthNames,

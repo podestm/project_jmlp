@@ -1,0 +1,67 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  padding-block-end: var(--ms-space-4);
+  border-bottom: 1px solid var(--ms-line);
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  min-inline-size: 0;
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xl);
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.nr {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.row dt {
+  flex-grow: 1;
+  font-weight: 400;
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.row dd {
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-size: var(--ms-fs-base);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}

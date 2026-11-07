@@ -32,12 +32,22 @@ _FETCH = re.compile(r"""fetch\(\s*['"`](/api/[^'"`?]+)""")
 
 # ${...} -> zástupný segment; koncové lomítko a dotaz pryč
 _INTERP = re.compile(r"\$\{[^}]*\}")
+# ${...} přilepené na konec úseku bez lomítka je dotaz (`/standings${query}`, query = '?final=1'),
+# ne další úsek cesty - úsek cesty vždy začíná lomítkem.
+_SUFFIX = re.compile(r"(?<=[^/])\$\{[^}]*\}$")
 
 
 def _shape(path: str) -> str:
     path = path.split("?")[0]
+    path = _SUFFIX.sub("", path)
     path = _INTERP.sub("{}", path)
     return path.rstrip("/") or "/"
+
+
+def test_tvar_cesty_bere_koncovou_interpolaci_jako_dotaz():
+    assert _shape("/api/timekeeper/seasons/${id}/standings${query}") == "/api/timekeeper/seasons/{}/standings"
+    assert _shape("/api/races/${id}") == "/api/races/{}"
+    assert _shape("/api/races/${id}/") == "/api/races/{}"
 
 
 def _route_shapes() -> set[str]:

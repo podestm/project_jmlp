@@ -1,0 +1,60 @@
+/* AdminKategorie „Přepočet kategorií dokončen“: karta se zelenou lištou. */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+  padding: var(--ms-space-4) var(--ms-space-5);
+  border: 1px solid var(--ms-line);
+  border-left: 4px solid var(--ms-open);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ms-space-3);
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-block-start: 2px;
+  color: var(--ms-open);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xl);
+  color: var(--ms-ink);
+}
+
+.close {
+  margin-inline-start: auto;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ms-space-2);
+}
+
+.updates {
+  max-block-size: 300px;
+  overflow-y: auto;
+}
+
+.name {
+  font-weight: 700;
+}
+
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+.old {
+  color: var(--ms-ink-body);
+}

@@ -65,3 +65,13 @@ export const formatText = (text) => {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>');
 };
+
+/**
+ * Text pro hledání: malá písmena bez diakritiky („Brno“ najde i „BRNO“,
+ * „hlubocky“ i „Hlubočky“).
+ */
+export const normalizeForSearch = (text) => String(text ?? '')
+  .normalize('NFD')
+  .replace(/[̀-ͯ]/g, '')
+  .toLowerCase()
+  .trim();

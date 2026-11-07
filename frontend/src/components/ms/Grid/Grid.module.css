@@ -1,0 +1,24 @@
+.grid {
+  display: grid;
+  gap: var(--gap);
+}
+
+.auto {
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--grid-min), 100%), 1fr));
+}
+
+.fixed {
+  grid-template-columns: repeat(var(--grid-columns, 1), minmax(0, 1fr));
+}
+
+@media (max-width: 1023.98px) {
+  .fixed {
+    grid-template-columns: repeat(min(var(--grid-columns, 1), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .fixed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -4,6 +4,7 @@ import ConflictDialogMessage from './ConflictDialogMessage.jsx';
 import {
   buildTimeUpdate,
   calculateTimeSum,
+  clearZeroTimes,
   findRowInDirection,
   isSameDraft,
   normalizeDraft,
@@ -17,8 +18,8 @@ import {
  * přepsal čas uložený z jiného zařízení. Bezpečná volba proto musí zůstat první.
  */
 export const CONFLICT_CHOICES = [
-  { value: 'server', label: 'Ponechat hodnotu ze serveru', variant: 'outline-secondary', icon: 'bi-cloud-arrow-down' },
-  { value: 'overwrite', label: 'Přepsat mojí hodnotou', variant: 'danger', icon: 'bi-pencil-square' },
+  { value: 'server', label: 'Ponechat hodnotu ze serveru', icon: 'cloud-download' },
+  { value: 'overwrite', label: 'Přepsat mojí hodnotou', danger: true, icon: 'pencil' },
 ];
 
 /**
@@ -174,6 +175,22 @@ export function useTimeSaving({
 
     const mine = normalizeDraft(draft);
     const racerLabel = `${fresh.racer_surname || ''} ${fresh.racer_name || ''}`.trim() || `#${entryId}`;
+    const serverDraft = {
+      time1: fresh.time1 != null ? String(fresh.time1) : '',
+      time2: fresh.time2 != null ? String(fresh.time2) : '',
+      dnf: Boolean(fresh.dnf),
+      dns: Boolean(fresh.dns),
+      dsq: Boolean(fresh.dsq),
+    };
+
+    // Na serveru už je přesně to, co obsluha ukládá (fronta to mezitím
+    // doručila, nebo přišel tentýž čas z impulzu): není co rozhodovat.
+    // Načtený řádek nese čerstvou revizi, draft se jen srovná se serverem.
+    if (isSameDraft(draft, serverDraft)) {
+      originalTimesRef.current[entryId] = { ...serverDraft };
+      persistDrafts();
+      return { ok: true, queued: false };
+    }
 
     conflictOpenRef.current = true;
     let choice = null;
@@ -194,13 +211,6 @@ export function useTimeSaving({
     }
 
     if (choice === 'server') {
-      const serverDraft = {
-        time1: fresh.time1 != null ? String(fresh.time1) : '',
-        time2: fresh.time2 != null ? String(fresh.time2) : '',
-        dnf: Boolean(fresh.dnf),
-        dns: Boolean(fresh.dns),
-        dsq: Boolean(fresh.dsq),
-      };
       originalTimesRef.current[entryId] = { ...serverDraft };
       editedTimesRef.current = { ...editedTimesRef.current, [entryId]: serverDraft };
       setEditedTimes((prev) => ({ ...prev, [entryId]: serverDraft }));
@@ -348,10 +358,16 @@ export function useTimeSaving({
 
   const saveSingleTime = useCallback(async (entryId) => {
     if (!hasWriteLockRef.current) return { ok: false, queued: false };
-    const draft = editedTimesRef.current[entryId];
-    if (!draft) return { ok: false, queued: false };
+    const typed = editedTimesRef.current[entryId];
+    if (!typed) return { ok: false, queued: false };
+    // „0.00“ se uloží jako prázdný čas a pole se vyprázdní hned.
+    const draft = clearZeroTimes(typed);
+    if (draft.time1 !== typed.time1 || draft.time2 !== typed.time2) {
+      editedTimesRef.current = { ...editedTimesRef.current, [entryId]: draft };
+      setEditedTimes((prev) => ({ ...prev, [entryId]: draft }));
+    }
     return queueSave(entryId, draft, 'Nepodařilo se uložit čas');
-  }, [queueSave]);
+  }, [queueSave, setEditedTimes]);
 
   const handleBlur = useCallback((entryId, field) => {
     if (!hasWriteLockRef.current) return;

@@ -1,0 +1,44 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--ms-space-4) 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.row + .row {
+  padding-block-start: 14px;
+  border-top: 1px solid var(--ms-line);
+}
+
+.timing {
+  margin-inline-start: auto;
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+/* Tři tisky kol jako jedna skupina tlačítek s společným rámečkem. */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.group > * + * {
+  margin-inline-start: -1.5px;
+}

@@ -1,0 +1,59 @@
+.wrap {
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.date {
+  inline-size: 86px;
+}
+
+.nr {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-size: var(--ms-fs-md);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+  white-space: nowrap;
+}
+
+.race {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 180px;
+}
+
+.name {
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.sub {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.switch {
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ms-space-2);
+}
+
+/* AdminMobilZavody: místo tabulky karty (RaceCards). */
+@media (max-width: 767.98px) {
+  .wrap {
+    display: none;
+  }
+}

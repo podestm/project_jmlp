@@ -1,0 +1,101 @@
+/* AdminZadosti: karta žádosti s amber lištou vlevo (čeká na rozhodnutí). */
+.card {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(180px, 0.8fr) minmax(0, 2fr);
+  align-items: start;
+  gap: var(--ms-space-4) var(--ms-space-6);
+  padding: var(--ms-space-5) var(--ms-space-6);
+  border: 1px solid var(--ms-line);
+  border-left: 4px solid var(--ms-amber);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.noteLabel {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink);
+}
+
+.noteValue {
+  padding: 6px var(--ms-space-3);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-dry-bg);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+  overflow-wrap: anywhere;
+}
+
+.decision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  min-inline-size: 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3);
+}
+
+.field {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+
+@media (max-width: 1279.98px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .decision {
+    grid-column: 1 / -1;
+  }
+}
+
+/* AdminMobilZadosti: vše pod sebou, potvrzení přes celou šířku. */
+@media (max-width: 767.98px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--ms-space-4);
+  }
+
+  .field {
+    flex-basis: 100%;
+  }
+
+  .confirm {
+    flex-grow: 1;
+  }
+}

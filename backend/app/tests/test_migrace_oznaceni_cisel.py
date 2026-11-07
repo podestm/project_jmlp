@@ -1,4 +1,4 @@
-"""Migrace 015 a 016: systémová čísla 1-400 -> označení písmenem sady ("B12")
+"""Migrace 016 a 017: systémová čísla 1-400 -> označení písmenem sady ("B12")
 a zrušení samostatného čísla dresu (je obsažené v označení)."""
 from sqlalchemy import text
 

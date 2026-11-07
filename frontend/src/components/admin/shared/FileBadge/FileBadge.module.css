@@ -1,0 +1,29 @@
+/* AdminDokumenty: ledový štítek 22 px, Archivo verzálkami. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-inline-size: 44px;
+  block-size: 22px;
+  padding: 0 7px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: 0.08em;
+  color: var(--ms-navy);
+}
+
+.pdf {
+  color: var(--ms-live-ink);
+}
+
+.sheet {
+  color: var(--ms-open);
+}
+
+.archive {
+  color: var(--ms-ink);
+}

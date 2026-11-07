@@ -1,0 +1,60 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--ms-space-3);
+}
+
+.listNote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ms-ink);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.event {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  padding: var(--ms-space-3);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-sunken);
+}
+
+.eventName {
+  font-family: var(--ms-font-display);
+  color: var(--ms-ink);
+}
+
+.eventMeta {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--ms-space-1);
+  min-block-size: var(--ms-target);
+  color: var(--ms-navy);
+  font-weight: 600;
+}

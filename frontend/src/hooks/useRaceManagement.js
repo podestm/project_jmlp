@@ -1,9 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { AdminAPI, adminAuthHeaders } from '../config/api.js';
 import { getSeasonIdForRace, formatSeason, generateRaceNumber } from '../utils/season.js';
+import { useCurrentSeason } from './useCurrentSeason.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
+import { deleteRaceConfirm } from '../components/admin/Races/dialogs/deleteRaceConfirm.jsx';
 
-export const useRaceManagement = () => {
+/**
+ * @param {{confirm?: Function}} [options] - confirm z useConfirm komponenty,
+ *   která hook používá (hook sám dialog vykreslit nemůže)
+ */
+export const useRaceManagement = ({ confirm } = {}) => {
     // Refs for debouncing
     const arealSearchTimeoutRef = useRef(null);
     const organizerSearchTimeoutRef = useRef(null);
@@ -37,9 +43,16 @@ export const useRaceManagement = () => {
     const [raceNumberPreview, setRaceNumberPreview] = useState('');
     const [seasonPreview, setSeasonPreview] = useState('');
     
-    // Filter states
-    const [seasonFilter, setSeasonFilter] = useState('');
-    const [availableSeasons, setAvailableSeasons] = useState([]);
+    // Filtr sezóny – výchozí je aktuální sezóna („Všechny sezóny“ zůstává ve výběru).
+    // null = správce filtr nezměnil; aktuální sezóna může dorazit až ze serveru.
+    const { seasonId: currentSeasonId } = useCurrentSeason();
+    const [chosenSeasonFilter, setSeasonFilter] = useState(null);
+    const seasonFilter = chosenSeasonFilter ?? String(currentSeasonId);
+    // Aktuální sezóna je ve výběru i bez závodů (je to výchozí filtr).
+    const availableSeasons = useMemo(
+        () => [...new Set([currentSeasonId, ...races.map(race => race.season_id)])].sort((a, b) => b - a),
+        [races, currentSeasonId]
+    );
 
     // silent: obnova na pozadí - nesahá na hlášky nad seznamem
     const loadRaces = async ({ silent = false } = {}) => {
@@ -47,9 +60,6 @@ export const useRaceManagement = () => {
             if (!silent) setError(null);
             const data = await AdminAPI.get('/api/admin/races');
             setRaces(data);
-            
-            const seasons = [...new Set(data.map(race => race.season_id))];
-            setAvailableSeasons(seasons.sort((a, b) => b - a));
         } catch (err) {
             console.error('Error loading races:', err);
             if (!silent) setError('Chyba při načítání závodů');
@@ -260,16 +270,21 @@ export const useRaceManagement = () => {
         setShowForm(true);
     };
 
+    // Vrací true po úspěšném smazání (formulář úpravy se pak zavře).
     const deleteRace = async (raceId) => {
-        if (!window.confirm('Opravdu chcete smazat tento závod?')) return;
+        const race = races.find((item) => item.id === raceId);
+        const confirmed = await confirm(deleteRaceConfirm(race));
+        if (!confirmed) return false;
         
         try {
             await AdminAPI.delete(`/api/admin/races/${raceId}`);
             setSuccess('Závod byl úspěšně smazán');
             loadRaces();
+            return true;
         } catch (err) {
             console.error('Error deleting race:', err);
             setError('Chyba při mazání závodu');
+            return false;
         }
     };
 

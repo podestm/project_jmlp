@@ -1,0 +1,91 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ms-space-3) var(--ms-space-4);
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.total {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.today {
+  margin: 0;
+  font-size: var(--ms-fs-md);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.today strong {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.canvas {
+  position: relative;
+  block-size: 220px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.solid,
+.dashed {
+  inline-size: 22px;
+  block-size: 0;
+  border-top: 3px solid var(--ms-navy);
+}
+
+.dashed {
+  border-top: 2px dashed var(--ms-line-control);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px var(--ms-space-4);
+  border: 1px dashed var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 767.98px) {
+  .canvas {
+    block-size: 180px;
+  }
+}

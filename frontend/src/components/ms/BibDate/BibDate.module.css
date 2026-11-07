@@ -1,0 +1,105 @@
+.bib {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+/* Popisky dne/měsíce v Bib (design systém): akcent jako text na světlé ploše. */
+.accent {
+  color: var(--ms-sun-ink);
+}
+
+.number {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+/* Velké „startovní číslo“ v rámečku (DesignSystem 96 × 108). */
+.card .visual {
+  justify-content: center;
+  inline-size: 96px;
+  block-size: 108px;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-ice);
+  border-radius: var(--ms-radius-card);
+}
+
+.card .caps {
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.12em;
+}
+
+.card .number {
+  font-size: 54px;
+  line-height: 1.02;
+}
+
+/* Tabulka administrace (AdminZavody: šířka 44, 10 / 22 / 10 px). */
+.table .visual {
+  inline-size: 44px;
+}
+
+.table .caps {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.table .number {
+  font-size: var(--ms-fs-2xl);
+  line-height: 1.05;
+}
+
+/* Datový řádek (DesignSystem: šířka 38–40, číslo 24–26 px, zkratka 11 px). */
+.row .visual {
+  inline-size: 40px;
+}
+
+.row .caps {
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: 0.08em;
+}
+
+.row .number {
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+/* Kalendář závodů (Zavody: šířka 62, 11 / 33 / 11 px; MobilZavody menší). */
+.list .visual {
+  inline-size: 62px;
+}
+
+.list .caps {
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: 0.1em;
+}
+
+.list .number {
+  font-size: 33px;
+  line-height: 1.05;
+}
+
+@media (max-width: 767.98px) {
+  .list .visual {
+    inline-size: 44px;
+  }
+
+  .list .number {
+    font-size: 26px;
+  }
+}

@@ -1,0 +1,57 @@
+/* AktualityArchiv.dc.html a MobilAktuality.dc.html. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-8);
+  padding-block: var(--ms-space-10) var(--ms-space-14);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.count {
+  padding-block-start: var(--ms-space-4);
+  border-block-start: 1px solid var(--ms-line);
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.count strong {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-ink);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+  min-inline-size: 0;
+}
+
+.year {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ms-space-3);
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-lg);
+  font-weight: 600;
+  color: var(--ms-navy);
+}
+
+.yearCount {
+  font-family: var(--ms-font-text);
+  font-size: var(--ms-fs-md);
+  font-weight: 400;
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 767.98px) {
+  .page {
+    gap: var(--ms-space-6);
+    padding-block: var(--ms-space-6) var(--ms-space-10);
+  }
+}

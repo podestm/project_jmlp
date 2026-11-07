@@ -101,9 +101,9 @@ def _soubor(db, filename="dokument.pdf"):
     return file_record
 
 
-def _sezona(db, year_start=2025, edition=19, name="Jihomoravský pohár", active=True):
+def _sezona(db, year_start=2025, edition=19, name="Jihomoravský pohár", is_current=False):
     season = models.Season(year_start=year_start, year_end=year_start + 1,
-                           edition=edition, name=name, active=active)
+                           edition=edition, name=name, is_current=is_current)
     db.add(season)
     db.commit()
     db.refresh(season)
@@ -1137,7 +1137,7 @@ def test_sezona_se_zalozi_s_dopoctenym_koncem_a_rimskym_rocnikem(client, admin_h
     assert sezona["season_label"] == "2025/2026"
     assert sezona["edition_label"] == "XIX."
     assert sezona["name"] == "Jihomoravský lyžařský pohár"   # výchozí název
-    assert sezona["active"] is True
+    assert sezona["is_current"] is False      # aktuální se nastavuje zvlášť
     assert sezona["races_count"] == 0
     assert _pocet(db, "SELECT year_end FROM fuj_jmlp_season") == 2026
 

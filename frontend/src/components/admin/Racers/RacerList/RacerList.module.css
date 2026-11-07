@@ -1,0 +1,68 @@
+.list {
+  display: none;
+}
+
+/* Mobil: seznam přes celou šířku místo tabulky. */
+@media (max-width: 767.98px) {
+  .list {
+    display: block;
+    margin: 0 calc(-1 * var(--ms-space-4));
+    padding: 0;
+    border-block: 1px solid var(--ms-line);
+    background: var(--ms-surface-card);
+    list-style: none;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--ms-space-2);
+    min-block-size: 60px;
+    padding: 8px var(--ms-space-2) 8px var(--ms-space-4);
+  }
+
+  .row + .row {
+    border-top: 1px solid var(--ms-line);
+  }
+
+  .year {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    inline-size: 50px;
+    block-size: 34px;
+    margin-inline-end: var(--ms-space-1);
+    border-radius: var(--ms-radius-inner);
+    background: var(--ms-surface-sunken);
+    font-family: var(--ms-font-mono);
+    font-weight: 600;
+    font-size: var(--ms-fs-md);
+    font-variant-numeric: tabular-nums;
+    color: var(--ms-ink);
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-inline-size: 0;
+  }
+
+  .name {
+    overflow: hidden;
+    font-weight: 700;
+    font-size: var(--ms-fs-lg);
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ms-ink);
+  }
+
+  .details {
+    font-size: var(--ms-fs-sm);
+    line-height: 1.35;
+    color: var(--ms-ink-body);
+  }
+}

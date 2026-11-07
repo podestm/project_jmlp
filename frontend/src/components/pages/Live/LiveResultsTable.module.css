@@ -1,0 +1,35 @@
+/* Zive „tabulka kategorie“. */
+
+/* Dres v barvě sady startovních čísel (--ms-bib-*). */
+.bib {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 34px;
+  block-size: 28px;
+  padding: 0 6px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--bib-color);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  color: var(--ms-on-dark);
+}
+
+.name {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.year {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.club {
+  color: var(--ms-ink-body);
+}
+
+.total {
+  font-weight: 700;
+  color: var(--ms-ink);
+}

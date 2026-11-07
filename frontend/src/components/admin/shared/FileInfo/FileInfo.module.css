@@ -1,0 +1,43 @@
+.file {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-inline-size: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.name,
+.link {
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  line-height: 1.35;
+  color: var(--ms-ink);
+  overflow-wrap: anywhere;
+}
+
+.link {
+  color: var(--ms-navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

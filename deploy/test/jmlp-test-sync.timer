@@ -1,0 +1,10 @@
+[Unit]
+Description=JMLP: kopie produkce do testu každé 2 hodiny
+
+[Timer]
+OnCalendar=*-*-* 00/2:15:00
+Persistent=false
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

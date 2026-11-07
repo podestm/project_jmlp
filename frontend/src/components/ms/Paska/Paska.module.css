@@ -1,0 +1,32 @@
+.paska {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-lg);
+  font-weight: 700;
+  letter-spacing: var(--ms-tracking-paska);
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--ms-ink);
+}
+
+.aside {
+  margin-inline-start: auto;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.line {
+  block-size: 2px;
+  background: linear-gradient(to right, var(--ms-sun) 40px, var(--ms-line) 40px);
+}

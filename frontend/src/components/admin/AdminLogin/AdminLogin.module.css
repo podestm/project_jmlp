@@ -1,0 +1,99 @@
+/* AdminLogin: navy-deep s tlumenou fotkou trati, uprostřed znak a karta 440 px. */
+.page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 100dvh;
+  padding: var(--ms-space-10) var(--ms-space-4);
+  overflow: hidden;
+  background: var(--ms-navy-deep);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  opacity: 0.04;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  inline-size: 100%;
+  max-inline-size: 440px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--ms-on-dark);
+}
+
+.cup {
+  font-size: var(--ms-fs-md);
+  line-height: 1.3;
+  color: var(--ms-ice);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  inline-size: 100%;
+  padding: var(--ms-space-8);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+  --ms-focus-color: var(--ms-navy);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: var(--ms-fs-3xl);
+  line-height: 1.2;
+  color: var(--ms-ink);
+}
+
+.submit {
+  margin-block-start: var(--ms-space-1);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  min-block-size: var(--ms-target);
+  color: var(--ms-ice);
+  font-size: var(--ms-fs-base);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--ms-on-dark);
+}
+
+@media (max-width: 767.98px) {
+  .card {
+    padding: var(--ms-space-6) 20px;
+  }
+}

@@ -1,0 +1,94 @@
+/* Vysledky „Celkové výsledky“: tabulka pořadí jedné kategorie. */
+.table {
+  min-inline-size: var(--table-min);
+}
+
+/* Sloupce bodů mají stejnou šířku, ať jsou čísla pod sebou v pravidelné mřížce. */
+.rankHead {
+  inline-size: 72px;
+}
+
+.raceHead,
+.sumHead {
+  inline-size: 96px;
+}
+
+.totalHead {
+  inline-size: 104px;
+}
+
+.raceHead {
+  font-size: var(--ms-fs-2xs);
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+}
+
+.table th.raceHead {
+  padding-inline: 8px;
+}
+
+.raceHead span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.raceHead span {
+  display: block;
+}
+
+.raceDate {
+  font-family: var(--ms-font-mono);
+  letter-spacing: 0;
+}
+
+.name {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.year {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.club {
+  color: var(--ms-ink-body);
+  overflow-wrap: anywhere;
+}
+
+.cell {
+  color: var(--ms-ink-body);
+}
+
+/* Započtený závod: přípravný jantarově, na sněhu a finále modře. */
+.cell[data-counted] {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.cell[data-counted='P'] {
+  background: var(--ms-dry-bg);
+}
+
+.cell[data-counted='S'],
+.cell[data-counted='F'] {
+  background: var(--ms-surface-sunken);
+}
+
+.cell[data-status] {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  color: var(--ms-live-ink);
+}
+
+.sum {
+  color: var(--ms-ink-body);
+}
+
+.total {
+  font-size: var(--ms-fs-xl);
+  font-weight: 700;
+  color: var(--ms-ink);
+}

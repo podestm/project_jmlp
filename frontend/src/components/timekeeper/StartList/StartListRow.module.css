@@ -1,0 +1,48 @@
+.excludedRow {
+  background: var(--ms-surface-sunken);
+}
+
+.year {
+  font-weight: 400;
+  color: var(--ms-ink-body);
+}
+
+.racer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+}
+
+.name,
+.excludedName {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.excludedName {
+  text-decoration: line-through;
+  color: var(--ms-ink-muted);
+}
+
+.club {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.sum {
+  font-size: var(--ms-fs-xl);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}

@@ -91,32 +91,6 @@ def test_zapis_casu_secte_obe_jizdy(client, db, polozky, timekeeper_headers):
     assert polozky[0].time_sum == Decimal("60.00")
 
 
-@pytest.mark.parametrize("nula", [0, 0.0, "0.00"])
-def test_nulovy_cas_je_nezmereno(client, db, polozky, timekeeper_headers, nula):
-    odpoved = client.put(
-        f"/api/timekeeper/start-list/{polozky[0].id}/time",
-        json={"time1": 30.5, "time2": nula},
-        headers=timekeeper_headers,
-    )
-
-    assert odpoved.status_code == 200
-    db.refresh(polozky[0])
-    assert polozky[0].time2 is None
-    assert polozky[0].time_sum == Decimal("30.50")
-
-
-def test_nulovy_cas_v_davce_je_nezmereno(client, db, zavod, polozky, timekeeper_headers):
-    odpoved = client.post(
-        f"/api/timekeeper/races/{zavod.id}/times",
-        json={"entries": [{"entry_id": polozky[0].id, "time1": 0.0}]},
-        headers=timekeeper_headers,
-    )
-
-    assert odpoved.status_code == 200, odpoved.text
-    db.refresh(polozky[0])
-    assert polozky[0].time1 is None
-
-
 def test_jedina_jizda_je_celkovym_casem(client, db, polozky, timekeeper_headers):
     client.put(
         f"/api/timekeeper/start-list/{polozky[0].id}/time",
@@ -139,6 +113,34 @@ def test_priznak_rusi_celkovy_cas(client, db, polozky, timekeeper_headers, prizn
     db.refresh(polozky[0])
     assert polozky[0].time_sum is None
     assert getattr(polozky[0], priznak) is True
+
+
+@pytest.mark.parametrize("nula", [0, 0.0, "0.00", -1])
+def test_nulovy_cas_se_ulozi_jako_prazdny(client, db, polozky, timekeeper_headers, nula):
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 30.5, "time2": nula},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 200
+    db.refresh(polozky[0])
+    assert polozky[0].time2 is None
+    assert polozky[0].time_sum == Decimal("30.50")
+
+
+def test_hromadny_zapis_nulu_ulozi_jako_prazdny_cas(client, db, zavod, polozky, timekeeper_headers):
+    client.post(
+        f"/api/timekeeper/races/{zavod.id}/times",
+        json={"entries": [{"entry_id": polozky[0].id, "time1": 0, "time2": 0.0,
+                           "dnf": False, "dns": False, "dsq": False}]},
+        headers=timekeeper_headers,
+    )
+
+    db.refresh(polozky[0])
+    assert polozky[0].time1 is None
+    assert polozky[0].time2 is None
+    assert polozky[0].time_sum is None
 
 
 def test_odpoved_nese_revizi_pro_dalsi_zapis(client, polozky, timekeeper_headers):
@@ -188,6 +190,64 @@ def test_zapis_proti_zastarale_revizi_konci_konfliktem(client, polozky, timekeep
     assert prvni.status_code == 200
     assert druhy.status_code == 409
     assert druhy.json()["detail"]["entry_id"] == polozky[0].id
+
+
+def test_zastarala_revize_se_stejnou_hodnotou_neni_konflikt(client, db, polozky, timekeeper_headers):
+    """Fronta čas mezitím doručila, nebo přišel z impulzu i ručně: stejná
+    hodnota pod starším razítkem se uloží bez konfliktu a vrátí novou revizi."""
+    client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 219.6, "time2": None, "dnf": False, "dns": False, "dsq": False},
+        headers=timekeeper_headers,
+    )
+
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 219.60, "time2": None, "dnf": False, "dns": False, "dsq": False,
+              "base_revision": "2020-01-01T00:00:00"},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 200
+    assert odpoved.json()["revision"] is not None
+    db.refresh(polozky[0])
+    assert polozky[0].time1 == Decimal("219.60")
+
+
+def test_zastarala_revize_s_jinym_priznakem_je_konflikt(client, polozky, timekeeper_headers):
+    client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 30.5},
+        headers=timekeeper_headers,
+    )
+
+    odpoved = client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 30.5, "dnf": True, "base_revision": "2020-01-01T00:00:00"},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 409
+
+
+def test_hromadny_zapis_se_stejnou_hodnotou_a_starou_revizi_projde(client, zavod, polozky, timekeeper_headers):
+    client.put(
+        f"/api/timekeeper/start-list/{polozky[0].id}/time",
+        json={"time1": 41.2},
+        headers=timekeeper_headers,
+    )
+
+    odpoved = client.post(
+        f"/api/timekeeper/races/{zavod.id}/times",
+        json={"entries": [{
+            "entry_id": polozky[0].id, "time1": 41.2, "time2": None,
+            "dnf": False, "dns": False, "dsq": False,
+            "base_revision": "2020-01-01T00:00:00", "force_apply": False,
+        }]},
+        headers=timekeeper_headers,
+    )
+
+    assert odpoved.status_code == 200
 
 
 def test_zapis_se_spravnou_revizi_projde(client, polozky, timekeeper_headers):

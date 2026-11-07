@@ -1,0 +1,144 @@
+/* Main.dc.html (1240 px) a MobilUvod.dc.html (pod 768 px). */
+.hero {
+  background:
+    linear-gradient(100deg, var(--ms-navy-deep) 0%, color-mix(in srgb, var(--ms-navy-deep) 88%, transparent) 45%, color-mix(in srgb, var(--ms-navy) 45%, transparent) 100%),
+    url('../../../assets/images/trat.jpg') center 60% / cover no-repeat;
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ms-space-5);
+  padding-block: 52px var(--ms-space-8);
+}
+
+.eyebrow {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ms-sun);
+}
+
+.heroTitle {
+  max-inline-size: 780px;
+  font-family: var(--ms-font-display);
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--ms-on-dark);
+}
+
+.lead {
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3);
+  padding-block-start: var(--ms-space-2);
+}
+
+.since {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: flex-end;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ms-ice);
+}
+
+.sinceYear {
+  font-family: var(--ms-font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ms-on-dark);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+  padding-block: var(--ms-space-7) var(--ms-space-14);
+}
+
+/* Aktuality 2/3 vlevo, závody sezóny 1/3 vpravo; pod 1024 px pod sebou,
+   závody první (pořadí v DOM). */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: 'news races';
+  gap: var(--ms-space-8);
+  align-items: start;
+}
+
+.news {
+  grid-area: news;
+}
+
+.races {
+  grid-area: races;
+}
+
+.raceLink {
+  color: var(--ms-ink);
+  text-decoration: none;
+}
+
+.raceLink:hover {
+  color: var(--ms-navy);
+  text-decoration: underline;
+}
+
+@media (max-width: 1023.98px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'races' 'news';
+    gap: 52px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .heroInner {
+    gap: var(--ms-space-4);
+    padding-block: var(--ms-space-8) var(--ms-space-6);
+  }
+
+  .heroTitle {
+    font-size: 34px;
+  }
+
+  .lead {
+    font-size: 17px;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  .since {
+    display: none;
+  }
+
+  .page {
+    gap: var(--ms-space-10);
+    padding-block: var(--ms-space-5) var(--ms-space-10);
+  }
+
+  .columns {
+    gap: var(--ms-space-10);
+  }
+}

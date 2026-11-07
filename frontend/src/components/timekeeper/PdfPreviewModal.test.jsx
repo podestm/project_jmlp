@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PdfPreviewModal from './PdfPreviewModal.jsx';
 
@@ -17,7 +17,7 @@ describe('náhled listiny', () => {
     renderModal();
 
     expect(screen.getAllByRole('button').map((button) => button.getAttribute('aria-label') || button.textContent))
-      .toEqual(['Zavřít']);
+      .toEqual(['Zavřít náhled']);
     expect(screen.queryByText('Stáhnout')).toBeNull();
   });
 
@@ -35,9 +35,19 @@ describe('náhled listiny', () => {
     const onClose = vi.fn();
     renderModal({ onClose });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Zavřít' }));
-    await userEvent.keyboard('{Escape}');
+    await userEvent.click(screen.getByRole('button', { name: 'Zavřít náhled' }));
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
 
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('během publikace zavřít nejde', () => {
+    const onClose = vi.fn();
+    renderModal({ onClose, canPublish: true, publishing: true });
+
+    expect(screen.queryByRole('button', { name: 'Zavřít náhled' })).toBeNull();
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Publikovat k závodu/ })).toBeDisabled();
   });
 });

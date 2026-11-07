@@ -1,0 +1,72 @@
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3);
+}
+
+.search {
+  inline-size: 260px;
+}
+
+.extension {
+  inline-size: 130px;
+}
+
+.owner {
+  inline-size: 190px;
+}
+
+.date {
+  inline-size: 160px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0 0 0 auto;
+  padding-block-end: 4px;
+}
+
+.count {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.count strong {
+  font-family: var(--ms-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Užší obrazovky: pole po dvou, hledání přes celou šířku. */
+@media (max-width: 1279.98px) {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search,
+  .extension,
+  .owner,
+  .date {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+
+  .reset {
+    justify-self: start;
+  }
+
+  .summary {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    margin: 0;
+  }
+}

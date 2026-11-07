@@ -16,6 +16,9 @@ COPY . .
 # Build argument pro API base URL
 ARG VITE_API_BASE
 ENV VITE_API_BASE=${VITE_API_BASE}
+# Popisek prostředí (jen test: pruh nahoře na stránce), v produkci prázdné
+ARG VITE_ENV_LABEL=""
+ENV VITE_ENV_LABEL=${VITE_ENV_LABEL}
 
 # Build aplikace
 RUN npm run build

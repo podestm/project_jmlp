@@ -4,11 +4,27 @@
 // nedala testovat bez vykreslení celé tabulky, přestože je to obyčejná
 // aritmetika a porovnávání.
 
-/** Čas z formuláře nebo serveru; prázdný, nesmyslný i nulový (0, 0.0, 0.00) = null. */
+/**
+ * Čas z pole nebo ze serveru na číslo. Nula („0“, „0.0“, „0.00“) i záporný čas
+ * je prázdné pole, ne naměřený čas - jinak by se nula sčítala do celkového času a řádek
+ * by vypadal jako hotový.
+ */
 export const parseStoredTime = (value) => {
   if (value === '' || value === null || value === undefined) return null;
   const parsed = parseFloat(value);
   return Number.isNaN(parsed) || parsed <= 0 ? null : parsed;
+};
+
+/** Nulové časy v rozepsaném řádku vyprázdní (pole pak ukáže jen nápovědu). */
+export const clearZeroTimes = (data) => {
+  if (!data) return data;
+  const cleared = { ...data };
+  ['time1', 'time2'].forEach((field) => {
+    if (cleared[field] !== '' && cleared[field] != null && parseStoredTime(cleared[field]) == null) {
+      cleared[field] = '';
+    }
+  });
+  return cleared;
 };
 
 /** Stejné pravidlo jako v backend/app/routers/timekeeper/timing.py. */

@@ -1,0 +1,6 @@
+/* Ve zkracované buňce jména (Časy) se štítek nezalamuje ani nezmenšuje. */
+.wrap {
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+}

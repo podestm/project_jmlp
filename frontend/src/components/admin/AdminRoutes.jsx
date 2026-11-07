@@ -3,26 +3,29 @@
 // boundary is what stops a public visitor from downloading the admin console.
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../config/auth.jsx';
-import { useBodyClass } from '../../hooks/useBodyClass.js';
-import LoadingState from '../ui/LoadingState.jsx';
-import AdminLogin from './AdminLogin.jsx';
-import AdminRegister from './AdminRegister.jsx';
-import AdminLayout from './AdminLayout.jsx';
-import AdminDashboard from './AdminDashboard.jsx';
-import RaceManagement from './RaceManagement.jsx';
-import RacerManagement from './RacerManagement.jsx';
-import DocumentLibrary from './DocumentLibrary.jsx';
-import PostManagement from './PostManagement.jsx';
-import RaceRegistrations from './RaceRegistrations.jsx';
-import CategoryManagement from './CategoryManagement.jsx';
-import SeasonManagement from './SeasonManagement.jsx';
-import ClubManagement from './ClubManagement.jsx';
-import ClubRequests from './ClubRequests.jsx';
+import { useSectionMeta } from '../../hooks/usePageMeta.js';
+import { adminTitle } from '../../seo/pageMeta.js';
+import { adminNav } from '../ms/navItems.js';
+import { LoadingState, Screen } from '../ms/index.js';
+import AdminLogin from './AdminLogin/AdminLogin.jsx';
+import AdminRegister from './AdminRegister/AdminRegister.jsx';
+import AdminLayout from './frame/AdminLayout/AdminLayout.jsx';
+import AdminNotFound from './frame/AdminNotFound/AdminNotFound.jsx';
+import AdminDashboard from './Dashboard/AdminDashboard.jsx';
+import RaceManagement from './Races/RaceManagement.jsx';
+import RacerManagement from './Racers/RacerManagement.jsx';
+import DocumentLibrary from './Documents/DocumentLibrary.jsx';
+import PostManagement from './Posts/PostManagement.jsx';
+import RaceRegistrations from './Registrations/RaceRegistrations.jsx';
+import CategoryManagement from './Categories/CategoryManagement.jsx';
+import SeasonManagement from './Seasons/SeasonManagement.jsx';
+import ClubManagement from './Clubs/ClubManagement.jsx';
+import ClubRequests from './ClubRequests/ClubRequests.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return <LoadingState variant="fullscreen" />;
+  if (loading) return <LoadingState variant="fullscreen" label="Ověřuji přihlášení…" />;
   if (!isAuthenticated) return <AdminLogin />;
 
   return <AdminLayout>{children}</AdminLayout>;
@@ -31,24 +34,25 @@ const ProtectedRoute = ({ children }) => {
 const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export default function AdminRoutes() {
-  // Světlé téma administrace pro celou stránku včetně modálních oken.
-  useBodyClass('theme-backoffice');
-
+  useSectionMeta(adminNav, adminTitle);
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={protect(<AdminDashboard />)} />
-        <Route path="/races" element={protect(<RaceManagement />)} />
-        <Route path="/racers" element={protect(<RacerManagement />)} />
-        <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
-        <Route path="/documents" element={protect(<DocumentLibrary />)} />
-        <Route path="/posts" element={protect(<PostManagement />)} />
-        <Route path="/categories" element={protect(<CategoryManagement />)} />
-        <Route path="/seasons" element={protect(<SeasonManagement />)} />
-        <Route path="/clubs" element={protect(<ClubManagement />)} />
-        <Route path="/club-requests" element={protect(<ClubRequests />)} />
-        <Route path="/register" element={protect(<AdminRegister />)} />
-      </Routes>
-    </AuthProvider>
+    <Screen>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={protect(<AdminDashboard />)} />
+          <Route path="/races" element={protect(<RaceManagement />)} />
+          <Route path="/racers" element={protect(<RacerManagement />)} />
+          <Route path="/races/:raceId/registrations" element={protect(<RaceRegistrations />)} />
+          <Route path="/documents" element={protect(<DocumentLibrary />)} />
+          <Route path="/posts" element={protect(<PostManagement />)} />
+          <Route path="/categories" element={protect(<CategoryManagement />)} />
+          <Route path="/seasons" element={protect(<SeasonManagement />)} />
+          <Route path="/clubs" element={protect(<ClubManagement />)} />
+          <Route path="/club-requests" element={protect(<ClubRequests />)} />
+          <Route path="/register" element={protect(<AdminRegister />)} />
+          <Route path="*" element={protect(<AdminNotFound />)} />
+        </Routes>
+      </AuthProvider>
+    </Screen>
   );
 }

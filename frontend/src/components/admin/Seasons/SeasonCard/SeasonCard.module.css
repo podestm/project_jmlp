@@ -1,0 +1,131 @@
+/* AdminSezony: karta sezóny s lištou vlevo (aktuální zelená). */
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ms-line);
+  border-left: 4px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.current {
+  border-left-color: var(--ms-open);
+}
+
+.compact {
+  border-left-width: 1px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3) var(--ms-space-5);
+  padding: var(--ms-space-4) var(--ms-space-5);
+}
+
+.compact .row {
+  padding: 10px var(--ms-space-4);
+}
+
+.edition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 72px;
+}
+
+.editionLabel {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.editionValue {
+  font-family: var(--ms-font-display);
+  font-weight: 800;
+  font-size: var(--ms-fs-2xl);
+  line-height: 1.1;
+  color: var(--ms-ink);
+}
+
+.compact .editionValue {
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-navy);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 280px;
+  min-inline-size: 0;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px var(--ms-space-3);
+}
+
+.years {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-xl);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.compact .years {
+  font-size: var(--ms-fs-base);
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badges:empty {
+  display: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+  margin-inline-start: auto;
+}
+
+.documents {
+  padding: var(--ms-space-4) var(--ms-space-5);
+  border-top: 1px solid var(--ms-line);
+  background: var(--ms-surface-page);
+}
+
+@media (max-width: 767.98px) {
+  .row,
+  .documents {
+    padding-inline: var(--ms-space-4);
+  }
+
+  .actions {
+    margin-inline-start: 0;
+  }
+}

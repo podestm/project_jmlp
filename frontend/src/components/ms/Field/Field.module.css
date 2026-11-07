@@ -1,0 +1,36 @@
+/* PrihlaskaChyby: popisek Archivo 700 13 px, chyba 600 14 px v --ms-live-ink. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-inline-size: 0;
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: var(--ms-ink);
+}
+
+.required {
+  color: var(--ms-live-ink);
+}
+
+.hint {
+  font-size: var(--ms-fs-md);
+  line-height: 1.45;
+  color: var(--ms-ink-body);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ms-live-ink);
+}

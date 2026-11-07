@@ -1,0 +1,78 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Stejný vzhled jako popisek ve Field. */
+.legend {
+  margin-block-end: 2px;
+  padding: 0;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: var(--ms-ink);
+}
+
+/* AdminDialogZverejnitSoubor: karta 64 px, vybraná s navy rámečkem 2 px. */
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  min-block-size: 64px;
+  padding: 10px var(--ms-space-4);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--ms-surface-page);
+}
+
+.option:has(:checked) {
+  border: 2px solid var(--ms-navy);
+  padding: 9px calc(var(--ms-space-4) - 1px);
+  background: var(--ms-surface-sunken);
+}
+
+.option:has(:focus-visible) {
+  outline: var(--ms-focus-width) solid var(--ms-focus-color);
+  outline-offset: var(--ms-focus-offset);
+}
+
+.input {
+  flex-shrink: 0;
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 0;
+  accent-color: var(--ms-navy);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  line-height: 1.35;
+  color: var(--ms-ink);
+}
+
+.description {
+  font-size: var(--ms-fs-md);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}

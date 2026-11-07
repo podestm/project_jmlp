@@ -1,0 +1,70 @@
+{
+  "about": "PreToolUse guard for Bash. Each rule is a Python regex matched against the whole command. A match blocks the command and the reason is shown to the agent. Server-specific rules (production paths, hosts, container names) go in guard-rules.local.json next to this file, which is gitignored; same shape.",
+  "rules": [
+    {
+      "id": "prod-compose",
+      "pattern": "\\bdocker(\\s+|-)compose(?![.\\w])[^|;&]*docker-compose\\.server\\.yml",
+      "reason": "Production compose file. Production is deployed by a human; agents never build, start or stop it."
+    },
+    {
+      "id": "deploy-scripts",
+      "pattern": "(^|[;&|]\\s*|(?<![\\w./-])(bash|sh|sudo|exec|source)\\s+)(\\S*/)?(deploy/(ops|test)/[\\w.-]+\\.sh|sync-prod-to-test\\.sh|jmlp-backup\\.sh)\\b",
+      "reason": "Deployment, backup and data-sync scripts change shared environments. Ask the owner to run them."
+    },
+    {
+      "id": "systemd",
+      "pattern": "\\b(systemctl|journalctl\\s+--vacuum|crontab\\s+-[er])\\b",
+      "reason": "Host services and timers are operated by a human."
+    },
+    {
+      "id": "remote-shell",
+      "pattern": "(^|[\\s;&|])(ssh|scp|sftp)\\s|\\brsync\\b[^|;&]*\\S+:",
+      "reason": "No remote shells or copies from agent sessions; servers are reached only through the deployed apps."
+    },
+    {
+      "id": "stack-restart",
+      "pattern": "(^|[;&|]\\s*|(?<![\\w./-])(bash|sh|sudo|exec)\\s+)(\\S*/)?rebuild\\.sh\\b|\\bdocker\\s+compose\\b[^|;&]*\\b(up|down|restart|stop|rm)\\b(?![^|;&]*jmlp-harness)",
+      "reason": "Starts, stops or rebuilds a compose stack. On shared servers the compose project name can collide with a running environment (rebuild.sh db also wipes data). Environments are operated by a human; tests need no running stack."
+    },
+    {
+      "id": "db-destroy",
+      "pattern": "\\bDROP\\s+(DATABASE|SCHEMA)\\b|docker\\s+volume\\s+(rm|prune)|docker\\s+compose\\b[^|;&]*\\bdown\\b[^|;&]*\\s-v\\b",
+      "reason": "Destroys database or volume data. Backend tests use a throwaway MySQL (harness/lib/backend-tests.sh); nothing else should drop data."
+    },
+    {
+      "id": "shared-db",
+      "pattern": "\\bmysql(dump|admin)?\\b(?![^|;&]*jmlpcz_test)[^|;&]*\\bjmlpcz\\b",
+      "reason": "The shared databases hold production data (or a copy of it). Query only the throwaway test database jmlpcz_test*."
+    },
+    {
+      "id": "secrets",
+      "pattern": "(^|[\\s'\"=/<])secret/|(^|[\\s'\"=<])(\\./)?\\.env(?![\\w.-])|\\bprintenv\\b|\\benv\\s*$",
+      "reason": "Secrets are never read into the agent context. Use .env.example files and placeholders."
+    },
+    {
+      "id": "force-push",
+      "pattern": "\\bgit\\s+push\\b[^|;&]*(\\s--force(?!-with-lease)\\b|\\s-f\\b|\\s\\+\\S)",
+      "reason": "No force pushes. Use a new commit or a new branch."
+    },
+    {
+      "id": "push-protected",
+      "pattern": "\\bgit\\s+push\\b[^|;&]*\\b(origin\\s+)?(main|master)\\b",
+      "reason": "main is updated only through reviewed pull requests."
+    },
+    {
+      "id": "hard-reset-remote",
+      "pattern": "\\bgit\\s+(reset\\s+--hard\\s+\\S*/|clean\\s+-\\w*[fdx]\\w*\\s*-\\w*[fdx])",
+      "reason": "Discards work irreversibly. Stash or branch instead."
+    },
+    {
+      "id": "skip-hooks",
+      "pattern": "\\bgit\\b[^|;&]*\\s--no-verify\\b",
+      "reason": "Do not bypass git hooks; fix what they report."
+    },
+    {
+      "id": "rm-root",
+      "pattern": "\\brm\\s+-\\w*[rf]\\w*\\s+(-\\w+\\s+)*(/|~|\\$HOME|\\.\\.)(\\s|/?$)",
+      "reason": "Recursive delete outside the working tree."
+    }
+  ]
+}

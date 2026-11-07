@@ -1,0 +1,43 @@
+/* Popisek a dvě kola v jednom rámečku (TkVysledky „Tisk kategorie | 1. kolo | 2. kolo“). */
+.group {
+  display: inline-flex;
+  align-items: stretch;
+  min-block-size: var(--ms-target);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  padding: 0 14px;
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink);
+}
+
+.run {
+  min-block-size: var(--ms-target);
+  padding: 0 14px;
+  border: 0;
+  border-inline-start: 1px solid var(--ms-line);
+  background: transparent;
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-md);
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.run:hover:not(:disabled) {
+  background: var(--ms-surface-sunken);
+}
+
+.run:disabled {
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}

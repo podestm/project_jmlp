@@ -1,0 +1,42 @@
+.page {
+  min-block-size: 100dvh;
+  padding-block: var(--ms-space-10);
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+}
+
+.chip {
+  block-size: 56px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--swatch);
+}
+
+.code {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.dark {
+  display: inline-flex;
+  padding: var(--ms-space-2);
+  background: var(--ms-navy);
+  border-radius: var(--ms-radius-control);
+}
+
+.iconTile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-3);
+  color: var(--ms-navy);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+}

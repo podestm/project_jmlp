@@ -3,12 +3,14 @@
 import { SEASON_CONFIG } from '../config/constants.js';
 
 /**
- * Season id for a given date (defaults to now).
+ * Sezóna, do které patří datum (hranice 1. 8.). Na otázku „která sezóna je
+ * teď“ odpovídá useCurrentSeason – aktuální sezónu volí správce; tohle je jen
+ * převod data a záloha, dokud server neodpoví.
  * @param {Date} [referenceDate]
  * @returns {number}
  */
-export const getCurrentSeasonId = (referenceDate = new Date()) => (
-  SEASON_CONFIG.getCurrentSeasonId(referenceDate)
+export const seasonIdForDate = (referenceDate = new Date()) => (
+  SEASON_CONFIG.seasonIdForDate(referenceDate)
 );
 
 /**
@@ -17,7 +19,7 @@ export const getCurrentSeasonId = (referenceDate = new Date()) => (
  * @returns {number}
  */
 export const getSeasonIdForRace = (raceDate) => (
-  getCurrentSeasonId(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
+  seasonIdForDate(typeof raceDate === 'string' ? new Date(raceDate) : raceDate)
 );
 
 /**
@@ -26,6 +28,27 @@ export const getSeasonIdForRace = (raceDate) => (
  * @returns {string}
  */
 export const formatSeason = (seasonId) => SEASON_CONFIG.formatSeason(seasonId);
+
+/** Pohár jede od roku 2006: sezóna 2006/07 = I. ročník, 2026/27 = XX. */
+export const EDITION_BASE_YEAR = 2006;
+
+/** Římské číslo (1 → 'I', 20 → 'XX'); pro nulu a záporná čísla prázdný řetězec. */
+export const toRoman = (value) => {
+  const numerals = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let remaining = Number(value);
+  if (!remaining || remaining <= 0) return '';
+  return numerals.reduce((acc, [num, sym]) => {
+    while (remaining >= num) { acc += sym; remaining -= num; }
+    return acc;
+  }, '');
+};
+
+/** Ročník poháru podle sezóny – stejné číslo předvyplňuje správa sezón. */
+export const seasonEdition = (seasonId) => seasonId - EDITION_BASE_YEAR;
+
+/** Krátký tvar sezóny do hlavičky a patičky – "2026/27". */
+export const formatSeasonShort = (seasonId) => `${seasonId}/${String(seasonId + 1).slice(-2)}`;
 
 /**
  * Next free race number within a season - "JMLP2025-03".
@@ -46,7 +69,9 @@ export const generateRaceNumber = (existingRaces, seasonId) => {
 };
 
 export default {
-  getCurrentSeasonId,
+  seasonIdForDate,
+  seasonEdition,
+  formatSeasonShort,
   getSeasonIdForRace,
   formatSeason,
   generateRaceNumber

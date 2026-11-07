@@ -1,0 +1,49 @@
+/* AktualityArchiv: strany 48 × 48 v Plex Mono, aktuální plná navy. */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+.page,
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 48px;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.page {
+  inline-size: 48px;
+  padding: 0;
+  font-family: var(--ms-font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.step {
+  gap: var(--ms-space-2);
+  padding: 0 16px;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-base);
+  font-weight: 600;
+}
+
+.page:hover,
+.step:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.page[aria-current='page'] {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+  cursor: default;
+}

@@ -1,0 +1,6 @@
+.scroll {
+  overflow-x: auto;
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}

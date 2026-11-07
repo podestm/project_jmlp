@@ -1,0 +1,54 @@
+.racer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ms-space-2);
+}
+
+.name,
+.excludedName {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.excludedName {
+  text-decoration: line-through;
+  color: var(--ms-ink-muted);
+}
+
+.club {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.sex {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  white-space: nowrap;
+}
+
+.sexLetter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-navy);
+}
+
+.noCategory {
+  color: var(--ms-dry-ink);
+}

@@ -1,0 +1,45 @@
+/* Úvod, pravý sloupec „Závody sezóny“ (jako jmlp.cz): kompaktní řádky. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.more {
+  font-size: var(--ms-fs-base);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ms-navy);
+  text-decoration: none;
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+.list {
+  list-style: none;
+}
+
+.row {
+  align-items: flex-start;
+  padding: 12px 16px;
+}
+
+.raceLink {
+  color: var(--ms-ink);
+  text-decoration: none;
+}
+
+.raceLink:hover {
+  color: var(--ms-navy);
+  text-decoration: underline;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-2) var(--ms-space-3);
+  padding-block-start: var(--ms-space-1);
+}

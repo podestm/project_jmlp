@@ -13,6 +13,13 @@ describe('offline hledání v lokálním registru', () => {
     expect(searchRacers(registry, '8915').map((r) => r.id)).toEqual([1]);
     expect(searchRacers(registry, 'a')).toEqual([]);
   });
+
+  it('po slovech v libovolném pořadí, i neúplná slova', () => {
+    const more = [...registry, { id: 3, name: 'Radka', surname: 'More', year: 1980, sex: 2, slcr_id: '806816' }];
+    expect(searchRacers(more, 'Mor Radka').map((r) => r.id)).toEqual([3]);
+    expect(searchRacers(more, 'radka more').map((r) => r.id)).toEqual([3]);
+    expect(searchRacers(more, 'More Jan')).toEqual([]);
+  });
 });
 
 describe('řádek startovky pro offline přidaného závodníka', () => {

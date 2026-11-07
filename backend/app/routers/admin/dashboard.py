@@ -7,7 +7,8 @@ from sqlalchemy import func, text
 from ...database import get_db
 from ... import models, auth
 import os
-from ...utils import get_current_season_id, fix_encoding, convert_utf8_field, format_file_size
+from ...services import seasons as season_service
+from ...utils import fix_encoding, convert_utf8_field, format_file_size
 from ._visits import daily_visits
 
 router = APIRouter(prefix="/dashboard", tags=["admin-dashboard"])
@@ -22,7 +23,7 @@ def get_dashboard_stats(
     
     today = datetime.now()
     # season_id je START rok sezóny (2025 pro sezónu 2025/2026)
-    season_id = get_current_season_id()
+    season_id = season_service.current_season_id(db)
     
     # --- Počty ---
     total_racers = db.query(func.count(models.Racer.id)).scalar() or 0

@@ -1,0 +1,99 @@
+/* Lepivá lišta pod rámcem (výška pevná: o ni se posouvají lepivé prvky pod ní,
+   viz TimingEntry.module.css). Jeden řádek, nic se nezalamuje. */
+.bar {
+  position: sticky;
+  inset-block-start: var(--ms-sticky-top, 0px);
+  z-index: var(--ms-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  box-sizing: border-box;
+  block-size: var(--timing-bar-size);
+  padding-inline: var(--ms-space-3);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+  /* Pruh v barvě stránky pod lištou zakryje pár pixelů, které lepivá
+     hlavička tabulky (border-collapse) pod sebou nepřekreslí. */
+  box-shadow: 0 var(--ms-space-2) 0 var(--ms-surface-page), var(--ms-shadow-raised);
+  white-space: nowrap;
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+/* Stav zařízení slovy s barevnou tečkou; ozubené kolo = otevře nastavení
+   připojení. Klidné tlačítko – stav se jen ukazuje, na nic se nečeká. */
+.device {
+  gap: var(--ms-space-2);
+}
+
+.dot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-line-control);
+}
+
+.device[data-tone='open'] .dot {
+  background: var(--ms-open);
+}
+
+.device[data-tone='amber'] .dot {
+  background: var(--ms-amber);
+}
+
+.value {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  flex-shrink: 0;
+}
+
+/* Stav zařízení jediný ustoupí (zkrátí se), přepínač kola ani zápis ne. */
+.deviceGroup {
+  flex-shrink: 1;
+  min-inline-size: 0;
+}
+
+.deviceGroup .device {
+  min-inline-size: 0;
+}
+
+.deviceGroup .value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auto {
+  flex-shrink: 0;
+}
+
+/* Tablet na výšku: popisky ustoupí, stav slovy zůstává. */
+@media (max-width: 1023.98px) {
+  .group > .caps {
+    display: none;
+  }
+}
+
+/* Pod 768 px (iPad mini, split view) těsnější mezery – lišta zůstává
+   v jednom řádku, aby seděla výška --timing-bar-size. */
+@media (max-width: 767.98px) {
+  .bar {
+    gap: var(--ms-space-3);
+    padding-inline: var(--ms-space-2);
+  }
+}

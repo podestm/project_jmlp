@@ -1,0 +1,73 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: var(--ms-radius-control);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.md {
+  inline-size: var(--ms-target);
+  block-size: var(--ms-target);
+}
+
+.lg {
+  inline-size: 48px;
+  block-size: 48px;
+}
+
+.outline {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-line-control);
+  color: var(--ms-navy);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--ms-ink-body);
+}
+
+.primary {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.danger {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-live-ink);
+  color: var(--ms-live-ink);
+}
+
+/* Na navy ploše (lišta časomíry, postranní panel): ledový rámeček, bílá ikona. */
+.on-dark {
+  background: transparent;
+  border-color: var(--ms-ice);
+  color: var(--ms-on-dark);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.outline:hover,
+.quiet:hover,
+.danger:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.primary:hover {
+  background: var(--ms-navy-deep);
+}
+
+.on-dark:hover {
+  background: var(--ms-navy-deep);
+}
+
+.iconButton:disabled {
+  background: var(--ms-surface-sunken);
+  border-color: var(--ms-line-control);
+  border-style: dashed;
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}

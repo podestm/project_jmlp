@@ -1,0 +1,44 @@
+.table {
+  min-inline-size: 860px;
+}
+
+.name,
+.nameMuted {
+  font-weight: 700;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink);
+}
+
+.nameMuted {
+  color: var(--ms-ink-body);
+}
+
+.year,
+.club {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.total {
+  font-size: var(--ms-fs-xl);
+}
+
+.statusText {
+  font-family: var(--ms-font-text);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.loss {
+  color: var(--ms-ink-body);
+}
+
+.points {
+  font-size: var(--ms-fs-lg);
+}
+
+.note {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}

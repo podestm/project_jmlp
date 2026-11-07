@@ -1,7 +1,8 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-import './assets/styles/main.css'
+// Jediné globální styly: Modrá stopa (tokeny, písma, reset). Ostatní je v *.module.css.
+import './styles/ms/index.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

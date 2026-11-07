@@ -1,0 +1,61 @@
+/* Lepivá lišta časomíry (DeviceBar) má pevnou výšku; lepivé prvky pod ní
+   (hlavička tabulky, schránka) se odsazují o rámec + lištu. */
+.page {
+  --timing-frame-top: var(--ms-sticky-top, 0px);
+  --timing-bar-size: 60px;
+}
+
+/* Tabulka vlevo, schránka impulzů vpravo: schránka až 480 px, aby se řádek
+   impulzu vešel na jeden řádek; tabulce (min. 720 px) na 1280 zbývá 736 px. */
+.work {
+  --ms-sticky-top: calc(var(--timing-frame-top) + var(--timing-bar-size));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 480px);
+  align-items: start;
+  gap: var(--ms-space-4);
+}
+
+.table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  min-inline-size: 0;
+}
+
+.excluded {
+  margin: 0;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.noRace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  max-inline-size: 640px;
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink);
+}
+
+@media (max-width: 1279.98px) {
+  .work {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Vedle tabulky schránka drží pod rámcem; výpis impulzů se zkrátí, aby se
+   panel i s tlačítky vešel na výšku okna. */
+@media (min-width: 1280px) {
+  .inbox {
+    position: sticky;
+    inset-block-start: calc(var(--ms-sticky-top, 0px) + var(--ms-space-4));
+    max-block-size: calc(100dvh - var(--ms-sticky-top, 0px) - var(--ms-space-8));
+  }
+}

@@ -1,0 +1,175 @@
+/* Řádek schránky (TkSchrankaImpulzuLog), ~56 px: dres s časem příchodu
+   vlevo, nahoře hodnota → kolo a stav slovy, pod tím komu (nebo proč),
+   potvrdit a zamítnout vedle sebe vpravo. 4px lišta vlevo v barvě stavu. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px var(--ms-space-2) 6px 10px;
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.row[data-tone='amber'] {
+  border-inline-start-color: var(--ms-amber);
+  background: var(--ms-dry-bg);
+}
+
+.row[data-tone='danger'] {
+  border-inline-start-color: var(--ms-live-ink);
+  background: var(--ms-dry-bg);
+}
+
+.row[data-tone='open'] {
+  border-inline-start-color: var(--ms-open);
+}
+
+.row[data-tone='navy'] {
+  border-inline-start-color: var(--ms-navy);
+}
+
+.bibCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.clock {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-2xs);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+.cycle {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px var(--ms-space-2);
+  margin: 0;
+}
+
+.value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.time {
+  font-family: var(--ms-font-mono);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.round {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.raw {
+  max-inline-size: 100%;
+  overflow: hidden;
+  padding: 2px var(--ms-space-2);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-card);
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ms-ink);
+}
+
+.destination {
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink-body);
+}
+
+/* Stav slovy; barva ho jen podtrhuje. */
+.status {
+  padding: 2px var(--ms-space-2);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  line-height: 1.35;
+}
+
+.amber {
+  background: var(--ms-amber);
+  color: var(--ms-amber-ink);
+}
+
+.danger {
+  background: var(--ms-live-ink);
+  color: var(--ms-on-dark);
+}
+
+.open {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.navy {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.neutral {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink);
+}
+
+/* Komu (nebo proč): jeden řádek, celé znění v title. */
+.detail,
+.note {
+  margin: 0;
+  font-size: var(--ms-fs-xs);
+  line-height: 1.35;
+  color: var(--ms-ink);
+}
+
+.detail {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.note {
+  color: var(--ms-dry-ink);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.action {
+  flex-shrink: 0;
+}

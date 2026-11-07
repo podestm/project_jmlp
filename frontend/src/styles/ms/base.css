@@ -1,0 +1,133 @@
+/*
+ * Základ Modré stopy pro celý dokument: reset s nulovou specificitou
+ * (:where), takže ho přebije každá třída z *.module.css.
+ *
+ * Styly komponent sem nepatří – jen do *.module.css vedle komponenty.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ── Stránka; <dialog> (top layer) začíná znovu od základu stránky, ne od
+   písma a barvy místa, kde je ve stromu ── */
+:where(body, dialog) {
+  color: var(--ms-ink);
+  background: var(--ms-surface-page);
+  font-family: var(--ms-font-text);
+  font-size: var(--ms-fs-lg);
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(body) {
+  margin: 0;
+}
+
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd) {
+  margin: 0;
+}
+
+:where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+:where(code, kbd, samp, pre) {
+  font-family: var(--ms-font-mono);
+  font-size: 0.875em;
+}
+
+:where(table) {
+  border-collapse: collapse;
+}
+
+:where(th) {
+  text-align: start;
+}
+
+:where(th, td) {
+  padding: 0;
+}
+
+/* Odkaz v textu (bez vlastní třídy) je podtržený, aby bylo vidět, že je to
+   odkaz. Komponenty (tlačítka, karty, menu) si vzhled řídí svou třídou. */
+:where(a) {
+  color: var(--ms-navy);
+  text-decoration: none;
+}
+
+:where(a:not([class])) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+:where(a:hover) {
+  color: var(--ms-navy-deep);
+  text-decoration: underline;
+}
+
+:where(img) {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Fokus: jen z klávesnice, navy obrys 3 px s odstupem 2 px ── */
+:where(:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+:where(:focus-visible) {
+  outline: var(--ms-focus-width) solid var(--ms-focus-color);
+  outline-offset: var(--ms-focus-offset);
+}
+
+/* ── Jen pro čtečky (varianta focusable se ukáže při fokusu) ── */
+.ms-sr-only:not(.ms-sr-only--focusable:focus-visible) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Omezený pohyb pro celý dokument. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Otevřený Modal (components/ms/Modal) zamkne rolování stránky pod sebou. */
+:root:has(dialog[data-ms-modal][open]) {
+  overflow: hidden;
+}

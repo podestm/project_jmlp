@@ -1,0 +1,81 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-inline-size: 0;
+  border: 0;
+}
+
+/* Stejný vzhled jako popisek ve Field. */
+.legend {
+  padding: 0;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: var(--ms-ink);
+}
+
+.required {
+  color: var(--ms-live-ink);
+}
+
+.tiles {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 10px;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  block-size: 52px;
+  padding: 0 var(--ms-space-3);
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ms-ink);
+  cursor: pointer;
+}
+
+.tile:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.tile[data-invalid] {
+  border: 2px solid var(--ms-live-ink);
+}
+
+.tile:has(:checked) {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.tile:has(:focus-visible) {
+  outline: var(--ms-focus-width) solid var(--ms-focus-color);
+  outline-offset: var(--ms-focus-offset);
+}
+
+.input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin: 0;
+  accent-color: var(--ms-on-dark);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ms-live-ink);
+}

@@ -13,6 +13,8 @@ from pathlib import Path
 
 from sqlalchemy import text
 
+from .utils import EDITION_BASE_YEAR, get_current_season_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -218,8 +220,7 @@ def _m_attachments(conn):
 # --------------------------------------------------------------------------
 # 003 - sezóny (ročník poháru, název, dokumenty sezóny)
 # --------------------------------------------------------------------------
-# Sezóna 2025 = XIX. ročník  ->  edition = year_start - 2006
-EDITION_BASE_YEAR = 2006
+# Sezóna 2025 = XIX. ročník  ->  edition = year_start - EDITION_BASE_YEAR (utils.py)
 
 
 def _m_seasons(conn):
@@ -243,9 +244,9 @@ def _m_seasons(conn):
 
     # Backfill ze závodů i ze starých sezónních výsledků
     conn.execute(text("""
-        INSERT INTO fuj_jmlp_season (year_start, year_end, edition, name, active)
+        INSERT INTO fuj_jmlp_season (year_start, year_end, edition, name)
         SELECT y.year_start, y.year_start + 1, y.year_start - :base,
-               'Jihomoravský lyžařský pohár', 1
+               'Jihomoravský lyžařský pohár'
         FROM (
             SELECT DISTINCT season_id AS year_start FROM fuj_jmlp_race WHERE season_id IS NOT NULL
         ) y
@@ -253,9 +254,9 @@ def _m_seasons(conn):
 
     if _table_exists(conn, "fuj_jmlp_season_results"):
         conn.execute(text("""
-            INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name, active)
+            INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name)
             SELECT sr.season_year_start, sr.season_year_end,
-                   sr.season_year_start - :base, 'Jihomoravský lyžařský pohár', 1
+                   sr.season_year_start - :base, 'Jihomoravský lyžařský pohár'
             FROM fuj_jmlp_season_results sr
         """), {"base": EDITION_BASE_YEAR})
 
@@ -658,9 +659,9 @@ def _m_library_tree(conn):
 
     # 7) Sezóny, na které knihovna odkazuje, musí existovat
     conn.execute(text("""
-        INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name, active)
+        INSERT IGNORE INTO fuj_jmlp_season (year_start, year_end, edition, name)
         SELECT DISTINCT f.season_year, f.season_year + 1, f.season_year - :base,
-               'Jihomoravský lyžařský pohár', 1
+               'Jihomoravský lyžařský pohár'
         FROM fuj_jmlp_files f
         WHERE f.season_year IS NOT NULL
     """), {"base": EDITION_BASE_YEAR})
@@ -1009,7 +1010,44 @@ def _m_slcr_member_links(conn):
 
 
 # --------------------------------------------------------------------------
-# 014 - délka trati jako text
+# 014 - aktuální sezóna místo příznaku "aktivní"
+#
+# fuj_jmlp_season.active měly nastavené všechny sezóny, takže nic neříkal.
+# Sloupec se přejmenuje na is_current a znamená "tahle sezóna je aktuální" -
+# hlavička webu, výchozí sezóna kalendáře, výsledků i filtrů v administraci.
+# Aktuální je nejvýš jedna sezóna; MyISAM nemá transakce, takže to hlídá
+# endpoint (nastaví vybranou, ostatním příznak smaže), ne databáze.
+#
+# Přejmenování místo nového sloupce: starý příznak neměl žádnou hodnotu, kterou
+# by stálo za to držet, a dva sezónní příznaky vedle sebe by mátly.
+# Výchozí stav je sezóna podle data (hranice 1. 8.); když v tabulce není,
+# nezůstane aktuální žádná a aplikace počítá sezónu podle data dál.
+# --------------------------------------------------------------------------
+def _m_season_current(conn):
+    if not _table_exists(conn, "fuj_jmlp_season"):
+        return
+    if _column_exists(conn, "fuj_jmlp_season", "is_current"):
+        return
+
+    if _column_exists(conn, "fuj_jmlp_season", "active"):
+        conn.execute(text(
+            "ALTER TABLE fuj_jmlp_season "
+            "CHANGE COLUMN active is_current TINYINT(1) NOT NULL DEFAULT 0"
+        ))
+    else:
+        conn.execute(text(
+            "ALTER TABLE fuj_jmlp_season ADD COLUMN is_current TINYINT(1) NOT NULL DEFAULT 0"
+        ))
+    conn.execute(text("UPDATE fuj_jmlp_season SET is_current = 0"))
+    flagged = conn.execute(
+        text("UPDATE fuj_jmlp_season SET is_current = 1 WHERE year_start = :year"),
+        {"year": get_current_season_id()},
+    ).rowcount
+    logger.info("Migrace: fuj_jmlp_season.active -> is_current, aktuálních sezón: %s", flagged)
+
+
+# --------------------------------------------------------------------------
+# 015 - délka trati jako text
 #
 # LiZa má v hlavičce listiny délku trati volným textem ("400m, 7 stanovišť",
 # "350,700,1050,1500,2000,2500 m"); číslo v metrech to neuneslo. Stávající
@@ -1033,7 +1071,7 @@ def _m_course_length_text(conn):
 
 
 # --------------------------------------------------------------------------
-# 015 - systémové označení čísel písmenem sady ("B12" místo 212)
+# 016 - systémové označení čísel písmenem sady ("B12" místo 212)
 #
 # fuj_jmlp_race_numbers.display_number i snapshot ve startovkách
 # (race_number_display) se z čísla mění na text: písmeno sady (1 = A,
@@ -1081,9 +1119,9 @@ def _m_race_number_codes(conn):
 
 
 # --------------------------------------------------------------------------
-# 016 - číslo dresu už jen v označení
+# 017 - číslo dresu už jen v označení
 #
-# Po migraci 015 je číslo dresu vždy obsažené v označení (B12 -> 12), takže
+# Po migraci 016 je číslo dresu vždy obsažené v označení (B12 -> 12), takže
 # sloupce fuj_jmlp_race_numbers.actual_number a snapshot
 # fuj_jmlp_race_start_list.race_number_actual jsou zbytečné. Aplikace číslo
 # dresu odvozuje (models.RaceNumber.actual_number, CAST(SUBSTRING(..., 2)).
@@ -1097,7 +1135,7 @@ def _m_drop_actual_numbers(conn):
                OR CAST(SUBSTRING(display_number, 2) AS UNSIGNED) <> actual_number
         """)).scalar()
         if mismatch:
-            logger.warning("Migrace 016 přeskočena: %s čísel nesouhlasí s označením", mismatch)
+            logger.warning("Migrace 017 přeskočena: %s čísel nesouhlasí s označením", mismatch)
             return
         # Indexy nad dresem (v produkci "unique_set_actual", v novějších
         # instalacích "uq_race_numbers_set_actual") - jinak by po zrušení
@@ -1119,7 +1157,7 @@ def _m_drop_actual_numbers(conn):
                 OR CAST(SUBSTRING(race_number_display, 2) AS UNSIGNED) <> race_number_actual)
         """)).scalar()
         if mismatch:
-            logger.warning("Migrace 016: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch)
+            logger.warning("Migrace 017: %s řádků startovek má dres bez označení - sloupec zůstává", mismatch)
             return
         conn.execute(text("ALTER TABLE fuj_jmlp_race_start_list DROP COLUMN race_number_actual"))
         logger.info("Migrace: fuj_jmlp_race_start_list.race_number_actual zrušen")
@@ -1141,6 +1179,7 @@ MIGRATIONS = (
     _m_slcr_pairing,
     _m_slcr_applied,
     _m_slcr_member_links,
+    _m_season_current,
     _m_course_length_text,
     _m_race_number_codes,
     _m_drop_actual_numbers,

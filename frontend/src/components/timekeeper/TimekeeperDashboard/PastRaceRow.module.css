@@ -1,0 +1,13 @@
+.noDate {
+  inline-size: 44px;
+  text-align: center;
+  color: var(--ms-ink-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ms-space-2);
+}

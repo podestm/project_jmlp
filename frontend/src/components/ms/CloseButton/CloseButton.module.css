@@ -1,0 +1,20 @@
+/* DialogPotvrzeni: 44 × 44, bílé pozadí, rámeček --ms-line, ikona ink-body. */
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--ms-target);
+  block-size: var(--ms-target);
+  padding: 0;
+  flex-shrink: 0;
+  background: var(--ms-surface-card);
+  border: 1.5px solid var(--ms-line);
+  border-radius: var(--ms-radius-control);
+  color: var(--ms-ink-body);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink);
+}

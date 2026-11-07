@@ -1,0 +1,58 @@
+/* TkHlavickaZavodu „Parametry kol“: záhlaví na sunken, pole v řadě. */
+.panel {
+  overflow: hidden;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  padding: var(--ms-space-3) 22px;
+  border-bottom: 1px solid var(--ms-line);
+  background: var(--ms-surface-sunken);
+}
+
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  flex-grow: 1;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.fields {
+  display: grid;
+  /* Minima i s mezerami a odsazením se vejdou do levého sloupce od 1280 px. */
+  grid-template-columns: minmax(140px, 1.4fr) minmax(96px, 0.8fr) minmax(104px, 1fr) minmax(104px, 1.4fr) minmax(140px, 2fr);
+  gap: var(--ms-space-4);
+  padding: 18px 22px 20px;
+}
+
+@media (max-width: 1279.98px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grow {
+    grid-column: 1 / -1;
+  }
+}

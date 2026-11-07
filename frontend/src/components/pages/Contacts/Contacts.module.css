@@ -1,0 +1,186 @@
+/* Kontakty.dc.html a MobilKontakty.dc.html. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-10);
+  padding-block: var(--ms-space-10) var(--ms-space-14);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+.officials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ms-space-5);
+  list-style: none;
+}
+
+.official {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--ms-space-6);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-block-start: 3px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+}
+
+.official[data-lead] {
+  border-block-start-color: var(--ms-navy);
+}
+
+.position {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ms-navy);
+}
+
+.name {
+  font-family: var(--ms-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ms-ink);
+}
+
+.email {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+  overflow-wrap: anywhere;
+}
+
+.clubsHead {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ms-space-8);
+}
+
+.clubsTitle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  flex-grow: 1;
+}
+
+.search {
+  inline-size: 360px;
+  flex-shrink: 0;
+}
+
+.note {
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+.clubs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ms-space-3);
+  list-style: none;
+}
+
+.club {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  min-block-size: 88px;
+  padding: 14px var(--ms-space-4);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.clubText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.clubName {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-lg);
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+/* Pořadatel: karta jako u výboru, navy linka vlevo. */
+.organizer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-6);
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+}
+
+.address {
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+/* Jen ikona – tlačítko čtverec 50 × 50. */
+.mail {
+  inline-size: 50px;
+  padding: 0;
+}
+
+.noMatch {
+  padding: var(--ms-space-6);
+  background: var(--ms-surface-card);
+  border: 1px dashed var(--ms-line-control);
+  border-radius: var(--ms-radius-card);
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink-body);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-4);
+}
+
+@media (max-width: 1023.98px) {
+  .officials,
+  .clubs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .page {
+    gap: var(--ms-space-8);
+    padding-block: var(--ms-space-6) var(--ms-space-10);
+  }
+
+  .officials,
+  .clubs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .clubsHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ms-space-4);
+  }
+
+  .search {
+    inline-size: auto;
+  }
+
+  .club {
+    min-block-size: 72px;
+  }
+}

@@ -38,10 +38,6 @@ def test_neplatne_datum_ohlasi_chybu():
         utils.parse_date_string("17.1.2026")
 
 
-def test_popis_sezony_obsahuje_oba_roky():
-    assert utils.get_current_season(date(2026, 8, 15)) == {"year_start": 2026, "year_end": 2027}
-
-
 # ---------------------------------------------------------------------------
 # Formátování
 # ---------------------------------------------------------------------------

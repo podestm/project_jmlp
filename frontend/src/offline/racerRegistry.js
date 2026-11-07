@@ -42,19 +42,19 @@ const fold = (value) => String(value ?? '')
   .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 /**
- * Hledání jako na serveru (GET /racers/search): jméno, příjmení,
- * "příjmení jméno" nebo ID závodníka obsahuje dotaz. Diakritika a velikost
- * písmen nerozhodují.
+ * Hledání jako na serveru (GET /api/timekeeper/racers/search): po slovech,
+ * každé slovo musí být v jméně, příjmení nebo ID závodníka, na pořadí
+ * nezáleží („Mor Radka“ najde „More Radka“). Diakritika a velikost písmen
+ * nerozhodují.
  */
 export const searchRacers = (registry, query, limit = 20) => {
   const needle = fold(query);
-  if (needle.length < 2 || !Array.isArray(registry)) return [];
+  const words = needle.split(/\s+/).filter(Boolean).slice(0, 4);
+  if (needle.length < 2 || words.length === 0 || !Array.isArray(registry)) return [];
   const found = [];
   for (const racer of registry) {
-    const haystacks = [
-      racer.name, racer.surname, `${racer.surname || ''} ${racer.name || ''}`, racer.slcr_id
-    ].map(fold);
-    if (haystacks.some((text) => text.includes(needle))) {
+    const fields = [racer.name, racer.surname, racer.slcr_id].map(fold);
+    if (words.every((word) => fields.some((text) => text.includes(word)))) {
       found.push(racer);
       if (found.length >= limit) break;
     }

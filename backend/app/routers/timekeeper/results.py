@@ -147,10 +147,12 @@ def _areal_name(db: Session, race: models.Race) -> Optional[str]:
     return fix_encoding(row.name) if row else None
 
 
-def build_fis_dataset(db: Session, race_id: int, discipline: str = "") -> tuple[bytes, int, str]:
+def build_fis_dataset(db: Session, race_id: int, discipline: str = "",
+                      category_id: Optional[int] = None) -> tuple[bytes, int, str]:
     """FIS XML Dataset závodu pro evidenci SLČR (routers/timekeeper/slcr.py):
     (obsah, počet startujících bez výsledku, název souboru). Všechny kategorie
-    v jednom souboru, každá jako vlastní závod s kodexem = id kategorie."""
+    v jednom souboru, každá jako vlastní závod s kodexem = id kategorie;
+    s category_id jen ta jedna (výsledky po kategoriích)."""
     discipline = (discipline or "").strip().upper()
     if discipline and discipline not in fis_xml.DISCIPLINES:
         raise HTTPException(status_code=400, detail="Neznámá disciplína")
@@ -169,6 +171,8 @@ def build_fis_dataset(db: Session, race_id: int, discipline: str = "") -> tuple[
 
     categories = []
     for group in _group_by_category(_load_entries(db, race_id), race, db):
+        if category_id is not None and group["category_id"] != category_id:
+            continue
         rows = group["rows"]
         sex = next((row.category_sex for row in rows if row.category_sex is not None), None)
         categories.append(fis_xml.CategoryResults(

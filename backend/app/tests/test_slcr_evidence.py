@@ -76,9 +76,13 @@ def test_mix_kategorie_je_both_a_ciselnikova_kategorie_zustava():
 def zavod(db):
     zavod = models.Race(race_nr="JMLP2026-03", datum=date(2026, 10, 18), season_id=get_current_season_id(),
                         closed=False, registration=True, race_method_id=1, is_live=False)
-    db.add(zavod)
-    db.add(models.Category(name="U10", display_name="Přípravka dívky", min_birth_year=2017,
-                           max_birth_year=2018, sex=2, active=True))
+    kategorie = models.Category(name="U10", display_name="Přípravka dívky", min_birth_year=2017,
+                                max_birth_year=2018, sex=2, active=True)
+    zavodnice = models.Racer(name="Anna", surname="Holcicka", year=2017, sex=2)
+    db.add_all([zavod, kategorie, zavodnice])
+    db.commit()
+    # Zakládají se jen kategorie, ve kterých někdo je na startovce.
+    db.add(models.StartListEntry(race_id=zavod.id, racer_id=zavodnice.id, category_id=kategorie.id))
     db.commit()
     db.refresh(zavod)
     return zavod
@@ -142,3 +146,30 @@ def test_stav_neprozrazuje_hodnoty(client, timekeeper_headers, monkeypatch):
     odpoved = client.get("/api/timekeeper/slcr/status", headers=timekeeper_headers).json()
     assert odpoved["token"] is True and odpoved["login"] is False
     assert "tajne" not in str(odpoved)
+
+
+# --- výběr akcí: jen ty, které měří naše měřící skupina ---------------------
+
+def test_vlastni_akce_podle_meric_skupiny():
+    nase = {"timekeepingCompany": {"id": 44, "name": "Měřící skupina JMLP"}}
+    assert slcr_evidence.is_own_event(nase)
+    assert slcr_evidence.is_own_event({"timekeepingCompany": {"id": 44, "name": "Merici skupina jmlp"}})
+    assert not slcr_evidence.is_own_event({"timekeepingCompany": {"id": 7, "name": "Jiná časomíra"}})
+    assert not slcr_evidence.is_own_event({"timekeepingCompany": None})
+    assert not slcr_evidence.is_own_event({})
+
+
+def test_seznam_akci_necha_jen_nase(monkeypatch):
+    owners = {
+        7203: {"timekeepingCompany": None, "region": {"name": "Jihočeský kraj"}},
+        7178: {"timekeepingCompany": {"id": 44, "name": "Měřící skupina JMLP"}, "region": {"name": "Jihomoravský kraj"}},
+    }
+    monkeypatch.setattr(slcr_evidence, "_login", lambda client, config: "token")
+    monkeypatch.setattr(
+        slcr_evidence, "_graphql",
+        lambda client, query, variables, token=None: ({"publicRacingEvent": owners[variables["event"]]}, None),
+    )
+    config = slcr_evidence.Settings(api_token="t", username="u", password="p")
+    events = [{"id": 7203, "name": "Oddílové závody"}, {"id": 7178, "name": "JMLP Kraví hora"}]
+    assert slcr_evidence.own_events(events, config) == [{"id": 7178, "name": "JMLP Kraví hora"}]
+    assert slcr_evidence.own_events([], config) == []

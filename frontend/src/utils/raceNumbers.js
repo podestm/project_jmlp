@@ -1,12 +1,17 @@
-// `solid` nese bílé číslo, proto jde přes téma back-office (admin.css, --tk-set-*),
-// které dosadí tmavší odstín s kontrastem aspoň 4.5:1. Původní barva zůstává
-// jako výchozí hodnota pro místa bez tématu (veřejný Live timing).
+// Sady startovních čísel mají skutečné barvy dresů (tokeny --ms-bib-*,
+// components/ms/tokens.js). `solid` je hodnota CSS barvy sady.
+import { bibVar } from '../components/ms/tokens.js';
+
+const bib = (value, label) => {
+  return { value, label, solid: `var(${bibVar(value)})` };
+};
+
 const SET_COLOR_OPTIONS = [
-  { value: 'rose', label: 'Ruzova', solid: 'var(--tk-set-rose, #e94560)', soft: 'rgba(233, 69, 96, 0.10)', border: 'rgba(233, 69, 96, 0.35)' },
-  { value: 'blue', label: 'Modra', solid: 'var(--tk-set-blue, #2563eb)', soft: 'rgba(37, 99, 235, 0.10)', border: 'rgba(37, 99, 235, 0.35)' },
-  { value: 'emerald', label: 'Zelena', solid: 'var(--tk-set-emerald, #059669)', soft: 'rgba(5, 150, 105, 0.10)', border: 'rgba(5, 150, 105, 0.35)' },
-  { value: 'amber', label: 'Oranzova', solid: 'var(--tk-set-amber, #d97706)', soft: 'rgba(217, 119, 6, 0.10)', border: 'rgba(217, 119, 6, 0.35)' },
-  { value: 'violet', label: 'Fialova', solid: 'var(--tk-set-violet, #7c3aed)', soft: 'rgba(124, 58, 237, 0.10)', border: 'rgba(124, 58, 237, 0.35)' },
+  bib('rose', 'Růžová'),
+  bib('blue', 'Modrá'),
+  bib('emerald', 'Zelená'),
+  bib('amber', 'Oranžová'),
+  bib('violet', 'Fialová'),
 ];
 
 const DEFAULT_THEME = SET_COLOR_OPTIONS[0];
@@ -15,17 +20,8 @@ export const getSetColorTheme = (setColor) => (
   SET_COLOR_OPTIONS.find((option) => option.value === setColor) || DEFAULT_THEME
 );
 
-export const getRaceNumberBadgeStyle = (setColor) => {
-  const theme = getSetColorTheme(setColor);
-  return {
-    background: theme.solid,
-    color: '#ffffff',
-    border: `1px solid ${theme.border}`,
-    fontSize: '0.78rem',
-    letterSpacing: '0.02em',
-    minWidth: '2.5rem',
-  };
-};
+/** Barva sady jako hodnota CSS (var(--ms-bib-…)); neznámá sada = výchozí. */
+export const setColorVar = (setColor) => getSetColorTheme(setColor).solid;
 
 /**
  * Systémové označení čísla: písmeno sady + číslo dresu ("B12" = dres 12
@@ -36,6 +32,12 @@ export const formatSystemRaceNumber = (displayNumber) => (
 );
 
 const RACE_NUMBER_CODE = /^([A-Z])(\d{1,4})$/;
+
+/** Písmeno sady pro systémové označení: sada 1 = A, 2 = B ... (nejvýš 26). */
+export const setLetter = (setNumber) => {
+  const n = parseInt(setNumber, 10);
+  return n >= 1 && n <= 26 ? String.fromCharCode(64 + n) : '?';
+};
 
 /** "b 12" -> "B12"; prázdné -> ''; jiný tvar vrátí, jak je (validace ho odmítne). */
 export const normalizeRaceNumberCode = (value) => {

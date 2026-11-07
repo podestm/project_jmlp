@@ -1,0 +1,60 @@
+/* AdminPrispevky: filtry v bílé kartě, souhrn vpravo. */
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--ms-space-3);
+  padding: var(--ms-space-4) var(--ms-space-5);
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.search {
+  inline-size: 300px;
+}
+
+.select {
+  inline-size: 180px;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--ms-target);
+  margin: 0 0 0 auto;
+  font-size: var(--ms-fs-base);
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 1279.98px) {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+
+  .search,
+  .select {
+    inline-size: auto;
+    min-inline-size: 0;
+  }
+
+  .reset {
+    justify-self: start;
+  }
+
+  .summary {
+    margin: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--ms-space-4);
+  }
+}

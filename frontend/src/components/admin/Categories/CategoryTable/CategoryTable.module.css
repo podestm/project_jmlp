@@ -1,0 +1,62 @@
+.table td {
+  padding-block: 6px;
+}
+
+.name {
+  display: block;
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.internal {
+  display: block;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.years {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.age,
+.created {
+  font-size: var(--ms-fs-md);
+  white-space: nowrap;
+  color: var(--ms-ink-body);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 767.98px) {
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ms-space-2) var(--ms-space-3);
+    padding: var(--ms-space-3) var(--ms-space-4);
+  }
+
+  .table td {
+    padding: 0;
+  }
+
+  .table td:first-child {
+    inline-size: 100%;
+  }
+
+  .created {
+    display: none;
+  }
+}

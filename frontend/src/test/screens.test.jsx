@@ -1,18 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { TimekeeperAuthProvider } from '../config/timekeeperAuth.jsx';
 import { SerialSessionProvider } from '../components/timekeeper/SerialSessionProvider.jsx';
-import RaceNumbersManager from '../components/timekeeper/RaceNumbersManager.jsx';
-import ResultsView from '../components/timekeeper/ResultsView.jsx';
-import StartListManager from '../components/timekeeper/StartListManager.jsx';
-import SyncCenter from '../components/timekeeper/SyncCenter.jsx';
-import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard.jsx';
-import TimekeeperLayout from '../components/timekeeper/TimekeeperLayout.jsx';
-import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers.jsx';
-import TimingEntry from '../components/timekeeper/TimingEntry.jsx';
-import TimingDeviceSettings from '../components/timekeeper/TimingDeviceSettings.jsx';
+import RaceHeaderForm from '../components/timekeeper/RaceHeaderForm/RaceHeaderForm.jsx';
+import RaceNumbersManager from '../components/timekeeper/RaceNumbers/RaceNumbersManager.jsx';
+import ResultsView from '../components/timekeeper/Results/ResultsView.jsx';
+import StartListManager from '../components/timekeeper/StartList/StartListManager.jsx';
+import SyncCenter from '../components/timekeeper/Sync/SyncCenter.jsx';
+import TimekeeperDashboard from '../components/timekeeper/TimekeeperDashboard/TimekeeperDashboard.jsx';
+import TimekeeperLayout from '../components/timekeeper/frame/TimekeeperLayout/TimekeeperLayout.jsx';
+import TimekeeperRacers from '../components/timekeeper/TimekeeperRacers/TimekeeperRacers.jsx';
+import TimingEntry from '../components/timekeeper/Timing/TimingEntry.jsx';
+import TimingDeviceSettings from '../components/timekeeper/Device/TimingDeviceSettings.jsx';
 import { resetTimekeeperDb } from './helpers.js';
 
 /**
@@ -57,6 +58,7 @@ const OBRAZOVKY = [
   ['startovní čísla', RaceNumbersManager],
   ['centrum synchronizace', SyncCenter],
   ['přehled závodů', TimekeeperDashboard],
+  ['detail závodu', RaceHeaderForm],
   ['připojení časomíry', TimingDeviceSettings],
 ];
 
@@ -73,9 +75,11 @@ describe('rozložení časoměřiče', () => {
 
     // Kdyby menu spadlo, uživatel se nedostane nikam - přesně tenhle příznak
     // hlásil provoz: "kliknu na závodníky a nic se neděje".
-    expect(screen.getByText('Závodníci')).toBeInTheDocument();
-    expect(screen.getByText('Listina')).toBeInTheDocument();
-    expect(screen.getByText('Údaje')).toBeInTheDocument();
+    const nav = screen.getByRole('navigation', { name: 'Časomíra' });
+    expect(within(nav).getByRole('link', { name: 'Závodníci' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Startovní listina' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Detail závodu' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Stav časomíry' })).toBeInTheDocument();
     expect(screen.getByText('obsah')).toBeInTheDocument();
   });
 });

@@ -3,26 +3,28 @@
 // public visitor never opens a database or starts a sync timer.
 import { Routes, Route } from 'react-router-dom';
 import { TimekeeperAuthProvider, useTimekeeperAuth } from '../../config/timekeeperAuth.jsx';
-import { useBodyClass } from '../../hooks/useBodyClass.js';
-import LoadingState from '../ui/LoadingState.jsx';
-import TimekeeperLogin from './TimekeeperLogin.jsx';
-import TimekeeperLayout from './TimekeeperLayout.jsx';
-import TimekeeperReauthModal from './TimekeeperReauthModal.jsx';
-import TimekeeperDashboard from './TimekeeperDashboard.jsx';
-import StartListManager from './StartListManager.jsx';
-import TimekeeperRacers from './TimekeeperRacers.jsx';
-import TimingEntry from './TimingEntry.jsx';
-import ResultsView from './ResultsView.jsx';
-import RaceHeaderForm from './RaceHeaderForm.jsx';
-import RaceNumbersManager from './RaceNumbersManager.jsx';
-import SyncCenter from './SyncCenter.jsx';
-import TimingDeviceSettings from './TimingDeviceSettings.jsx';
+import { useSectionMeta } from '../../hooks/usePageMeta.js';
+import { timekeeperTitle } from '../../seo/pageMeta.js';
+import { timekeeperNav } from '../ms/navItems.js';
+import { LoadingState, Screen } from '../ms/index.js';
+import TimekeeperLogin from './TimekeeperLogin/TimekeeperLogin.jsx';
+import TimekeeperLayout from './frame/TimekeeperLayout/TimekeeperLayout.jsx';
+import TimekeeperReauthModal from './frame/TimekeeperReauthModal/TimekeeperReauthModal.jsx';
+import TimekeeperDashboard from './TimekeeperDashboard/TimekeeperDashboard.jsx';
+import StartListManager from './StartList/StartListManager.jsx';
+import TimekeeperRacers from './TimekeeperRacers/TimekeeperRacers.jsx';
+import TimingEntry from './Timing/TimingEntry.jsx';
+import ResultsView from './Results/ResultsView.jsx';
+import RaceHeaderForm from './RaceHeaderForm/RaceHeaderForm.jsx';
+import RaceNumbersManager from './RaceNumbers/RaceNumbersManager.jsx';
+import SyncCenter from './Sync/SyncCenter.jsx';
+import TimingDeviceSettings from './Device/TimingDeviceSettings.jsx';
 import { SerialSessionProvider } from './SerialSessionProvider.jsx';
 
 const ProtectedTimekeeperRoute = ({ children }) => {
   const { isAuthenticated, loading } = useTimekeeperAuth();
 
-  if (loading) return <LoadingState variant="fullscreen" />;
+  if (loading) return <LoadingState variant="fullscreen" label="Ověřuji přihlášení…" />;
   if (!isAuthenticated) return <TimekeeperLogin />;
 
   // Vypršelé přihlášení = okno na místě nad otevřenou obrazovkou, ne odhlášení.
@@ -37,25 +39,25 @@ const ProtectedTimekeeperRoute = ({ children }) => {
 const protect = (element) => <ProtectedTimekeeperRoute>{element}</ProtectedTimekeeperRoute>;
 
 export default function TimekeeperRoutes() {
-  // Stejné světlé téma jako administrace, včetně modálních oken.
-  useBodyClass('theme-backoffice');
-
+  useSectionMeta(timekeeperNav, timekeeperTitle);
   return (
-    <TimekeeperAuthProvider>
-      {/* Wraps <Routes>, so the serial port stays open across screen changes. */}
-      <SerialSessionProvider>
-        <Routes>
-          <Route path="/" element={protect(<TimekeeperDashboard />)} />
-          <Route path="/start-list" element={protect(<StartListManager />)} />
-          <Route path="/racers" element={protect(<TimekeeperRacers />)} />
-          <Route path="/timing" element={protect(<TimingEntry />)} />
-          <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
-          <Route path="/results" element={protect(<ResultsView />)} />
-          <Route path="/race-numbers" element={protect(<RaceNumbersManager />)} />
-          <Route path="/sync" element={protect(<SyncCenter />)} />
-          <Route path="/device" element={protect(<TimingDeviceSettings />)} />
-        </Routes>
-      </SerialSessionProvider>
-    </TimekeeperAuthProvider>
+    <Screen>
+      <TimekeeperAuthProvider>
+        {/* Wraps <Routes>, so the serial port stays open across screen changes. */}
+        <SerialSessionProvider>
+          <Routes>
+            <Route path="/" element={protect(<TimekeeperDashboard />)} />
+            <Route path="/start-list" element={protect(<StartListManager />)} />
+            <Route path="/racers" element={protect(<TimekeeperRacers />)} />
+            <Route path="/timing" element={protect(<TimingEntry />)} />
+            <Route path="/race-detail" element={protect(<RaceHeaderForm />)} />
+            <Route path="/results" element={protect(<ResultsView />)} />
+            <Route path="/race-numbers" element={protect(<RaceNumbersManager />)} />
+            <Route path="/sync" element={protect(<SyncCenter />)} />
+            <Route path="/device" element={protect(<TimingDeviceSettings />)} />
+          </Routes>
+        </SerialSessionProvider>
+      </TimekeeperAuthProvider>
+    </Screen>
   );
 }

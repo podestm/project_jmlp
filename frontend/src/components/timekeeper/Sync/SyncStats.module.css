@@ -1,0 +1,79 @@
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: var(--ms-space-4);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--ms-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-1);
+  padding: var(--ms-space-4) 20px;
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-navy);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.amber {
+  border-inline-start-color: var(--ms-amber);
+}
+
+.danger {
+  border-inline-start-color: var(--ms-live-ink);
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink);
+}
+
+.value {
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: var(--ms-fs-3xl);
+  line-height: 1.1;
+  color: var(--ms-ink);
+}
+
+.send {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-3) var(--ms-space-4);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-sunken);
+}
+
+@media (max-width: 1279.98px) {
+  .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Na tabletu na výšku pět karet vedle sebe jen s užším odsazením. */
+@media (max-width: 1023.98px) {
+  .card {
+    padding-inline: var(--ms-space-3);
+  }
+}
+
+/* Pod 768 px se pět karet nevejde vedle sebe: tři a dvě. */
+@media (max-width: 767.98px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,154 @@
+/* DesignSystem „Datový řádek“. Řádky se skládají do Panel bez paddingu. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ms-line);
+  background: var(--ms-surface-card);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.bar {
+  inline-size: 4px;
+  align-self: stretch;
+  flex-shrink: 0;
+  background: var(--ms-line);
+}
+
+.row[data-tone='open'] .bar { background: var(--ms-open); }
+.row[data-tone='closed'] .bar,
+.row[data-tone='live'] .bar { background: var(--ms-red); }
+.row[data-tone='navy'] .bar { background: var(--ms-navy); }
+.row[data-tone='dry'] .bar { background: var(--ms-dry-ink); }
+
+.lead {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-grow: 1;
+  min-inline-size: 0;
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xl);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ms-ink);
+}
+
+.meta {
+  font-size: var(--ms-fs-base);
+  line-height: 1.4;
+  color: var(--ms-ink-body);
+}
+
+.value {
+  flex-shrink: 0;
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: var(--ms-ink);
+}
+
+/* Pod 768 px jde řádek od kraje ke kraji s okrajem 16 px (BRIEF). */
+@media (max-width: 767.98px) {
+  .row {
+    gap: var(--ms-space-3);
+    padding: 12px 16px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+}
+
+/* Karta (Zavody, MobilZavody): rámeček, lišta jako levý okraj, větší odsazení.
+   Pod 768 px se blok `aside` (stav, akce) zalomí pod text. */
+.card {
+  position: relative;
+  gap: 22px;
+  padding: 18px 22px;
+  border: 1px solid var(--ms-line);
+  border-inline-start: 4px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+}
+
+.card:last-child {
+  border-bottom: 1px solid var(--ms-line);
+}
+
+.card .bar {
+  display: none;
+}
+
+.card[data-tone='open'] { border-inline-start-color: var(--ms-open); }
+.card[data-tone='closed'],
+.card[data-tone='live'] { border-inline-start-color: var(--ms-red); }
+.card[data-tone='navy'] { border-inline-start-color: var(--ms-navy); }
+.card[data-tone='dry'] { border-inline-start-color: var(--ms-dry-ink); }
+
+.card .title {
+  font-size: 21px;
+}
+
+/* Zvednutá karta (design systém Row raised): jediná karta se stínem na stránce. */
+.raised {
+  box-shadow: var(--ms-shadow-raised);
+}
+
+.eyebrow {
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ms-sun-ink);
+}
+
+.aside {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .card {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ms-space-3) 14px;
+    padding: 14px 16px;
+  }
+
+  .card .text {
+    flex-basis: 0;
+  }
+
+  .card .title {
+    font-size: 18px;
+  }
+
+  /* Řádek s blokem `aside` (i v seznamu) ho zalomí pod text. */
+  .row:has(> .aside) {
+    flex-wrap: wrap;
+  }
+
+  .aside {
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,17 +1,12 @@
-// Data vybraného závodu do zařízení dopředu.
-//
-// TimekeeperAPI.get kešuje jen to, co už jednou online načetl. Obrazovka,
-// kterou obsluha poprvé otevře až na kopci bez signálu (typicky Detail
-// závodu), by jinak neměla co ukázat. Proto se hned po výběru závodu - a pak
-// po spuštění časomíry a po každém obnovení připojení - stáhne všechno, co
-// obrazovky závodu čtou.
 import { TimekeeperAPI } from '../config/timekeeperApi.js';
 import { isOnline } from './connectivity.js';
 
-// Stejný klíč jako SELECTED_RACE_KEY v TimekeeperChrome.jsx (offline vrstva
-// komponenty neimportuje).
-const SELECTED_RACE_KEY = 'timekeeper_selected_race';
-
+/**
+ * Data vybraného závodu, která potřebují obrazovky časomíry, se uloží do
+ * IndexedDB hned po výběru závodu (a znovu po návratu signálu) – ne až při
+ * první návštěvě obrazovky. Detail závodu, startovka i výsledky pak jdou
+ * otevřít bez signálu, i když se online vůbec neotevřely.
+ */
 export const raceEndpoints = (raceId) => [
   '/api/timekeeper/races',
   `/api/timekeeper/races/${raceId}/detail`,
@@ -20,20 +15,8 @@ export const raceEndpoints = (raceId) => [
   '/api/timekeeper/race-number-sets',
 ];
 
-/** Stáhne do keše data závodu; offline nebo bez závodu nedělá nic. */
 export const preloadRaceData = async (raceId) => {
   if (!raceId) return;
   if (!isOnline()) return;
   await Promise.allSettled(raceEndpoints(raceId).map((endpoint) => TimekeeperAPI.get(endpoint)));
-};
-
-/** Totéž pro závod vybraný v tomto zařízení. */
-export const preloadSelectedRace = async () => {
-  let raceId = '';
-  try {
-    raceId = localStorage.getItem(SELECTED_RACE_KEY) || '';
-  } catch {
-    raceId = '';
-  }
-  await preloadRaceData(raceId);
 };

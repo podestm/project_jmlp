@@ -1,0 +1,29 @@
+.name {
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.mono {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink-body);
+}
+
+.muted {
+  color: var(--ms-ink-muted);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-1);
+}
+
+/* Mobil: místo tabulky seznam (RacerList). */
+@media (max-width: 767.98px) {
+  .wrap {
+    display: none;
+  }
+}

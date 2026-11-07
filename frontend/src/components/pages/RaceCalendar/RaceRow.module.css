@@ -1,0 +1,65 @@
+/* Název závodu je odkaz na detail roztažený přes celou kartu (::after);
+   akce vpravo leží nad ním, protože jsou v DOM později a mají position. */
+.titleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ms-ink);
+  text-decoration: none;
+}
+
+.titleLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.titleLink:hover {
+  color: var(--ms-navy);
+  text-decoration: underline;
+}
+
+.methodIcon {
+  flex-shrink: 0;
+  color: var(--ms-navy);
+}
+
+/* Stav na desktopu svisle na střed řádku, na mobilu vlevo nad akcemi. */
+.badge {
+  align-self: center;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  gap: var(--ms-space-2);
+  margin-inline-start: var(--ms-space-2);
+}
+
+/* Dokument chybí: přerušovaný rámeček ve tvaru tlačítka, ale není to ovládací prvek. */
+.missing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--ms-target);
+  padding: 0 15px;
+  border: 1.5px dashed var(--ms-line-control);
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-md);
+  font-weight: 600;
+  color: var(--ms-ink-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .badge {
+    align-self: flex-start;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    margin-inline-start: 0;
+  }
+}

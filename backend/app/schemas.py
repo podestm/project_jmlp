@@ -435,7 +435,6 @@ class SeasonBase(BaseModel):
     year_end: Optional[int] = None       # dopočítá se jako year_start + 1
     edition: Optional[int] = None        # 19 -> "XIX."
     name: str = "Jihomoravský lyžařský pohár"
-    active: bool = True
 
 
 class SeasonCreate(SeasonBase):
@@ -447,12 +446,12 @@ class SeasonUpdate(BaseModel):
     year_end: Optional[int] = None
     edition: Optional[int] = None
     name: Optional[str] = None
-    active: Optional[bool] = None
 
 
 class Season(SeasonBase):
     id: int
     year_end: int
+    is_current: bool = False              # aktuální sezóna (nastavuje se zvlášť)
     edition_label: Optional[str] = None   # "XIX."
     season_label: Optional[str] = None    # "2025/2026"
     races_count: int = 0
@@ -472,16 +471,6 @@ class StartListEntryBase(BaseModel):
 
 class StartListEntryCreate(StartListEntryBase):
     pass
-
-def _zero_time_to_none(v):
-    """Čas 0, 0.0 i 0.00 (a záporný) = nezměřeno, ukládá se jako NULL."""
-    if v is None or v == '':
-        return None
-    try:
-        return None if float(v) <= 0 else v
-    except (TypeError, ValueError):
-        return v
-
 
 class StartListEntryUpdate(BaseModel):
     base_revision: Optional[str] = None
@@ -503,11 +492,6 @@ class StartListEntryUpdate(BaseModel):
     dns: Optional[bool] = None
     dsq: Optional[bool] = None
     points: Optional[int] = None
-
-    @field_validator('time1', 'time2', mode='before')
-    @classmethod
-    def zero_time_is_empty(cls, v):
-        return _zero_time_to_none(v)
 
 class StartListExcludedUpdate(BaseModel):
     """Vyřazení ze startovky - cílový stav, ne přepínač (viz start_list.py)."""
@@ -549,11 +533,6 @@ class TimeEntry(BaseModel):
     dnf: bool = False
     dns: bool = False
     dsq: bool = False
-
-    @field_validator('time1', 'time2', mode='before')
-    @classmethod
-    def zero_time_is_empty(cls, v):
-        return _zero_time_to_none(v)
 
 class BatchTimeEntry(BaseModel):
     """Batch update times for multiple racers"""

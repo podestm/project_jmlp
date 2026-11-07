@@ -1,0 +1,35 @@
+/* Design systém „Rank“: pódium 1 = ms-sun (text navy-deep 6,2:1), 2–3 = navy. */
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 6px;
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.md {
+  min-inline-size: 30px;
+  block-size: 30px;
+}
+
+.lg {
+  min-inline-size: 38px;
+  block-size: 34px;
+  font-size: var(--ms-fs-lg);
+}
+
+.rank[data-podium] {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.rank[data-podium='1'] {
+  background: var(--ms-sun);
+  color: var(--ms-navy-deep);
+}

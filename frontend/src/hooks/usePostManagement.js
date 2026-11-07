@@ -3,7 +3,11 @@ import { AdminAPI } from '../config/api.js';
 import { MONTH_NAMES } from '../config/constants.js';
 import { useRevalidateOnFocus } from './useRevalidateOnFocus.js';
 
-export const usePostManagement = () => {
+/**
+ * @param {{confirm?: Function}} [options] - confirm z useConfirm komponenty,
+ *   která hook používá (hook sám dialog vykreslit nemůže)
+ */
+export const usePostManagement = ({ confirm } = {}) => {
     // State management
     const [posts, setPosts] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
@@ -193,9 +197,15 @@ export const usePostManagement = () => {
     };
 
     const handleDelete = async (postId) => {
-        if (!window.confirm('Opravdu chcete smazat tento post?')) {
-            return;
-        }
+        const post = posts.find((item) => item.id === postId);
+        const confirmed = await confirm({
+            title: post?.title ? `Smazat příspěvek „${post.title}“?` : 'Smazat příspěvek?',
+            message: 'Smazání nejde vrátit.',
+            confirmLabel: 'Smazat příspěvek',
+            danger: true,
+            icon: 'trash'
+        });
+        if (!confirmed) return;
 
         try {
             await AdminAPI.delete(`/api/admin/posts/${postId}`);

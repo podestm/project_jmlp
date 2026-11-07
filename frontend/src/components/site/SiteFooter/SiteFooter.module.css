@@ -1,0 +1,202 @@
+/* Zavody.dc.html (úzká), Main.dc.html (velká, `full`), MobilZavody (pod 768 px). */
+.footer {
+  flex-shrink: 0;
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+.full {
+  background: var(--ms-navy-deep);
+}
+
+.muted {
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-ice);
+}
+
+/* ── Úzká lišta ── */
+.slim {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-5);
+  padding-block: 11px;
+}
+
+.slimNav {
+  display: flex;
+  gap: var(--ms-space-5);
+  margin-inline-start: auto;
+}
+
+.slimLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--ms-target);
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-on-dark);
+  text-decoration: none;
+}
+
+/* ── Velká patička úvodu ── */
+.columns {
+  display: flex;
+  gap: var(--ms-space-14);
+  padding-block: 40px 28px;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  flex-shrink: 0;
+  inline-size: 304px;
+}
+
+.aboutName {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-md);
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.aboutText {
+  font-size: var(--ms-fs-md);
+  line-height: 1.55;
+  color: var(--ms-ice);
+}
+
+.svaz {
+  align-self: flex-start;
+  inline-size: auto;
+  block-size: 44px;
+  margin-block-start: 10px;
+  object-fit: contain;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.column:last-child {
+  align-items: flex-end;
+  margin-inline-start: auto;
+}
+
+.columnTitle {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.13em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ms-sun);
+}
+
+.columnLink {
+  font-size: var(--ms-fs-base);
+  line-height: 1.6;
+  color: var(--ms-on-dark);
+  text-decoration: none;
+}
+
+/* Ochrana osobních údajů: v dolní liště úvodu a na mobilu, menší a tlumená. */
+.legalLink {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-block-size: var(--ms-target);
+  font-size: var(--ms-fs-md);
+  line-height: 1.5;
+  color: var(--ms-ice);
+  text-decoration: none;
+}
+
+.slimLink:hover,
+.columnLink:hover,
+.mobileLink:hover,
+.legalLink:hover {
+  color: var(--ms-on-dark);
+  text-decoration: underline;
+}
+
+.bottomLine {
+  border-top: 1px solid var(--ms-navy);
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  padding-block: 18px;
+}
+
+.credit {
+  margin-inline-start: auto;
+}
+
+/* ── Mobil ── */
+.mobile {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .footer,
+  .full {
+    background: var(--ms-navy);
+  }
+
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ms-space-3);
+    padding: 22px var(--ms-space-4) var(--ms-space-6);
+  }
+
+  .mobileBrand {
+    display: flex;
+    align-items: center;
+    gap: var(--ms-space-3);
+  }
+
+  .mobileName {
+    max-inline-size: 12em;
+    font-family: var(--ms-font-display);
+    font-weight: 700;
+    font-size: var(--ms-fs-sm);
+    letter-spacing: 0.05em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .mobileNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--ms-space-4);
+  }
+
+  .mobileLink {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--ms-target);
+    font-size: var(--ms-fs-lg);
+    line-height: 1.4;
+    color: var(--ms-on-dark);
+    text-decoration: none;
+  }
+
+  .mobileCopyright {
+    font-size: var(--ms-fs-sm);
+    line-height: 1.5;
+    color: var(--ms-ice);
+  }
+}

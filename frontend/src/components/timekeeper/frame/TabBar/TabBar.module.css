@@ -1,0 +1,142 @@
+/* TkPrehled: navy lišta 58 px, aktivní položka navy-deep s bílou linkou dole. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ms-space-4);
+  block-size: 58px;
+  padding-inline: var(--ms-space-6);
+  background: var(--ms-navy);
+  --ms-focus-color: var(--ms-ice);
+}
+
+.nav {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-inline-size: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  /* Plynule užší okraje, ať se celé názvy u admina vejdou i kolem 1440 px. */
+  padding-inline: clamp(var(--ms-space-2), 1vw - 2px, 15px);
+  border-bottom: 3px solid transparent;
+  color: var(--ms-ice);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.tab:hover {
+  color: var(--ms-on-dark);
+}
+
+.tab[aria-current='page'] {
+  border-bottom-color: var(--ms-on-dark);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.icon {
+  display: none;
+}
+
+.divider {
+  flex-shrink: 0;
+  align-self: center;
+  inline-size: 1px;
+  block-size: 26px;
+  margin-inline: 9px;
+  background: var(--ms-ice);
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+.end .divider {
+  margin-inline: 0;
+}
+
+/* Krátký popisek jen pod 1280 px. */
+.short {
+  display: none;
+}
+
+/* Pod 1280 px (tablet) ikona nad krátkým popiskem; celý název zůstane pro čtečku. */
+@media (max-width: 1279.98px) {
+  .tab {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-inline-size: 64px;
+    padding-inline: var(--ms-space-2);
+    font-size: var(--ms-fs-xs);
+  }
+
+  .icon {
+    display: block;
+  }
+
+  .hasShort {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .short {
+    display: block;
+  }
+}
+
+/* Pod 1024 px (tablet na výšku) užší okraje, ať se lišta vejde do 768 px. */
+@media (max-width: 1023.98px) {
+  .bar {
+    gap: var(--ms-space-2);
+    padding-inline: var(--ms-space-2);
+  }
+
+  .tab {
+    min-inline-size: 56px;
+    padding-inline: var(--ms-space-1);
+  }
+
+  .divider {
+    margin-inline: var(--ms-space-1);
+  }
+}
+
+/* Pod 768 px (iPad mini, split view, úzké okno): když se taby nevejdou,
+   posouvají se uvnitř lišty. Stín na okraji (jen když je co posunout)
+   a tenký posuvník ukazují, že za okrajem jsou další. */
+@media (max-width: 767.98px) {
+  .nav {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ms-ice) transparent;
+    background:
+      linear-gradient(to right, var(--ms-navy) 40%, transparent) left / var(--ms-space-8) 100% no-repeat local,
+      linear-gradient(to left, var(--ms-navy) 40%, transparent) right / var(--ms-space-8) 100% no-repeat local,
+      linear-gradient(to right, var(--ms-navy-deep), transparent) left / var(--ms-space-6) 100% no-repeat scroll,
+      linear-gradient(to left, var(--ms-navy-deep), transparent) right / var(--ms-space-6) 100% no-repeat scroll;
+  }
+
+  .tab,
+  .nav .divider {
+    flex-shrink: 0;
+  }
+}

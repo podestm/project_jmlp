@@ -1,0 +1,54 @@
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ms-space-4);
+  margin: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-inline-size: 0;
+  padding: var(--ms-space-4) 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.label {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.value {
+  margin: 0;
+  font-family: var(--ms-font-mono);
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+/* AdminMobilPrihlasky: dvě dlaždice vedle sebe, menší číslo. */
+@media (max-width: 767.98px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .tile {
+    gap: 2px;
+    padding: 10px var(--ms-space-3);
+  }
+
+  .value {
+    font-size: var(--ms-fs-2xl);
+  }
+}

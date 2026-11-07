@@ -1,0 +1,83 @@
+.table {
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-card);
+  background: var(--ms-surface-card);
+}
+
+.name {
+  font-weight: 700;
+  color: var(--ms-ink);
+}
+
+.race {
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink);
+}
+
+.areal {
+  color: var(--ms-ink-body);
+}
+
+.when {
+  font-size: var(--ms-fs-md);
+  color: var(--ms-ink-body);
+  white-space: nowrap;
+}
+
+.time {
+  font-family: var(--ms-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-ink);
+}
+
+.list {
+  display: none;
+}
+
+/* AdminMobilPrehled: řádky přes celou šířku místo tabulky. */
+@media (max-width: 767.98px) {
+  .table {
+    display: none;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    margin: 0 calc(-1 * var(--ms-space-4));
+    padding: 0;
+    border-block: 1px solid var(--ms-line);
+    background: var(--ms-surface-card);
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--ms-space-3);
+    padding: 10px var(--ms-space-4);
+  }
+
+  .item + .item {
+    border-top: 1px solid var(--ms-line);
+  }
+
+  .itemText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-inline-size: 0;
+  }
+
+  .meta {
+    font-size: var(--ms-fs-sm);
+    line-height: 1.35;
+    color: var(--ms-ink-body);
+  }
+
+  .when {
+    font-size: var(--ms-fs-xs);
+    text-align: end;
+  }
+}

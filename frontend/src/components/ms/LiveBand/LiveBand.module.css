@@ -1,0 +1,59 @@
+/* Design systém „LiveBand“ (Main.dc.html „právě se závodí“). */
+.band {
+  display: block;
+  background: var(--ms-red);
+  color: var(--ms-on-dark);
+  text-decoration: none;
+  --ms-focus-color: var(--ms-ice);
+}
+
+.band:hover {
+  color: var(--ms-on-dark);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  padding-block: 14px;
+}
+
+.dot {
+  flex-shrink: 0;
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background: var(--ms-on-dark);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.35; }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  font-size: var(--ms-fs-base);
+}
+
+.title {
+  font-family: var(--ms-font-display);
+  font-size: 17px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .inner {
+    flex-wrap: wrap;
+  }
+}

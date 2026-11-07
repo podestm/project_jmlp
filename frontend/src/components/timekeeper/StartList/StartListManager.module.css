@@ -1,0 +1,37 @@
+.single,
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  min-inline-size: 0;
+}
+
+/* S otevřeným generováním: listina a panel 360 px vedle sebe. */
+.withPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: var(--ms-space-5);
+}
+
+.summary {
+  font-weight: 600;
+  font-size: var(--ms-fs-base);
+}
+
+.count {
+  font-family: var(--ms-font-mono);
+  color: var(--ms-navy);
+}
+
+.excluded {
+  margin-inline-start: var(--ms-space-2);
+  font-weight: 400;
+  color: var(--ms-ink-body);
+}
+
+@media (max-width: 1279.98px) {
+  .withPanel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

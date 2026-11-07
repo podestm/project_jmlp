@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { ICONS } from '../components/ms/Icon/icons.js';
+import {
+  adminNav, publicFooterColumns, publicFooterLinks, publicLegalLink, publicLiveNav, publicNav, timekeeperNav,
+} from '../components/ms/navItems.js';
 
 /**
  * Na každou obrazovku musí vést odkaz z menu.
@@ -10,6 +14,11 @@ import { describe, expect, it } from 'vitest';
  * a /timekeeper/race-detail (údaje závodu do hlavičky výsledkové listiny)
  * existovaly, komponenty existovaly, build i testy procházely - jen na ně
  * nevedl žádný odkaz, takže z pohledu obsluhy ty funkce prostě zmizely.
+ *
+ * Menu se čtou z dat (components/ms/navItems.js), routy doslovně z <Route
+ * path="…">. Dokud starý rámec navItems nepoužívá, musí jeho odkazy s daty
+ * souhlasit - jinak by data mohla tiše zastarat a test procházet naprázdno.
+ * Nový rámec veřejného webu (SiteHeader, MobileMenu, SiteFooter) data čte.
  */
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -18,71 +27,98 @@ const read = (relative) => readFileSync(join(SRC, relative), 'utf8');
 const routesOf = (source, prefix) => {
   const paths = [...source.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]);
   return paths
-    .filter((path) => path !== '/' && !path.includes(':') && path !== '*')
-    .map((path) => `${prefix}${path}`);
+    .filter((path) => path !== '*' && !path.includes(':'))
+    .map((path) => (path === '/' ? prefix || '/' : `${prefix}${path}`));
 };
 
-const linksOf = (source) => new Set([...source.matchAll(/to="([^"]+)"/g)].map((m) => m[1]));
+/** Odkazy ve starém rámci: to="…" i položky pole { path: '…' }. */
+const legacyLinksOf = (source) => new Set([
+  ...[...source.matchAll(/\bto="([^"]+)"/g)].map((m) => m[1]),
+  ...[...source.matchAll(/\bpath:\s*'([^']+)'/g)].map((m) => m[1]),
+]);
 
 /**
  * Obrazovky, na které se schválně nechodí z menu. Každá výjimka musí mít důvod -
  * jinak je to zapomenutý odkaz, ne záměr.
  */
 const VYJIMKY = {
-  '/admin/register': 'zakládání dalšího správce je vzácná akce, chodí se na ni odkazem',
+  '/__ms': 'katalog kitu Modré stopy, jen v dev buildu',
+  '/archiv-zprav': 'stará adresa, přesměruje na /aktuality',
+  '/livetiming': 'stará adresa, přesměruje na /zive',
+  '/registrace': 'stará adresa, přesměruje na /zavody (přihláška je u závodu)',
 };
 
-describe('navigace administrace', () => {
+const SECTIONS = [
+  {
+    name: 'administrace',
+    items: adminNav,
+    routes: () => routesOf(read('components/admin/AdminRoutes.jsx'), '/admin'),
+    layout: 'components/admin/frame/AdminNav/AdminNav.jsx',
+    prefix: '/admin',
+  },
+  {
+    name: 'časoměřiče',
+    items: timekeeperNav,
+    routes: () => routesOf(read('components/timekeeper/TimekeeperRoutes.jsx'), '/timekeeper'),
+    layout: 'components/timekeeper/frame/TabBar/TabBar.jsx',
+    prefix: '/timekeeper',
+  },
+];
+
+describe.each(SECTIONS)('navigace $name', ({ items, routes, layout, prefix }) => {
+  const links = new Set(items.map((item) => item.to));
+
   it('na každou routu vede odkaz z menu', () => {
-    const routes = routesOf(read('components/admin/AdminRoutes.jsx'), '/admin');
-    const links = linksOf(read('components/admin/AdminLayout.jsx'));
-
-    const nedosazitelne = routes.filter((route) => !links.has(route) && !VYJIMKY[route]);
-
+    const nedosazitelne = routes().filter((route) => !links.has(route) && !VYJIMKY[route]);
     expect(nedosazitelne, `Routy bez odkazu v menu: ${nedosazitelne.join(', ')}`).toEqual([]);
   });
 
   it('menu neodkazuje na routu, která neexistuje', () => {
-    const routes = new Set(routesOf(read('components/admin/AdminRoutes.jsx'), '/admin'));
-    const links = [...linksOf(read('components/admin/AdminLayout.jsx'))]
-      .filter((link) => link.startsWith('/admin/'));
-
-    const mrtve = links.filter((link) => !routes.has(link));
-
+    const existing = new Set(routes());
+    const mrtve = [...links].filter((link) => !existing.has(link));
     expect(mrtve, `Odkazy v menu bez routy: ${mrtve.join(', ')}`).toEqual([]);
   });
-});
 
-describe('navigace časoměřiče', () => {
-  it('na každou routu vede odkaz z menu', () => {
-    const routes = routesOf(read('components/timekeeper/TimekeeperRoutes.jsx'), '/timekeeper');
-    const links = linksOf(read('components/timekeeper/TimekeeperLayout.jsx'));
-
-    const nedosazitelne = routes.filter((route) => !links.has(route) && !VYJIMKY[route]);
-
-    expect(nedosazitelne, `Routy bez odkazu v menu: ${nedosazitelne.join(', ')}`).toEqual([]);
-  });
-
-  it('menu neodkazuje na routu, která neexistuje', () => {
-    const routes = new Set(routesOf(read('components/timekeeper/TimekeeperRoutes.jsx'), '/timekeeper'));
-    const links = [...linksOf(read('components/timekeeper/TimekeeperLayout.jsx'))]
-      .filter((link) => link.startsWith('/timekeeper/'));
-
-    const mrtve = links.filter((link) => !routes.has(link));
-
-    expect(mrtve, `Odkazy v menu bez routy: ${mrtve.join(', ')}`).toEqual([]);
+  it('starý rámec, dokud nečte navItems, má stejné odkazy', () => {
+    const source = read(layout);
+    if (source.includes('navItems')) return;
+    const legacy = [...legacyLinksOf(source)].filter((link) => link === prefix || link.startsWith(`${prefix}/`));
+    expect(new Set(legacy)).toEqual(links);
   });
 });
 
 describe('veřejná navigace', () => {
-  it('menu neodkazuje na routu, která neexistuje', () => {
-    const router = read('Router.jsx');
-    const routes = new Set([...router.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]));
-    const links = [...linksOf(read('components/layouts/Navigation.jsx'))]
-      .filter((link) => link.startsWith('/') && !link.startsWith('/admin') && !link.startsWith('/timekeeper'));
+  const routes = () => routesOf(read('Router.jsx'), '')
+    .filter((route) => !route.startsWith('/admin') && !route.startsWith('/timekeeper'));
+  const menuLinks = [...publicNav, publicLiveNav].map((item) => item.to);
+  const footerLinks = [...publicFooterLinks, ...publicFooterColumns.flatMap((column) => column.links), publicLegalLink]
+    .map((item) => item.to);
 
-    const mrtve = links.filter((link) => !routes.has(link));
+  it('na každou routu vede odkaz z menu nebo patičky', () => {
+    const links = new Set([...menuLinks, ...footerLinks]);
+    const nedosazitelne = routes().filter((route) => !links.has(route) && !VYJIMKY[route]);
+    expect(nedosazitelne, `Routy bez odkazu v menu: ${nedosazitelne.join(', ')}`).toEqual([]);
+  });
 
-    expect(mrtve, `Odkazy v menu bez routy: ${mrtve.join(', ')}`).toEqual([]);
+  it('menu ani patička neodkazují na routu, která neexistuje', () => {
+    const existing = new Set(routes());
+    const mrtve = [...menuLinks, ...footerLinks].filter((link) => !existing.has(link));
+    expect(mrtve, `Odkazy bez routy: ${mrtve.join(', ')}`).toEqual([]);
+  });
+
+  it.each([
+    'components/site/SiteHeader/SiteHeader.jsx',
+    'components/site/MobileMenu/MobileMenu.jsx',
+    'components/site/SiteFooter/SiteFooter.jsx',
+    'components/timekeeper/frame/TabBar/TabBar.jsx',
+    'components/admin/frame/AdminNav/AdminNav.jsx',
+  ])('%s čte odkazy z navItems', (file) => {
+    expect(read(file)).toContain('navItems');
+  });
+});
+
+describe('položky menu', () => {
+  it.each([...publicNav, ...adminNav, ...timekeeperNav].filter((item) => item.icon))('$to má ikonu z registru kitu', (item) => {
+    expect(ICONS[item.icon]).toBeTruthy();
   });
 });

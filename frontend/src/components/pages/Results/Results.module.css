@@ -1,0 +1,155 @@
+/* Vysledky.dc.html a MobilVysledky.dc.html. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-10);
+  padding-block: 44px var(--ms-space-14);
+}
+
+/* Tlačítko PDF lícuje spodní hranou s polem Sezóna (to má nad sebou popisek). */
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.season {
+  inline-size: 232px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-5);
+}
+
+
+.categories {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ms-space-4);
+}
+
+/* Tlačítka kategorií ve stejně širokých sloupcích – řádky pod sebou lícují. */
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+}
+
+.categoryGrid > button {
+  padding-inline: 10px;
+}
+
+/* Popisek na výšku tlačítka, svisle na střed prvního řádku. */
+.categoriesLabel {
+  display: flex;
+  align-items: center;
+  min-block-size: 48px;
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-2);
+  padding: var(--ms-space-4) var(--ms-space-5);
+  background: var(--ms-surface-sunken);
+  border-radius: var(--ms-radius-card);
+  font-size: var(--ms-fs-md);
+  line-height: 1.55;
+  color: var(--ms-ink-body);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-2) var(--ms-space-5);
+  color: var(--ms-ink);
+}
+
+/* Čtvereček drží u svého popisku, i když se legenda zalomí. */
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ms-space-2);
+}
+
+.swatch {
+  flex-shrink: 0;
+  inline-size: 16px;
+  block-size: 16px;
+  border: 1px solid var(--ms-line);
+  border-radius: var(--ms-radius-inner);
+  background: var(--ms-surface-card);
+}
+
+.swatch[data-kind='P'] {
+  background: var(--ms-dry-bg);
+}
+
+.swatch[data-kind='S'] {
+  background: var(--ms-surface-sunken);
+  border-color: var(--ms-line-control);
+}
+
+.raceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-3);
+  list-style: none;
+}
+
+.raceActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-3);
+}
+
+.categorySelect,
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .page {
+    gap: var(--ms-space-8);
+    padding-block: var(--ms-space-5) var(--ms-space-10);
+  }
+
+  .headerActions {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .season {
+    inline-size: 100%;
+  }
+
+  .categories,
+  .desktopOnly {
+    display: none;
+  }
+
+  .categorySelect {
+    display: flex;
+  }
+
+  .mobileOnly {
+    display: block;
+  }
+
+  .raceActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

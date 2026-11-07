@@ -6,7 +6,8 @@ from ..database import get_db
 from .. import models, schemas
 from ..models import AttachmentRole
 from ..services import attachments as attachment_service
-from ..utils import get_current_season_id, calculate_season_for_date, category_display_sql
+from ..services import seasons as season_service
+from ..utils import get_current_season_id, calculate_season_for_date, category_display_sql, to_roman, EDITION_BASE_YEAR
 from typing import List
 from pathlib import Path
 from datetime import datetime, date
@@ -17,7 +18,14 @@ router = APIRouter(prefix="/races", tags=["races"])
 def get_current_season_filter(db: Session) -> int:
     """
     Získá aktuální season_id pro filtrování závodů.
+
+    Rozhoduje sezóna označená ve správě jako aktuální. Bez ní se vezme
+    sezóna podle data, a když v ní ještě nejsou závody, poslední se závody.
     """
+    flagged = season_service.flagged_season_id(db)
+    if flagged is not None:
+        return flagged
+
     current_season = get_current_season_id()
     
     # Ověříme, že tato sezóna existuje v databázi
@@ -229,13 +237,20 @@ def get_live_race(response: Response, db: Session = Depends(get_db)):
 @router.get("/season/current")
 def get_current_season(db: Session = Depends(get_db)):
     """
-    Vrátí informace o aktuální sezóně podle data.
+    Vrátí aktuální sezónu (označenou ve správě sezón, jinak podle data)
+    i s ročníkem - podle ní web, administrace i časomíra volí výchozí sezónu.
     """
     current_season_id = get_current_season_filter(db)
     current_date = date.today()
-    
+    season = db.query(models.Season).filter(models.Season.year_start == current_season_id).first()
+    edition = season.edition if season and season.edition else current_season_id - EDITION_BASE_YEAR
+
     return {
         "current_season_id": current_season_id,
+        "edition": edition,
+        "edition_label": f"{to_roman(edition)}.",
+        "name": season.name if season else None,
+        "is_set": bool(season and season.is_current),
         "season_logic": f"Sezóna {current_season_id} (začíná 1.8.{current_season_id})",
         "current_date": current_date,
         "season_start": date(current_season_id, 8, 1),

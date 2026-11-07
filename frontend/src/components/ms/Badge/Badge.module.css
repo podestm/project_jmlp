@@ -1,0 +1,88 @@
+/* DesignSystem „Stavové štítky“ a AdminZavody (malá varianta). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 7px;
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.md {
+  padding: 7px 12px;
+  font-size: var(--ms-fs-sm);
+  font-weight: 700;
+}
+
+.sm {
+  padding: 4px 10px;
+  font-size: var(--ms-fs-xs);
+  font-weight: 600;
+}
+
+.open {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.closed {
+  background: var(--ms-red);
+  color: var(--ms-on-dark);
+}
+
+.live {
+  gap: 8px;
+  background: var(--ms-red);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--ms-on-dark);
+}
+
+.neutral {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink-body);
+  font-weight: 600;
+}
+
+.dry {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+  font-weight: 600;
+}
+
+.navy {
+  background: var(--ms-navy);
+  color: var(--ms-on-dark);
+}
+
+/* Teplé zvýraznění bez stavu (design systém), střídmě – nikdy pro stav. */
+.accent {
+  background: var(--ms-sun);
+  color: var(--ms-navy-deep);
+  font-weight: 700;
+}
+
+/* Počet (např. žádosti o kluby v menu): amber kolečko s číslem v Plex Mono. */
+.count {
+  justify-content: center;
+  min-inline-size: 24px;
+  block-size: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--ms-amber);
+  color: var(--ms-amber-ink);
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

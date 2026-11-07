@@ -1,0 +1,88 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ms-space-4);
+  min-inline-size: 0;
+}
+
+.caps {
+  flex-shrink: 0;
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+/* Jedna řada nízkých čipů na všech obrazovkách; co se nevejde, posune se
+   uvnitř řady (jako taby rámce), řádek nástrojů tak nenarůstá. */
+.chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-inline-size: 0;
+  padding-block: 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 30px;
+  padding: 0 10px;
+  background: var(--ms-surface-card);
+  border: 1px solid var(--ms-line-control);
+  border-radius: var(--ms-radius-pill);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-xs);
+  white-space: nowrap;
+  color: var(--ms-navy);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--ms-surface-sunken);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.count {
+  font-family: var(--ms-font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Značka stavu (SLČR): kroužek s ikonou, na vybraném čipu obrácené barvy. */
+.mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
+.done {
+  background: var(--ms-open);
+  color: var(--ms-on-dark);
+}
+
+.pending {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.chip[aria-pressed='true'] .mark {
+  box-shadow: 0 0 0 1.5px var(--ms-on-dark);
+}

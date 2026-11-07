@@ -1,0 +1,48 @@
+.trigger {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Když obal roztáhne rozvržení (grid, flex-grow), tlačítko ho vyplní. */
+.trigger > * {
+  flex-grow: 1;
+}
+
+/* Zakázané tlačítko nepouští události myši – najetí zachytí obal. */
+.trigger > :disabled {
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  inset-inline-start: 50%;
+  z-index: var(--ms-z-popover);
+  inline-size: max-content;
+  max-inline-size: 240px;
+  padding: var(--ms-space-1) var(--ms-space-2);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+  font-family: var(--ms-font-text);
+  font-size: var(--ms-fs-xs);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  pointer-events: none;
+  transform: translateX(calc(-50% + var(--ms-tooltip-shift, 0px)));
+}
+
+.bubble[hidden] {
+  display: none;
+}
+
+.bottom {
+  inset-block-start: calc(100% + var(--ms-space-1));
+}
+
+.top {
+  inset-block-end: calc(100% + var(--ms-space-1));
+}

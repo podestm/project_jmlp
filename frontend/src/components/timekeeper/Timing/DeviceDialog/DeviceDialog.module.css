@@ -1,0 +1,84 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ms-space-4);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 50%;
+  background: var(--ms-line-control);
+  flex-shrink: 0;
+}
+
+.dotOn {
+  background: var(--ms-open);
+}
+
+.status {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-lg);
+  color: var(--ms-ink);
+}
+
+.port {
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-ink-body);
+}
+
+.caps {
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-2xs);
+  letter-spacing: var(--ms-tracking-caps);
+  text-transform: uppercase;
+  color: var(--ms-ink-body);
+}
+
+.baud {
+  inline-size: 120px;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counts > li {
+  padding: 2px var(--ms-space-2);
+  border-radius: var(--ms-radius-control);
+  background: var(--ms-surface-sunken);
+  font-family: var(--ms-font-display);
+  font-weight: 600;
+  font-size: var(--ms-fs-xs);
+  color: var(--ms-ink);
+}
+
+.counts > .warn {
+  background: var(--ms-dry-bg);
+  color: var(--ms-dry-ink);
+}
+
+.counts > .danger {
+  background: var(--ms-live-ink);
+  color: var(--ms-on-dark);
+}
+
+.more {
+  align-self: flex-start;
+  font-size: var(--ms-fs-sm);
+  color: var(--ms-navy);
+}

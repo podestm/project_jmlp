@@ -1,0 +1,157 @@
+/* Hodnoty z artboardů (DesignSystem, DialogPotvrzeni, AdminZavody). */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1.5px solid transparent;
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-size: var(--ms-fs-lg);
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sm {
+  min-height: var(--ms-target);
+  padding: 0 14px;
+  font-size: var(--ms-fs-md);
+}
+
+.md {
+  min-height: 48px;
+  padding: 0 20px;
+}
+
+.lg {
+  min-height: 52px;
+  padding: 0 24px;
+}
+
+.block {
+  display: flex;
+  inline-size: 100%;
+}
+
+.primary {
+  background: var(--ms-navy);
+  border-color: var(--ms-navy);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.primary:hover {
+  background: var(--ms-navy-deep);
+  border-color: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+.outline {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-line-control);
+  color: var(--ms-navy);
+  font-weight: 600;
+}
+
+.outline:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
+/* Nebezpečná akce je vždy obrys v barvě chyby (DialogPotvrzeni). */
+.danger {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-live-ink);
+  color: var(--ms-live-ink);
+  font-weight: 700;
+}
+
+.danger:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-live-ink);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--ms-navy);
+  font-weight: 600;
+}
+
+.quiet:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
+/* Na navy ploše (hlavička detailu závodu, úvod): obrys v ledové, bílý text. */
+.on-dark {
+  background: transparent;
+  border-color: var(--ms-ice);
+  color: var(--ms-on-dark);
+  font-weight: 600;
+  --ms-focus-color: var(--ms-ice);
+}
+
+.on-dark:hover {
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+/* Vratná kladná akce (TkStartovniListinaVyrazeni „Vrátit“): zelená --ms-open. */
+.open {
+  background: var(--ms-open);
+  border-color: var(--ms-open);
+  color: var(--ms-on-dark);
+  font-weight: 700;
+}
+
+.open:hover {
+  background: var(--ms-navy-deep);
+  border-color: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
+
+/* Hlavní akce na navy ploše: bílé tlačítko s navy textem (ZavodDetailOdjeto). */
+.inverse {
+  background: var(--ms-surface-card);
+  border-color: var(--ms-surface-card);
+  color: var(--ms-navy);
+  font-weight: 700;
+  --ms-focus-color: var(--ms-ice);
+}
+
+.inverse:hover {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-navy);
+}
+
+/* Teplý akcent (design systém): nejvýš jedno na obrazovku – hlavní akce
+   na tmavé ploše, typicky „Přihlásit na závod“ v hrdině úvodu. */
+.accent {
+  background: var(--ms-sun);
+  border-color: var(--ms-sun);
+  color: var(--ms-navy-deep);
+  font-weight: 700;
+}
+
+.accent:hover {
+  background: var(--ms-sun-ink);
+  border-color: var(--ms-sun-ink);
+  color: var(--ms-on-dark);
+}
+
+/* Vypnuté: přerušovaný rámeček a tlumený text (DesignSystem „Přihlášky uzavřeny“). */
+.button:disabled:not([data-busy]),
+.button[aria-disabled='true'] {
+  background: var(--ms-surface-sunken);
+  border-color: var(--ms-line-control);
+  border-style: dashed;
+  color: var(--ms-ink-muted);
+  cursor: not-allowed;
+}
+
+.button[data-busy] {
+  cursor: progress;
+}

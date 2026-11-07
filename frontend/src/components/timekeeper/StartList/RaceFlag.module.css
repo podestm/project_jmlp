@@ -1,0 +1,26 @@
+.flag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--ms-radius-control);
+  font-family: var(--ms-font-display);
+  font-weight: 700;
+  font-size: var(--ms-fs-xs);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+
+.dnf {
+  background: var(--ms-amber);
+  color: var(--ms-amber-ink);
+}
+
+.dns {
+  background: var(--ms-surface-sunken);
+  color: var(--ms-ink);
+}
+
+.dsq {
+  background: var(--ms-navy-deep);
+  color: var(--ms-on-dark);
+}
